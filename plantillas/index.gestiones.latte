@@ -1,0 +1,53 @@
+{var $gestiones = [[
+'title' => 'Mejora de Infraestructura',
+'description' => 'Renovación de aulas y espacios comunes en escuelas locales.',
+'image' => '/images/gestiones/infraestructura.jpg',
+'link' => '/gestiones/mejora-infraestructura',
+], [
+'title' => 'Capacitación Docente',
+'description' => 'Programas de formación continua para profesores.',
+'image' => '/images/gestiones/capacitacion.jpg',
+'link' => '/gestiones/capacitacion-docente',
+], [
+'title' => 'Becas Estudiantiles',
+'description' => 'Otorgamiento de becas para estudiantes destacados.',
+'image' => '/images/gestiones/becas.jpg',
+'link' => '/gestiones/becas-estudiantiles',
+]]}
+
+
+<section class="section testimonials__v2  min-vh-100 d-flex flex-column justify-content-center" id="testimonials">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-lg-5 mx-auto text-center">
+                <span class="subtitle text-uppercase mb-3" data-aos="fade-up"
+                      data-aos-delay="0">Nuestras Gestiones</span>
+                <h2 class="mb-3" data-aos="fade-up" data-aos-delay="100">Lo que hemos logrado</h2>
+                <p data-aos="fade-up" data-aos-delay="200">Nuestros logros hablan por sí mismos.</p>
+            </div>
+        </div>
+        {if $gestiones}
+            <div class="row g-4">
+                {foreach $gestiones as $idx => $gestion}
+                    {include _simple-card.latte,
+                    idx: $idx,
+                    titulo: $gestion['title'],
+                    descripcion: $gestion['description'],
+                    enlace: $gestion['link'],
+                    imagen: $gestion['image']
+                    }
+                {/foreach}
+                <div class="text-center mt-3">
+                    <a href="/gestiones" class="btn bg-secondary btn-sm mx-auto" data-aos="fade-up"
+                       data-aos-delay="300">
+                        Todas nuestras gestiones
+                    </a>
+                </div>
+            </div>
+        {else}
+            <div class="col-12 text-center" data-aos="fade-up" data-aos-delay="300">
+                <p>No se encontraron gestiones recientes.</p>
+            </div>
+        {/if}
+    </div>
+</section>

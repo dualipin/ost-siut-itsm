@@ -1,0 +1,8 @@
+# Versión corregida y limpia para .htaccess
+RewriteEngine On
+
+# Hacer que la carpeta vendor y su contenido parezcan no existir
+RedirectMatch 404 ^/vendor/.*
+
+ErrorDocument 404 /no-encontrado.php
+ErrorDocument 403 /no-encontrado.php

@@ -1,0 +1,37 @@
+{if $notices && count($notices) > 0}
+<div id="noticesCarousel" class="carousel slide img-main" data-bs-ride="carousel" style="max-height:400px; min-height:400px; overflow:hidden;">
+    <div class="carousel-inner">
+        {foreach $notices as $idx => $notice}
+        <div class="carousel-item{if $idx === 0} active{/if}">
+            <div class="d-block w-100 p-3 border rounded-3 shadow" style="max-height:400px;">
+                {if !empty($notice['img'])}
+                <img
+                    src="{$notice['img']}"
+                    class="mb-3 img-fluid rounded w-100"
+                    style="object-fit:cover; max-height:300px; min-height: 300px;"
+                    alt="Imagen de aviso">
+                {else}
+                <img
+                    src="/assets/images/logo.webp"
+                    class="mb-3 img-fluid rounded w-100"
+                    style="object-fit:contain; max-height:300px;"
+                    alt="Imagen de aviso por defecto">
+                {/if}
+                <a href="/avisos/{$notice['id']}" class="text-decoration-none text-dark">
+                    <h5 class="mb-2 text-primary">{$notice['title']}</h5>
+                    <p class="mb-0" style="display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden; text-overflow:ellipsis;">{$notice['summary']|escapeHtml}</p>
+                </a>
+            </div>
+        </div>
+        {/foreach}
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#noticesCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon bg-primary rounded-5" aria-hidden="true"></span>
+        <span class="visually-hidden">Anterior</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#noticesCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon bg-primary rounded-5" aria-hidden="true"></span>
+        <span class="visually-hidden">Siguiente</span>
+    </button>
+</div>
+{/if}

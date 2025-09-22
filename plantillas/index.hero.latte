@@ -1,0 +1,103 @@
+<section class="hero__v6 section" id="home">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-6 mb-4 mb-lg-0">
+        <div class="row">
+          <div class="col-lg-11"><span class="hero-subtitle text-uppercase" data-aos="fade-up"
+                                       data-aos-delay="0">LA GRAN FAMILIA SINDICAL</span>
+            <h1 class="hero-title mb-3 fw-bold" data-aos="fade-up" data-aos-delay="100">OST-SIUT-ITSM</h1>
+            <p class="hero-description mb-4 mb-lg-5 position-relative" data-aos="fade-up"
+               data-aos-delay="200">
+              <span id="animated-hero-desc" class="d-inline-block position-relative" style="display: inline-block;">
+                <!-- Texto será animado por JS -->
+              </span>
+              <svg id="hero-desc-underline" width="100%" height="32" viewBox="0 0 400 32" fill="none"
+                   xmlns="http://www.w3.org/2000/svg"
+                   style="position: absolute; left: 0; bottom: -12px; pointer-events: none;">
+                <defs>
+                  <linearGradient id="hero-underline-gradient" x1="0" y1="0" x2="400" y2="0"
+                                  gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#611232"/>
+                    <stop offset="100%" stop-color="#a57f2c"/>
+                  </linearGradient>
+                  <filter id="hero-underline-shadow" x="-20" y="-20" width="600" height="72"
+                          filterUnits="userSpaceOnUse">
+                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#611232"
+                                  flood-opacity="0.4"/>
+                  </filter>
+                </defs>
+                <path d="M20 24 C100 36 300 12 380 24" stroke="url(#hero-underline-gradient)"
+                      stroke-width="5" fill="none"
+                      filter="url(#hero-underline-shadow)" stroke-linecap="round"/>
+              </svg>
+
+            </p>
+
+            <script>
+              document.addEventListener('DOMContentLoaded', () => {
+                const desc = document.getElementById('animated-hero-desc');
+                const text = "Porque la razón está en la educación; luchemos unidos por ella";
+                desc.textContent = '';
+
+                text.split('').forEach(char => {
+                  const span = document.createElement('span');
+                  span.textContent = char;
+                  span.style.opacity = 0;
+                  desc.appendChild(span);
+                });
+
+                gsap.to('#animated-hero-desc span', {
+                  opacity: 1,
+                  stagger: 0.02,
+                  duration: 0,
+                  ease: "power2.out"
+                });
+
+                const svgPath = document.querySelector('#hero-desc-underline path');
+                if (svgPath) {
+                  gsap.fromTo(svgPath, {
+                    strokeDasharray: 400,
+                    strokeDashoffset: 400
+                  }, {
+                    strokeDashoffset: 0,
+                    duration: 1,
+                    delay: 1.3,
+                    ease: "power2.out"
+                  });
+                } else {
+                  console.warn("SVG path not found for GSAP animation.");
+                }
+              });
+            </script>
+
+            <div class="cta d-flex gap-2 mb-4 mb-lg-5" data-aos="fade-up" data-aos-delay="300">
+              <a class="btn" href="/cuenta/login.php">Acceder al Portal</a>
+            </div>
+            <div class="logos mb-4" data-aos="fade-up" data-aos-delay="400">
+              <span class="logos-title text-uppercase mb-4 d-block">En unidad permanente, TODOS SOMOS LA FUERZA</span>
+              <div class="logos-images d-flex gap-4 align-items-center">
+                <img class="img-fluid ratio-1x1" src="/assets/images/logo/logo-itsm.jpg" alt="ITSM"
+                     style="width: 80px;">
+                <img class="img-fluid ratio-1x1" src="/assets/images/logo/logo-siutitsm.jpg"
+                     alt="SIUT-ITSM" style="width: 80px;">
+                <img class="img-fluid ratio-1x1" src="/assets/images/logo/logo-tecnm.png" alt="Company 3"
+                     style="width: 80px;">
+              </div>
+              <span class="hero-subtitle mt-4">
+                Vistas:
+                <span id="visitas-count">{$visitaPagina}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="hero-img" data-aos="fade-in" data-aos-delay="500">
+          {include _carrusel.latte}
+          <!-- <img class="img-main img-fluid rounded-4" src="assets/images/hero-img-1-min.jpg" alt="Hero Image" data-aos="fade-in" data-aos-delay="500"> -->
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- End Hero-->
+</section>

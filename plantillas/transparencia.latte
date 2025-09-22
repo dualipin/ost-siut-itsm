@@ -1,0 +1,53 @@
+{layout _layout.latte}
+
+{var $linkActivo = 'transparencia'}
+
+
+{block content}
+  <section class="about__v4 section" id="about">
+    <div class="container pt-5">
+      <div class="row mb-4">
+        <h1 data-aos="fade-up" data-aos-delay="0" class="text-uppercase fw-bold">
+          Transparencia
+        </h1>
+      </div>
+      <div class="row">
+        <div class="col-md-6 order-md-2">
+          <div class="row justify-content-end">
+            <div class="col-md-11 mb-4 mb-md-0">
+              <span class="subtitle text-uppercase mb-3" data-aos="fade-up" data-aos-delay="0">Transparencia</span>
+              <h2 class="mb-4" data-aos="fade-up" data-aos-delay="100">Información Institucional</h2>
+              <div data-aos="fade-up" data-aos-delay="200">
+                <p>En esta sección encontrarás documentos y recursos relacionados con la transparencia de nuestro
+                  sindicato. Nuestro compromiso es mantener una gestión abierta y accesible para todos nuestros
+                  agremiados.</p>
+              </div>
+              <h2 class="mb-4 mt-5" data-aos="fade-up" data-aos-delay="300">Documentos Disponibles</h2>
+              <div data-aos="fade-up" data-aos-delay="400">
+                <ul>
+                  <li><a href="/docs/estatutos.pdf" target="_blank">Estatutos del Sindicato</a></li>
+                  <li><a href="/docs/informes-anuales.pdf" target="_blank">Informes Anuales</a></li>
+                  <li><a href="/docs/actas-asambleas.pdf" target="_blank">Actas de Asambleas</a></li>
+                  <li><a href="/docs/presupuestos.pdf" target="_blank">Presupuestos y Finanzas</a></li>
+                </ul>
+              </div>
+              <h2 class="mb-4 mt-5" data-aos="fade-up" data-aos-delay="500">Contacto para Consultas</h2>
+              <div data-aos="fade-up" data-aos-delay="600">
+                <p>Si tienes alguna pregunta o necesitas información adicional, no dudes en contactarnos a través de
+                  nuestro correo electrónico: correo@correo o llamarnos al teléfono: 123-456-7890.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 order-md-1">
+          <div class="row justify-content-start">
+            <div class="col-md-11">
+              <img src="/assets/images/logo/logo-itaip.png" alt="Imagen de Transparencia"
+                   class="img-fluid rounded" data-aos="fade-up" data-aos-delay="700">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+{/block}

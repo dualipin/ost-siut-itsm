@@ -1,0 +1,23 @@
+{varType ?App\Entidades\EntidadMiembro $miembro}
+{extends $csrf_token}
+{}
+
+<h1>Página de Prueba de Variable Global</h1>
+
+{block local bloque}
+  <p>Este es un bloque local dentro de la plantilla de prueba.</p>
+
+  {$miembro?->getRol()}
+{/block}
+
+
+{if $miembro?->getRol()}
+  <p style="color: green;">PRUEBA EXITOSA: La variable 'miembro' existe y es un objeto.</p>
+  <p>El método getNombre() funciona: {$miembro->getNombre()}</p>
+{else}
+  <p style="color: blue;">PRUEBA EXITOSA: La variable 'miembro' es null, lo cual es correcto para un visitante.</p>
+{/if}
+
+{$csrf_token}
+
+
