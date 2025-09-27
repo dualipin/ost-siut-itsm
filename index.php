@@ -1,10 +1,13 @@
 <?php
+declare(strict_types=1);
 
+use App\Fabricas\FabricaLatte;
 use App\Modelos\Visita;
 use App\Utilidades\Numero;
 
-/* @var Latte\Engine $latte */
-$latte = require_once __DIR__ . '/src/latte.php';
+require_once __DIR__ . '/src/configuracion.php';
+
+$latte = FabricaLatte::obtenerInstancia();
 
 Visita::agregarVisita();
 
