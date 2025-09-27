@@ -1,13 +1,9 @@
 <?php
 declare(strict_types=1);
 
-/* @var Latte\Engine $latte */
-$latte = require_once __DIR__ . '/src/latte.php';
+use App\Fabricas\FabricaLatte;
 
-$templatePath = __DIR__ . '/plantillas/noticias.latte';
+require_once __DIR__ . '/src/configuracion.php';
 
-$params = [
-    // 'title' => 'Página de ejemplo',
-];
-
-$latte->render($templatePath, $params);
+FabricaLatte::obtenerInstancia()
+        ->render(__DIR__ . '/plantillas/noticias.latte');
