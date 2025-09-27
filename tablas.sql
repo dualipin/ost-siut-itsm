@@ -50,3 +50,31 @@ CREATE TABLE IF NOT EXISTS publicaciones
     fecha      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fk_miembro INT          REFERENCES miembros (id) ON DELETE SET NULL
 );
+
+CREATE TABLE IF NOT EXISTS solicitudes_prestamos
+(
+    id         INT AUTO_INCREMENT PRIMARY KEY,
+    monto      DECIMAL(10, 2) NOT NULL,
+    plazo      INT            NOT NULL,
+    fk_miembro INT REFERENCES miembros (id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS prestamos_aprobados
+(
+    id             INT AUTO_INCREMENT PRIMARY KEY,
+    monto          DECIMAL(10, 2) NOT NULL,
+    plazo          INT            NOT NULL,
+    tasa           DECIMAL(5, 2)  NOT NULL,
+    fecha_aprobado DATE           NOT NULL,
+    fk_solicitud   INT REFERENCES solicitudes_prestamos (id) ON DELETE CASCADE,
+    fk_aprobador   INT            REFERENCES miembros (id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS prestamos_rechazados
+(
+    id            INT AUTO_INCREMENT PRIMARY KEY,
+    motivo        VARCHAR(255) NOT NULL,
+    fecha_rechazo DATE         NOT NULL,
+    fk_solicitud  INT REFERENCES solicitudes_prestamos (id) ON DELETE CASCADE,
+    fk_rechazador INT          REFERENCES miembros (id) ON DELETE SET NULL
+);
