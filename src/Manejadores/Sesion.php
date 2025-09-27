@@ -15,14 +15,39 @@ final class Sesion
     public static function iniciar(): void
     {
         if (session_status() === PHP_SESSION_NONE) {
-            ini_set('session.cookie_secure', '1');   // Solo HTTPS
-            ini_set('session.cookie_httponly', '1'); // No accesible desde JS
-            ini_set('session.use_strict_mode', '1'); // Evita reutilizar IDs inválidos
-            ini_set('session.use_trans_sid', '0');   // No pasar ID en URL
+            // Carpeta de sesiones controlada por ti
+            $rutaSesiones = __DIR__ . '/../../privado/sesiones';
+            if (!is_dir($rutaSesiones)) {
+                mkdir($rutaSesiones, 0700, true);
+            }
+            session_save_path($rutaSesiones);
+
+            // Configuración de cookies y seguridad
+            ini_set('session.cookie_secure', '1');
+            ini_set('session.cookie_httponly', '1');
+            ini_set('session.use_strict_mode', '1');
+            ini_set('session.use_trans_sid', '0');
+
+            // Control de expiración y limpieza
+            ini_set('session.gc_maxlifetime', (string) self::SESSION_LIFETIME);
+            ini_set('session.gc_probability', '1');
+            ini_set('session.gc_divisor', '100');
+            ini_set('session.cookie_lifetime', (string) self::SESSION_LIFETIME);
 
             session_start();
+
+            // 🔹 Opcional: renovar cookie en cada request
+            setcookie(session_name(), session_id(), [
+                    'expires'  => time() + self::SESSION_LIFETIME,
+                    'path'     => ini_get('session.cookie_path'),
+                    'domain'   => ini_get('session.cookie_domain'),
+                    'secure'   => true,
+                    'httponly' => true,
+                    'samesite' => 'Strict'
+            ]);
         }
     }
+
 
     /**
      * Inicia sesión de un miembro de forma segura.
