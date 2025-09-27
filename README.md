@@ -1,6 +1,6 @@
 # SIUT-ITSM - Sitio Web del Sindicato
 
-Sitio web oficial del **Sindicato Único de Trabajadores del Instituto Tecnológico Superior de Motul (SIUT-ITSM)**.
+Sitio web oficial del **Sindicato Único de Trabajadores del Instituto Tecnológico Superior de Macuspana (SIUT-ITSM)**.
 
 ## Descripción
 
