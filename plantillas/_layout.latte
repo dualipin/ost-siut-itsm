@@ -2,11 +2,9 @@
 
 {block base_content}
   <div class="site-wrap">
-
     <!-- ======= Header =======-->
     <header class="fbs__net-navbar navbar navbar-expand-lg dark" aria-label="navbar">
       <div class="container d-flex align-items-center justify-content-between">
-
 
         <!-- Start Logo-->
         <a class="navbar-brand w-auto rounded-circle" href="/">
@@ -16,7 +14,6 @@
 
         <div class="offcanvas offcanvas-start w-75" id="fbs__net-navbars" tabindex="-1"
              aria-labelledby="fbs__net-navbarsLabel">
-
 
           <div class="offcanvas-header">
             <div class="offcanvas-header-logo">
@@ -38,50 +35,144 @@
                   Inicio
                 </a>
               </li>
+
               <li class="nav-item">
                 <a class="nav-link scroll-link {$linkActivo === 'avisos' ? 'active'}"
                    href="/avisos.php">
                   Avisos
                 </a>
               </li>
+
               <li class="nav-item">
                 <a class="nav-link scroll-link {$linkActivo === 'noticias' ? 'active'}"
                    href="/noticias.php">
                   Noticias
                 </a>
               </li>
+
               <li class="nav-item">
                 <a class="nav-link scroll-link {$linkActivo === 'gestiones' ? 'active'}"
                    href="/gestiones.php">
                   Gestiones
                 </a>
               </li>
-              <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"
-                                               aria-expanded="false">Recursos <i class="bi bi-chevron-down"></i></a>
 
-                <ul class="dropdown-menu">
-                  <li><a class="nav-link scroll-link dropdown-item" href="/formatos">Formatos</a></li>
-                  <li><a class="nav-link scroll-link dropdown-item" href="/acervo">Acervo Bibliográfico</a></li>
-                </ul>
-              </li>
               <li class="nav-item">
                 <a class="nav-link scroll-link {$linkActivo === 'contacto' ? 'active'}" href="/#contact">
                   Contacto
                 </a>
               </li>
+
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                  Mas...
+                  <i class="bi bi-chevron-down"></i>
+                </a>
+
+                <ul class="dropdown-menu">
+
+                  <li class="nav-item dropstart">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                      Repositorios
+                      <i class="bi bi-chevron-right"></i>
+                    </a>
+
+                    <ul class="dropdown-menu">
+                      <li>
+                        <a class="nav-link scroll-link dropdown-item text-wrap" href="#services">
+                          Documentos de Gestoría a la Administración
+                        </a>
+                      </li>
+
+                      <li>
+                        <a class="nav-link scroll-link dropdown-item text-wrap" href="#services">
+                          Documentos Gremiales
+                        </a>
+                      </li>
+
+                      <li>
+                        <a class="nav-link scroll-link dropdown-item text-wrap" href="#services">
+                          Trámites ante Autoridades Laborales
+                        </a>
+                      </li>
+
+                      <li>
+                        <a class="nav-link scroll-link dropdown-item text-wrap" href="#services">
+                          Minutas y Actas de Acuerdos
+                        </a>
+                      </li>
+                    </ul>
+                  </li>
+
+                  <li class="nav-item dropstart">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                      Transparencia
+                      <i class="bi bi-chevron-right"></i>
+                    </a>
+
+                    <ul class="dropdown-menu">
+                      <li>
+                        <a class="nav-link scroll-link dropdown-item text-wrap" href="#services">
+                          Ahorro altruista voluntario
+                        </a>
+                      </li>
+
+                      <li>
+                        <a class="nav-link scroll-link dropdown-item text-wrap" href="#services">
+                          Cuotas voluntarias altruistas gremiales
+                        </a>
+                      </li>
+
+                      <li>
+                        <a class="nav-link scroll-link dropdown-item text-wrap" href="#services">
+                          Gestiones Sindicales
+                        </a>
+                      </li>
+
+                      <li>
+                        <a class="nav-link scroll-link dropdown-item text-wrap" href="/transparencia.php">
+                          Vínculos Normativos de Transparencia
+                        </a>
+                      </li>
+                    </ul>
+                  </li>
+
+                  <li class="nav-item dropstart">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                      Recursos
+                      <i class="bi bi-chevron-right"></i>
+                    </a>
+
+                    <ul class="dropdown-menu">
+                      <li>
+                        <a class="nav-link scroll-link dropdown-item text-wrap" href="#services">
+                          Formatos
+                        </a>
+                      </li>
+
+                      <li>
+                        <a class="nav-link scroll-link dropdown-item text-wrap" href="#services">
+                          Acervo Bibliográfico
+                        </a>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+
               <li class="nav-item">
-                <a class="nav-link scroll-link {$linkActivo === 'transparencia' ? 'active'}" href="/transparencia.php">
-                  Transparencia
+                <a class="nav-link scroll-link {$linkActive == 'acerca-de'?'active'}" href="/acerca-de.php">
+                  Acerca de
                 </a>
               </li>
-              <li class="nav-item"><a class="nav-link scroll-link {$linkActive == 'acerca-de'?'active'}"
-                                      href="/acerca-de.php">Acerca de</a></li>
+
               <li class="nav-item d-lg-none">
                 <a class="nav-link scroll-link"
                    href="/cuenta/login.php" rel="noopener noreferrer">
                   Acceder al Portal
                 </a>
               </li>
+
             </ul>
 
           </div>
@@ -200,13 +291,10 @@
       <i class="bi bi-facebook text-white fs-5"></i>
     </a>
   </div>
-
-
-
 {/block}
 
 {block script}
-  <script src="/assets/js/minified.js"></script>
+  <script src="/assets/js/custom.js"></script>
 {/block}
 
 {block content}
