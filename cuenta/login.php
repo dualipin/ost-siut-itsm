@@ -28,11 +28,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 2. Verificar credenciales
         $miembro = Cuenta::iniciarSesion($usuario, $password);
 
+        $redirect = $_POST['redirect'] ?? '/aplicacion/index.php';
+
         if ($miembro !== null) {
-            // 3. Usar la clase Sesion para iniciar sesión de forma segura
             Sesion::iniciarSesion($miembro->getId());
 
-            header('Location: /aplicacion/index.php');
+            // Validar que redirect sea interno (empiece con /)
+            if (!empty($redirect) && str_starts_with($redirect, '/')) {
+                header("Location: $redirect");
+            } else {
+                header("Location: /aplicacion/index.php");
+            }
             exit;
         } else {
             $error = 'Credenciales inválidas.';
@@ -45,4 +51,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ServicioLatte::renderizar(__DIR__ . '/../plantillas/cuenta/login.latte', [
         'error' => $error,
         'usuario' => $_POST['usuario'] ?? '',
+        'redirect' => $_GET['redirect'] ?? ($_POST['redirect'] ?? ''),
 ]);

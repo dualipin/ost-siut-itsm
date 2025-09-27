@@ -5,15 +5,22 @@ namespace App\Manejadores;
 final class SesionProtegida
 {
     /**
-     * Verifica si el usuario tiene sesión válida.
-     * Si no, redirige al login (o a la ruta indicada).
+     * Protege una página asegurándose de que el usuario esté autenticado.
+     * Si no lo está, redirige a la página de login con la URL original
+     * como parámetro para redirigir después del login.
+     * @param string $redirect
+     * @return void
      */
     public static function proteger(string $redirect = '/cuenta/login.php'): void
     {
         Sesion::iniciar();
 
         if (!Sesion::verificarSesion()) {
-            header("Location: $redirect");
+            // Guardar la URL actual que el usuario quería visitar
+            $urlActual = $_SERVER['REQUEST_URI'] ?? '';
+            $destino = $redirect . '?redirect=' . urlencode($urlActual);
+
+            header("Location: $destino");
             exit;
         }
     }
