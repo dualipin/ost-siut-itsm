@@ -1,9 +1,10 @@
 <?php
 declare(strict_types=1);
 
-use App\Fabricas\FabricaLatte;
+use App\Manejadores\SesionProtegida;
+use App\Servicios\ServicioLatte;
 
 require_once __DIR__ . '/../src/configuracion.php';
 
-FabricaLatte::obtenerInstancia()
-        ->render(__DIR__ . '/plantillas/transparencia.latte');
+SesionProtegida::proteger();
+ServicioLatte::renderizar(__DIR__ . '/plantillas/prohibido.latte');
