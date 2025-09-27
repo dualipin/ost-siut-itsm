@@ -23,20 +23,20 @@ final class Sesion
             session_save_path($rutaSesiones);
 
             // Configuración de cookies y seguridad
-            ini_set('session.cookie_secure', '1');
-            ini_set('session.cookie_httponly', '1');
-            ini_set('session.use_strict_mode', '1');
-            ini_set('session.use_trans_sid', '0');
+            ini_set('session.cookie_secure', '1');     // solo HTTPS
+            ini_set('session.cookie_httponly', '1');   // no accesible por JS
+            ini_set('session.use_strict_mode', '1');   // IDs estrictos
+            ini_set('session.use_trans_sid', '0');     // sin ID en URL
 
             // Control de expiración y limpieza
             ini_set('session.gc_maxlifetime', (string) self::SESSION_LIFETIME);
-            ini_set('session.gc_probability', '1');
-            ini_set('session.gc_divisor', '100');
+            ini_set('session.gc_probability', '1');    // 1%
+            ini_set('session.gc_divisor', '100');      // 1/100 = 1% de probabilidad
             ini_set('session.cookie_lifetime', (string) self::SESSION_LIFETIME);
 
             session_start();
 
-            // 🔹 Opcional: renovar cookie en cada request
+            // 🔹 Renovar cookie en cada request (sesión viva mientras haya actividad)
             setcookie(session_name(), session_id(), [
                     'expires'  => time() + self::SESSION_LIFETIME,
                     'path'     => ini_get('session.cookie_path'),
@@ -48,41 +48,27 @@ final class Sesion
         }
     }
 
-
-    /**
-     * Inicia sesión de un miembro de forma segura.
-     */
     public static function iniciarSesion(int $miembroId): void
     {
         self::iniciar();
-
         session_regenerate_id(true);
 
-        $_SESSION['miembro_id'] = $miembroId;
-        $_SESSION['user_ip'] = $_SERVER['REMOTE_ADDR'] ?? '';
-        $_SESSION['user_agent'] = $_SERVER['HTTP_USER_AGENT'] ?? '';
+        $_SESSION['miembro_id']   = $miembroId;
+        $_SESSION['user_ip']      = $_SERVER['REMOTE_ADDR'] ?? '';
+        $_SESSION['user_agent']   = $_SERVER['HTTP_USER_AGENT'] ?? '';
         $_SESSION['last_activity'] = time();
     }
 
-    /**
-     * Verifica si existe una sesión iniciada.
-     */
     public static function tieneSesionIniciada(): bool
     {
         return isset($_SESSION['miembro_id']);
     }
 
-    /**
-     * Devuelve el ID del miembro logueado o null.
-     */
     public static function idSesionAbierta(): ?int
     {
         return $_SESSION['miembro_id'] ?? null;
     }
 
-    /**
-     * Devuelve el objeto del miembro logueado.
-     */
     public static function sesionAbierta(): ?EntidadMiembro
     {
         $id = self::idSesionAbierta();
@@ -113,15 +99,12 @@ final class Sesion
             return false;
         }
 
-        // Actualizar última actividad
+        // 🔹 Actualizar última actividad
         $_SESSION['last_activity'] = time();
 
         return true;
     }
 
-    /**
-     * Genera un nuevo token CSRF.
-     */
     private static function generarNuevoToken(): string
     {
         try {
@@ -132,9 +115,6 @@ final class Sesion
         }
     }
 
-    /**
-     * Obtiene el token CSRF actual o genera uno nuevo.
-     */
     public static function obtenerCSRFToken(): string
     {
         if (empty($_SESSION['csrf_token'])) {
@@ -143,9 +123,6 @@ final class Sesion
         return $_SESSION['csrf_token'];
     }
 
-    /**
-     * Valida el token CSRF y rota si es válido.
-     */
     public static function validarCSRFToken(?string $token): bool
     {
         if (empty($_SESSION['csrf_token']) || $token === null) {
@@ -161,9 +138,6 @@ final class Sesion
         return $valido;
     }
 
-    /**
-     * Cierra la sesión limpiamente.
-     */
     public static function cerrarSesion(): void
     {
         if (session_status() === PHP_SESSION_ACTIVE) {
