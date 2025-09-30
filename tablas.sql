@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS miembros
     curp             VARCHAR(20) UNIQUE,
     fecha_ingreso    DATE DEFAULT NULL,
     fecha_nacimiento DATE DEFAULT NULL,
+    salario_quincenal DECIMAL(10, 2) DEFAULT NULL,
     fk_usuario       INT,
     CONSTRAINT fk_miembro_usuario
         FOREIGN KEY (fk_usuario)
@@ -34,6 +35,21 @@ CREATE TABLE IF NOT EXISTS miembros
     INDEX idx_fk_usuario (fk_usuario), -- índice para relaciones
     INDEX idx_nombre (nombre),         -- índice si buscas miembros por nombre
     INDEX idx_apellidos (apellidos)    -- índice si buscas miembros por apellidos
+);
+
+CREATE TABLE IF NOT EXISTS documentos_miembros
+(
+    id           INT AUTO_INCREMENT PRIMARY KEY,
+    nombre       VARCHAR(255) NOT NULL,
+    tipo         VARCHAR(100),
+    ruta         VARCHAR(255) NOT NULL,
+    fecha_subida TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fk_miembro   INT,
+    CONSTRAINT fk_documento_miembro
+        FOREIGN KEY (fk_miembro)
+            REFERENCES miembros (id)
+            ON DELETE CASCADE,
+    INDEX idx_fk_miembro (fk_miembro) -- índice para relaciones
 );
 
 
@@ -53,28 +69,69 @@ CREATE TABLE IF NOT EXISTS publicaciones
 
 CREATE TABLE IF NOT EXISTS solicitudes_prestamos
 (
-    id         INT AUTO_INCREMENT PRIMARY KEY,
-    monto      DECIMAL(10, 2) NOT NULL,
-    plazo      INT            NOT NULL,
-    fk_miembro INT REFERENCES miembros (id) ON DELETE CASCADE
+    id                    INT AUTO_INCREMENT PRIMARY KEY,
+    monto_solicitado      DECIMAL(10, 2) NOT NULL,
+    monto_aprobado        DECIMAL(10, 2) DEFAULT NULL,
+    plazo_meses           INT            NOT NULL,
+    tipo_descuento        ENUM('quincenal', 'aguinaldo', 'prima_vacacional') NOT NULL,
+    justificacion         TEXT,
+    recibo_nomina         VARCHAR(255) NOT NULL,
+    estado                ENUM('pendiente', 'aprobado', 'rechazado', 'lista_espera', 'pagare_pendiente', 'activo', 'pagado') DEFAULT 'pendiente',
+    fecha_solicitud       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_respuesta       TIMESTAMP NULL,
+    motivo_rechazo        TEXT NULL,
+    pagare_firmado        VARCHAR(255) NULL,
+    fecha_pagare          TIMESTAMP NULL,
+    tasa_interes          DECIMAL(5, 2) DEFAULT 0.00,
+    fk_miembro            INT NOT NULL,
+    fk_aprobador          INT NULL,
+    CONSTRAINT fk_solicitud_miembro
+        FOREIGN KEY (fk_miembro)
+            REFERENCES miembros (id)
+            ON DELETE CASCADE,
+    CONSTRAINT fk_solicitud_aprobador
+        FOREIGN KEY (fk_aprobador)
+            REFERENCES miembros (id)
+            ON DELETE SET NULL,
+    INDEX idx_fk_miembro (fk_miembro),
+    INDEX idx_estado (estado),
+    INDEX idx_fecha_solicitud (fecha_solicitud)
 );
 
-CREATE TABLE IF NOT EXISTS prestamos_aprobados
+CREATE TABLE IF NOT EXISTS pagos_prestamos
 (
-    id             INT AUTO_INCREMENT PRIMARY KEY,
-    monto          DECIMAL(10, 2) NOT NULL,
-    plazo          INT            NOT NULL,
-    tasa           DECIMAL(5, 2)  NOT NULL,
-    fecha_aprobado DATE           NOT NULL,
-    fk_solicitud   INT REFERENCES solicitudes_prestamos (id) ON DELETE CASCADE,
-    fk_aprobador   INT            REFERENCES miembros (id) ON DELETE SET NULL
+    id                INT AUTO_INCREMENT PRIMARY KEY,
+    numero_pago       INT NOT NULL,
+    monto_pago        DECIMAL(10, 2) NOT NULL,
+    fecha_programada  DATE NOT NULL,
+    fecha_pago        DATE NULL,
+    estado            ENUM('pendiente', 'pagado', 'vencido') DEFAULT 'pendiente',
+    fk_solicitud      INT NOT NULL,
+    CONSTRAINT fk_pago_solicitud
+        FOREIGN KEY (fk_solicitud)
+            REFERENCES solicitudes_prestamos (id)
+            ON DELETE CASCADE,
+    INDEX idx_fk_solicitud (fk_solicitud),
+    INDEX idx_fecha_programada (fecha_programada),
+    INDEX idx_estado (estado)
 );
 
-CREATE TABLE IF NOT EXISTS prestamos_rechazados
+CREATE TABLE IF NOT EXISTS historial_prestamos
 (
-    id            INT AUTO_INCREMENT PRIMARY KEY,
-    motivo        VARCHAR(255) NOT NULL,
-    fecha_rechazo DATE         NOT NULL,
-    fk_solicitud  INT REFERENCES solicitudes_prestamos (id) ON DELETE CASCADE,
-    fk_rechazador INT          REFERENCES miembros (id) ON DELETE SET NULL
+    id              INT AUTO_INCREMENT PRIMARY KEY,
+    accion          VARCHAR(100) NOT NULL,
+    descripcion     TEXT,
+    fecha           TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fk_solicitud    INT NOT NULL,
+    fk_usuario      INT NULL,
+    CONSTRAINT fk_historial_solicitud
+        FOREIGN KEY (fk_solicitud)
+            REFERENCES solicitudes_prestamos (id)
+            ON DELETE CASCADE,
+    CONSTRAINT fk_historial_usuario
+        FOREIGN KEY (fk_usuario)
+            REFERENCES usuarios (id)
+            ON DELETE SET NULL,
+    INDEX idx_fk_solicitud (fk_solicitud),
+    INDEX idx_fecha (fecha)
 );

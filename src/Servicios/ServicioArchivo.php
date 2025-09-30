@@ -2,7 +2,7 @@
 
 namespace App\Servicios;
 
-final class Archivos
+final class ServicioArchivo
 {
     public static function subirArchivo()
     {

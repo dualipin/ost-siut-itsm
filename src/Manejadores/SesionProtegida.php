@@ -13,8 +13,6 @@ final class SesionProtegida
      */
     public static function proteger(string $redirect = '/cuenta/login.php'): void
     {
-        Sesion::iniciar();
-
         if (!Sesion::verificarSesion()) {
             // Guardar la URL actual que el usuario quería visitar
             $urlActual = $_SERVER['REQUEST_URI'] ?? '';

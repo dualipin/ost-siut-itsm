@@ -74,7 +74,7 @@ final class Cuenta
             }
 
         } catch (PDOException $e) {
-            // Aquí puedes loguear $e->getMessage() para depuración
+            error_log($e->getMessage());
             return null;
         }
 

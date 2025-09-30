@@ -1,6 +1,297 @@
 {layout _layout.latte}
 
+{block title}Módulo de Préstamos{/block}
 
 {block content}
-  Prestamos
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            {if isset($_SESSION['mensaje_exito'])}
+                <div class="alert alert-success alert-dismissible">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    {$_SESSION['mensaje_exito']}
+                    {php unset($_SESSION['mensaje_exito']);}
+                </div>
+            {/if}
+
+            {if isset($_SESSION['mensaje_error'])}
+                <div class="alert alert-danger alert-dismissible">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    {$_SESSION['mensaje_error']}
+                    {php unset($_SESSION['mensaje_error']);}
+                </div>
+            {/if}
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Opciones principales -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-hand-holding-usd"></i> Solicitar Préstamo
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p>Realice una nueva solicitud de préstamo adjuntando su recibo de nómina correspondiente.</p>
+                    <a href="solicitar.php" class="btn btn-primary btn-block">
+                        <i class="fas fa-plus"></i> Nueva Solicitud
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-calculator"></i> Simulador
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p>Simule su préstamo para conocer los montos y fechas de pago antes de solicitarlo.</p>
+                    <a href="simulador.php" class="btn btn-info btn-block">
+                        <i class="fas fa-chart-line"></i> Simular Préstamo
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {if $_SESSION['rol'] === 'administrador' || $_SESSION['rol'] === 'finanzas'}
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-tasks"></i> Administrar
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p>Gestione las solicitudes pendientes, apruebe o rechace préstamos.</p>
+                    <a href="administrar.php" class="btn btn-warning btn-block mb-2">
+                        <i class="fas fa-cogs"></i> Administrar Solicitudes
+                    </a>
+                    {if $_SESSION['rol'] === 'administrador'}
+                        <a href="actualizar-salario.php" class="btn btn-info btn-block">
+                            <i class="fas fa-dollar-sign"></i> Gestionar Salarios
+                        </a>
+                    {/if}
+                </div>
+            </div>
+        </div>
+        {/if}
+    </div>
+
+    <!-- Mis solicitudes -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Mis Solicitudes de Préstamo</h3>
+                </div>
+                <div class="card-body">
+                    {if empty($solicitudes)}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> No tiene solicitudes de préstamo registradas.
+                            <a href="solicitar.php" class="alert-link">Realizar primera solicitud</a>
+                        </div>
+                    {else}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Monto Solicitado</th>
+                                        <th>Monto Aprobado</th>
+                                        <th>Plazo</th>
+                                        <th>Estado</th>
+                                        <th>Fecha</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {foreach $solicitudes as $solicitud}
+                                        <tr>
+                                            <td>{$solicitud['id']}</td>
+                                            <td>${$solicitud['monto_solicitado']|number_format:2}</td>
+                                            <td>
+                                                {if $solicitud['monto_aprobado']}
+                                                    ${$solicitud['monto_aprobado']|number_format:2}
+                                                {else}
+                                                    -
+                                                {/if}
+                                            </td>
+                                            <td>{$solicitud['plazo_meses']} meses</td>
+                                            <td>
+                                                {if $solicitud['estado'] === 'pendiente'}
+                                                    <span class="badge badge-warning">Pendiente</span>
+                                                {elseif $solicitud['estado'] === 'aprobado'}
+                                                    <span class="badge badge-success">Aprobado</span>
+                                                {elseif $solicitud['estado'] === 'rechazado'}
+                                                    <span class="badge badge-danger">Rechazado</span>
+                                                {elseif $solicitud['estado'] === 'lista_espera'}
+                                                    <span class="badge badge-info">Lista de Espera</span>
+                                                {elseif $solicitud['estado'] === 'pagare_pendiente'}
+                                                    <span class="badge badge-primary">Pagaré Pendiente</span>
+                                                {elseif $solicitud['estado'] === 'activo'}
+                                                    <span class="badge badge-success">Activo</span>
+                                                {elseif $solicitud['estado'] === 'pagado'}
+                                                    <span class="badge badge-secondary">Pagado</span>
+                                                {/if}
+                                            </td>
+                                            <td>{$solicitud['fecha_solicitud']|date:'d/m/Y'}</td>
+                                            <td>
+                                                {if $solicitud['estado'] === 'pagare_pendiente'}
+                                                    <a href="pagare.php?id={$solicitud['id']}" class="btn btn-sm btn-primary">
+                                                        <i class="fas fa-file-contract"></i> Pagaré
+                                                    </a>
+                                                {elseif $solicitud['estado'] === 'rechazado' && $solicitud['motivo_rechazo']}
+                                                    <button type="button" class="btn btn-sm btn-info" 
+                                                            onclick="verMotivo('{$solicitud['motivo_rechazo']|escape}')">
+                                                        <i class="fas fa-eye"></i> Ver Motivo
+                                                    </button>
+                                                {elseif $solicitud['estado'] === 'activo'}
+                                                    <button type="button" class="btn btn-sm btn-success" 
+                                                            onclick="verPagos({$solicitud['id']})">
+                                                        <i class="fas fa-calendar-alt"></i> Ver Pagos
+                                                    </button>
+                                                {else}
+                                                    <span class="text-muted">-</span>
+                                                {/if}
+                                            </td>
+                                        </tr>
+                                    {/foreach}
+                                </tbody>
+                            </table>
+                        </div>
+                    {/if}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para ver motivo de rechazo -->
+<div class="modal fade" id="modalMotivo" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Motivo de Rechazo</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="contenidoMotivo"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para ver pagos -->
+<div class="modal fade" id="modalPagos" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Calendario de Pagos</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body" id="contenidoPagos">
+                <!-- Contenido generado por JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function verMotivo(motivo) {
+    document.getElementById('contenidoMotivo').textContent = motivo;
+    $('#modalMotivo').modal('show');
+}
+
+function verPagos(solicitudId) {
+    document.getElementById('contenidoPagos').innerHTML = `
+        <div class="text-center">
+            <i class="fas fa-spinner fa-spin"></i> Cargando calendario de pagos...
+        </div>
+    `;
+    
+    $('#modalPagos').modal('show');
+    
+    // Llamada AJAX para obtener los pagos
+    fetch(`api-pagos.php?solicitud_id=${solicitudId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                let html = `
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Pago #</th>
+                                    <th>Fecha Programada</th>
+                                    <th>Monto</th>
+                                    <th>Estado</th>
+                                    <th>Fecha de Pago</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                if (data.pagos.length === 0) {
+                    html += `
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">
+                                No hay pagos registrados para este préstamo
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    data.pagos.forEach(pago => {
+                        const estadoBadge = pago.estado === 'pagado' ? 
+                            '<span class="badge badge-success">Pagado</span>' :
+                            pago.estado === 'vencido' ?
+                            '<span class="badge badge-danger">Vencido</span>' :
+                            '<span class="badge badge-warning">Pendiente</span>';
+                        
+                        html += `
+                            <tr>
+                                <td>${pago.numero_pago}</td>
+                                <td>${new Date(pago.fecha_programada).toLocaleDateString('es-MX')}</td>
+                                <td>$${parseFloat(pago.monto_pago).toLocaleString('es-MX', {minimumFractionDigits: 2})}</td>
+                                <td>${estadoBadge}</td>
+                                <td>${pago.fecha_pago ? new Date(pago.fecha_pago).toLocaleDateString('es-MX') : '-'}</td>
+                            </tr>
+                        `;
+                    });
+                }
+                
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                
+                document.getElementById('contenidoPagos').innerHTML = html;
+            } else {
+                document.getElementById('contenidoPagos').innerHTML = `
+                    <div class="alert alert-danger">
+                        Error al cargar los pagos: ${data.error}
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            document.getElementById('contenidoPagos').innerHTML = `
+                <div class="alert alert-danger">
+                    Error de conexión: ${error.message}
+                </div>
+            `;
+        });
+}
+</script>
 {/block}
