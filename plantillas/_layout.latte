@@ -1,5 +1,7 @@
 {layout _base.latte}
 
+{varType ?string $linkActivo}
+
 {block base_content}
   <div class="site-wrap">
     <!-- ======= Header =======-->
@@ -30,8 +32,8 @@
           <div class="offcanvas-body align-items-lg-center">
             <ul class="navbar-nav nav me-auto ps-lg-5 mb-2 mb-lg-0">
               <li class="nav-item">
-                <a n:class="'nav-link scroll-link', $linkActivo === 'inicio' ? 'active'"
-                        aria-current="page" href="/">
+                <a class="nav-link scroll-link {$linkActivo === 'avisos' ? 'active'}"
+                    aria-current="page" href="/">
                   Inicio
                 </a>
               </li>
