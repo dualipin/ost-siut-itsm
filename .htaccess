@@ -2,7 +2,7 @@ RewriteEngine On
 
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
-RedirectMatch 403 ^/(src|vendor|privado|temp)(/.*)?$
+RedirectMatch 403 ^/(src|vendor|temp)(/.*)?$
 
 ErrorDocument 404 /no-encontrado.php
 ErrorDocument 403 /prohibido.php
