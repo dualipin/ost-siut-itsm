@@ -13,6 +13,6 @@ Visita::agregarVisita();
 
 $visitas = Visita::obtenerVisitasHoy();
 
-$latte->render(__DIR__ . '/plantillas/index.latte', [
+$latte->render(__DIR__ . '/index.latte', [
         'visitaPagina' => Numero::formatearNumero($visitas),
 ]);

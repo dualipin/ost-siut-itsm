@@ -6,4 +6,4 @@ use App\Fabricas\FabricaLatte;
 require_once __DIR__ . '/src/configuracion.php';
 
 FabricaLatte::obtenerInstancia()
-        ->render(__DIR__ . '/plantillas/gestiones.latte');
+        ->render(__DIR__ . '/gestiones.latte');
