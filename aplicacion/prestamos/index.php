@@ -2,31 +2,40 @@
 
 declare(strict_types=1);
 
+use App\Fabricas\FabricaConexion;
+use App\Manejadores\Sesion;
 use App\Manejadores\SesionProtegida;
 use App\Servicios\ServicioLatte;
-use App\Servicios\ServicioPrestamos;
 use App\Servicios\ServicioMiembros;
-use App\Fabricas\FabricaConexion;
+use App\Servicios\ServicioPrestamos;
 
 require_once __DIR__ . '/../../src/configuracion.php';
 
+$mensajeError = null;
+
 SesionProtegida::proteger();
 
-$pdo = FabricaConexion::crear();
+try {
+    $pdo = FabricaConexion::crear();
+} catch (Exception $e) {
+    $mensajeError = $e->getMessage();
+}
+
 $servicioPrestamos = new ServicioPrestamos($pdo);
 $servicioMiembros = new ServicioMiembros($pdo);
 
 // Obtener miembro actual
-$miembro = $servicioMiembros->obtenerPorUsuario($_SESSION['usuario_id']);
+$usuarioId = Sesion::idSesionAbierta();
+$miembro = $servicioMiembros->obtenerPorUsuario($usuarioId);
 $solicitudes = [];
 
 if ($miembro) {
-  $solicitudes = $servicioPrestamos->obtenerSolicitudesPorMiembro($miembro->id);
+    $solicitudes = $servicioPrestamos->obtenerSolicitudesPorMiembro($miembro->id);
 }
 
 $datos = [
-  'solicitudes' => $solicitudes,
-  'miembro' => $miembro
+        'solicitudes' => $solicitudes,
+        'mensajeError' => $mensajeError,
 ];
 
-ServicioLatte::renderizar(__DIR__ . '/../plantillas/prestamos.latte', $datos);
+ServicioLatte::renderizar(__DIR__ . '/index.latte', $datos);
