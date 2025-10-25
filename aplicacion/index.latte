@@ -1,0 +1,16 @@
+{layout ./plantillas/@layout.latte}
+
+{varType ?App\Entidades\EntidadMiembro $miembro}
+
+{block title}Inicio{/block}
+
+{block content}
+  {if $miembro->getRol() == 'administrador'}
+    {include ./index__admin.latte}
+  {elseif $miembro->getRol() == 'lider'}
+    {include ./index__lider.latte}
+  {else}
+    {include ./index__agremiado.latte}
+  {/if}
+
+{/block}
