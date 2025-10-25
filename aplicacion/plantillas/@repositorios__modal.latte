@@ -1,0 +1,43 @@
+{* Componente reutilizable de formulario tipo modal en Latte *}
+<div class="modal fade" id="{$modal_id ?? 'modalAgregarDocumento'}" tabindex="-1" aria-labelledby="{$modal_label_id ?? 'modalAgregarDocumentoLabel'}"
+     aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="{$modal_label_id ?? 'modalAgregarDocumentoLabel'}">
+          {block titulo__modal}Título del formulario{/block}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <form id="{$form_id ?? 'formAgregarDocumento'}" method="POST" enctype="multipart/form-data">
+        <div class="modal-body">
+          {block campos__modal}
+            <input type="hidden" name="id_doc" value="{$id_doc ?? ''}">
+            <div class="mb-3">
+              <label for="tituloDocumento" class="form-label">Título</label>
+              <input type="text" class="form-control" id="tituloDocumento" name="titulo" value="{$titulo ?? ''}" required>
+            </div>
+            <div class="mb-3">
+              <label for="{$editor_id ?? 'editorDocumento'}" class="form-label">Contenido</label>
+              <div id="{$editor_id ?? 'editorDocumento'}" style="height: 200px;"></div>
+              <input type="hidden" name="contenido" id="{$contenido_id ?? 'contenidoDocumento'}" value="{$contenido ?? ''|noescape}">
+            </div>
+            <div class="mb-3">
+              <label for="archivoDocumento" class="form-label">Archivo adjunto (opcional)</label>
+              <input type="file" class="form-control" id="archivoDocumento" name="archivo">
+            </div>
+          {/block}
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          {block botones__modal}
+            <button type="submit" class="btn btn-primary" name="guardar" value="guardar">
+              Guardar documento
+            </button>
+          {/block}
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

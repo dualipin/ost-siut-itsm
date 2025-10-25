@@ -1,0 +1,100 @@
+{layout ../plantillas/_layout.latte}
+
+{block styles}
+  <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet"/>
+{/block}
+{block content}
+
+  <h1 class="mb-4">Registrar Aviso</h1>
+
+  <form class="mb-4" method="post" id="aviso_form">
+    <div class="row">
+
+      <div class="form-group col-md-6">
+        <label for="titulo">Título del Aviso</label>
+        <input type="text" class="form-control" id="titulo" placeholder="Ingrese el título del aviso">
+      </div>
+
+      <div class="form-group col-md-3">
+        <label for="importante">Es importante?</label>
+        <select class="form-control mb-3" id="importante">
+          <option value="no">No</option>
+          <option value="si">Sí</option>
+        </select>
+      </div>
+
+
+    </div>
+    <div class="form-group">
+      <label for="resumen">Breve resumen</label>
+      <input type="text" class="form-control mb-3" id="resumen" placeholder="Ingrese un breve resumen">
+    </div>
+
+
+    <div id="editor"></div>
+
+
+    <button type="submit" class="btn btn-primary mt-3">Guardar Aviso</button>
+  </form>
+
+{/block}
+{block scripts}
+  <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+
+  <script>
+    const quill = new Quill('#editor', {
+      theme: 'snow',
+      placeholder: 'Escribe el contenido del aviso aquí...',
+    });
+
+    const form = document.getElementById('aviso_form');
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      const titulo = document.getElementById('titulo').value;
+      const resumen = document.getElementById('resumen').value;
+      const importante = document.getElementById('importante').value;
+      const contenido = quill.root.innerHTML;
+
+      if (titulo === '') {
+        alert('El título es obligatorio.');
+        return;
+      }
+
+      if (resumen === '') {
+        alert('El resumen es obligatorio.');
+        return;
+      }
+
+      const data = {
+        titulo: titulo,
+        resumen: resumen,
+        importante: importante,
+        contenido: contenido
+      };
+
+      fetch('', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+              .then(response => response.json())
+              .then(result => {
+                if (result.success) {
+                  alert('Aviso guardado exitosamente.');
+                  form.reset();
+                  quill.setContents([]);
+                } else {
+                  alert('Error al guardar el aviso: ' + result.message);
+                }
+              })
+              .catch(error => {
+                console.error('Error:', error);
+                alert('Ocurrió un error al guardar el aviso.');
+              });
+
+    })
+
+  </script>
+{/block}

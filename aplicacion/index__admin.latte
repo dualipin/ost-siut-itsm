@@ -1,0 +1,84 @@
+{varType \App\Entidades\EntidadMiembro $miembro}
+
+<div class="tab-content" id="dashboard-tabContent">
+  <!-- Panel Inicio -->
+  <div class="tab-pane fade show active" id="dashboard-home" role="tabpanel"
+       aria-labelledby="dashboard-home-tab" tabindex="0">
+    <h2 class="mb-4">Hola {$miembro->getNombre()}</h2>
+    <div class="row g-4 mb-4">
+      <div class="col-md-4">
+        <div class="card text-bg-primary shadow h-100">
+          <div class="card-body">
+            <h5 class="card-title">Usuarios</h5>
+            <p class="card-text display-6">1,245</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card text-bg-success shadow h-100">
+          <div class="card-body">
+            <h5 class="card-title">Solicitudes</h5>
+            <p class="card-text display-6">320</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card text-bg-warning shadow h-100">
+          <div class="card-body">
+            <h5 class="card-title">Alertas</h5>
+            <p class="card-text display-6">7</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card shadow mb-4">
+      <div class="card-header bg-white fw-bold">Actividad reciente</div>
+      <div class="card-body p-0">
+        <table class="table mb-0">
+          <thead class="table-light">
+          <tr>
+            <th>Fecha</th>
+            <th>Evento</th>
+            <th>Estado</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td>18/10/2025</td>
+            <td>Nuevo usuario registrado</td>
+            <td><span class="badge bg-success">Completado</span></td>
+          </tr>
+          <tr>
+            <td>17/10/2025</td>
+            <td>Solicitud de préstamo</td>
+            <td><span class="badge bg-warning text-dark">Pendiente</span></td>
+          </tr>
+          <tr>
+            <td>16/10/2025</td>
+            <td>Actualización de perfil</td>
+            <td><span class="badge bg-info text-dark">En proceso</span></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <!-- Panel Perfil -->
+  <div class="tab-pane fade" id="dashboard-profile" role="tabpanel" aria-labelledby="dashboard-profile-tab"
+       tabindex="0">
+    <h3>Perfil de usuario</h3>
+    <p>Información personal, configuración y más.</p>
+  </div>
+  <!-- Panel Mensajes -->
+  <div class="tab-pane fade" id="dashboard-messages" role="tabpanel" aria-labelledby="dashboard-messages-tab"
+       tabindex="0">
+    <h3>Mensajes</h3>
+    <p>No tienes mensajes nuevos.</p>
+  </div>
+  <!-- Panel Configuración -->
+  <div class="tab-pane fade" id="dashboard-settings" role="tabpanel" aria-labelledby="dashboard-settings-tab"
+       tabindex="0">
+    <h3>Configuración</h3>
+    <p>Preferencias y ajustes de la cuenta.</p>
+  </div>
+</div>

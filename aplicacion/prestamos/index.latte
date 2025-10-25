@@ -1,0 +1,32 @@
+{layout ../plantillas/_layout.latte}
+
+{block title}Préstamos{/block}
+
+{block content}
+  <div class="container mt-4">
+    <h1>
+      Mis Préstamos
+    </h1>
+
+    {if !$solicitudes}
+      <p>
+        No tienes ningún préstamo solicitado.
+      </p>
+      <a href="/aplicacion/prestamos/solicitar.php" class="btn btn-primary">
+        Solicitar préstamo
+      </a>
+    {/if}
+
+    {include error}
+  </div>
+{/block}
+
+
+
+{block local error}
+  {if $mensajeError}
+    <div class="alert alert-danger" role="alert">
+      {$mensajeError}
+    </div>
+  {/if}
+{/block}

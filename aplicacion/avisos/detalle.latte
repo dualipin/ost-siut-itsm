@@ -1,0 +1,19 @@
+{layout ../plantillas/@layout.latte}
+
+{block content}
+  <h1>
+    {$aviso['titulo']}
+  </h1>
+  <div class="mb-4">
+    {if $aviso['imagen'] === null}
+      <img src="/assets/images/logo.webp" class="img-fluid object-fit-cover" alt="..."
+           style="max-height: 400px;">
+    {else}
+      <img src="/archivos/subidos/avisos/{$aviso['imagen']}" class="img-fluid object-fit-cover" alt="..."
+           style="max-height: 400px;">
+    {/if}
+  </div>
+  <div>
+    <p>{$aviso['contenido']|noescape}</p>
+  </div>
+{/block}

@@ -1,0 +1,34 @@
+{layout ../plantillas/_layout.latte}
+
+{block title}Solicitar Prestamo{/block}
+
+{block content}
+  <div class="container mt-4">
+    <h1>Solicitar Préstamo</h1>
+
+    <form method="post" action="/prestamos/solicitar">
+      <div class="mb-3">
+        <label for="monto" class="form-label">
+          Monto a Solicitar
+        </label>
+        <input type="number" class="form-control" id="monto" name="monto" value="" placeholder="1000" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="plazo" class="form-label">
+          Plazo en quincenas
+        </label>
+        <input type="number" class="form-control" id="plazo" name="plazo" value="" placeholder="12" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="recibo-salario" class="form-label">
+          Subir Recibo de Salario (PDF)
+        </label>
+        <input type="file" class="form-control" id="recibo-salario" name="recibo-salario" required accept="application/pdf">
+      </div>
+
+      <button type="submit" class="btn btn-primary">Solicitar Préstamo</button>
+    </form>
+  </div>
+{/block}

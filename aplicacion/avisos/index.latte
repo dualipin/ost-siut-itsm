@@ -1,0 +1,29 @@
+{layout ../plantillas/@layout.latte}
+
+
+{block content}
+  <h1>
+    Avisos
+  </h1>
+  <div class="row g-3">
+    {foreach $avisos as $aviso}
+      <div class="col-12 col-sm-6 col-md-4 mb-4">
+        <div class="card h-100">
+          {if $aviso['imagen'] === null}
+            <img src="/assets/images/logo.webp" class="card-img-top object-fit-cover" alt="..."
+                 style="max-height: 200px;">
+          {else}
+            <img src="/archivos/subidos/avisos/{$aviso['imagen']}" class="card-img-top object-fit-cover" alt="..."
+                 style="max-height: 200px;">
+          {/if}
+          <div class="card-body">
+            <h5 class="card-title">{$aviso['titulo']}</h5>
+            <p class="card-text">{$aviso['resumen']|truncate:100}</p>
+            <a href="/aplicacion/avisos/detalle.php?id_aviso={$aviso['id']}" class="btn btn-primary">Ver más</a>
+          </div>
+        </div>
+      </div>
+
+    {/foreach}
+  </div>
+{/block}
