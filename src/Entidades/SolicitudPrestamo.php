@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Entidades;
 
+use DateMalformedIntervalStringException;
+use DateMalformedStringException;
+use Exception as ExceptionAlias;
+
 class SolicitudPrestamo
 {
   public function __construct(
@@ -34,7 +38,11 @@ class SolicitudPrestamo
     return $salarioQuincenal * 0.70;
   }
 
-  public function generarCorridaFinanciera(): array
+    /**
+     * @throws DateMalformedIntervalStringException
+     * @throws ExceptionAlias
+     */
+    public function generarCorridaFinanciera(): array
   {
     if (!$this->montoAprobado || $this->plazoMeses <= 0) {
       return [];
@@ -45,48 +53,30 @@ class SolicitudPrestamo
 
     if ($this->tipoDescuento === 'quincenal') {
       $pagosQuincenales = $this->plazoMeses * 2; // 2 quincenas por mes
-      $montoPorPago = $montoConInteres / $pagosQuincenales;
-
-      $fechaInicio = new \DateTime();
-      for ($i = 1; $i <= $pagosQuincenales; $i++) {
-        $fechaPago = clone $fechaInicio;
-        $fechaPago->add(new \DateInterval('P' . ($i * 15) . 'D'));
-
-        $corrida[] = [
-          'numero' => $i,
-          'fecha' => $fechaPago->format('Y-m-d'),
-          'monto' => round($montoPorPago, 2),
-          'saldo' => round($montoConInteres - ($montoPorPago * $i), 2)
-        ];
-      }
+        try {
+            $corrida = $this->getArr($montoConInteres, $pagosQuincenales, $corrida);
+        } catch (DateMalformedIntervalStringException $e) {
+            throw new ExceptionAlias("Error al calcular la corrida financiera: " . $e->getMessage());
+        }
     } else {
       // Para aguinaldo o prima vacacional, mostrar pagos quincenales hasta la fecha objetivo
       $fechaObjetivo = $this->calcularFechaObjetivo();
-      $diasHastaObjetivo = (new \DateTime())->diff($fechaObjetivo)->days;
+      $diasHastaObjetivo = new \DateTime()->diff($fechaObjetivo)->days;
       $pagosQuincenales = ceil($diasHastaObjetivo / 15);
 
       if ($pagosQuincenales > 0) {
-        $montoPorPago = $montoConInteres / $pagosQuincenales;
-
-        $fechaInicio = new \DateTime();
-        for ($i = 1; $i <= $pagosQuincenales; $i++) {
-          $fechaPago = clone $fechaInicio;
-          $fechaPago->add(new \DateInterval('P' . ($i * 15) . 'D'));
-
-          $corrida[] = [
-            'numero' => $i,
-            'fecha' => $fechaPago->format('Y-m-d'),
-            'monto' => round($montoPorPago, 2),
-            'saldo' => round($montoConInteres - ($montoPorPago * $i), 2)
-          ];
-        }
+          $corrida = $this->getArr($montoConInteres, $pagosQuincenales, $corrida);
       }
     }
 
     return $corrida;
   }
 
-  private function calcularFechaObjetivo(): \DateTime
+    /**
+     * @throws DateMalformedStringException
+     * @throws DateMalformedIntervalStringException
+     */
+    private function calcularFechaObjetivo(): \DateTime
   {
     $ahora = new \DateTime();
     $año = (int)$ahora->format('Y');
@@ -108,4 +98,30 @@ class SolicitudPrestamo
 
     return ($montoActivo + $this->montoSolicitado) <= $montoMaximo;
   }
+
+    /**
+     * @param float|int $montoConInteres
+     * @param float|int $pagosQuincenales
+     * @param array $corrida
+     * @return array
+     * @throws DateMalformedIntervalStringException
+     */
+    public function getArr(float|int $montoConInteres, float|int $pagosQuincenales, array $corrida): array
+    {
+        $montoPorPago = $montoConInteres / $pagosQuincenales;
+
+        $fechaInicio = new \DateTime();
+        for ($i = 1; $i <= $pagosQuincenales; $i++) {
+            $fechaPago = clone $fechaInicio;
+            $fechaPago->add(new \DateInterval('P' . ($i * 15) . 'D'));
+
+            $corrida[] = [
+                    'numero' => $i,
+                    'fecha' => $fechaPago->format('Y-m-d'),
+                    'monto' => round($montoPorPago, 2),
+                    'saldo' => round($montoConInteres - ($montoPorPago * $i), 2)
+            ];
+        }
+        return $corrida;
+    }
 }

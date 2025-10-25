@@ -35,6 +35,11 @@ final class Sesion
         return isset($_SESSION['miembro_id']);
     }
 
+    public static function obtenerRol(): ?string
+    {
+        return $_SESSION['miembro_rol'] ?? null;
+    }
+
     public static function idSesionAbierta(): ?int
     {
         return $_SESSION['miembro_id'] ?? null;

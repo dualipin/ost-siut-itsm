@@ -122,5 +122,15 @@ final readonly class EntidadMiembro
         return $this->fechaIngreso;
     }
 
+    public function esAdmin()
+    {
+        return $this->rol === 'administrador';
+    }
+
+    public function esLider()
+    {
+        return $this->rol === 'lider';
+    }
+
 
 }
