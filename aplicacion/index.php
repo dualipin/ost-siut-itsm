@@ -7,4 +7,4 @@ use App\Servicios\ServicioLatte;
 require_once __DIR__ . '/../src/configuracion.php';
 
 SesionProtegida::proteger();
-ServicioLatte::renderizar(__DIR__ . '/plantillas/index.latte');
+ServicioLatte::renderizar(__DIR__ . '/index.latte');
