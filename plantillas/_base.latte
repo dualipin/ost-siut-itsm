@@ -46,9 +46,10 @@
   <!-- End Theme Style-->
 
   {block head}{/block}
+  {block styles}{/block}
 
   <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.6/dist/htmx.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+{*  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>*}
 
   <!-- ======= Apply theme =======-->
   <script>
@@ -83,6 +84,7 @@
 
 <script src="/assets/vendors/purecounter/purecounter.js"></script>
 {block script}{/block}
+{block scripts}{/block}
 <!-- End JavaScripts-->
 </body>
 
