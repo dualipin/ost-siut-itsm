@@ -185,5 +185,28 @@ CREATE TABLE IF NOT EXISTS documentos_tramites_ante_autoridades
     fecha_documento DATE
 );
 
+CREATE TABLE IF NOT EXISTS propuestas
+(
+    id         INT AUTO_INCREMENT PRIMARY KEY,
+    miembro_id INT       NOT NULL,
+    fecha      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_propuesta_miembro
+        FOREIGN KEY (miembro_id)
+            REFERENCES miembros (id)
+            ON DELETE CASCADE
 
+);
 
+CREATE TABLE IF NOT EXISTS propuestas_contenido
+(
+    id           INT AUTO_INCREMENT PRIMARY KEY,
+    propuesta_id INT                             NOT NULL,
+    contenido    TEXT                            NOT NULL,
+    tipo         ENUM ('salarial','no_salarial') NOT NULL,
+    CONSTRAINT fk_contenido_propuesta
+        FOREIGN KEY (propuesta_id)
+            REFERENCES propuestas (id)
+            ON DELETE CASCADE
+);
+
+ALTER TABLE propuestas_contenido CHANGE tipo tipo ENUM ('salarial','no_salarial','comentario') NOT NULL;
