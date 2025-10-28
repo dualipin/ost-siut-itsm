@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Queja-Petición SIUT-ITSM</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      padding: 0;
+      margin: 0;
+    }
+
+    @page {
+      size: letter;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.25;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      position: fixed;
+      color: #95838f;
+      position: relative;
+      padding-top: .27in;
+      padding-bottom: 5px;
+      margin: .2in 1in .2in;
+      border-bottom: 3px solid #95838f;
+    }
+
+    main {
+      margin: 0 1in 0;
+    }
+
+    .logo {
+      display: inline;
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      left: .1in;
+      top: .12in;
+      border-radius: 99999px;
+    }
+
+    .header-title {
+      display: inline;
+      text-align: right;
+      padding-bottom: 10px;
+    }
+
+    .header-title h1 {
+      font-size: 1.5em;
+      font-weight: bold;
+      margin: 0;
+    }
+
+    .header-title h2 {
+      font-size: 1.5em;
+      font-weight: normal;
+      margin: 0;
+    }
+
+    .oficio-info {
+      text-align: right;
+      margin-top: 15px;
+      display: inline;
+    }
+
+    .oficio-info p {
+      margin: 3px 0;
+      font-size: 0.9em;
+    }
+
+    .oficio-infos-container {
+      padding-bottom: 15px;
+    }
+
+    .addressee {
+      margin-top: 30px;
+      margin-bottom: 25px;
+      display: inline;
+    }
+
+    .addressee p {
+      margin: 0;
+      font-size: 1em;
+      font-weight: bold;
+    }
+
+    .addressee .presente {
+      margin-top: 10px;
+      font-weight: normal;
+      letter-spacing: 2px; /* P r e s e n t e . */
+    }
+
+    .body-text {
+      text-align: justify;
+      margin-bottom: 20px;
+    }
+
+    .petition-lines p {
+      margin: 5px 0;
+      display: flex;
+      align-items: center;
+    }
+
+    .petition-lines {
+      margin-left: 20px;
+    }
+
+    .line {
+      flex-grow: 1;
+      border-bottom: 1px solid #000;
+      margin-left: 15px;
+      height: 1em;
+    }
+
+    .closing-paragraph {
+      margin-top: 25px;
+      text-align: justify;
+    }
+
+    .signature-block {
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    .signature-block p {
+      margin: 0;
+    }
+
+    .identificacion {
+      display: inline-block;
+      padding-top: 5px;
+    }
+
+    .sello {
+      padding-top: 20px;
+    }
+
+    .sello span {
+      font-size: .8em;
+      display: block;
+      margin-top: 5px;
+      font-weight: bold;
+    }
+
+    .signature-block .atentamente {
+      letter-spacing: 3px; /* A t e n t a m e n t e */
+      margin-bottom: 40px; /* Espacio para la firma */
+    }
+
+    .cc-info {
+      margin-top: 50px;
+      font-size: 0.8em;
+    }
+
+    .cc-info p {
+      margin: 2px 0;
+      font-weight: bold;
+    }
+
+    .page-footer {
+      position: fixed;
+      bottom: .25in; /* Alineado con el padding */
+      left: .5in;
+      right: .5in;
+      border-top: 5px solid #642828;
+      padding-top: 5px;
+      font-size: 0.75em;
+      text-align: center;
+      color: #642828;
+    }
+
+    .page-footer p {
+      margin: 2px 0;
+    }
+
+  </style>
+</head>
+<body>
+
+<header>
+
+  <img src="https://siutitsm.com.mx/assets/images/logo.jpg" class="logo" height="80px" width="80px" alt="Logo">
+
+
+  <div class="header-title">
+    <h1>SINDICATO ÚNICO DE TRABAJADORES</h1>
+    <h2>del Instituto Tecnológico Superior de Macuspana</h2>
+  </div>
+
+</header>
+
+<main>
+  <div class="oficio-infos-container">
+    <div class="oficio-info">
+      <p>Macuspana, Tabasco a {$fecha|date:'d/M/Y'}</p>
+      {*      <p>No. Oficio: ITSM-SIUTITSM/116/10/2025</p>*}
+      <p><strong>ASUNTO: QUEJA-PETICIÓN</strong></p>
+    </div>
+    <div class="addressee">
+      <p>M.I.D.S LUIZ SOSA CASTRO</p>
+      <p>SECRETARIO GENERAL DEL SIUT-ITSM</p>
+      <p class="presente">P r e s e n t e.</p>
+    </div>
+  </div>
+
+  <p class="body-text">
+    Como parte de mis derechos laborales, consagrados en la Ley de los Trabajadores al Servicio del Estado
+    y de manera supletoria los de la Ley Federal del Trabajo, así como los de la Constitución Política de los
+    Estados Unidos Mexicanos y demás relativos de la Ley en materia laboral, vengo ante usted a solicitar sea
+    atendida (o) en los siguientes puntos, los cuales muestran una violación a mis derechos laborales para
+    que sea atendida en su ámbito de competencia, dentro de la relación laboral colectiva, que usted tiene de
+    manera legal con la patronal o de manera jurídica, consistente en las quejas de agravios, así como también
+    los temas salariales y/o de prestaciones, que en este momento estaremos en proceso de revisión de ante
+    el emplazamiento a Huelga para este año con miras a darle solución a los siguientes puntos los cuales
+    solicito sean contemplados en dicho pliego de peticiones:
+  </p>
+
+
+  <div class="petition-lines">
+    <ol>
+      {foreach $propuestas as $propuesta}
+        <li>
+          <p>{$propuesta['contenido']}</p>
+        </li>
+      {/foreach}
+    </ol>
+  </div>
+
+  <p class="closing-paragraph">
+    Esperando ser atendida (o) de manera oportuna en lo que aquí he expresado, quedo a la orden para las
+    dudas o comentarios al respecto.
+  </p>
+
+  <div class="signature-block">
+    <p class="atentamente">A t e n t a m e n t e</p>
+    <p class="identificacion">{$nombre}</p>
+    <p class="sello">
+      Firma Electrónica:
+      <span>{$firmaElectronica}</span>
+    </p>
+  </div>
+
+  {*  <div class="cc-info">*}
+{*    <p>C.C.P. TRIBUNAL DE CONCILIACIÓN Y ARBITRAJE DEL ESTADO DE TABASCO.</p>*}
+{*    <p>C.C.P. INTERESADO.</p>*}
+{*  </div>*}
+</main>
+
+<footer class="page-footer">
+  <p>Av. Tecnológico S/N, Lerdo de Tejada 1ª Sección [86715] Macuspana, Tabasco, México. | A un costado del Edificio
+    C</p>
+  <p>Móvil: 993-263-6598 • 936-111-1037 • 936-101-8249 | E-mail: sindicato_siutitsm@outlook.com |
+    www.siutitsm.com.mx</p>
+</footer>
+
+</body>
+</html>

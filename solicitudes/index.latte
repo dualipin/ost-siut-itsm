@@ -1,0 +1,255 @@
+{layout ./../plantillas/@layout.latte}
+
+{var $linkActivo = 'ninguna'}
+
+{block content}
+  <section class="section" x-data="buscarForm">
+    <div class="container pt-5">
+      {if $mensaje}
+        <div class="alert alert-success" role="alert">
+          {$mensaje}
+        </div>
+      {/if}
+      {if $error}
+        <div class="alert alert-danger" role="alert">
+          {$error}
+        </div>
+      {/if}
+
+      <template x-if="existePropuesta">
+        <div x-show="existePropuesta" class="alert alert-success d-flex align-items-start gap-3"
+             role="alert" aria-live="polite">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
+               class="bi bi-check-circle-fill flex-shrink-0" viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM6.97 11.03a.75.75 0 0 0 1.08.02L11.03 8.1a.75.75 0 1 0-1.06-1.06L7.5 9.44 6.03 7.97a.75.75 0 1 0-1.06 1.06l2 2z"/>
+          </svg>
+          <div class="flex-grow-1">
+            <strong>Propuesta encontrada</strong>
+            <div class="small text-muted">Anteriormente enviaste una propuesta. Puedes
+              descargar el comprobante:
+            </div>
+            <form action="pdf.php" method="post" class="mt-2 d-inline" target="_blank"
+                  aria-label="Descargar comprobante PDF">
+              <input type="hidden" name="miembro_id" x-model="id"/>
+              <input type="hidden" name="nombre_miembro" x-model="query"/>
+              <button type="submit" class="btn btn-sm btn-outline-success">Descargar comprobante PDF</button>
+            </form>
+          </div>
+        </div>
+      </template>
+
+      <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10 col-12">
+          <div class="card shadow-lg border-0 mb-4">
+            <div class="card-body p-4">
+              <h1 class="text-uppercase fw-bold mb-3" data-aos="fade-up" data-aos-delay="0">
+                Solicitud de revisión salarial y prestaciones para emplazamiento a huelga 2025
+              </h1>
+              <p class="mb-4 text-muted">
+                Este formulario está diseñado para que los agremiados del SIUT-ITSM puedan peticiones o sugerencias
+                relacionadas con temas salariales y prestaciones laborales. Su
+                objetivo es recopilar información relevante para el proceso de revisión y negociación colectiva,
+                garantizando que todas las inquietudes sean atendidas conforme a la Ley de los Trabajadores al
+                Servicio
+                del Estado y la Ley Federal del Trabajo.
+              </p>
+              <form action="./registrar.php" method="post" autocomplete="off">
+                <div class="mb-4">
+                  <label for="miembro-busqueda" class="form-label fw-semibold">Buscar miembro <span
+                            class="text-danger">*</span></label>
+                  <input type="hidden" x-data x-model="id" name="miembro_id"/>
+                  <input
+                          x-data
+                          id="miembro-busqueda"
+                          type="text"
+                          x-model="query"
+                          x-on:input.debounce.300ms="search()"
+                          placeholder="Ingrese tu nombre..."
+                          class="form-control"
+                          aria-label="Buscar miembro"
+                          required
+                  />
+                  <small class="form-text text-muted">Escriba el nombre para buscar y seleccionar al agremiado que
+                    presenta la solicitud.</small>
+                  <ul
+                          x-data
+                          x-show="results.length > 0"
+                          x-transition
+                          class="list-group position-absolute w-100 shadow mt-1"
+                          style="z-index: 1050;"
+                          role="listbox"
+                          aria-label="Resultados de búsqueda"
+                  >
+                    <template x-for="item in results" :key="item.id || item.name">
+                      <li
+                              x-data
+                              x-text="item.name"
+                              x-on:click="select(item)"
+                              class="list-group-item list-group-item-action cursor-pointer"
+                              role="option"
+                              :aria-selected="query === item.name"
+                              tabindex="0"
+                      ></li>
+                    </template>
+                  </ul>
+                </div>
+
+                <div class="mb-4">
+                  <label class="form-label fw-semibold">Propuestas de peticiones <span
+                            class="text-danger">*</span></label>
+                  <p class="form-text text-muted mb-2">Describa hasta cuatro propuestas que considere importantes para
+                    el pliego de peticiones. Puede ser sobre derechos laborales, agravios, temas salariales o no
+                    salariales.</p>
+                  <div class="row g-4">
+                    <div class="col-12">
+                      <label for="peticion-1" class="form-label">Propuesta 1 <span
+                                class="text-danger">*</span></label>
+                      <textarea id="peticion-1" name="peticion-1" class="form-control"
+                                placeholder="Describa la propuesta 1" maxlength="400" rows="3" required></textarea>
+                      <div class="form-check form-check-inline mt-2">
+                        <input class="form-check-input" type="radio" name="tipo-1" id="tipo-1-salarial"
+                               value="salarial"
+                               required>
+                        <label class="form-check-label" for="tipo-1-salarial">Salarial</label>
+                      </div>
+                      <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="tipo-1" id="tipo-1-no-salarial"
+                               value="no_salarial" required>
+                        <label class="form-check-label" for="tipo-1-no-salarial">No salarial</label>
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <label for="peticion-2" class="form-label">Propuesta 2 <span
+                                class="text-danger">*</span></label>
+                      <textarea id="peticion-2" name="peticion-2" class="form-control"
+                                placeholder="Describa la propuesta 2" maxlength="400" rows="3" required></textarea>
+                      <div class="form-check form-check-inline mt-2">
+                        <input class="form-check-input" type="radio" name="tipo-2" id="tipo-2-salarial"
+                               value="salarial"
+                               required>
+                        <label class="form-check-label" for="tipo-2-salarial">Salarial</label>
+                      </div>
+                      <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="tipo-2" id="tipo-2-no-salarial"
+                               value="no_salarial" required>
+                        <label class="form-check-label" for="tipo-2-no-salarial">No salarial</label>
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <label for="peticion-3" class="form-label">Propuesta 3 <span
+                                class="text-danger">*</span></label>
+                      <textarea id="peticion-3" name="peticion-3" class="form-control"
+                                placeholder="Describa la propuesta 3" maxlength="400" rows="3" required></textarea>
+                      <div class="form-check form-check-inline mt-2">
+                        <input class="form-check-input" type="radio" name="tipo-3" id="tipo-3-salarial"
+                               value="salarial"
+                               required>
+                        <label class="form-check-label" for="tipo-3-salarial">Salarial</label>
+                      </div>
+                      <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="tipo-3" id="tipo-3-no-salarial"
+                               value="no_salarial" required>
+                        <label class="form-check-label" for="tipo-3-no-salarial">No salarial</label>
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <label for="peticion-4" class="form-label">Propuesta 4 <span
+                                class="text-danger">*</span></label>
+                      <textarea id="peticion-4" name="peticion-4" class="form-control"
+                                placeholder="Describa la propuesta 4" maxlength="400" rows="3" required></textarea>
+                      <div class="form-check form-check-inline mt-2">
+                        <input class="form-check-input" type="radio" name="tipo-4" id="tipo-4-salarial"
+                               value="salarial"
+                               required>
+                        <label class="form-check-label" for="tipo-4-salarial">Salarial</label>
+                      </div>
+                      <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="tipo-4" id="tipo-4-no-salarial"
+                               value="no_salarial" required>
+                        <label class="form-check-label" for="tipo-4-no-salarial">No salarial</label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mb-4">
+                  <label for="comentarios" class="form-label fw-semibold">Comentarios adicionales</label>
+                  <textarea id="comentarios" name="comentarios" rows="3" class="form-control"
+                            placeholder="Agregue cualquier comentario, duda o sugerencia adicional..."
+                            maxlength="500"></textarea>
+                  <small class="form-text text-muted">Puede utilizar este espacio para expresar cualquier inquietud
+                    adicional relacionada con su solicitud.</small>
+                </div>
+
+                <div class="d-grid gap-2">
+                  <button type="submit" class="btn btn-primary btn-lg">Registrar solicitud</button>
+                </div>
+              </form>
+              <hr class="my-4"/>
+              <div class="text-center">
+                <small class="text-muted">La información proporcionada será tratada de manera confidencial y utilizada
+                  únicamente para fines de revisión y negociación sindical.</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+{/block}
+
+{block scripts}
+  <!-- Cargar Alpine primero -->
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <script>
+    async function consultarPropuesta(id = 0) {
+      const formData = new FormData();
+
+      formData.append('miembro_id', id);
+      formData.append('verificar', 1);
+
+      const res = await fetch('./pdf.php', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await res.json();
+
+      return data.success;
+    }
+
+
+    document.addEventListener('alpine:init', () => {
+      Alpine.data('buscarForm', () => ({
+        init() {
+          this.existePropuesta = false;
+        },
+        results: [],
+        query: '',
+        id: 0,
+        existePropuesta: false,
+        async search() {
+          this.existePropuesta = false;
+          try {
+            const data = await fetch('/solicitudes/buscar.php?q=' + encodeURIComponent(this.query));
+            this.results = await data.json();
+          } catch (error) {
+            console.error('Error fetching data:', error);
+          }
+        },
+        async select(item) {
+          this.query = item.name;
+          this.id = item.id;
+          this.results = [];
+          if (await consultarPropuesta(this.id)) {
+            this.existePropuesta = true;
+          } else {
+            this.existePropuesta = false;
+          }
+        }
+      }));
+    })
+
+
+  </script>
+{/block}
