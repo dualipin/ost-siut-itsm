@@ -2,6 +2,9 @@
 
 namespace App\Manejadores;
 
+
+use App\Servicios\ServicioLatte;
+
 final class SesionProtegida
 {
     /**
@@ -23,13 +26,28 @@ final class SesionProtegida
             header("Location: $destino");
             exit;
         }
+    }
 
-//        if ($roles && !Sesion::tieneRol($roles)) {
-//            // Si se implementan roles, aquí se podría manejar la redirección
-//            // o mostrar un mensaje de acceso denegado.
-//            header("HTTP/1.1 403 Forbidden");
-//            echo "Acceso denegado.";
-//            exit;
-//        }
+    /**
+     * Verifica si el rol del usuario está en la lista de roles autorizados.
+     * Si no lo está, muestra una página de "Prohibido" y termina la ejecución.
+     * @param array<string> | null $roles Roles permitidos
+     * @return void
+     */
+    public static function rolesAutorizados(?array $roles): void
+    {
+        $rol = Sesion::sesionAbierta()->getRol();
+
+        if ($rol && $roles && !in_array($rol, $roles, true)) {
+            header("HTTP/1.1 403 Forbidden");
+
+            if (str_contains($_SERVER['REQUEST_URI'], '/aplicacion/')) {
+                ServicioLatte::renderizar(__DIR__ . '/../../aplicacion/plantillas/prohibido.latte');
+            } else {
+                ServicioLatte::renderizar(__DIR__ . '/../../prohibido.latte');
+            }
+
+            exit;
+        }
     }
 }
