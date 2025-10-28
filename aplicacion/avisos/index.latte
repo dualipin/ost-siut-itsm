@@ -25,5 +25,12 @@
       </div>
 
     {/foreach}
+    {if count($avisos) === 0}
+      <div class="col-12">
+        <div class="alert alert-info" role="alert">
+          No hay avisos disponibles en este momento.
+        </div>
+      </div>
+    {/if}
   </div>
 {/block}

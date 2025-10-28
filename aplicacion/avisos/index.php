@@ -1,10 +1,12 @@
 <?php
 
 use App\Configuracion\MysqlConexion;
+use App\Manejadores\SesionProtegida;
 use App\Servicios\ServicioLatte;
 
 require_once __DIR__ . '/../../src/configuracion.php';
 
+SesionProtegida::proteger();
 
 $conn = MysqlConexion::conexion();
 
