@@ -1,5 +1,6 @@
 # Project exclude paths
 /temp/
+/tmp/
 /vendor/
 /node_modules/
 /.idea/
