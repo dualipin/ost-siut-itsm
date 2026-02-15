@@ -1,6 +1,7 @@
 # Project exclude paths
 /temp/
 /vendor/
+/node_modules/
 /.idea/
 /.vscode/
 .env
