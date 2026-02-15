@@ -22,9 +22,9 @@ class ColoresRepository extends BaseRepository
                 peligro: $colores["peligro"],
                 claro: $colores["claro"],
                 oscuro: $colores["oscuro"],
-                blanco: $colores["blanco"],
-                cuerpo: $colores["cuerpo"],
-                fondoCuerpo: $colores["fondo-cuerpo"],
+                blanco: $colores["blanco"] ?? '#ffffff',
+                cuerpo: $colores["cuerpo"] ?? '#212529',
+                fondoCuerpo: $colores["fondo_cuerpo"] ?? '#f8f9fa',
             );
         }
 
