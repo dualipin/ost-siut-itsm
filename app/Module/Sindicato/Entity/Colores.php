@@ -4,8 +4,8 @@ namespace App\Module\Sindicato\Entity;
 
 final readonly class Colores
 {
+    public int $id;
     public function __construct(
-        public int $id,
         public string $primario,
         public string $secundario,
         public string $exito,
@@ -14,8 +14,10 @@ final readonly class Colores
         public string $peligro,
         public string $claro,
         public string $oscuro,
-        public string $blanco,
-        public string $cuerpo,
-        public string $fondoCuerpo,
-    ) {}
+        public string $blanco = "#ffffff",
+        public string $cuerpo = "#212529",
+        public string $fondoCuerpo = "#f8f9fa",
+    ) {
+        $this->id = 1;
+    }
 }
