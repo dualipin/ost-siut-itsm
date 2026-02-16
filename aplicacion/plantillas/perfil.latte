@@ -262,7 +262,7 @@
     document.getElementById('formEditar')?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const form = e.target;
-      const res = await fetch('', {method :'POST', body: new FormData(form)});
+      const res = await fetch('', {'method': 'POST', 'body': new FormData(form)});
       const json = await res.json();
       alert(json.ok ? '✅ Guardado' : '❌ ' + json.msg);
       if (json.ok) location.reload();
