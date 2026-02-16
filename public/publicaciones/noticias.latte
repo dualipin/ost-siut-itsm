@@ -1,0 +1,63 @@
+{extends ../../templates/@landing.latte}
+
+{block main}
+<div class="container py-5">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Inicio</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Noticias</li>
+        </ol>
+    </nav>
+
+    <div class="row mb-5 align-items-center">
+        <div class="col-lg-8">
+            <h1 class="display-4 fw-bold text-primary mb-3">Noticias</h1>
+            <p class="lead text-muted">Mantente al tanto de las últimas novedades y acontecimientos de nuestro sindicato.</p>
+        </div>
+        <div class="col-lg-4 text-lg-end">
+            <i class="bi bi-newspaper text-primary opacity-25" style="font-size: 5rem;"></i>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {if count($noticias) > 0}
+            {foreach $noticias as $noticia}
+                <div class="col-md-6 col-lg-4 animate__animated animate__fadeInUp" style="animation-delay: {$iterator->counter * 0.1}s">
+                    <div class="card h-100 border-0 shadow-sm hover-shadow transition-all overflow-hidden rounded-4">
+                        {if $noticia['imagen_portada']}
+                            <img src="{resolveUploadUrl($noticia['imagen_portada'])}" class="card-img-top" alt="{$noticia['titulo']}" style="height: 200px; object-fit: cover;">
+                        {else}
+                            <div class="bg-primary bg-opacity-10 d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <i class="bi bi-image text-primary opacity-25 fs-1"></i>
+                            </div>
+                        {/if}
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center gap-2 mb-2 text-muted small">
+                                <i class="bi bi-calendar3"></i>
+                                <span>{$noticia['fecha_publicacion']|date:'d/m/Y'}</span>
+                            </div>
+                            <h3 class="h5 card-title fw-bold mb-3">{$noticia['titulo']}</h3>
+                            <p class="card-text text-muted mb-4">{$noticia['resumen']|truncate:120}</p>
+                            <a href="#" class="btn btn-outline-primary rounded-pill px-4 stretched-link">Leer más</a>
+                        </div>
+                    </div>
+                </div>
+            {/foreach}
+        {else}
+            <div class="col-12 text-center py-5">
+                <div class="mb-4">
+                    <i class="bi bi-inbox text-muted opacity-25" style="font-size: 4rem;"></i>
+                </div>
+                <h2 class="h4 text-muted">No hay noticias publicadas en este momento.</h2>
+                <p class="text-muted">Vuelve más tarde para ver las actualizaciones.</p>
+            </div>
+        {/if}
+    </div>
+</div>
+
+<style>
+    .transition-all { transition: all 0.3s ease-in-out; }
+    .hover-shadow:hover { transform: translateY(-5px); box-shadow: 0 1rem 3rem rgba(0,0,0,.1) !important; }
+    .rounded-4 { border-radius: 1rem !important; }
+</style>
+{/block}
