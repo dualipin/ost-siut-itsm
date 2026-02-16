@@ -1,0 +1,52 @@
+{varType App\Module\Publicacion\Entity\Publicacion $publicacion}
+
+<article class="container">
+  {if count($publicacion->imagenes) > 0}
+    <div id="carousel" class="carousel slide" data-bs-ride="carousel">
+      <div class="carousel-inner">
+        {foreach $publicacion->imagenes as $idx=>$imagen}
+          <div class="carousel-item {if $idx === 0}active{/if}" data-bs-interval="5000">
+            <img src="{$imagen}" class="d-block w-100" alt="Imagen {$idx+1}">
+          </div>
+        {/foreach}
+      </div>
+      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+      </button>
+    </div>
+  {else}
+    <div class="text-center">
+      <i class="bi bi-image text-secondary opacity-25" style="font-size: 5rem;"></i>
+    </div>
+  {/if}
+  <header class="my-4">
+    <h1 class="display-4 fw-bold text-dark">{$publicacion->titulo}</h1>
+    {if $publicacion->resumen}
+      <p class="lead text-secondary">{$publicacion->resumen}</p>
+    {/if}
+  </header>
+  <section class="mb-5 fs-5 lh-lg text-dark">
+    {$publicacion->contenido|noescape}
+  </section>
+  <footer class="border-top pt-3 d-flex flex-wrap justify-content-between align-items-center text-muted small">
+    <div>
+      <span class="me-3"><i class="bi bi-calendar-event"></i> {$publicacion->fechaPublicacion|date:'d/m/Y H:i'}</span>
+      {if $publicacion->fechaExpiracion}
+        <span class="me-3"><i
+                  class="bi bi-hourglass-bottom"></i> Expira: {$publicacion->fechaExpiracion|date:'d/m/Y'}</span>
+      {/if}
+{*      <span class="me-3"><i class="bi bi-person"></i> Autor: {$publicacion[']}</span>*}
+    </div>
+    <div>
+      <span class="badge bg-info text-dark me-2">{$publicacion->tipo->value}</span>
+      {*      {if $publicacion['importante']}*}
+{*        <span class="badge bg-danger">Importante</span>*}
+{*      {/if}*}
+    </div>
+  </footer>
+</article>
