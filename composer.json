@@ -30,7 +30,7 @@
     "fakerphp/faker": "^1.24"
   },
   "scripts": {
-    "minificar": "php comandos/minificar-archivos.php",
+    "minificar": "php commands/minificar-archivos.php",
     "servidor": "php -S localhost:8888 -t ."
   }
 }
