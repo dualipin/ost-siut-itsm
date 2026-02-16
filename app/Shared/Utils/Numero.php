@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Utilidades;
+namespace App\Shared\Utils;
+use function count;
+use function round;
 
 class Numero
 {
@@ -14,7 +16,7 @@ class Numero
             return $numero;
         }
 
-        $sufijos = ['', 'K', 'M', 'B', 'T'];
+        $sufijos = ["", "K", "M", "B", "T"];
         $sufijoIndex = 0;
 
         while ($numero >= 1000 && $sufijoIndex < count($sufijos) - 1) {
