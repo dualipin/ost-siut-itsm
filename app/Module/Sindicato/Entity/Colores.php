@@ -2,7 +2,8 @@
 
 namespace App\Module\Sindicato\Entity;
 
-final readonly class Colores{
+final readonly class Colores
+{
     public function __construct(
         public int $id,
         public string $primario,
@@ -16,5 +17,5 @@ final readonly class Colores{
         public string $blanco,
         public string $cuerpo,
         public string $fondoCuerpo,
-    ){}
+    ) {}
 }
