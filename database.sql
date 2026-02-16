@@ -36,6 +36,346 @@ create table usuarios
     fecha_eliminacion     DATETIME       DEFAULT NULL
 );
 
+CREATE TABLE usuario_documentacion
+(
+    documento_id     INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id       binary(16)   NOT NULL,
+    tipo_documento   VARCHAR(100) NOT NULL, -- 'afiliacion', 'ine', 'comprobante_domicilio', etc.
+    ruta_archivo     VARCHAR(255) NOT NULL,
+    estado           ENUM ('pendiente', 'validado', 'rechazado') DEFAULT 'pendiente',
+    observaciones    TEXT,
+    fecha_subida     DATETIME                                    DEFAULT CURRENT_TIMESTAMP,
+    fecha_validacion DATETIME,
+    validado_por     binary(16),            -- usuario_id de quien validó
+
+    CONSTRAINT fk_documentos_usuario
+        FOREIGN KEY (usuario_id)
+            REFERENCES usuarios (usuario_id)
+            ON DELETE CASCADE,
+
+    INDEX idx_usuario_tipo (usuario_id, tipo_documento),
+    INDEX idx_estado (estado)
+);
+
+
+CREATE TABLE cat_tipos_ingreso
+(
+    tipo_ingreso_id    INT AUTO_INCREMENT PRIMARY KEY,
+    nombre             VARCHAR(100) NOT NULL, -- "Aguinaldo", "Quincena", "Bono"
+    descripcion        TEXT,
+    es_periodico       BOOLEAN DEFAULT FALSE, -- TRUE para Quincena, FALSE para bonos anuales
+    frecuencia_dias    INT,                   -- 15 para quincenas, NULL para anuales
+    mes_pago_tentativo INT,                   -- Para prestaciones: 12 para Diciembre
+    dia_pago_tentativo INT,                   -- 15 o 20 típicamente
+    activo             BOOLEAN DEFAULT TRUE
+);
+
+
+CREATE TABLE prestamos
+(
+    prestamo_id                  INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id                   binary(16)     NOT NULL,
+
+    -- Identificación
+    folio                        VARCHAR(50) UNIQUE,      -- Generado automáticamente: SIN-2025-001
+
+    -- Montos
+    monto_solicitado             DECIMAL(10, 2) NOT NULL,
+    monto_aprobado               DECIMAL(10, 2),
+    tasa_interes_aplicada        DECIMAL(5, 2)  NOT NULL, -- % exacto usado (puede ser personalizado)
+    tasa_moratorio_diario        DECIMAL(5, 4),           -- Para calcular picos por retraso
+    total_a_pagar_estimado       DECIMAL(10, 2),
+    saldo_pendiente              DECIMAL(10, 2),          -- Se actualiza con cada pago
+
+    -- Plazos
+    plazo_meses                  INT,
+    plazo_quincenas              INT,
+    fecha_primer_pago            DATE,
+    fecha_ultimo_pago_programado DATE,
+
+    -- Fechas del Workflow
+    fecha_solicitud              DATETIME DEFAULT CURRENT_TIMESTAMP,
+    fecha_revision_documental    DATETIME,
+    fecha_aprobacion             DATETIME,
+    fecha_generacion_documentos  DATETIME,                -- Cuando se creó pagaré
+    fecha_validacion_firmas      DATETIME,
+    fecha_desembolso             DATETIME,                -- Inicio de devengo de intereses
+    fecha_liquidacion_total      DATETIME,
+
+    -- Estado del Flujo
+    estado                       ENUM (
+        'borrador',                                       -- Usuario llenando solicitud
+        'revision_documental',                            -- Admin revisando estados de cuenta
+        'correccion_requerida',                           -- Docs rechazados, usuario corrige
+        'aprobado_pendiente_firma',-- Pagarés generados, esperando firma
+        'validacion_firmas',                              -- Firmas subidas, finanzas valida
+        'activo',                                         -- Dinero entregado, corriendo
+        'pagado',                                         -- Deuda saldada
+        'vencido',                                        -- Tiene pagos atrasados
+        'reestructurado',                                 -- Se generó nuevo préstamo para cubrir
+        'cancelado'                                       -- Cancelado antes de desembolso
+        )                                 DEFAULT 'borrador',
+
+    -- Referencias
+    prestamo_origen_id           INT,                     -- Si es reestructuración, apunta al original
+    motivo_rechazo               TEXT,
+    observaciones_admin          TEXT,
+    observaciones_internas       TEXT,                    -- Notas privadas del comité
+
+    -- Firmas digitales de documentos generados
+    firmante_finanzas            VARCHAR(255),            -- Nombre del secretario de finanzas
+    firmante_prestamista         VARCHAR(255),            -- Confirmación del usuario
+
+    -- Control
+    requiere_reestructuracion    BOOLEAN  DEFAULT FALSE,
+    creado_por                   binary(16),              -- Admin que procesó
+    fecha_eliminacion            DATETIME default NULL,
+
+    CONSTRAINT fk_prestamo_usuario
+        FOREIGN KEY (usuario_id)
+            REFERENCES usuarios (usuario_id)
+            ON DELETE RESTRICT,
+    CONSTRAINT fk_prestamo_origen
+        FOREIGN KEY (prestamo_origen_id)
+            REFERENCES prestamos (prestamo_id)
+            ON DELETE SET NULL,
+
+    INDEX idx_folio (folio),
+    INDEX idx_usuario_estado (usuario_id, estado),
+    INDEX idx_estado_fecha (estado, fecha_solicitud),
+    INDEX idx_origen (prestamo_origen_id)
+);
+
+-- Configuración de pagos del préstamo (mix nómina + prestaciones)
+CREATE TABLE prestamo_configuracion_pagos
+(
+    config_pago_id             INT AUTO_INCREMENT PRIMARY KEY,
+    prestamo_id                INT            NOT NULL,
+    tipo_ingreso_id            INT            NOT NULL,
+
+    -- Configuración
+    monto_total_a_descontar    DECIMAL(10, 2) NOT NULL,                               -- Total de esta fuente
+    numero_cuotas              INT                                         DEFAULT 1, -- Quincenas: 24, Aguinaldo: 1
+    monto_por_cuota            DECIMAL(10, 2),                                        -- Para quincenas
+
+    -- Método de cálculo de interés
+    metodo_interes             ENUM ('simple_aleman', 'compuesto')         DEFAULT 'simple_aleman',
+    -- Simple alemán: para quincenas (cuota fija de capital + interés variable)
+    -- Compuesto: para prestaciones (un solo pago)
+
+    -- Documento probatorio
+    ruta_documento_comprobante VARCHAR(255),                                          -- Estado de cuenta de esa prestación
+    estado_documento           ENUM ('pendiente', 'validado', 'rechazado') DEFAULT 'pendiente',
+    observaciones_documento    TEXT,
+    fecha_validacion_documento DATETIME,
+
+    CONSTRAINT fk_config_prestamo
+        FOREIGN KEY (prestamo_id)
+            REFERENCES prestamos (prestamo_id)
+            ON DELETE CASCADE,
+    CONSTRAINT fk_config_tipo_ingreso
+        FOREIGN KEY (tipo_ingreso_id)
+            REFERENCES cat_tipos_ingreso (tipo_ingreso_id)
+            ON DELETE RESTRICT,
+
+    INDEX idx_prestamo (prestamo_id),
+    INDEX idx_tipo_ingreso (tipo_ingreso_id)
+);
+
+-- Documentos legales generados del préstamo
+CREATE TABLE prestamo_documentos_legales
+(
+    doc_legal_id                 INT AUTO_INCREMENT PRIMARY KEY,
+    prestamo_id                  INT          NOT NULL,
+    tipo_documento               ENUM (
+        'pagare',
+        'anuencia_descuento',
+        'corrida_financiera',
+        'comprobante_transferencia',
+        'contrato_prestamo',
+        'carta_reestructuracion'
+        )                                     NOT NULL,
+
+    ruta_archivo                 VARCHAR(255) NOT NULL,
+    version                      INT      DEFAULT 1, -- Si se regenera por reestructuración
+
+    -- Control de firmas
+    requiere_firma_usuario       BOOLEAN  DEFAULT FALSE,
+    firma_usuario_url            VARCHAR(255),       -- Archivo firmado subido
+    fecha_firma_usuario          DATETIME,
+
+    requiere_validacion_finanzas BOOLEAN  DEFAULT FALSE,
+    validado_por_finanzas        BOOLEAN  DEFAULT FALSE,
+    validado_por                 binary(16),        -- usuario_id
+    fecha_validacion             DATETIME,
+    observaciones_validacion     TEXT,
+
+    fecha_generacion             DATETIME DEFAULT CURRENT_TIMESTAMP,
+    generado_por                 binary(16),        -- usuario_id
+
+    CONSTRAINT fk_doc_legal_prestamo
+        FOREIGN KEY (prestamo_id)
+            REFERENCES prestamos (prestamo_id)
+            ON DELETE CASCADE,
+
+    INDEX idx_prestamo_tipo (prestamo_id, tipo_documento),
+    INDEX idx_pendientes_firma (requiere_firma_usuario, fecha_firma_usuario)
+);
+
+-- Tabla de amortización (corrida financiera)
+CREATE TABLE prestamo_amortizacion
+(
+    amortizacion_id            INT AUTO_INCREMENT PRIMARY KEY,
+    prestamo_id                INT            NOT NULL,
+
+    -- Identificación del pago
+    numero_pago                INT            NOT NULL,                                                -- 1, 2, 3... N
+    tipo_ingreso_id            INT            NOT NULL,                                                -- De qué fuente sale este pago
+    fecha_programada           DATE           NOT NULL,                                                -- 15 o 20 del mes
+
+    -- Desglose Financiero Programado (calculado al generar tabla)
+    saldo_inicial              DECIMAL(10, 2) NOT NULL,
+    capital                    DECIMAL(10, 2) NOT NULL,
+    interes_ordinario          DECIMAL(10, 2) NOT NULL,
+    pago_total_programado      DECIMAL(10, 2) NOT NULL,                                                -- capital + interes
+    saldo_final                DECIMAL(10, 2) NOT NULL,
+
+    -- Control de Pagos Reales
+    estado_pago                ENUM ('pendiente', 'pagado', 'pagado_parcial', 'vencido') DEFAULT 'pendiente',
+    fecha_pago_real            DATETIME,
+    monto_pagado_real          DECIMAL(10, 2)                                            DEFAULT 0,
+
+    -- Intereses Moratorios (picos por atraso)
+    dias_atraso                INT                                                       DEFAULT 0,
+    interes_moratorio_generado DECIMAL(10, 2)                                            DEFAULT 0,
+
+    -- Trazabilidad
+    pagado_por                 binary(16),                                                            -- usuario_id que registró el pago
+    comprobante_pago           VARCHAR(255),                                                           -- URL del comprobante
+
+    -- Control de regeneración
+    version_tabla              INT                                                       DEFAULT 1,    -- Incrementa con reestructuraciones
+    activa                     BOOLEAN                                                   DEFAULT TRUE, -- FALSE si se regeneró la tabla
+
+    CONSTRAINT fk_amort_prestamo
+        FOREIGN KEY (prestamo_id)
+            REFERENCES prestamos (prestamo_id)
+            ON DELETE CASCADE,
+    CONSTRAINT fk_amort_tipo_ingreso
+        FOREIGN KEY (tipo_ingreso_id)
+            REFERENCES cat_tipos_ingreso (tipo_ingreso_id)
+            ON DELETE RESTRICT,
+
+    INDEX idx_prestamo_numero (prestamo_id, numero_pago),
+    INDEX idx_fecha_estado (fecha_programada, estado_pago),
+    INDEX idx_version_activa (prestamo_id, version_tabla, activa)
+);
+
+-- Pagos extraordinarios (anticipos, abonos adicionales)
+CREATE TABLE prestamo_pagos_extraordinarios
+(
+    pago_extraordinario_id      INT AUTO_INCREMENT PRIMARY KEY,
+    prestamo_id                 INT                                                     NOT NULL,
+
+    tipo_pago                   ENUM ('anticipo', 'liquidacion_total', 'abono_capital') NOT NULL,
+    monto                       DECIMAL(10, 2)                                          NOT NULL,
+    fecha_pago                  DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    -- Aplicación del pago
+    aplicado_a_capital          DECIMAL(10, 2),
+    aplicado_a_interes          DECIMAL(10, 2),
+    aplicado_a_moratorio        DECIMAL(10, 2),
+
+    -- Efecto
+    regenero_tabla_amortizacion BOOLEAN  DEFAULT TRUE,
+    version_tabla_generada      INT,         -- Nueva versión de amortización creada
+
+    observaciones               TEXT,
+    comprobante_pago            VARCHAR(255),
+    registrado_por              binary(16), -- usuario_id
+
+    CONSTRAINT fk_pago_extra_prestamo
+        FOREIGN KEY (prestamo_id)
+            REFERENCES prestamos (prestamo_id)
+            ON DELETE CASCADE,
+
+    INDEX idx_prestamo_fecha (prestamo_id, fecha_pago),
+    INDEX idx_tipo (tipo_pago)
+);
+
+-- Historial de reestructuraciones
+CREATE TABLE prestamo_reestructuraciones
+(
+    reestructuracion_id      INT AUTO_INCREMENT PRIMARY KEY,
+    prestamo_original_id     INT            NOT NULL,
+    prestamo_nuevo_id        INT            NOT NULL,
+
+    motivo                   ENUM (
+        'pago_anticipado',
+        'picos_acumulados',
+        'solicitud_cliente',
+        'ajuste_administrativo'
+        )                                   NOT NULL,
+
+    saldo_pendiente_original DECIMAL(10, 2) NOT NULL,
+    intereses_pendientes     DECIMAL(10, 2) NOT NULL,
+    moratorios_pendientes    DECIMAL(10, 2) NOT NULL,
+    nuevo_monto_total        DECIMAL(10, 2) NOT NULL,
+    nueva_tasa_interes       DECIMAL(5, 2),
+    nuevo_plazo_quincenas    INT,
+
+    fecha_reestructuracion   DATETIME DEFAULT CURRENT_TIMESTAMP,
+    autorizado_por           binary(16), -- usuario_id
+    observaciones            TEXT,
+
+    CONSTRAINT fk_reest_original
+        FOREIGN KEY (prestamo_original_id)
+            REFERENCES prestamos (prestamo_id)
+            ON DELETE RESTRICT,
+    CONSTRAINT fk_reest_nuevo
+        FOREIGN KEY (prestamo_nuevo_id)
+            REFERENCES prestamos (prestamo_id)
+            ON DELETE RESTRICT,
+
+    INDEX idx_original (prestamo_original_id),
+    INDEX idx_nuevo (prestamo_nuevo_id),
+    INDEX idx_fecha (fecha_reestructuracion)
+);
+
+-- Comprobantes generados automáticamente
+CREATE TABLE prestamo_comprobantes
+(
+    comprobante_id    INT AUTO_INCREMENT PRIMARY KEY,
+    prestamo_id       INT                NOT NULL,
+    amortizacion_id   INT,          -- NULL si es comprobante de desembolso
+
+    tipo_comprobante  ENUM (
+        'desembolso',
+        'pago_regular',
+        'pago_extraordinario',
+        'cargo_moratorio',
+        'ajuste'
+        )                                NOT NULL,
+
+    folio_comprobante VARCHAR(50) UNIQUE NOT NULL,
+    monto             DECIMAL(10, 2)     NOT NULL,
+    descripcion       TEXT,
+
+    fecha_emision     DATETIME DEFAULT CURRENT_TIMESTAMP,
+    ruta_pdf          VARCHAR(255), -- PDF generado automáticamente
+
+    CONSTRAINT fk_comp_prestamo
+        FOREIGN KEY (prestamo_id)
+            REFERENCES prestamos (prestamo_id)
+            ON DELETE CASCADE,
+    CONSTRAINT fk_comp_amortizacion
+        FOREIGN KEY (amortizacion_id)
+            REFERENCES prestamo_amortizacion (amortizacion_id)
+            ON DELETE SET NULL,
+
+    INDEX idx_folio (folio_comprobante),
+    INDEX idx_prestamo_fecha (prestamo_id, fecha_emision)
+);
 
 create table publicaciones
 (
