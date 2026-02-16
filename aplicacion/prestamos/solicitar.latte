@@ -4,9 +4,19 @@
 
 {block content}
   <div class="container mt-4">
+    {if $mensaje}
+      <div class="alert alert-info">
+        {$mensaje}
+      </div>
+    {/if}
+    {if $error}
+      <div class="alert alert-danger">
+        {$error}
+      </div>
+    {/if}
     <h1>Solicitar Préstamo</h1>
 
-    <form method="post" action="/prestamos/solicitar">
+    <form method="post" action="solicitar.php" enctype="multipart/form-data">
       <div class="mb-3">
         <label for="monto" class="form-label">
           Monto a Solicitar
@@ -22,13 +32,70 @@
       </div>
 
       <div class="mb-3">
+        <label for="tipo_descuento" class="form-label">Tipo de descuento</label>
+        <select class="form-select" id="tipo_descuento" name="tipo_descuento" required onchange="mostrarAyudaRecibo()">
+          <option value="">Selecciona una opción</option>
+          <option value="quincenal">Quincenal</option>
+          <option value="aguinaldo">Aguinaldo</option>
+          <option value="prima_vacacional">Prima vacacional</option>
+        </select>
+      </div>
+
+      {if $miembro->esAdmin() || $miembro->esLider()}
+        <label for="miembro_id">
+          Miembro Solicitante
+        </label>
+        <select id="miembro_id" name="miembro_id" class="form-select mb-3" required>
+          <option value="" disabled>Selecciona un miembro</option>
+          {foreach $miembros as $m}
+            <option value="{$m['id']}" {if $m['id'] == $miembro->getId()}selected{/if}>
+              {$m['nombre']} {$m['apellidos']}
+            </option>
+          {/foreach}
+        </select>
+      {else}
+        <input type="hidden" value="{$miembro->getId()}" name="miembro_id">
+      {/if}
+
+      <div class="mb-3">
+        <label for="motivo" class="form-label">
+          Motivo del Préstamo
+        </label>
+        <textarea class="form-control" id="motivo" name="justificacion" rows="3" required></textarea>
+      </div>
+
+      <div class="mb-3">
+        <div id="ayuda-recibo" class="alert alert-info" style="display:none;"></div>
+      </div>
+
+      <div class="mb-3">
         <label for="recibo-salario" class="form-label">
           Subir Recibo de Salario (PDF)
         </label>
-        <input type="file" class="form-control" id="recibo-salario" name="recibo-salario" required accept="application/pdf">
+        <input type="file" class="form-control" id="recibo-salario" name="recibo-salario" required
+               accept="application/pdf">
       </div>
 
+      <script>
+        function mostrarAyudaRecibo() {
+          var tipo = document.getElementById('tipo_descuento').value;
+          var ayuda = document.getElementById('ayuda-recibo');
+          ayuda.style.display = 'block';
+          if (tipo === 'quincenal') {
+            ayuda.innerHTML = 'Adjunta el recibo de nómina de la última quincena donde se hará el descuento.';
+          } else if (tipo === 'aguinaldo') {
+            ayuda.innerHTML = 'Adjunta el recibo de nómina donde venga el pago del aguinaldo del año pasado.';
+          } else if (tipo === 'prima_vacacional') {
+            ayuda.innerHTML = 'Adjunta el recibo de nómina donde se vea el pago de la prima vacacional del año pagado.';
+          } else {
+            ayuda.style.display = 'none';
+          }
+        }
+      </script>
+
       <button type="submit" class="btn btn-primary">Solicitar Préstamo</button>
+      <a href="./simulador.php" class="btn btn-info">Ir al Simulador</a>
+      <a href="./index.php" class="btn btn-secondary">Cancelar</a>
     </form>
   </div>
 {/block}

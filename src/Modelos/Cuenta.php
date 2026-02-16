@@ -19,7 +19,7 @@ final class Cuenta
 
             // Seleccionamos solo las columnas necesarias
             $stmt = $con->prepare(
-                    "SELECT m.id, m.nombre, m.apellidos, m.direccion, m.telefono, m.categoria,
+                    "SELECT m.id, m.activo, m.nombre, m.apellidos, m.direccion, m.telefono, m.categoria,
                         m.departamento, m.nss, m.curp, m.fecha_ingreso, m.fecha_nacimiento,
                         u.rol, u.contra AS hash_contra
                  FROM miembros m
@@ -54,6 +54,11 @@ final class Cuenta
                     } catch (\Exception) {
 
                     }
+                }
+
+                if (!(bool)$fila['activo']) {
+                    // Miembro inactivo
+                    return null;
                 }
 
                 return new EntidadMiembro(

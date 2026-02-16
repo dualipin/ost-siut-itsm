@@ -2,12 +2,11 @@
 
 declare(strict_types=1);
 
-use App\Fabricas\FabricaConexion;
+
 use App\Manejadores\Sesion;
 use App\Manejadores\SesionProtegida;
 use App\Servicios\ServicioLatte;
-use App\Servicios\ServicioMiembros;
-use App\Servicios\ServicioPrestamos;
+
 
 require_once __DIR__ . '/../../src/configuracion.php';
 
@@ -15,26 +14,26 @@ $mensajeError = null;
 
 SesionProtegida::proteger();
 
-try {
-    $pdo = FabricaConexion::crear();
-} catch (Exception $e) {
-    $mensajeError = $e->getMessage();
+$idMiembro = Sesion::sesionAbierta()->getId();
+
+$pdo = \App\Configuracion\MysqlConexion::conexion();
+$prestamos = $pdo->prepare("SELECT * FROM solicitudes_prestamos where fk_miembro = :id_miembro");
+$prestamos->bindParam(":id_miembro", $idMiembro);
+$prestamos->execute();
+$prestamos = $prestamos->fetchAll(PDO::FETCH_ASSOC);
+
+if (
+        !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+        strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'
+) {
+    header('Content-Type: application/json');
+    echo json_encode($prestamos);
+    exit;
 }
 
-$servicioPrestamos = new ServicioPrestamos($pdo);
-$servicioMiembros = new ServicioMiembros($pdo);
-
-// Obtener miembro actual
-$usuarioId = Sesion::idSesionAbierta();
-$miembro = $servicioMiembros->obtenerPorUsuario($usuarioId);
-$solicitudes = [];
-
-if ($miembro) {
-    $solicitudes = $servicioPrestamos->obtenerSolicitudesPorMiembro($miembro->id);
-}
 
 $datos = [
-        'solicitudes' => $solicitudes,
+        'solicitudes' => $prestamos,
         'mensajeError' => $mensajeError,
 ];
 

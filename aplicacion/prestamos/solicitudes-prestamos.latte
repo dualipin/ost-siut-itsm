@@ -5,8 +5,53 @@
   <h1>
     Solicitudes de Préstamos
   </h1>
-  <div class="alert alert-danger" role="alert">
-    Actualmente no se encuentran solicitudes de préstamos.
-  </div>
+
+    {if $mensaje}
+      <div class="alert alert-success" role="alert">{$mensaje}</div>
+    {/if}
+    {if count($solicitudes) === 0}
+      <div class="alert alert-info" role="alert">No hay solicitudes pendientes.</div>
+    {else}
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Agremiado</th>
+            <th>Monto solicitado</th>
+            <th>Plazo</th>
+            <th>Tipo descuento</th>
+            <th>Recibo nómina</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {foreach $solicitudes as $s}
+            <tr>
+              <td>{$s['nombre']} {$s['apellidos']}</td>
+              <td>${$s['monto_solicitado']|number:2}</td>
+              <td>{$s['plazo_meses']}</td>
+              <td>{$s['tipo_descuento']}</td>
+              <td><a href="/archivos/subidos/recibos_nomina/{$s['recibo_nomina']}" target="_blank">Ver recibo</a></td>
+              <td>{$s['estado']}</td>
+              <td>
+                <form method="post" style="display:inline-block">
+                  <input type="hidden" name="id" value="{$s['id']}">
+                  <input type="number" step="0.01" name="monto_aprobado" placeholder="Monto a aprobar" min="0" style="width:120px" required>
+                  <button type="submit" name="accion" value="aprobar" class="btn btn-success btn-sm">Aprobar</button>
+                </form>
+                <form method="post" style="display:inline-block">
+                  <input type="hidden" name="id" value="{$s['id']}">
+                  <button type="submit" name="accion" value="rechazar" class="btn btn-danger btn-sm">Rechazar</button>
+                </form>
+                <form method="post" style="display:inline-block">
+                  <input type="hidden" name="id" value="{$s['id']}">
+                  <button type="submit" name="accion" value="espera" class="btn btn-warning btn-sm">Lista de espera</button>
+                </form>
+              </td>
+            </tr>
+          {/foreach}
+        </tbody>
+      </table>
+    {/if}
 
 {/block}

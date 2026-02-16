@@ -1,0 +1,224 @@
+{layout '../plantillas/_base.latte'}
+
+
+{block head}
+<style n:syntax="off">
+    .login-container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .login-container:hover {
+        box-shadow: 0 12px 100px rgba(0, 0, 0, 0.15);
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus~.form-label,
+    .form-control:not(:placeholder-shown)~.form-label {
+        color: #0d6efd;
+        font-size: 0.85rem;
+        transform: translateY(-10px);
+    }
+
+    .form-outline {
+        position: relative;
+    }
+
+    .form-control {
+        border: 2px solid #e9ecef;
+        padding: 1rem;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+
+    .btn {
+        border: none;
+        padding: 0.8rem 2.5rem;
+        border-radius: 50px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .forgot-link {
+        color: #6c757d;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .forgot-link:hover {
+        color: #0d6efd;
+        text-decoration: underline;
+    }
+</style>
+{/block}
+
+{block base_content}
+
+<section class="d-flex flex-column min-vh-100 bg-primary">
+    <img src="/assets/images/logo.webp"
+        class="img-fluid position-absolute top-0 start-50 translate-middle-x mt-3 rounded-circle" alt="Logo"
+        style="height: 100px; z-index: 10;">
+
+    <section class="d-flex align-items-center h-100 flex-grow-1">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-12 col-md-10">
+                    <div class="login-container">
+                        <div class="row g-0">
+                            <!-- Imagen (visible en md+) -->
+                            <div class="col-md-6 d-none d-md-flex bg-light">
+                                {include file '../index__carrusel.latte'}
+
+                            </div>
+
+                            <!-- Formulario -->
+                            <div class="col-12 col-md-6 p-4 p-md-5">
+                                <div class="text-center mb-4 mt-3 mt-lg-0">
+                                    <h3 class="fw-bold">Bienvenido</h3>
+                                    <p class="text-muted">Ingresa tus credenciales para continuar</p>
+                                </div>
+
+                                <form method="post">
+                                    <input type="hidden" name="csrf_token" value="{$csrf_token}" />
+                                    <input type="hidden" name="redirect" value="{$redirect}">
+
+                                    <!-- Email -->
+                                    <div class="form-outline mb-4">
+                                        <label class="form-label" for="form3Example3">Correo electrónico</label>
+                                        <input name="usuario" type="email" value="{$usuario?:''}" id="form3Example3"
+                                            class="form-control form-control-lg" placeholder="correo@correo.com"
+                                            required />
+                                    </div>
+
+                                    <!-- Password -->
+                                    <div class="form-outline mb-4">
+                                        <label class="form-label" for="form3Example4">Contraseña</label>
+                                        <input name="contra" type="password" id="form3Example4"
+                                            class="form-control form-control-lg" placeholder="*****" required />
+                                    </div>
+
+
+                                    <div class="d-flex justify-content-between align-items-center mb-4">
+
+
+                                        <a href="/cuenta/recuperar-contra.php" class="forgot-link">¿Olvidaste tu
+                                            contraseña?</a>
+                                    </div>
+
+                                    <div class="text-center">
+                                        <button type="submit" class="btn btn-primary btn-lg w-100 mb-3">
+                                            Iniciar Sesión
+                                        </button>
+                                        <a href="/"
+                                            class="btn btn-secondary w-100 mb-3 d-flex align-items-center justify-content-center gap-2">
+                                            <svg xmlns="http://www.w3.org" width="16" height="16" fill="currentColor"
+                                                class="bi bi-house-door-fill" viewBox="0 0 16 16">
+                                                <path
+                                                    d="M6.5 14.5v-3.505c0-.245.25-.495.5-.495h2c.25 0 .5.25.5.5v3.5a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5" />
+                                            </svg>
+                                            Volver al Inicio
+                                        </a>
+                                        {if $error}
+                                        <div class="alert alert-danger small" role="alert">
+                                            {$error}
+                                        </div>
+                                        {/if}
+                                    </div>
+                                </form>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <style n:syntax="off">
+        .social-link {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            margin: 0 5px;
+        }
+
+        .social-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px);
+        }
+
+        .illustration {
+            max-width: 100%;
+            border-radius: 20px 0 0 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 992px) {
+            .illustration {
+                border-radius: 20px 20px 0 0;
+            }
+        }
+
+        footer {
+            backdrop-filter: blur(10px);
+            border-radius: 20px 20px 0 0;
+            margin-top: auto;
+        }
+
+        @media (min-width: 992px) {
+            footer {
+                border-radius: 0;
+            }
+        }
+    </style>
+
+    <footer class="text-white py-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-12 col-md-6 mb-3 mb-md-0 text-center text-md-start">
+                    &copy; {date('Y')}. SIUT ITSM. Todos los derechos reservados.
+                </div>
+                <div class="col-12 col-md-6 text-center text-md-end">
+                    <a href="https://www.facebook.com/sindicatostitsm" target="_blank" class="social-link text-white">
+                        <i class="bi bi-facebook"></i>
+                    </a>
+                    <a href="https://wa.me/529361066169" target="_blank" class="social-link text-white">
+                        <i class="bi bi-whatsapp"></i>
+                    </a>
+                    <a href="mailto:Sindicato_SIUTITSM@outlook.com" target="_blank" class="social-link text-white">
+                        <i class="bi bi-envelope"></i>
+                    </a>
+                    <a href="/" class="social-link text-white">
+                        <i class="bi bi-globe"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</section>
+{/block}

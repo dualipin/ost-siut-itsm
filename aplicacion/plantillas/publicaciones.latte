@@ -1,0 +1,65 @@
+{layout ../plantillas/@layout.latte}
+{varType App\Entidades\EntidadMiembro $miembro}
+
+
+{block content}
+  {if $mensaje}
+    <div class="alert alert-success">
+      {$mensaje}
+    </div>
+  {/if}
+  {if $error}
+    <div class="alert alert-danger">
+      {$error}
+    </div>
+  {/if}
+
+  <h1>
+    {$titulo|capitalize}
+  </h1>
+  <div class="row g-3">
+    {foreach $publicaciones as $publicacion}
+      <div class="col-12 col-sm-6 col-md-4 mb-4">
+        <div class="card h-100">
+          {if $publicacion['imagen'] === null}
+            <img src="/assets/images/logo.webp" class="card-img-top object-fit-cover" alt="..."
+                 style="max-height: 200px;">
+          {else}
+            <img src="/archivos/subidos/publicaciones/{$publicacion['imagen']}" class="card-img-top object-fit-cover"
+                 alt="..."
+                 style="max-height: 200px;">
+          {/if}
+          <div class="card-body">
+            <h5 class="card-title">{$publicacion['titulo']}</h5>
+            <p class="card-text">{$publicacion['resumen']|truncate:100}</p>
+            <div class="d-flex justify-content-end gap-2 align-items-center">
+              <a href="/aplicacion/publicaciones/detalle.php?id={$publicacion['id']}" class="btn btn-primary">Ver
+                más</a>
+              {if $miembro->esAdmin() || $miembro->esLider()}
+                <a href="/aplicacion/publicaciones/editar.php?id={$publicacion['id']}"
+                   class="btn btn-secondary">Editar</a>
+
+                <form method="post" action="/aplicacion/publicaciones/eliminar.php">
+                  <input type="hidden" name="id" value="{$publicacion['id']}">
+                  <input type="hidden" name="path" value="{$path}">
+                  <button type="submit" class="btn btn-danger"
+                          onclick="return confirm('¿Estás seguro de que deseas eliminar este aviso?');">Eliminar
+                  </button>
+                </form>
+              {/if}
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+    {/foreach}
+    {if count($publicaciones) === 0}
+      <div class="col-12">
+        <div class="alert alert-info" role="alert">
+          No hay {$titulo|lower} disponibles en este momento.
+        </div>
+      </div>
+    {/if}
+  </div>
+{/block}

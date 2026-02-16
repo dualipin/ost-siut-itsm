@@ -1,20 +1,31 @@
 <?php
 
-use App\Configuracion\MysqlConexion;
+use App\Manejadores\Sesion;
 use App\Manejadores\SesionProtegida;
+use App\Modelos\Publicacion;
 use App\Servicios\ServicioLatte;
 
 require_once __DIR__ . '/../../src/configuracion.php';
 
 SesionProtegida::proteger();
 
-$conn = MysqlConexion::conexion();
+$miembro = Sesion::sesionAbierta();
+$avisos = null;
 
-$sql = "SELECT * FROM publicaciones 
-WHERE (expiracion IS NULL OR expiracion >= CURDATE())
-AND tipo = 'aviso'
-ORDER BY fecha DESC;";
-$resultado = $conn->query($sql);
-$avisos = $resultado->fetchAll(PDO::FETCH_ASSOC);
+if ($miembro->esAdmin() || $miembro->esLider()) {
+    $avisos = Publicacion::obtenerAvisos();
+} else {
+    $avisos = Publicacion::buscarAvisosActivosRecientes();
+}
 
-ServicioLatte::renderizar(__DIR__ . '/index.latte', ['avisos' => $avisos]);
+$path = $_SERVER['PHP_SELF'];
+
+
+$datos = [
+        'path' => $path,
+        'avisos' => $avisos,
+        'mensaje' => filter_input(INPUT_GET, 'mensaje', FILTER_SANITIZE_SPECIAL_CHARS),
+        'error' => filter_input(INPUT_GET, 'error', FILTER_SANITIZE_SPECIAL_CHARS)
+];
+
+ServicioLatte::renderizar(__DIR__ . '/index.latte', $datos);

@@ -8,7 +8,34 @@
       <h1 class="text-uppercase fw-bold">
         Avisos
       </h1>
-      <p>Esta es la página de avisos.</p>
+      <div class="row g-3">
+        {foreach $avisos as $aviso}
+          <div class="col-12 col-sm-6 col-md-4 mb-4">
+            <div class="card h-100">
+              {if $aviso['imagen'] === null}
+                <img src="/assets/images/logo.webp" class="card-img-top object-fit-cover" alt="..."
+                     style="max-height: 200px;">
+              {else}
+                <img src="/archivos/subidos/publicaciones/{$aviso['imagen']}" class="card-img-top object-fit-cover" alt="..."
+                     style="max-height: 200px;">
+              {/if}
+              <div class="card-body">
+                <h5 class="card-title">{$aviso['titulo']}</h5>
+                <p class="card-text">{$aviso['resumen']|truncate:100}</p>
+                <a href="/avisos-detalles.php?id={$aviso['id']}" class="btn btn-primary">Ver más</a>
+              </div>
+            </div>
+          </div>
+
+        {/foreach}
+          {if count($avisos) === 0}
+          <div class="col-12">
+            <div class="alert alert-info" role="alert">
+              No hay avisos disponibles en este momento.
+            </div>
+          </div>
+        {/if}
+      </div>
     </div>
   </section>
 {/block}

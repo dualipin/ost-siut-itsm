@@ -30,10 +30,10 @@ class ServicioCorreo
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS; // SSL (no STARTTLS)
             $mail->Port = 465; // Puerto SSL
             $mail->Timeout = 10;  // para evitar bloqueos largos
-            $mail->SMTPDebug = 2;   // solo durante pruebas
+//            $mail->SMTPDebug = 2; // solo durante pruebas
 
             $mail->setFrom('contacto@siutitsm.com.mx', 'Formulario de contacto');
-            $mail->addAddress('martin.msr1304@gmail.com', 'Administrador del sitio');
+            $mail->addAddress($enviarA, 'Administrador del sitio');
 
             $mail->isHTML(true);
             $mail->Subject = $asunto;

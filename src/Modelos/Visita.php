@@ -3,15 +3,29 @@
 namespace App\Modelos;
 
 use App\Configuracion\MysqlConexion;
+use PDO;
 use PDOException;
 
 final class Visita
 {
-    public static function agregarVisita(): void
+    public function __construct(
+        private PDO $pdo
+    ) {}
+
+
+    public function registrarVisita(): void
+    {
+        $pagina = $_SERVER['REQUEST_URI'] ?? 'desconocida';
+
+
+        $sql = "";
+    }
+
+    public  function agregarVisita(): void
     {
         $insert = "INSERT INTO visitas_pagina (fecha) VALUES (NOW())";
         try {
-            $con = MysqlConexion::conexion();
+            $con = $this->pdo;
             $stmt = $con->prepare($insert);
             $stmt->execute();
         } catch (PDOException $e) {
@@ -19,9 +33,9 @@ final class Visita
         }
     }
 
-    public static function obtenerVisitasHoy(): int
+    public function obtenerVisitasHoy(): int
     {
-        $con = MysqlConexion::conexion();
+        $con = $this->pdo;
         $sql = "SELECT COUNT(*) AS total FROM visitas_pagina WHERE DATE(fecha) = CURDATE()";
         $stmt = $con->prepare($sql);
         $stmt->execute();
@@ -30,9 +44,9 @@ final class Visita
         return $resultado['total'];
     }
 
-    public static function obtenerVisitasSemana(): int
+    public  function obtenerVisitasSemana(): int
     {
-        $con = MysqlConexion::conexion();
+        $con = $this->pdo;
         $sql = "SELECT COUNT(*) AS total FROM visitas_pagina WHERE YEARWEEK(fecha, 1) = YEARWEEK(CURDATE(), 1)";
         $stmt = $con->prepare($sql);
         $stmt->execute();

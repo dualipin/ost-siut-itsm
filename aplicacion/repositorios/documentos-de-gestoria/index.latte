@@ -7,83 +7,112 @@
 
 {block content}
 
+
   {if $error}
-    <div class="alert alert-danger" role="alert">
-      {$error}
-    </div>
+    <div class="alert alert-danger" role="alert">{$error}</div>
   {/if}
-
   {if $mensajeExito}
-    <div class="alert alert-success" role="alert">
-      {$mensajeExito}
-    </div>
+    <div class="alert alert-success" role="alert">{$mensajeExito}</div>
   {/if}
 
-  <h1 class="text-uppercase fw-bold mb-4">
-    Documentos de Gestoría
-  </h1>
+  <h1 class="text-uppercase fw-bold mb-4">Documentos de Gestoría</h1>
 
-
-  <!-- Botón para agregar documento (solo para admin/líder) -->
   {if $miembro->esAdmin() || $miembro->esLider()}
     <p class="mb-4">Consulta y administra los documentos de gestoría disponibles.</p>
     <button class="btn btn-success mb-4" data-bs-toggle="modal" data-bs-target="#modalAgregarDocumento">
-      <i class="bi bi-plus-circle me-3"></i> Agregar documento
+      <i class="bi bi-plus-circle me-2"></i>Agregar documento
     </button>
   {else}
     <p class="mb-4">Consulta los documentos de gestoría disponibles.</p>
   {/if}
 
-  <!-- Grid de documentos (ejemplo estático, reemplazar por loop real) -->
-  <div class="row row-cols-1 row-cols-md-3 g-4">
-    {foreach $documentos as $documento}
-      {if !$documento['privado'] || $miembro->esAdmin() || $miembro->esLider()}
-        <div class="col">
-          <div class="card h-100 shadow-sm border">
-            <div class="card-body">
-              <h5 class="card-title">
-                {$documento['titulo']}
-            {if $documento['privado']}
-                  <span class="badge bg-warning text-dark">Privado</span>
-                {/if}
-              </h5>
-              <p class="card-text">{$documento['fecha_subida']}</p>
-            </div>
-            <div class="card-footer">
-              <a href="./detalle.php?id_doc={$documento['id']}"
-                 class="btn btn-primary">
-                Ver documento
-              </a>
-              {if $miembro->esAdmin() || $miembro->esLider()}
-                <form method="POST" class="d-inline" action="./eliminar.php">
-                  <input type="hidden" name="id_doc" value="{$documento['id']}">
-                  <button type="submit" name="eliminar" value="eliminar" class="btn btn-danger"
-                          onclick="return confirm('¿Estás seguro de que deseas eliminar este documento?');">
-                    Eliminar
-                  </button>
-                </form>
-              {/if}
+  <!-- Agrupamos por AÑO → MES -->
+{*  {var $agrupado = []}*}
+{*  {foreach $documentos as $d}*}
+{*    {var $anio = $d['fecha_subida']|date:'Y'}*}
+{*    {var $mes  = $d['fecha_subida']|date:'m'}*}
+{*    {var $agrupado[$anio][$mes][] = $d}*}
+{*  {/foreach}*}
+
+  {if $agrupado}
+    <div class="accordion" id="acordeonAnios">
+      {foreach $agrupado as $anio => $meses}
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button {if $anio != date('Y')}collapsed{/if}" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapse{$anio}">
+              {$anio}
+            </button>
+          </h2>
+          <div id="collapse{$anio}" class="accordion-collapse collapse {if $anio == date('Y')}show{/if}">
+            <div class="accordion-body">
+              <div class="accordion" id="accordionMes{$anio}">
+                {foreach $meses as $mesNum => $docsMes}
+                  {var $nombreMes = date('F', mktime(0,0,0,$mesNum,1))}
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                              data-bs-target="#collapseMes{$anio}{$mesNum}">
+                        {$nombreMes}
+                      </button>
+                    </h2>
+                    <div id="collapseMes{$anio}{$mesNum}" class="accordion-collapse collapse">
+                      <div class="accordion-body">
+                        <div class="row row-cols-1 row-cols-md-2 g-3">
+                          {foreach $docsMes as $doc}
+                            {if !$doc['privado'] || $miembro->esAdmin() || $miembro->esLider()}
+                              <div class="col">
+                                <div class="card h-100 shadow-sm border">
+                                  <div class="card-body">
+                                    <h5 class="card-title">
+                                      {$doc['titulo']}
+                                    {if $doc['privado']}<span class="badge bg-warning text-dark">Privado</span>{/if}
+                                    </h5>
+                                    <p class="card-text">
+                                      <small class="text-muted">{$doc['fecha_subida']|date:"d/m/Y"}</small>
+                                    </p>
+                                  </div>
+                                  <div class="card-footer d-flex justify-content-between align-items-center">
+                                    <a href="./detalle.php?id_doc={$doc['id']}" class="btn btn-primary btn-sm">Ver documento</a>
+                                    {if $miembro->esAdmin() || $miembro->esLider()}
+                                      <form method="POST" class="d-inline" action="./eliminar.php"
+                                            onsubmit="return confirm('¿Estás seguro?');">
+                                        <input type="hidden" name="id_doc" value="{$doc['id']}">
+                                        <button type="submit" name="eliminar" class="btn btn-danger btn-sm">Eliminar</button>
+                                      </form>
+                                    {/if}
+                                  </div>
+                                </div>
+                              </div>
+                            {/if}
+                          {/foreach}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                {/foreach}
+              </div>
             </div>
           </div>
         </div>
-      {/if}
-    {/foreach}
-    {*  <!-- ...aquí iría un {foreach} para más documentos... -->*}
-  </div>
+      {/foreach}
+    </div>
+  {else}
+    <div class="alert alert-info">No hay documentos registrados.</div>
+  {/if}
 
+  <!-- Paginación (conserva la tuya) -->
   {if $totalPaginas > 1}
-    <nav aria-label="Paginación de documentos" class="mt-4">
+    <nav aria-label="Paginación" class="mt-4">
       <ul class="pagination justify-content-center">
         <li class="page-item {if $paginaActual === 1}disabled{/if}">
           <a class="page-link" href="?pagina={$paginaActual - 1}">Anterior</a>
         </li>
-
         {for $i = 1; $i <= $totalPaginas; $i++}
           <li class="page-item {if $i === $paginaActual}active{/if}">
             <a class="page-link" href="?pagina={$i}">{$i}</a>
           </li>
         {/for}
-
         <li class="page-item {if $paginaActual === $totalPaginas}disabled{/if}">
           <a class="page-link" href="?pagina={$paginaActual + 1}">Siguiente</a>
         </li>

@@ -1,0 +1,317 @@
+{layout ../plantillas/@layout.latte}
+
+{block content}
+  <section class="section py-5">
+    <div class="container" data-aos-delay="0" data-aos="fade-up">
+      <div class="row justify-content-center mb-5 mt-5 pt-5">
+        <div class="col-lg-8 col-md-10 text-center">
+          <h1 class="display-5 fw-bold mb-3">Registro Posada Navideña 2025</h1>
+          <p class="lead text-muted">Completa los datos para inscribirte a los concursos.</p>
+        </div>
+      </div>
+
+      <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+
+          <form method="post" action="registrar.php" class="row g-4 needs-validation" id="registroForm" novalidate>
+
+            <div class="col-12">
+              <h4 class="mb-3 border-bottom pb-2">Datos Personales</h4>
+            </div>
+
+            <input type="hidden" name="agremiado" id="agremiado_final" value="0">
+            <input type="hidden" name="miembro_id" id="miembro_id_final" value="">
+            <input type="hidden" name="nombre" id="nombre_final" value="">
+
+            <div class="col-md-12 position-relative">
+              <div class="form-floating">
+                <input type="text" class="form-control bg-white" id="buscador_visible" placeholder="Buscar miembro..."
+                       autocomplete="off" required>
+                <label for="buscador_visible">Buscar Nombre (Escribe para buscar)</label>
+
+                <div id="search-spinner"
+                     class="spinner-border spinner-border-sm text-primary position-absolute top-50 end-0 translate-middle-y me-3 d-none"
+                     role="status"></div>
+              </div>
+
+              <ul class="list-group position-absolute w-100 shadow-lg bg-white" id="lista_resultados"
+                  style="z-index: 1000; max-height: 200px; overflow-y: auto; display: none;">
+              </ul>
+
+              <div class="invalid-feedback" id="error_seleccion">
+                Debes seleccionar un nombre válido.
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="form-floating">
+                <input type="text" class="form-control bg-white" id="area" name="area" placeholder="Área" required>
+                <label for="area">Área / Departamento</label>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="form-floating">
+                <select class="form-select bg-white" id="genero" name="genero" required>
+                  <option value="" disabled selected>Selecciona...</option>
+                  <option value="masculino">Masculino</option>
+                  <option value="femenino">Femenino</option>
+                </select>
+                <label for="genero">Género</label>
+              </div>
+            </div>
+
+            <div class="col-12 mt-5">
+              <h4 class="mb-3 border-bottom pb-2">Selección de Concurso</h4>
+            </div>
+
+            <div class="col-12">
+              <div class="form-floating">
+                <select class="form-select bg-white" id="concurso" name="concurso" required>
+                  <option value="" selected disabled>Elige tu categoría...</option>
+                  <option value="canto">🎤 Canto ($1500 / $1000 / $500)</option>
+                  <option value="baile">💃 Baile ($1000 / $500)</option>
+                  <option value="yardas">🍺 Yardas ($1000)</option>
+                </select>
+                <label for="concurso">Categoría</label>
+              </div>
+            </div>
+
+            <div id="campos-canto" class="col-12 d-none ps-4 border-start border-4 border-primary">
+              <div class="row g-3">
+                <div class="col-12">
+                  <span class="badge bg-primary mb-2">Requisitos Canto</span>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-floating">
+                    <input type="text" class="form-control bg-white field-canto" name="cancion_eliminatoria"
+                           placeholder="Canción 1">
+                    <label>Canción Eliminatoria</label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-floating">
+                    <input type="text" class="form-control bg-white field-canto" name="cancion_final"
+                           placeholder="Canción 2">
+                    <label>Canción Final (si pasas)</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="campos-baile" class="col-12 d-none ps-4 border-start border-4 border-success">
+              <div class="row g-3">
+                <div class="col-12">
+                  <span class="badge bg-success mb-2">Requisitos Baile</span>
+                </div>
+                <div class="col-12">
+                  <div class="form-floating">
+                    <input type="text" class="form-control bg-white field-baile" name="pareja_nombre"
+                           placeholder="Pareja">
+                    <label>Nombre de tu Pareja</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 mt-5">
+              <button type="submit" class="btn btn-dark btn-lg w-100 py-3 rounded-pill">
+                Registrar Participación
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+{/block}
+{block scripts}
+  <script n:syntax="off">
+    document.addEventListener('DOMContentLoaded', () => {
+
+      // --- REFERENCIAS DOM ---
+      const selectConcurso = document.getElementById('concurso');
+      const divCanto = document.getElementById('campos-canto');
+      const divBaile = document.getElementById('campos-baile');
+
+      const inputVisible = document.getElementById('buscador_visible');
+      const inputOcultoNombre = document.getElementById('nombre_final');
+      const inputOcultoId = document.getElementById('miembro_id_final');
+      const inputAgremiado = document.getElementById('agremiado_final');
+
+      const listaResultados = document.getElementById('lista_resultados');
+      const spinner = document.getElementById('search-spinner');
+      const errorMsg = document.getElementById('error_seleccion');
+
+      const form = document.getElementById('registroForm');
+      const submitBtn = form.querySelector('button[type="submit"]');
+
+      let debounceTimer;
+
+      // --- 1. LÓGICA DE BÚSQUEDA Y ESCRITURA ---
+      inputVisible.addEventListener('input', function () {
+        const query = this.value.trim();
+        clearTimeout(debounceTimer);
+
+        // A. MODO EXTERNO (Por defecto al escribir)
+        // Asumimos que es externo hasta que seleccione de la lista
+        inputOcultoNombre.value = this.value;
+        inputOcultoId.value = '';
+        inputAgremiado.value = '0';
+
+        // Limpieza visual
+        inputVisible.classList.remove('is-valid', 'is-invalid');
+        errorMsg.style.display = 'none';
+        listaResultados.style.display = 'none';
+        listaResultados.innerHTML = '';
+
+        if (query.length < 3) return; // No buscar con menos de 3 letras
+
+        // B. BUSCAR EN SERVIDOR (Debounce)
+        debounceTimer = setTimeout(() => {
+          buscarMiembros(query);
+        }, 300);
+      });
+
+      async function buscarMiembros(query) {
+        spinner.classList.remove('d-none');
+        try {
+          const response = await fetch(`/solicitudes/buscar.php?q=${encodeURIComponent(query)}`);
+          const data = await response.json();
+
+          listaResultados.innerHTML = '';
+
+          if (data.length > 0) {
+            listaResultados.style.display = 'block';
+            data.forEach(item => {
+              const li = document.createElement('li');
+              li.className = 'list-group-item list-group-item-action cursor-pointer';
+              li.textContent = item.name;
+
+              // Evento click en sugerencia
+              li.addEventListener('click', () => {
+                seleccionarMiembro(item);
+              });
+              listaResultados.appendChild(li);
+            });
+          } else {
+            listaResultados.style.display = 'none';
+          }
+        } catch (error) {
+          console.error('Error buscando:', error);
+        } finally {
+          spinner.classList.add('d-none');
+        }
+      }
+
+      // --- 2. LÓGICA DE SELECCIÓN (MODO AGREMIADO) ---
+      function seleccionarMiembro(item) {
+        inputVisible.value = item.name;
+
+        // Datos Clave
+        inputOcultoNombre.value = item.name;
+        inputOcultoId.value = item.id;
+        inputAgremiado.value = '1'; // <--- Marcamos como Agremiado
+
+        // UX
+        inputVisible.classList.add('is-valid');
+        inputVisible.classList.remove('is-invalid');
+        errorMsg.style.display = 'none';
+        listaResultados.style.display = 'none';
+      }
+
+      // Cerrar lista al hacer click fuera
+      document.addEventListener('click', (e) => {
+        if (!inputVisible.contains(e.target) && !listaResultados.contains(e.target)) {
+          listaResultados.style.display = 'none';
+        }
+      });
+
+      // --- 3. LÓGICA DE CAMPOS DINÁMICOS (CANTO/BAILE) ---
+      const resetFields = () => {
+        divCanto.classList.add('d-none');
+        divBaile.classList.add('d-none');
+        // Quitamos required para que no bloquee el envío
+        document.querySelectorAll('.field-canto, .field-baile').forEach(el => el.removeAttribute('required'));
+      };
+
+      selectConcurso.addEventListener('change', (e) => {
+        resetFields();
+        const valor = e.target.value;
+
+        if (valor === 'canto') {
+          divCanto.classList.remove('d-none');
+          document.querySelectorAll('.field-canto').forEach(el => el.setAttribute('required', 'true'));
+        } else if (valor === 'baile') {
+          divBaile.classList.remove('d-none');
+          document.querySelectorAll('.field-baile').forEach(el => el.setAttribute('required', 'true'));
+        }
+      });
+
+      // --- 4. ENVÍO DEL FORMULARIO (AJAX) ---
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Sincronización final de seguridad:
+        // Si el usuario escribió un nombre pero no seleccionó nada (es externo),
+        // nos aseguramos que inputOcultoNombre tenga el valor visible.
+        if (inputAgremiado.value === '0') {
+          inputOcultoNombre.value = inputVisible.value;
+        }
+
+        // Validación HTML5 (Bootstrap visual)
+        if (!form.checkValidity()) {
+          e.stopPropagation();
+          form.classList.add('was-validated');
+
+          // Si hay error en el nombre específicamente
+          if (inputVisible.value.trim() === '') {
+            inputVisible.classList.add('is-invalid');
+          }
+          return;
+        }
+
+        // UX: Bloquear botón
+        const originalText = submitBtn.innerText;
+        submitBtn.innerText = 'Registrando...';
+        submitBtn.disabled = true;
+
+        try {
+          const formData = new FormData(form);
+
+          const response = await fetch('registrar.php', {
+            method: 'POST',
+            body: formData
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            // Éxito
+            alert('¡Registro exitoso! Tu ticket se descargará automáticamente.');
+
+            // Resetear form y UI
+            form.reset();
+            form.classList.remove('was-validated');
+            inputVisible.classList.remove('is-valid');
+            resetFields(); // Ocultar campos extra
+
+            // DESCARGAR PDF
+            window.location.href = `generar_ticket.php?id=${data.id}`;
+
+          } else {
+            alert('Error: ' + data.message);
+          }
+
+        } catch (error) {
+          console.error('Error:', error);
+          alert('Ocurrió un error de conexión al intentar registrar.');
+        } finally {
+          submitBtn.innerText = originalText;
+          submitBtn.disabled = false;
+        }
+      });
+    });
+  </script>
+{/block}

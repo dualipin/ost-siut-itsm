@@ -1,0 +1,37 @@
+{layout ./plantillas/@layout.latte}
+
+{block content}
+  <section class="section">
+    <div class="container pt-5">
+      <h1 class="mb-4">Dudas sobre Transparencia</h1>
+      <p>Si tienes alguna duda o consulta relacionada con la transparencia de nuestra organización, no dudes en
+        contactarnos. Estamos aquí para ayudarte y proporcionarte la información que necesitas.</p>
+      {if $success}
+        <div class="alert alert-success" role="alert">
+          ¡Tu mensaje ha sido enviado con éxito! Nos pondremos en contacto contigo pronto.
+        </div>
+      {/if}
+      {if $error}
+        <div class="alert alert-danger" role="alert">
+          Ocurrió un error al enviar tu mensaje. Por favor, inténtalo de nuevo más tarde.
+        </div>
+      {/if}
+      <h2 class="mt-5">Formulario de Contacto</h2>
+      <form method="post" class="mt-3">
+        <div class="mb-3">
+          <label for="nombre" class="form-label">Nombre:</label>
+          <input type="text" class="form-control" id="nombre" name="nombre" required>
+        </div>
+        <div class="mb-3">
+          <label for="email" class="form-label">Correo Electrónico:</label>
+          <input type="email" class="form-control" id="email" name="correo" required>
+        </div>
+        <div class="mb-3">
+          <label for="mensaje" class="form-label">Tu Duda o Consulta:</label>
+          <textarea class="form-control" id="mensaje" name="mensaje" rows="5" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Enviar</button>
+      </form>
+    </div>
+  </section>
+{/block}

@@ -1,9 +1,9 @@
-<header class="fbs__net-navbar navbar navbar-expand-lg dark" aria-label="navbar">
+<header class="fbs__net-navbar active navbar navbar-expand-lg dark" aria-label="navbar">
   <div class="container d-flex align-items-center justify-content-between">
 
     <!-- Start Logo-->
     <a class="navbar-brand w-auto rounded-circle" href="/">
-      <img class="logo img-fluid rounded-circle" width="50" src="/assets/images/logo.webp" alt="image placeholder">
+      <img class="logo img-fluid rounded-circle" width="75" src="/assets/images/logo.webp" alt="image placeholder">
     </a>
     <!-- End Logo-->
 
@@ -31,26 +31,38 @@
             </a>
           </li>
 
-          <li class="nav-item">
-            <a class="nav-link scroll-link {$linkActivo === 'avisos' ? 'active'}"
-               href="/avisos.php">
-              Avisos
-            </a>
-          </li>
+          {*          inicio dropdown publicaciones*}
 
-          <li class="nav-item">
-            <a class="nav-link scroll-link {$linkActivo === 'noticias' ? 'active'}"
-               href="/noticias.php">
-              Noticias
-            </a>
-          </li>
 
-          <li class="nav-item">
-            <a class="nav-link scroll-link {$linkActivo === 'gestiones' ? 'active'}"
-               href="/gestiones.php">
-              Gestiones
-            </a>
+          <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                Publicaciones
+                <i class="bi bi-chevron-down"></i>
+              </a>
+              <ul class="dropdown-menu">
+                <li class="nav-item">
+                  <a class="nav-link scroll-link {$linkActivo === 'avisos' ? 'active'}"
+                     href="/avisos.php">
+                    Avisos
+                  </a>
+                </li>
+
+                <li class="nav-item">
+                  <a class="nav-link scroll-link {$linkActivo === 'noticias' ? 'active'}"
+                     href="/noticias.php">
+                    Noticias
+                  </a>
+                </li>
+
+                <li class="nav-item">
+                  <a class="nav-link scroll-link {$linkActivo === 'gestiones' ? 'active'}"
+                     href="/gestiones.php">
+                    Gestiones
+                  </a>
+                </li>
+              </ul>
           </li>
+{*          fin dropdown publicaciones*}
 
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">
@@ -106,6 +118,13 @@
                 <ul class="dropdown-menu">
                   <li>
                     <a class="nav-link scroll-link dropdown-item text-wrap"
+                       href="/dudas-transparencia.php">
+                      ¿Tienes dudas?
+                    </a>
+                  </li>
+
+                  <li>
+                    <a class="nav-link scroll-link dropdown-item text-wrap"
                        href="/aplicacion/transparencia/ahorro-altruista.php">
                       Ahorro altruista voluntario
                     </a>
@@ -120,7 +139,7 @@
 
                   <li>
                     <a class="nav-link scroll-link dropdown-item text-wrap"
-                       href="/aplicacion/transparencia/gestiones-sindicales.php">
+                       href="/gestiones.php">
                       Gestiones Sindicales
                     </a>
                   </li>

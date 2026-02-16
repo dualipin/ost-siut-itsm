@@ -1,0 +1,87 @@
+{layout ../plantillas/@layout.latte}
+
+{block content}
+  <h1 class="mb-4 display-5 fw-bold text-primary">Propuestas</h1>
+  <div class="d-flex flex-wrap gap-2 mb-4">
+    <button class="btn btn-primary d-flex gap-2" onclick="location.href='./pdf.php'">
+      <i class="bi bi-file-earmark-pdf"></i> Crear reporte PDF de propuestas
+    </button>
+    <a href="./pdf.php?filtrar=true" class="btn btn-outline-secondary d-flex gap-2" target="_blank" rel="noopener noreferrer">
+      <i class="bi bi-filter"></i> Crear reporte PDF de propuestas filtradas
+    </a>
+    <div class="flex-grow-1">
+      <input type="text" class="form-control" placeholder="Buscar por nombre..." id="search">
+    </div>
+  </div>
+
+  <div id="miembros-list">
+    {foreach $miembros as $m}
+      <section class="card shadow-sm mb-4 border-0 animate__animated animate__fadeIn">
+        <div class="card-header bg-white border-bottom-0">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <h5 class="card-title mb-0 fw-semibold text-dark">{$m['nombre']} {$m['apellidos']}</h5>
+              <span class="badge bg-info text-dark">{$m['departamento']}</span>
+            </div>
+            <span class="text-muted small ms-3"><i class="bi bi-calendar"></i> {$m['fecha_ingreso']|date:'d/m/Y'}</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row mb-2">
+            <div class="col-md-6">
+              <p class="mb-1"><i class="bi bi-telephone"></i> <span class="fw-light">{$m['telefono']}</span></p>
+            </div>
+            {if $m['propuestas']}
+              <div class="col-md-6 d-flex align-items-center gap-2">
+                <p class="mb-1">
+                  <i class="bi bi-download"></i>
+                <form method="post" action="/solicitudes/pdf.php">
+                  <input type="hidden" name="miembro_id" value="{$m['id']}">
+                  <button type="submit" class="btn btn-link p-0 m-0 align-baseline">Descargar propuestas en PDF</button>
+                </form>
+                </p>
+              </div>
+            {/if}
+          </div>
+          {if $m['propuestas']}
+            <h6 class="mt-4 mb-3 text-secondary">Propuestas</h6>
+            <div class="row g-3">
+              {foreach $m['propuestas'] as $p}
+                <div class="col-12 col-md-6">
+                  <article class="border rounded p-3 bg-light h-100">
+                    <div class="d-flex align-items-center mb-2">
+                      <span class="badge bg-primary me-2">{$p['tipo']|capitalize}</span>
+                    </div>
+                    <div class="proposal-content">{$p['contenido']}</div>
+                  </article>
+                </div>
+              {/foreach}
+            </div>
+          {else}
+            <p class="text-muted mt-3">Sin propuestas registradas.</p>
+          {/if}
+        </div>
+      </section>
+    {/foreach}
+  </div>
+
+
+{/block}
+
+{block scripts}
+  <script>
+    $(document).ready(function () {
+      $('#search').on('input', function () {
+        var query = $(this).val().toLowerCase();
+        $('#miembros-list .card').each(function () {
+          var name = $(this).find('.card-title').text().toLowerCase();
+          if (name.includes(query)) {
+            $(this).show();
+          } else {
+            $(this).hide();
+          }
+        });
+      });
+    });
+  </script>
+{/block}

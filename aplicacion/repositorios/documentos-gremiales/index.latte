@@ -34,62 +34,64 @@
     <p class="mb-4">Consulta los documentos gremiales disponibles.</p>
   {/if}
 
-  <!-- Grid de documentos (ejemplo estático, reemplazar por loop real) -->
-  <div class="row row-cols-1 row-cols-md-3 g-4">
-    {foreach $documentos as $documento}
-      {if !$documento['privado'] || $miembro->esAdmin() || $miembro->esLider()}
-        <div class="col">
-          <div class="card h-100 shadow-sm border">
-            <div class="card-body">
-              <h5 class="card-title">
-                {$documento['titulo']}
-            {if $documento['privado']}
-                  <span class="badge bg-warning text-dark">Privado</span>
-                {/if}
-              </h5>
-              <p class="card-text">{$documento['fecha_subida']}</p>
-            </div>
-            <div class="card-footer">
-              <a href="./detalle.php?id_doc={$documento['id']}"
-                 class="btn btn-primary">
-                Ver documento
-              </a>
-              {if $miembro->esAdmin() || $miembro->esLider()}
-                <form method="POST" class="d-inline" action="./eliminar.php">
-                  <input type="hidden" name="id_doc" value="{$documento['id']}">
-                  <button type="submit" name="eliminar" value="eliminar" class="btn btn-danger"
-                          onclick="return confirm('¿Estás seguro de que deseas eliminar este documento?');">
-                    Eliminar
-                  </button>
-                </form>
-              {/if}
-            </div>
-          </div>
-        </div>
-      {/if}
-    {/foreach}
-    {*  <!-- ...aquí iría un {foreach} para más documentos... -->*}
-  </div>
+la
 
-  {if $totalPaginas > 1}
-    <nav aria-label="Paginación de documentos" class="mt-4">
-      <ul class="pagination justify-content-center">
-        <li class="page-item {if $paginaActual === 1}disabled{/if}">
-          <a class="page-link" href="?pagina={$paginaActual - 1}">Anterior</a>
-        </li>
+{*  <!-- Grid de documentos (ejemplo estático, reemplazar por loop real) -->*}
+{*  <div class="row row-cols-1 row-cols-md-3 g-4">*}
+{*    {foreach $documentos as $documento}*}
+{*      {if !$documento['privado'] || $miembro->esAdmin() || $miembro->esLider()}*}
+{*        <div class="col">*}
+{*          <div class="card h-100 shadow-sm border">*}
+{*            <div class="card-body">*}
+{*              <h5 class="card-title">*}
+{*                {$documento['titulo']}*}
+{*            {if $documento['privado']}*}
+{*                  <span class="badge bg-warning text-dark">Privado</span>*}
+{*                {/if}*}
+{*              </h5>*}
+{*              <p class="card-text">{$documento['fecha_subida']}</p>*}
+{*            </div>*}
+{*            <div class="card-footer">*}
+{*              <a href="./detalle.php?id_doc={$documento['id']}"*}
+{*                 class="btn btn-primary">*}
+{*                Ver documento*}
+{*              </a>*}
+{*              {if $miembro->esAdmin() || $miembro->esLider()}*}
+{*                <form method="POST" class="d-inline" action="./eliminar.php">*}
+{*                  <input type="hidden" name="id_doc" value="{$documento['id']}">*}
+{*                  <button type="submit" name="eliminar" value="eliminar" class="btn btn-danger"*}
+{*                          onclick="return confirm('¿Estás seguro de que deseas eliminar este documento?');">*}
+{*                    Eliminar*}
+{*                  </button>*}
+{*                </form>*}
+{*              {/if}*}
+{*            </div>*}
+{*          </div>*}
+{*        </div>*}
+{*      {/if}*}
+{*    {/foreach}*}
+{*    *}{*  <!-- ...aquí iría un {foreach} para más documentos... -->*}
+{*  </div>*}
 
-        {for $i = 1; $i <= $totalPaginas; $i++}
-          <li class="page-item {if $i === $paginaActual}active{/if}">
-            <a class="page-link" href="?pagina={$i}">{$i}</a>
-          </li>
-        {/for}
+{*  {if $totalPaginas > 1}*}
+{*    <nav aria-label="Paginación de documentos" class="mt-4">*}
+{*      <ul class="pagination justify-content-center">*}
+{*        <li class="page-item {if $paginaActual === 1}disabled{/if}">*}
+{*          <a class="page-link" href="?pagina={$paginaActual - 1}">Anterior</a>*}
+{*        </li>*}
 
-        <li class="page-item {if $paginaActual === $totalPaginas}disabled{/if}">
-          <a class="page-link" href="?pagina={$paginaActual + 1}">Siguiente</a>
-        </li>
-      </ul>
-    </nav>
-  {/if}
+{*        {for $i = 1; $i <= $totalPaginas; $i++}*}
+{*          <li class="page-item {if $i === $paginaActual}active{/if}">*}
+{*            <a class="page-link" href="?pagina={$i}">{$i}</a>*}
+{*          </li>*}
+{*        {/for}*}
+
+{*        <li class="page-item {if $paginaActual === $totalPaginas}disabled{/if}">*}
+{*          <a class="page-link" href="?pagina={$paginaActual + 1}">Siguiente</a>*}
+{*        </li>*}
+{*      </ul>*}
+{*    </nav>*}
+{*  {/if}*}
 
   <!-- Modal para agregar documento -->
   <div class="modal fade" id="modalAgregarDocumento" tabindex="-1" aria-labelledby="modalAgregarDocumentoLabel"

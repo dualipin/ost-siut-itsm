@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../src/configuracion.php';
 
+use App\Configuracion\MysqlConexion;
 use App\Manejadores\Sesion;
 use App\Modelos\Cuenta;
 use App\Servicios\ServicioLatte;
@@ -47,9 +48,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+$sql = "SELECT 
+    id, titulo, resumen, imagen 
+    from publicaciones 
+    where expiracion IS NULL OR expiracion >= CURDATE() ORDER BY fecha DESC LIMIT 5";
+
+$con = MysqlConexion::conexion();
+$stmt = $con->query($sql);
+$stmt->execute();
+$avisos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 // Renderizar plantilla con CSRF ya gestionado por la clase Sesion
-ServicioLatte::renderizar(__DIR__ . '/../plantillas/cuenta/login.latte', [
+ServicioLatte::renderizar(__DIR__ . '/login.latte', [
         'error' => $error,
         'usuario' => $_POST['usuario'] ?? '',
         'redirect' => $_GET['redirect'] ?? ($_POST['redirect'] ?? ''),
+        'avisos' => $avisos,
 ]);

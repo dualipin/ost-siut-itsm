@@ -1,0 +1,139 @@
+{layout ../plantillas/@layout.latte}
+
+{block content}
+  <div class="container-fluid py-4">
+    {if $msg}
+      <div class="alert alert-{$ok ? 'success' : 'danger'} alert-dismissible fade show" role="alert">
+        {$msg}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {/if}
+    <div class="row mb-3 align-items-center">
+      <div class="col-md-6">
+        <h1 class="h3"><i class="bi bi-people-fill"></i> Lista de Agremiados</h1>
+      </div>
+      <div class="col-md-6 text-md-end mt-2 mt-md-0">
+        <a href="./pdf.php" class="btn btn-outline-primary">
+          <i class="bi bi-file-earmark-pdf"></i> Generar reporte PDF
+        </a>
+        <input type="text" id="buscador" class="form-control w-100 w-md-auto d-inline-block" style="max-width:300px;"
+               placeholder="Buscar agremiado...">
+      </div>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-striped table-hover align-middle">
+        <thead class="table-primary">
+        <tr>
+          <th scope="col">CURP</th>
+          <th scope="col">Nombre</th>
+          <th scope="col">Teléfono</th>
+          <th scope="col">Departamento</th>
+          <th scope="col">Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+        {foreach $agremiados as $agremiado}
+          <tr>
+            <td>{$agremiado["curp"]}</td>
+            <td data-label="nombre">{$agremiado["nombre"]} {$agremiado['apellidos']}</td>
+            <td>{$agremiado["telefono"]}</td>
+            <td>
+              <span class="badge bg-primary bg-opacity-75">{$agremiado["departamento"]}</span>
+            </td>
+            <td>
+              <a href="./detalle.php?id={$agremiado["id"]}" class="btn btn-sm btn-outline-info me-1"
+                 title="Ver Detalle">
+                <i class="bi bi-eye"></i>
+              </a>
+              <a href="./editar.php?id={$agremiado["id"]}" class="btn btn-sm btn-outline-primary me-1"
+                 title="Editar">
+                <i class="bi bi-pencil-square"></i>
+              </a>
+              <a href="./eliminar.php?id={$agremiado["id"]}" class="btn btn-sm btn-outline-danger"
+                 title="Eliminar">
+                <i class="bi bi-trash"></i>
+              </a>
+            </td>
+          </tr>
+        {/foreach}
+        </tbody>
+      </table>
+    </div>
+    <nav id="pagination" aria-label="Page navigation">
+      <ul class="pagination justify-content-center flex-wrap">
+        <!-- Paginación generada por jQuery -->
+      </ul>
+    </nav>
+  </div>
+{/block}
+
+{block scripts}
+  <script>
+    $(document).ready(function () {
+      const rowsPerPage = 10;
+      const $rows = $('tbody tr');
+      const rowsCount = $rows.length;
+      const $pagination = $('#pagination .pagination');
+      let currentPage = 1;
+      const pageCount = Math.ceil(rowsCount / rowsPerPage);
+
+      function showPage(page) {
+        currentPage = page;
+        $rows.hide();
+        $rows.slice((page - 1) * rowsPerPage, page * rowsPerPage).show();
+        $pagination.find('.page-item').removeClass('active');
+        $pagination.find('.page-item[data-page="' + page + '"]').addClass('active');
+        $pagination.find('.page-item').removeClass('disabled');
+        if (page === 1) $pagination.find('.prev').addClass('disabled');
+        if (page === pageCount) $pagination.find('.next').addClass('disabled');
+      }
+
+      function renderPagination() {
+        $pagination.empty();
+        $pagination.append('<li class="page-item prev disabled"><a class="page-link" href="#">Anterior</a></li>');
+        for (let i = 1; i <= pageCount; i++) {
+          $pagination.append('<li class="page-item" data-page="' + i + '"><a class="page-link" href="#">' + i + '</a></li>');
+        }
+        $pagination.append('<li class="page-item next' + (pageCount === 1 ? ' disabled' : '') + '"><a class="page-link" href="#">Siguiente</a></li>');
+      }
+
+      if (rowsCount > 0) {
+        renderPagination();
+        showPage(1);
+      } else {
+        $pagination.hide();
+      }
+
+      $pagination.on('click', '.page-item:not(.disabled):not(.active)', function (e) {
+        e.preventDefault();
+        if ($(this).hasClass('prev')) {
+          if (currentPage > 1) showPage(currentPage - 1);
+        } else if ($(this).hasClass('next')) {
+          if (currentPage < pageCount) showPage(currentPage + 1);
+        } else {
+          const page = parseInt($(this).attr('data-page'));
+          showPage(page);
+        }
+      });
+
+      $('#buscador').on('input', function () {
+        const query = $(this).val().toLowerCase();
+        $rows.each(function () {
+          const nombre = $(this).find('td[data-label="nombre"]').text().toLowerCase();
+          if (nombre.includes(query)) {
+            $(this).show();
+          } else {
+            $(this).hide();
+          }
+        });
+        // Si hay filtro, ocultar paginación
+        if (query.length > 0) {
+          $pagination.hide();
+        } else {
+          $pagination.show();
+          showPage(currentPage);
+        }
+      });
+    });
+  </script>
+{/block}

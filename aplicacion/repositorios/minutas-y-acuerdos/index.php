@@ -40,12 +40,22 @@ $stmt->bindValue(':porPagina', $porPagina, PDO::PARAM_INT);
 $stmt->execute();
 $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-respuestaDocumento(
-        __DIR__ . '/index.latte',
-        $resultados,
-        $documentos,
-        $error,
-        $exito,
-        $paginaActual,
-        $totalPaginas
-);
+$agrupado = [];
+
+foreach ($resultados as $d) {
+    $anio = date('Y', strtotime($d['fecha_subida']));
+    $mes = date('m', strtotime($d['fecha_subida']));
+    $agrupado[$anio][$mes][] = $d;
+}
+
+$datos = [
+        'agrupado' => $agrupado,
+        'documentos' => $resultados, // conservas la lista plana si la necesitas
+        'totalPaginas' => $totalPaginas,
+        'paginaActual' => $paginaActual,
+        'error' => $error,
+        'mensajeExito' => $exito,
+];
+
+\App\Servicios\ServicioLatte::renderizar(__DIR__ . '/index.latte', $datos);
+

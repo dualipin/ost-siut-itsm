@@ -1,0 +1,74 @@
+{layout ./plantillas/@layout.latte}
+
+
+{block head}
+  <style>
+    /* css */
+    .article-header h1 {
+      font-size: clamp(1.25rem, 4vw, 2.25rem); /* tipografía responsiva */
+      line-height: 1.1;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    /* proteger imágenes y mantener proporciones */
+    article img {
+      max-width: 100%;
+      height: auto;
+      max-height: 600px;
+      object-fit: cover;
+    }
+
+    /* forzar quiebre de palabras largas */
+    .text-break-safe {
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+  </style>
+
+{/block}
+
+{block content}
+  <article class="container py-5">
+    <div class="p-4"></div>
+    <div class="p-4"></div>
+    {if $publicacion['imagen']}
+      <div class="mb-4 text-center">
+        {if $publicacion['imagen']}
+          <img src="/archivos/subidos/publicaciones/{$publicacion['imagen']}" class="img-fluid rounded shadow-lg"
+               alt="Imagen de la publicación"
+               style="max-height:350px; object-fit:cover;">
+        {else}
+          <img src="/assets/images/logo.jpg" class="img-fluid rounded shadow-lg" alt="Imagen de la publicación"
+               style="max-height:350px; object-fit:cover;">
+        {/if}
+      </div>
+    {/if}
+    <header class="mb-4">
+      <h1 class="display-4 fw-bold text-dark">{$publicacion['titulo']}</h1>
+      {if $publicacion['resumen']}
+        <p class="lead text-secondary">{$publicacion['resumen']}</p>
+      {/if}
+    </header>
+    <section class="mb-5 fs-5 lh-lg text-dark">
+      {$publicacion['contenido']|noescape}
+    </section>
+    <footer class="border-top pt-3 d-flex flex-wrap justify-content-between align-items-center text-muted small">
+      <div>
+        <span class="me-3"><i class="bi bi-calendar-event"></i> {$publicacion['fecha']|date:'d/m/Y H:i'}</span>
+        {if $publicacion['expiracion']}
+          <span class="me-3"><i
+                    class="bi bi-hourglass-bottom"></i> Expira: {$publicacion['expiracion']|date:'d/m/Y'}</span>
+        {/if}
+        <span class="me-3"><i class="bi bi-person"></i> Autor: {$publicacion['fk_miembro']}</span>
+      </div>
+      <div>
+        <span class="badge bg-info text-dark me-2">{$publicacion['tipo']}</span>
+        {if $publicacion['importante']}
+          <span class="badge bg-danger">Importante</span>
+        {/if}
+      </div>
+    </footer>
+  </article>
+{/block}

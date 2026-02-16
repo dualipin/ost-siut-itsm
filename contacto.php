@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+use App\Servicios\ServicioCorreo;
+
 require_once __DIR__ . '/src/configuracion.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -23,10 +25,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
     try {
-        $sEmail = new \App\Servicios\ServicioCorreo();
+        $sEmail = new ServicioCorreo();
 
         $sEmail->enviarCorreoContacto(
-                enviarA: 'martin.msr1304@gmail.com',
+                enviarA: 'Sindicato_SIUTITSM@outlook.com',
                 asunto: $asunto,
                 mensaje: $mensaje,
                 nombre: $nombre,

@@ -1,0 +1,202 @@
+{layout '../plantillas/@layout.latte'}
+
+{block content}
+  <div class="container-fluid py-4">
+  {* Alertas *}
+  {if $message}
+    <div class="alert alert-dismissible fade show mb-4 {if $status == 'error'}alert-danger{else}alert-success{/if}"
+         role="alert">
+      {$message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+  {/if}
+
+  {* Encabezado *}
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <h2 class="mb-0 text-primary fw-bold">Préstamo <span class="text-dark">#{$prestamo['id']}</span></h2>
+    <span class="badge fs-6 px-3 py-2 {if $prestamo['estado'] == 'aprobado' || $prestamo['estado'] == 'activo' || $prestamo['estado'] == 'pagado'}bg-success{elseif $prestamo['estado'] == 'rechazado'}bg-danger{elseif $prestamo['estado'] == 'pagare_pendiente'}bg-warning text-dark{else}bg-secondary{/if}">
+      {$prestamo['estado']|replace:'_',' '|upper}
+    </span>
+  </div>
+
+  {* Grid principal *}
+  <div class="row g-4">
+    {* Columna izquierda: montos y condiciones *}
+
+    <div class="col-lg-4">
+        <div class="bg-light p-3 rounded">
+          <h5 class="fw-semibold mb-3">Montos</h5>
+          <div class="row mb-2">
+            <div class="col-6 text-muted">Solicitado</div>
+            <div class="col-6 text-end fw-bold">${number_format($prestamo['monto_solicitado'],2)}</div>
+          </div>
+          <div class="row">
+            <div class="col-6 text-muted">Aprobado</div>
+            <div class="col-6 text-end fw-bold text-success">${number_format($prestamo['monto_aprobado'],2)}</div>
+          </div>
+
+          <hr class="my-3">
+
+          <h5 class="fw-semibold mb-3">Condiciones</h5>
+          <div class="row mb-2">
+            <div class="col-6 text-muted">Plazo</div>
+            <div class="col-6 text-end">{$prestamo['plazo_meses']} meses</div>
+          </div>
+          <div class="row mb-2">
+            <div class="col-6 text-muted">Descuento vía</div>
+            <div class="col-6 text-end">{ucfirst($prestamo['tipo_descuento'])|replace:'_',' '}</div>
+          </div>
+          <div class="row mb-2">
+            <div class="col-6 text-muted">Tasa de interés</div>
+            <div class="col-6 text-end">{$prestamo['tasa_interes']}% anual</div>
+          </div>
+
+          <hr class="my-3">
+
+          <h5 class="fw-semibold mb-3">Solicitante</h5>
+          <div class="row mb-2">
+            <div class="col-6 text-muted">ID Miembro</div>
+            <div class="col-6 text-end">#{$prestamo['fk_miembro']}</div>
+          </div>
+
+          {if $prestamo['fk_aprobador']}
+            <div class="row">
+              <div class="col-6 text-muted">Aprobado por</div>
+              <div class="col-6 text-end">#{$prestamo['fk_aprobador']}</div>
+            </div>
+          {/if}
+        </div>
+    </div>
+
+    {* Columna derecha: fechas, justificación y acciones *}
+    <div class="col-lg-8">
+      <div class="bg-light p-3 rounded mb-4">
+        <h5 class="fw-semibold mb-3">Fechas clave</h5>
+        <div class="row">
+          <div class="col-md-4 mb-2">
+            <small class="text-muted">Solicitud</small>
+            <div class="fw-bold">{$prestamo['fecha_solicitud']|date:'d/m/Y H:i'}</div>
+          </div>
+          {if $prestamo['fecha_respuesta']}
+            <div class="col-md-4 mb-2">
+              <small class="text-muted">Respuesta</small>
+              <div class="fw-bold">{$prestamo['fecha_respuesta']|date:'d/m/Y H:i'}</div>
+            </div>
+          {/if}
+          {if $prestamo['fecha_pagare']}
+            <div class="col-md-4 mb-2">
+              <small class="text-muted">Firma pagaré</small>
+              <div class="fw-bold">{$prestamo['fecha_pagare']|date:'d/m/Y H:i'}</div>
+            </div>
+          {/if}
+        </div>
+      </div>
+
+      {if $prestamo['justificacion']}
+        <div class="bg-light p-3 rounded mb-4">
+          <h5 class="fw-semibold mb-2">Justificación</h5>
+          <p class="mb-0">{$prestamo['justificacion']}</p>
+        </div>
+      {/if}
+
+      {if $prestamo['motivo_rechazo']}
+        <div class="bg-light p-3 rounded mb-4 border-start border-danger border-4">
+          <h5 class="fw-semibold mb-2 text-danger">Motivo de rechazo</h5>
+          <p class="mb-0">{$prestamo['motivo_rechazo']}</p>
+        </div>
+      {/if}
+
+      {* Botones de acción *}
+      <div class="d-flex flex-wrap gap-2 mb-4">
+        {if $prestamo['estado'] == 'pagare_pendiente' || $prestamo['estado'] == 'aprobado'}
+          <a href="./pdf-pagare.php?id={$prestamo['id']}" class="btn btn-primary">
+            <i class="bi bi-file-earmark-pdf me-1"></i> Generar pagaré
+          </a>
+
+          <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalPagare">
+            <i class="bi bi-cloud-arrow-up me-1"></i> Subir pagaré firmado
+          </button>
+        {/if}
+
+        {if $prestamo['estado'] == 'activo'}
+          <a href="./corrida.php?id={$prestamo['id']}" class="btn btn-info">
+            <i class="bi bi-list-ol me-1"></i> Ver corrida de pagos
+          </a>
+        {/if}
+      </div>
+    </div>
+  </div>
+
+  {* Tabla de pagos *}
+  {if $prestamo['pagos']}
+    <hr class="my-4">
+    <div class="row mt-4">
+      <div class="col-12">
+        <h5 class="fw-semibold mb-3">Historial de pagos</h5>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+            <tr>
+              <th>#</th>
+              <th>Monto a pagar</th>
+              <th>Fecha programada</th>
+              <th>Fecha de pago</th>
+              <th>Estado</th>
+            </tr>
+            </thead>
+            <tbody>
+            {foreach $prestamo['pagos'] as $p}
+              <tr>
+                <td>{$p['numero_pago']}</td>
+                <td>${number_format($p['monto_pago'],2)}</td>
+                <td>{$p['fecha_programada']|date:'d/m/Y'}</td>
+                <td>
+                  {if $p['fecha_pago']}
+                    {$p['fecha_pago']|date:'d/m/Y'}
+                  {else}
+                    <span class="text-muted">—</span>
+                  {/if}
+                </td>
+                <td>
+                  <span class="badge {if $p['estado'] == 'pagado'}bg-success{elseif $p['estado'] == 'vencido'}bg-danger{else}bg-warning text-dark{/if}">
+                    {ucfirst($p['estado'])}
+                  </span>
+                </td>
+              </tr>
+            {else}
+              <tr>
+                <td colspan="5" class="text-center text-muted">Sin pagos registrados</td>
+              </tr>
+            {/foreach}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    </div>
+  {/if}
+
+  {* Modal subir pagaré *}
+  <div class="modal fade" id="modalPagare" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <form method="post" action="./pagare.php" enctype="multipart/form-data" class="modal-content">
+        <div class="modal-header">
+          <h6 class="modal-title">Subir pagaré firmado</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="id" value="{$prestamo['id']}">
+          <div class="mb-3">
+            <label for="pagare" class="form-label">Archivo (PDF/JPG/PNG)</label>
+            <input class="form-control" type="file" id="pagare" name="pagare" accept=".pdf,.jpg,.jpeg,.png" required>
+            <div class="form-text">Máximo 5 MB</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+{/block}

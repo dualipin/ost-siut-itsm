@@ -11,59 +11,32 @@ require_once __DIR__ . '/../../src/configuracion.php';
 
 SesionProtegida::proteger(['administrador', 'finanzas']);
 
-$pdo = FabricaConexion::crear();
-$servicioPrestamos = new ServicioPrestamos($pdo);
-$servicioMiembros = new ServicioMiembros($pdo);
+$pdo = \App\Configuracion\MysqlConexion::conexion();
+$prestamos = $pdo->query("select p.id,
+       p.monto_solicitado,
+       p.plazo_meses,
+       p.fecha_solicitud,
+        p.recibo_nomina,
+        p.plazo_meses,
+       p.estado,
+       m.nombre    as nombre_miembro,
+       m.apellidos as apellidos_miembro
+from solicitudes_prestamos p
+         join miembros m on p.fk_miembro = m.id")->fetchAll(PDO::FETCH_ASSOC);
 
-// Obtener solicitudes pendientes
-$solicitudesPendientes = $servicioPrestamos->obtenerSolicitudesPendientes();
 
-// Procesar acciones
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $accion = $_POST['accion'] ?? '';
-    $solicitudId = (int)($_POST['solicitud_id'] ?? 0);
-
-    $miembroActual = $servicioMiembros->obtenerPorUsuario($_SESSION['usuario_id']);
-
-    try {
-        switch ($accion) {
-            case 'aprobar':
-                $montoAprobado = (float)($_POST['monto_aprobado'] ?? 0);
-                if ($montoAprobado <= 0) {
-                    throw new Exception('El monto aprobado debe ser mayor a cero');
-                }
-
-                $servicioPrestamos->aprobarSolicitud($solicitudId, $montoAprobado, $miembroActual->id);
-                $_SESSION['mensaje_exito'] = 'Solicitud aprobada correctamente';
-                break;
-
-            case 'rechazar':
-                $motivo = trim($_POST['motivo'] ?? '');
-                if (empty($motivo)) {
-                    throw new Exception('Debe especificar el motivo del rechazo');
-                }
-
-                $servicioPrestamos->rechazarSolicitud($solicitudId, $motivo, $miembroActual->id);
-                $_SESSION['mensaje_exito'] = 'Solicitud rechazada';
-                break;
-
-            case 'lista_espera':
-                $servicioPrestamos->ponerEnListaEspera($solicitudId, $miembroActual->id);
-                $_SESSION['mensaje_exito'] = 'Solicitud puesta en lista de espera';
-                break;
-        }
-    } catch (Exception $e) {
-        $_SESSION['mensaje_error'] = $e->getMessage();
-    }
-
-    header('Location: administrar.php');
+if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+        strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+    header('Content-Type: application/json');
+    echo json_encode($prestamos);
     exit;
 }
 
+
 $datos = [
-        'solicitudes' => $solicitudesPendientes,
+        'solicitudes' => $prestamos,
         'titulo' => 'Administrar Préstamos',
         'error' => $_SESSION['mensaje_error'] ?? null,
 ];
 
-\App\Servicios\ServicioLatte::renderizar(__DIR__ . '/../plantillas/prestamos-administrar.latte', $datos);
+\App\Servicios\ServicioLatte::renderizar(__DIR__ . '/administrar.latte', $datos);
