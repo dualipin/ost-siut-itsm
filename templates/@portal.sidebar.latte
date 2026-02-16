@@ -101,31 +101,12 @@
         </li>
 
         <li class="nav-item mb-2 animate__animated animate__fadeIn">
-          <a class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
-             href="#configuracion-collapse" data-bs-toggle="collapse" role="button" aria-expanded="false"
-             aria-controls="configuracion-collapse">
-            Configuración
-            <i class="bi bi-chevron-down"></i>
-          </a>
-          <div class="collapse ms-3" id="configuracion-collapse">
-            <ul class="nav flex-column pb-1">
-              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
-                <a href="/portal/publicaciones/gestiones.php" class="nav-link text-white px-3 mb-1">
-                  <i class="bi bi-gear-fill me-2"></i>
-                  <span>Colores</span>
-                </a>
-              </li>
-            </ul>
-          </div>
-        </li>
-
-        <li class="nav-item mb-2 animate__animated animate__fadeIn">
-          <a class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
-             href="#finanza-collapse" data-bs-toggle="collapse" role="button" aria-expanded="false"
-             aria-controls="finanza-collapse">
+          <span class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
+                href="#finanza-collapse" data-bs-toggle="collapse" role="button" aria-expanded="false"
+                aria-controls="finanza-collapse">
             Finanzas
             <i class="bi bi-chevron-down"></i>
-          </a>
+          </span>
           <div class="collapse ms-3" id="finanza-collapse">
             <ul class="nav flex-column pb-1">
               <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
@@ -138,24 +119,24 @@
           </div>
         </li>
 
-        {var $roles = array_map('strtolower', $usuario->roles ?? [])}
-        {if in_array('administrador', $roles) || in_array('super_admin', $roles) || in_array('super admin', $roles)}
-          <li class="nav-item mt-3 px-3">
-            <small class="text-uppercase small text-white-50">Administración</small>
-          </li>
-          <li class="nav-item" data-aos="fade-right" data-aos-delay="450">
-            <a href="/portal/sindicatos/configuracion.php" class="nav-link text-white-50 px-3 mb-1">
-              <i class="bi bi-sliders me-2"></i>
-              <span>Configuración</span>
-            </a>
-          </li>
-          <li class="nav-item" data-aos="fade-right" data-aos-delay="500">
-            <a href="/portal/seguridad/permisos.php" class="nav-link text-white-50 px-3 mb-1">
-              <i class="bi bi-shield-lock me-2"></i>
-              <span>Permisos</span>
-            </a>
-          </li>
-        {/if}
+        <li class="nav-item mb-2 animate__animated animate__fadeIn">
+          <span class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
+                type="button" data-bs-toggle="collapse" data-bs-target="#configuracion-collapse" aria-expanded="false"
+                aria-controls="configuracion-collapse">
+            Configuración
+            <i class="bi bi-chevron-down"></i>
+          </span>
+          <div class="collapse ms-3" id="configuracion-collapse">
+            <ul class="nav flex-column pb-1">
+              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                <a href="/portal/configuracion/colores.php" class="nav-link text-white px-3 mb-1">
+                  <i class="bi bi-gear-fill me-2"></i>
+                  <span>Colores</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </li>
       </ul>
     </nav>
   </div>
