@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>{block title}SIUT-ITSM{/block}</title>
+
+  <style>
+
+  </style>
+
+  {block head}{/block}
+</head>
+<body>
+
+<header>
+  <img src="https://siutitsm.com.mx/assets/images/logo.jpg" class="logo" alt="Logo">
+  <div class="header-title">
+    <h1>SINDICATO ÚNICO DE TRABAJADORES</h1>
+    <h2>del Instituto Tecnológico Superior de Macuspana</h2>
+  </div>
+</header>
+
+<footer>
+  <p>Av. Tecnológico S/N, Lerdo de Tejada 1ª Sección [86715] Macuspana, Tabasco, México.</p>
+  <p>Móvil: 993-263-6598 • 936-111-1037 • 936-101-8249 | E-mail: sindicato_siutitsm@outlook.com</p>
+  <p>www.siutitsm.com.mx</p>
+</footer>
+
+<main class="container">
+  <h2 style="text-align: center; font-size: 2.5em; color: #2a2828; margin-bottom: 10px">Reporte de agremiados</h2>
+  <table>
+    <thead>
+    <tr>
+      <th>No.</th>
+      <th>Nombre</th>
+      <th>Apellidos</th>
+      <th>Departamento</th>
+      <th>Teléfono</th>
+      <th>Fecha de Ingreso</th>
+    </tr>
+    </thead>
+    <tbody>
+    {foreach $agremiados as $index => $agremiado}
+      <tr>
+        <td>{$index+1}</td>
+        <td>{$agremiado["nombre"]}</td>
+        <td>{$agremiado["apellidos"]}</td>
+        <td>{$agremiado["departamento"]}</td>
+        <td>{$agremiado["telefono"]}</td>
+        <td>{$agremiado["fecha_ingreso"]|date:"d/m/Y"}</td>
+      </tr>
+    {/foreach}
+    </tbody>
+  </table>
+</main>
+
+</body>
+</html>
