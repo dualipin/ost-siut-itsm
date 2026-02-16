@@ -1,47 +1,45 @@
 {extends ../../../templates/@portal.latte}
 
 {block main}
-  <div class="container animate__animated animate__fadeIn">
-    <div class="row mb-5 align-items-center">
-      <div class="col-lg-8">
-        <h1 class="display-4 fw-bold text-primary mb-3">Gestiones</h1>
-        <p class="lead text-muted">Información sobre trámites, convenios y gestiones realizadas por nuestro comité.</p>
-      </div>
-      <div class="col-lg-4 text-lg-end">
-        <i class="bi bi-briefcase text-primary opacity-25" style="font-size: 5rem;"></i>
-      </div>
+  <div class="row mb-5 align-items-center">
+    <div class="col-lg-8">
+      <h1 class="display-4 fw-bold text-primary mb-3">Gestiones</h1>
+      <p class="lead text-muted">Información sobre trámites, convenios y gestiones realizadas por nuestro comité.</p>
     </div>
+    <div class="col-lg-4 text-lg-end">
+      <i class="bi bi-briefcase text-primary opacity-25" style="font-size: 5rem;"></i>
+    </div>
+  </div>
 
-    <div class="row g-4">
-      {if count($gestiones) > 0}
-        {foreach $gestiones as $gestion}
-          <div class="col-md-6 col-lg-4 animate__animated animate__fadeInUp"
-               style="animation-delay: {$iterator->counter * 0.1}s">
-            <div class="card h-100 border-0 shadow-sm hover-shadow transition-all rounded-4">
-              <div class="card-body p-4">
-                <div class="d-flex align-items-center gap-2 mb-3">
-                  <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3">Gestión</span>
-                  <span class="text-muted small">{$gestion['fecha_publicacion']|date:'d/m/Y'}</span>
-                </div>
-                <h3 class="h5 card-title fw-bold mb-3">{$gestion['titulo']}</h3>
-                <p class="card-text text-muted mb-4">{$gestion['resumen']|truncate:100}</p>
-                <a href="#" class="btn btn-link text-primary text-decoration-none p-0 fw-bold stretched-link">
-                  Ver detalles <i class="bi bi-arrow-right ms-1"></i>
-                </a>
+  <div class="row g-4">
+    {if count($gestiones) > 0}
+      {foreach $gestiones as $gestion}
+        <div class="col-md-6 col-lg-4 animate__animated animate__fadeInUp"
+             style="animation-delay: {$iterator->counter * 0.1}s">
+          <div class="card h-100 border-0 shadow-sm hover-shadow transition-all rounded-4">
+            <div class="card-body p-4">
+              <div class="d-flex align-items-center gap-2 mb-3">
+                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3">Gestión</span>
+                <span class="text-muted small">{$gestion['fecha_publicacion']|date:'d/m/Y'}</span>
               </div>
+              <h3 class="h5 card-title fw-bold mb-3">{$gestion['titulo']}</h3>
+              <p class="card-text text-muted mb-4">{$gestion['resumen']|truncate:100}</p>
+              <a href="#" class="btn btn-link text-primary text-decoration-none p-0 fw-bold stretched-link">
+                Ver detalles <i class="bi bi-arrow-right ms-1"></i>
+              </a>
             </div>
           </div>
-        {/foreach}
-      {else}
-        <div class="col-12 text-center py-5">
-          <div class="mb-4">
-            <i class="bi bi-info-circle text-muted opacity-25" style="font-size: 4rem;"></i>
-          </div>
-          <h2 class="h4 text-muted">No hay gestiones registradas.</h2>
-          <p class="text-muted">Vuelve pronto para ver nuestras actividades.</p>
         </div>
-      {/if}
-    </div>
+      {/foreach}
+    {else}
+      <div class="col-12 text-center py-5">
+        <div class="mb-4">
+          <i class="bi bi-info-circle text-muted opacity-25" style="font-size: 4rem;"></i>
+        </div>
+        <h2 class="h4 text-muted">No hay gestiones registradas.</h2>
+        <p class="text-muted">Vuelve pronto para ver nuestras actividades.</p>
+      </div>
+    {/if}
   </div>
 
   <style>
