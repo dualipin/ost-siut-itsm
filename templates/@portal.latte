@@ -1,0 +1,68 @@
+{extends @base.latte}
+
+{block content}
+  <div class="container-fluid p-0">
+    <div class="row g-0">
+      <!-- Sidebar -->
+      {include @portal.sidebar.latte}
+
+      <!-- Main Content Area -->
+      <div class="col d-flex flex-column min-vh-100">
+        <!-- Navbar -->
+        {include @portal.navbar.latte}
+
+        <!-- Page Content -->
+        <main class="container-fluid py-4 flex-grow-1">
+          {include main}
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-light border-top mt-auto animate__animated animate__fadeIn">
+          <div class="container-fluid py-2">
+            <div class="row align-items-center">
+              <div class="col-md-6 text-center text-md-start mb-2 mb-md-0">
+                <small class="text-muted">
+                  © {date('Y')} <a href="/" class="text-decoration-none text-primary">
+                    Sindicato Único de Trabajadores del Instituto Tecnológico Superior de Macuspana
+                  </a>
+                </small>
+              </div>
+              <div class="col-md-6 text-center text-md-end">
+                <small class="text-muted">
+                  Avenida Tecnológico S/N Carretera a Belén, Macuspana, Tabasco, CP.: 86711
+                </small>
+              </div>
+            </div>
+          </div>
+        </footer>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    small.text-muted {
+      font-size: 0.8rem;
+    }
+  </style>
+{/block}
+
+{block scripts}
+  <script>
+    // Auto-close sidebar on mobile after clicking a link
+    document.addEventListener('DOMContentLoaded', function () {
+      const sidebarLinks = document.querySelectorAll('#sidebarMenu .nav-link');
+      const sidebar = document.getElementById('sidebarMenu');
+
+      sidebarLinks.forEach(link => {
+        link.addEventListener('click', function () {
+          if (window.innerWidth < 992) {
+            const bsOffcanvas = bootstrap.Offcanvas.getInstance(sidebar);
+            if (bsOffcanvas) {
+              bsOffcanvas.hide();
+            }
+          }
+        });
+      });
+    });
+  </script>
+{/block}
