@@ -1,18 +1,89 @@
 <!doctype html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>{block title}SIUT-ITSM{/block}</title>
+  <title>{block title}OST-SIUT-ITSM{/block}</title>
+  <link href="{resolveUrl('assets/css/colors.php')}" rel="stylesheet">
 
   <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 11px;
+      line-height: 1.25;
+      color: #000;
+      padding: 1.25in .5in .75in;
+    }
+
+    /* HEADER FIJO */
+    header {
+      top: 0;
+      left: 0;
+      right: 0;
+      position: fixed;
+      color: var(--bs-primary);
+      padding-top: .27in;
+      padding-bottom: 5px;
+      margin: .2in .5in .2in;
+      border-bottom: 3px solid var(--bs-primary);
+    }
+
+    header .logo {
+      display: inline;
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      left: .1in;
+      top: -0.1in;
+      border-radius: 99999px;
+    }
+
+    header .header-title {
+      display: inline;
+      text-align: right;
+      padding-bottom: 10px;
+    }
+
+    header .header-title h1 {
+      font-size: 2em;
+      font-weight: bold;
+      margin: 0;
+    }
+
+    header .header-title h2 {
+      font-size: 1.5em;
+      font-weight: normal;
+      margin: 0;
+    }
+
+    /* FOOTER FIJO */
+    footer {
+      position: fixed;
+      bottom: .25in;
+      /* Alineado con el padding */
+      left: .5in;
+      right: .5in;
+      border-top: 5px solid var(--bs-primary);
+      padding-top: 5px;
+      font-size: 0.75em;
+      text-align: center;
+      color: var(--bs-primary);
+    }
+
+    .page_number:before {
+      position: absolute;
+      right: 0;
+      content: "Foja " counter(page);
+    }
   </style>
-
-  {block head}{/block}
 </head>
+
 <body>
 
 <header>
@@ -24,38 +95,19 @@
 </header>
 
 <footer>
+  <p><span class="page_number"></span></p>
   <p>Av. Tecnológico S/N, Lerdo de Tejada 1ª Sección [86715] Macuspana, Tabasco, México.</p>
   <p>Móvil: 993-263-6598 • 936-111-1037 • 936-101-8249 | E-mail: sindicato_siutitsm@outlook.com</p>
   <p>www.siutitsm.com.mx</p>
 </footer>
 
 <main class="container">
-  <h2 style="text-align: center; font-size: 2.5em; color: #2a2828; margin-bottom: 10px">Reporte de agremiados</h2>
-  <table>
-    <thead>
-    <tr>
-      <th>No.</th>
-      <th>Nombre</th>
-      <th>Apellidos</th>
-      <th>Departamento</th>
-      <th>Teléfono</th>
-      <th>Fecha de Ingreso</th>
-    </tr>
-    </thead>
-    <tbody>
-    {foreach $agremiados as $index => $agremiado}
-      <tr>
-        <td>{$index+1}</td>
-        <td>{$agremiado["nombre"]}</td>
-        <td>{$agremiado["apellidos"]}</td>
-        <td>{$agremiado["departamento"]}</td>
-        <td>{$agremiado["telefono"]}</td>
-        <td>{$agremiado["fecha_ingreso"]|date:"d/m/Y"}</td>
-      </tr>
-    {/foreach}
-    </tbody>
-  </table>
+  {block content}
+
+  {/block}
 </main>
 
+
 </body>
+
 </html>
