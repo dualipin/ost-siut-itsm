@@ -1,56 +1,56 @@
 {extends @base.latte}
 
 {block content}
-<div class="container-fluid p-0">
-  <div class="row g-0">
-    <!-- Sidebar -->
-    {include @portal.sidebar.latte}
+  <div class="container-fluid p-0">
+    <div class="row g-0">
+      <!-- Sidebar -->
+      {include @portal.sidebar.latte}
 
-    <!-- Main Content Area -->
-    <div class="col d-flex flex-column min-vh-100">
-      <!-- Navbar -->
-      {include @portal.navbar.latte}
+      <!-- Main Content Area -->
+      <div class="col d-flex flex-column min-vh-100">
+        <!-- Navbar -->
+        {include @portal.navbar.latte}
 
-      <!-- Page Content -->
-      <main class="container-fluid py-4 flex-grow-1">
-        <section class="container animate__animated animate__fadeIn">
-          {include main}
-        </section>
-      </main>
+        <!-- Page Content -->
+        <main class="container-fluid py-4 flex-grow-1">
+          <section class="container animate__animated animate__fadeIn">
+            {include main}
+          </section>
+        </main>
 
-      <!-- Footer -->
-      <footer class="bg-light border-top mt-auto animate__animated animate__fadeIn">
-        <div class="container-fluid py-2">
-          <div class="row align-items-center">
-            <div class="col-md-6 text-center text-md-start mb-2 mb-md-0">
-              <small class="text-muted">
-                © {date('Y')} <a href="/" class="text-decoration-none text-primary">
-                  Sindicato Único de Trabajadores del Instituto Tecnológico Superior de Macuspana
-                </a>
-              </small>
-            </div>
-            <div class="col-md-6 text-center text-md-end">
-              <small class="text-muted">
-                Avenida Tecnológico S/N Carretera a Belén, Macuspana, Tabasco, CP.: 86711
-              </small>
+        <!-- Footer -->
+        <footer class="bg-light border-top mt-auto animate__animated animate__fadeIn" style="z-index: -1">
+          <div class="container-fluid py-2">
+            <div class="row align-items-center">
+              <div class="col-md-6 text-center text-md-start mb-2 mb-md-0">
+                <small class="text-muted">
+                  © {date('Y')} <a href="/" class="text-decoration-none text-primary">
+                    Sindicato Único de Trabajadores del Instituto Tecnológico Superior de Macuspana
+                  </a>
+                </small>
+              </div>
+              <div class="col-md-6 text-center text-md-end">
+                <small class="text-muted">
+                  Avenida Tecnológico S/N Carretera a Belén, Macuspana, Tabasco, CP.: 86711
+                </small>
+              </div>
             </div>
           </div>
-        </div>
-      </footer>
+        </footer>
+      </div>
     </div>
   </div>
-</div>
 
-<style>
-  small.text-muted {
-    font-size: 0.8rem;
-  }
-</style>
+  <style>
+    small.text-muted {
+      font-size: 0.8rem;
+    }
+  </style>
 {/block}
 
 {block scripts}
-<script>
-  // Auto-close sidebar on mobile after clicking navigational links
+  <script>
+    // Auto-close sidebar on mobile after clicking navigational links
     // Ignore links that toggle collapse so opening submenus doesn't close the offcanvas on mobile
     document.addEventListener('DOMContentLoaded', function () {
       const sidebarLinks = document.querySelectorAll('#sidebarMenu .nav-link:not([data-bs-toggle="collapse"])');
@@ -67,5 +67,5 @@
         });
       });
     });
-</script>
+  </script>
 {/block}
