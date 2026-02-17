@@ -1,0 +1,15 @@
+<!-- Contenedor donde caerán los toasts -->
+<div class="toast-container position-fixed top-0 end-0 p-3 mt-5" id="{$idToast}"></div>
+
+<!-- El molde (blueprint) -->
+<template id="toast-template">
+  <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header">
+      <img src="/favicon.ico" class="rounded me-2" alt="logo" height="30" width="30">
+      <strong class="me-auto"></strong>
+      <small class="text-muted">ahora</small>
+      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body"></div>
+  </div>
+</template>
