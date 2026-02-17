@@ -1,0 +1,15 @@
+<div class="row mb-5 align-items-center">
+  <div class="col-lg-8">
+    <h1 class="display-4 fw-bold text-primary mb-3">
+      {$title}
+    </h1>
+    <p class="lead text-muted">
+      {$description}
+    </p>
+  </div>
+  <div class="col-lg-4 d-none d-lg-block text-lg-end">
+    {ifset $icon}
+      <i class="bi {$icon} text-primary opacity-25" style="font-size: 5rem;"></i>
+    {/ifset}
+  </div>
+</div>
