@@ -32,6 +32,127 @@
       </div>
 
       <div class="mb-3">
+        <label class="form-label">Descuentos (puedes agregar varios)</label>
+        <div id="categorias-tipo-ingreso-solicitar" x-data={
+            descuentos: [{ monto: '', tipoId: '', cantidad: 1 }],
+            categoriasTipoIngreso: JSON.parse(document.getElementById('categorias-tipo-ingreso-solicitar').dataset.categoriaTipoIngreso),
+            get fechaMax() { const anio = new Date().getFullYear(); return anio + '-11-20'; },
+            currentDate: (function(){ const d = new Date(); const y = d.getFullYear(); const m = String(d.getMonth()+1).padStart(2,'0'); const day = String(d.getDate()).padStart(2,'0'); return y + '-' + m + '-' + day; })(),
+            localize(dateStr) { if (!dateStr) return ''; const p = String(dateStr).split('-'); if (p.length !== 3) return dateStr; return p[2] + '/' + p[1] + '/' + p[0]; },
+            get selectedTipoIds() { return this.descuentos.map(d => Number(d.tipoId)).filter(Boolean); }
+            tipoEstaSeleccionado(tipoId, currentTipoId) { return this.selectedTipoIds.includes(Number(tipoId)) && Number(currentTipoId) !== Number(tipoId); },
+            agregar() { const disponible = this.categoriasTipoIngreso.find(c => c.activo && !this.selectedTipoIds.includes(c.id)); if (disponible) this.descuentos.push({ monto: '', tipoId: '', cantidad: 1 }); },
+            eliminar(i){ this.descuentos.splice(i,1); },
+            calcularMaxPeriodos(cat){ if(!cat || !cat.esPeriodico) return 0; const hoy = new Date(); const fechaMax = new Date(this.fechaMax); const diff = fechaMax - hoy; if (diff < 0) return 0; const dias = Math.floor(diff / (1000*60*60*24)) + 1; const freq = Number(cat.frecuenciaDias) || 30; return Math.max(0, Math.floor(dias / freq)); },
+            calcularFechaFin(cat, cantidad) {
+              if (!cat || !cat.esPeriodico || !(Number(cantidad) > 0)) return '-';
+              const freq = Number(cat.frecuenciaDias) || 30;
+              const hoy = new Date();
+              function daysInMonth(y, mIndex) { return new Date(y, mIndex + 1, 0).getDate(); }
+              let firstPayment = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+              if (cat.diaPagoTentativo) {
+                const day = Number(cat.diaPagoTentativo);
+                if (freq >= 28) {
+                  if (cat.mesPagoTentativo) {
+                    let year = hoy.getFullYear();
+                    let candidate = new Date(year, Number(cat.mesPagoTentativo) - 1, Math.min(day, daysInMonth(year, Number(cat.mesPagoTentativo) - 1)));
+                    if (candidate < hoy) year += 1;
+                    firstPayment = new Date(year, Number(cat.mesPagoTentativo) - 1, Math.min(day, daysInMonth(year, Number(cat.mesPagoTentativo) - 1)));
+                  } else {
+                    let candidate = new Date(hoy.getFullYear(), hoy.getMonth(), Math.min(day, daysInMonth(hoy.getFullYear(), hoy.getMonth())));
+                    if (candidate <= hoy) {
+                      const nm = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 1);
+                      candidate = new Date(nm.getFullYear(), nm.getMonth(), Math.min(day, daysInMonth(nm.getFullYear(), nm.getMonth())));
+                    }
+                    firstPayment = candidate;
+                  }
+                } else if (freq === 15) {
+                  const tryDay = Math.min(day, daysInMonth(hoy.getFullYear(), hoy.getMonth()));
+                  let candidate = new Date(hoy.getFullYear(), hoy.getMonth(), tryDay);
+                  if (candidate <= hoy) {
+                    const nm = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 1);
+                    candidate = new Date(nm.getFullYear(), nm.getMonth(), Math.min(day, daysInMonth(nm.getFullYear(), nm.getMonth())));
+                  }
+                  firstPayment = candidate;
+                } else {
+                  let candidate = new Date(hoy.getFullYear(), hoy.getMonth(), Math.min(day, daysInMonth(hoy.getFullYear(), hoy.getMonth())));
+                  if (candidate < hoy) {
+                    const nm = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 1);
+                    candidate = new Date(nm.getFullYear(), nm.getMonth(), Math.min(day, daysInMonth(nm.getFullYear(), nm.getMonth())));
+                  }
+                  firstPayment = candidate;
+                }
+              } else {
+                // Sin día definido: usar la próxima ocurrencia (no hoy)
+                firstPayment = new Date(hoy.getTime() + freq * 24 * 60 * 60 * 1000);
+              }
+              const periods = Math.max(1, Number(cantidad));
+              const addDays = (periods - 1) * freq;
+              const end = new Date(firstPayment.getTime() + addDays * 24 * 60 * 60 * 1000);
+              const fechaMaxDate = new Date(this.fechaMax);
+              const finalDate = end > fechaMaxDate ? fechaMaxDate : end;
+              return finalDate.toLocaleDateString('es-MX');
+            },
+            get puedeAgregar(){ return this.categoriasTipoIngreso.some(c=>c.activo && !this.selectedTipoIds.includes(c.id)); }
+          }" data-categoria-tipo-ingreso='{=json_encode($categoriasTipoIngreso)}'>
+
+          <div class="mb-2 d-flex justify-content-between align-items-center">
+            <div class="small text-muted">Fecha actual</div>
+            <div class="fw-semibold" x-text="localize(currentDate)"></div>
+            <input type="hidden" name="fecha_actual" :value="currentDate">
+          </div>
+
+          <template x-for="(it, idx) in descuentos" :key="idx">
+            <div class="card mb-2 p-2">
+              <div class="row g-2 align-items-center">
+                <div class="col-12 col-sm-5">
+                  <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input x-model.number="it.monto" type="number" class="form-control" placeholder="Monto descuento">
+                  </div>
+                </div>
+                <div class="col-12 col-sm-5">
+                  <select x-model="it.tipoId" @change="() => {}" class="form-select">
+                    <option value="" disabled selected>Tipo...</option>
+                    <template x-for="c in categoriasTipoIngreso">
+                      <option :value="c.id" x-text="c.nombre" :disabled="!c.activo || tipoEstaSeleccionado(c.id, it.tipoId)"></option>
+                    </template>
+                  </select>
+                </div>
+                <div class="col-12 col-sm-2 d-grid">
+                  <button type="button" class="btn btn-outline-danger btn-sm w-100" @click.prevent="eliminar(idx)">✕</button>
+                </div>
+
+                <div class="col-12" x-show="it.tipoId && (categoriasTipoIngreso.find(c => c.id == it.tipoId)?.esPeriodico)">
+                  <div class="row g-2">
+                    <div class="col-4 col-sm-2">
+                      <input x-model.number="it.cantidad" type="number" min="1" :max="calcularMaxPeriodos(categoriasTipoIngreso.find(c => c.id == it.tipoId))" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-4 col-sm-3 align-self-center">
+                      <div x-text="categoriasTipoIngreso.find(c => c.id == it.tipoId)?.frecuenciaDias === 15 ? 'Quincenas' : 'Meses'"></div>
+                    </div>
+                    <div class="col-4 col-sm-7">
+                      <div class="form-control-plaintext fw-semibold" x-text="calcularFechaFin(categoriasTipoIngreso.find(c => c.id == it.tipoId), it.cantidad)"></div>
+                    </div>
+                    <div class="col-12 mt-1">
+                      <small class="text-muted">Máx períodos: <span x-text="calcularMaxPeriodos(categoriasTipoIngreso.find(c => c.id == it.tipoId))"></span> hasta <span x-text="fechaMax"></span></small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-secondary btn-sm" @click.prevent="agregar()" :disabled="!puedeAgregar">Agregar</button>
+            <small class="text-muted align-self-center">Cada tipo solo puede seleccionarse una vez</small>
+          </div>
+
+          <input type="hidden" name="descuentos_json" :value="JSON.stringify(descuentos)">
+        </div>
+      </div>
+
+      <div class="mb-3">
         <label for="tipo_descuento" class="form-label">Tipo de descuento</label>
         <select class="form-select" id="tipo_descuento" name="tipo_descuento" required onchange="mostrarAyudaRecibo()">
           <option value="">Selecciona una opción</option>
