@@ -81,13 +81,24 @@
       right: 0;
       content: "Foja " counter(page);
     }
+
+    .watermark {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0.05;
+      width: 80%;
+      height: auto;
+      z-index: -1;
+    }
   </style>
 </head>
 
 <body>
-
+<img src="{resolveUrl('assets/images/logo.webp')}" class="watermark" alt="watermark">
 <header>
-  <img src="https://siutitsm.com.mx/assets/images/logo.jpg" class="logo" alt="Logo">
+  <img src="{resolveUrl('assets/images/logo.webp')}" class="logo" alt="Logo">
   <div class="header-title">
     <h1>SINDICATO ÚNICO DE TRABAJADORES</h1>
     <h2>del Instituto Tecnológico Superior de Macuspana OST-SIUT-ITSM</h2>
