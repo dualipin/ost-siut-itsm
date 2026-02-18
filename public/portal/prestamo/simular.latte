@@ -11,7 +11,7 @@ Ingresa el monto del préstamo para obtener una estimación de tus pagos futuros
 icon=>'bi-calculator'
 }
 
-<div class="col-lg-8" id="categorias-tipo-ingreso" x-data="{
+<div class="col-lg-10" id="categorias-tipo-ingreso" x-data="{
          descuentos: [{ monto: '', tipoId: '', cantidad: 1, unidad: 'meses' }],
          currentDate: (function(){ const d = new Date(); const y = d.getFullYear(); const m = String(d.getMonth()+1).padStart(2,'0'); const day = String(d.getDate()).padStart(2,'0'); return y + '-' + m + '-' + day; })(),
          categoriasTipoIngreso: JSON.parse(document.getElementById('categorias-tipo-ingreso').dataset.categoriaTipoIngreso),
@@ -114,7 +114,7 @@ icon=>'bi-calculator'
          localize(dateStr) { if (!dateStr) return ''; const p = String(dateStr).split('-'); if (p.length !== 3) return dateStr; return p[2] + '/' + p[1] + '/' + p[0]; },
          get puedeAgregar() { return this.categoriasTipoIngreso.some(c => c.activo && !this.selectedTipoIds.includes(c.id)); }
        }" data-categoria-tipo-ingreso='{=json_encode($categoriasTipoIngreso)}'>
-  <form class="needs-validation">
+  <form class="needs-validation" method="POST">
 
     <!-- Total solicitado (grande) -->
     <div class="text-center mb-4">
