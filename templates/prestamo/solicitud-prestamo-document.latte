@@ -1,0 +1,447 @@
+{extends ../@document.latte}
+
+{block content}
+  <style>
+    .justify-between {
+      text-align: justify;
+      font-size: 0;
+
+    }
+
+    .justify-between:after {
+      content: "";
+      display: inline-block;
+      width: 100%;
+    }
+
+    .justify-between > * {
+      display: inline-block;
+      vertical-align: top;
+    }
+
+    /* Ensure tables remain tables (avoid forcing table elements to inline-block) */
+    .justify-between > table {
+      display: table !important;
+      vertical-align: top;
+      width: 100%;
+    }
+
+    .stamp-header strong {
+      display: inline-block;
+      font-size: 12px;
+      vertical-align: top;
+    }
+
+
+    .title {
+      text-align: center;
+      border-radius: 10px;
+      padding: 5px;
+      margin: 10px 0;
+      font-size: 20px;
+    }
+
+    .container {
+      font-size: 14px;
+      padding: 5px 10px;
+      position: relative;
+    }
+
+    .data p {
+      margin: 5px 0;
+    }
+
+    .data ul > li {
+      padding: 5px;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    .table th,
+    .table td {
+      border: 1px solid black;
+      padding: 5px;
+      text-align: left;
+    }
+
+    .box {
+      border: 1px solid black;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      width: 100%;
+      padding: 10px;
+      min-height: 100px
+    }
+
+    .border {
+      border: 1px solid black;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      width: 100%;
+    }
+
+    .anexo {
+      margin: 10px 0;
+      font-size: 10px;
+    }
+
+    .anexo ul {
+      list-style: none;
+      padding-left: 10px;
+    }
+
+    .anexo p {
+      margin-top: 5px;
+    }
+
+    .square {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 1px solid black;
+      margin-left: 5px;
+    }
+
+    .signature-section {
+      width: 100%;
+      margin-top: 25px;
+    }
+
+    .signature-section {
+      width: 100%;
+      margin-top: 25px;
+    }
+
+    .signature-section table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: center;
+    }
+
+    .signature-section td {
+      padding: 5px;
+      vertical-align: top;
+    }
+
+    .signature-section__center {
+      width: 70%;
+    }
+
+    .signature-section__right-left {
+      width: 15%;
+    }
+
+    .huella {
+      border: 1px solid black;
+      width: 100px;
+      height: 150px;
+      margin: 0 auto;
+    }
+
+    .huella p {
+      font-size: 9px;
+      text-align: center;
+      margin-top: 5px;
+    }
+
+    .signature {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .signature td {
+      padding: 4px;
+      text-align: center;
+      vertical-align: middle;
+      word-wrap: break-word;
+    }
+
+    .signature-row-auth td {
+      width: 50%;
+      vertical-align: top;
+    }
+
+    .signature-line {
+      border-bottom: 1px solid black;
+      margin-top: 40px;
+      vertical-align: bottom;
+      margin-left: 5px;
+      margin-right: 5px;
+    }
+
+
+    .ccp {
+      font-size: 8px;
+      margin-top: 20px;
+      font-style: italic;
+    }
+  </style>
+  <section class="justify-between stamp-header">
+    <strong>Préstamo No. 0</strong>
+    <strong>
+      Fecha de otorgamiento del préstamo: {date('Y-m-d')|date: 'Y-m-d'}
+    </strong>
+  </section>
+
+  <h1 class="bg-primary text-bg-primary title">
+    SOLICITUD DE PRÉSTAMO A LA CAJA DE AHORRO {date('Y-m-d')|date: 'Y'}
+  </h1>
+
+  <section class="container data">
+    <p>
+      <strong>
+        Nombre del que Solicita el préstamo:
+      </strong>
+      <span>
+      Juan Pérez García
+    </span>
+    </p>
+    <p>
+      <strong>
+        Monto Solicitado del Préstamo:
+      </strong>
+      <span>
+      $10,000.00
+    </span>
+    </p>
+    <p>
+      <strong>
+        Dia en que solicita el préstamo:
+      </strong>
+      <span>
+      {date('Y-m-d')|date: 'Y-m-d'}
+    </span>
+    </p>
+    <p>
+      <strong>
+        Forma de pago en la que acepta se le aplique el descuento del préstamo solicitado; en caso de ser
+        aprobado:
+      </strong>
+    </p>
+
+    <ul>
+      <li>Descuento en una sola exhibición</li>
+      <li>Descuento en parcialidades</li>
+    </ul>
+  </section>
+
+  <section class="container justify-between">
+    <p>
+      <strong>Categoria:</strong>
+      <span>
+      Docente
+    </span>
+    </p>
+    <p>
+      <strong>Teléfono:</strong>
+      <span>      936 106 61 69    </span>
+    </p>
+  </section>
+  <section class="container justify-between">
+    <div>
+      <p>
+        <strong>N. DE CUENTA Y/O CLABE INTERBANCARIA:</strong>
+      </p>
+      <p>
+        123456789012345678
+      </p>
+    </div>
+    <div>
+      <p>
+        <strong>BANCO:</strong>
+      </p>
+      <p>
+        Banco Nacional de México
+      </p>
+    </div>
+
+
+    <table class="table">
+      <thead>
+      <tr>
+        <th>
+          N. Pagare
+        </th>
+        <th>
+          Monto Pagare
+        </th>
+        <th>
+          Interés
+        </th>
+        <th>
+          Fecha
+        </th>
+        <th>
+          Otros
+        </th>
+        <th>
+          Nombre y firma del trabajador
+        </th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      </tbody>
+    </table>
+
+    <table class="box">
+      <tr>
+        <td>
+        </td>
+      </tr>
+    </table>
+
+    <p>
+      En base a lo anterior doy mi autorización para que se me descuente este préstamo con los intereses generados
+      respectivos aplicados a mi sueldo quincenal y/o a las prestaciones de fin de año, bajo los términos de esta
+      solicitud la cual fue requisitada por mi persona y como Trabajador del Instituto Tecnológico Superior de
+      Macuspana, estando consiente y expresando mi voluntad que estos descuentos disminuirán mis alcenses netos de
+      salario y el de mis prestaciones que percibo en caso de que haya afectado este concepto, haciendo énfasis y
+      puntualizando que ningún otro escrito posterior al presente que se genere por mi persona, la Subdirección de
+      Administración, o la Dirección General del Instituto Tecnológico Superior de Macuspana, impedirá mi voluntad de
+      que se realice este descuento, ya que tiene la potestad de ser <strong>irrevocable</strong> a cualquier otro
+      documento emitido por
+      mi persona de manera posterior, ante el departamento de Recursos Humanos, el cual he manifestado con base a que
+      fue un recurso que solicite con anticipación a la Caja de Ahorro del Sindicato Único de Trabajadores del Instituto
+      Tecnológico Superior de Macuspana y que de buena fé me otorgaron dejando en garantía mi sueldo y/o Prestaciones y
+      firmando la corrida tabular de amortizaciones a la cual me comprometí pagar.
+      El sindicato se obliga a dejarme un porcentaje en mi salario al igual que un servidor es obliga a no disponer de
+      lo aquí acordado en mi nomina respectiva.
+      En caso de cambiar mi situación de pago a la caja de ahorro acepto se me cobre 1% más del interés ordinario
+      mensual.
+      Acepto que solamente tendré una oportunidad de hacer cambio de mi situación de cobro tomando en cuenta el punto
+      número 2.
+      En caso de hacer algún pago anticipado en efectivo éste será depositado al banco a la cuenta de la caja de ahorro
+      y solamente entregaré la ficha de depósito de la cantidad abonada al representante de la caja de ahorro.
+      Acepto que no podré hacer cambios en el Departamento de Personal ni en la Subdirección de Administración y
+      Finanzas ni en la Dirección General del Instituto Tecnológico superior de Macuspana a este préstamo otorgado para
+      evitar mi incumplimiento al pago del mismo; a excepción se haya liquidado con anterioridad y un servidor junto con
+      el sindicato lo expresemos por escrito al área correspondiente del ITSM.
+      En caso de incumplir con alguna de estas cláusulas el sindicato queda libre de hacer cualquier proceso legal
+      correspondiente.
+    </p>
+
+    <div class="anexo">
+      <strong>
+        Interés de préstamos de la caja de ahorro de 2025
+      </strong>
+      <ul>
+        <li>
+          Ahorrador y agremiado 6.0%
+        </li>
+        <li>
+          Agremiado y no ahorrador 7.5%
+        </li>
+        <li>
+          Ahorrador y no agremiado 8.5%
+        </li>
+        <li>
+          No ahorrador y no agremiado 9.5%
+        </li>
+      </ul>
+
+      <p>
+        <strong>NOTA: </strong>Cualquier cambio de lo arriba solicitado, favor de pasar a la oficina Sindical para
+        modificar o atender el asunto a tratar, Todos los préstamos solicitados son vía nómina.
+      </p>
+
+      <p>
+        Mucho agradeceremos su comprensión al respecto. Ayúdenos a darles un buen servicio. Gracias.
+      </p>
+
+      <table>
+        <tr>
+          <td>Préstamo sujeto a revisión:</td>
+          <td>
+            <table class="border">
+              <tr>
+                <td><span>SI</span> <span class="square"></span></td>
+                <td><span>NO</span> <span class="square"></span></td>
+              </tr>
+              <tr>
+                <td style="border-top: 1px solid black; text-align: center" colspan="2">
+                  <strong>APROBACIÓN</strong>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <p>
+      Se anexa corrida de amortización de descuento, copia de mi recibo de pago Nominales/Prestaciones reciente y copia
+      de la credencial de elector o (INE) y Pagaré en caso de hacer aprobada esta solicitud.
+    </p>
+
+    <div class="signature-section">
+      <table>
+        <tr>
+          <td class="signature-section__right-left"></td>
+          <td class="signature-section__center">
+            <table class="signature">
+              <tr>
+                <td colspan="2"><strong>ATENTAMENTE</strong></td>
+              </tr>
+              <tr>
+                <td colspan="2">
+                  <div class="signature-line">
+                    Juan Peres
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td colspan="2">Nombre y firma del solicitante</td>
+              </tr>
+              <tr>
+                <td colspan="2"><strong>Vo. Bo.</strong></td>
+              </tr>
+              <tr class="signature-row-auth">
+                <td>
+                  <strong>AUTORIZO</strong>
+                  <div class="signature-line"></div>
+                </td>
+                <td>
+                  <strong>SUPERVISO</strong>
+                  <div class="signature-line"></div>
+                </td>
+              </tr>
+              <tr class="signature-row-auth">
+                <td>MIDS Luiz Sosa Castro</td>
+                <td>Ing. Jesus Antonio Lopez Hernandez</td>
+              </tr>
+              <tr class="signature-row-auth">
+                <td><strong>Secretario General</strong></td>
+                <td><strong>Secretario de Finanzas</strong></td>
+              </tr>
+            </table>
+          </td>
+          <td class="signature-section__right-left">
+            <div class="huella">
+              <p>Huella del Trabajador</p>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <div class="ccp">
+    <p>c.c.p Interesado</p>
+    <p>c.c.p Sindicato Único de Trabajadores del Instituto Tecnológico Superior de Macuspana</p>
+    <p>c.c.p Departamento de Personal, para su conocimiento</p>
+  </div>
+
+{/block}
