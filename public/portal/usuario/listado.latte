@@ -2,18 +2,13 @@
 {varType App\Module\Usuario\DTO\UsuarioSimpleDTO[] $usuarios}
 
 {block main}
-<div class="row mb-5 align-items-center">
-  <div class="col-lg-8">
-    <h1 class="display-4 fw-bold text-primary mb-3">Usuarios</h1>
-    <p class="lead text-muted">
-      Gestion de usuarios y agremiados del Sindicato Único de Trabajadores del Instituto Tecnológico Superior de
-      Macuspana.
-    </p>
-  </div>
-  <div class="col-lg-4 text-lg-end">
-    <i class="bi bi-people text-primary opacity-25" style="font-size: 5rem;"></i>
-  </div>
-</div>
+{include
+  ../../../templates/components/header-page.latte,
+  title=>'Usuarios',
+  description=>'Gestion de usuarios y agremiados',
+  icon=>'bi-people'
+}
+
 <div class="row mb-3 align-items-center">
   <div class="col-md-6">
     <h1 class="h3">Lista de Usuarios</h1>
@@ -73,5 +68,5 @@
 
 
 {block scripts}
-<script src="/assets/js/components/tabla-gestionada.js" type="module"></script>
+  <script src="/assets/js/components/tabla-gestionada.js" type="module"></script>
 {/block}

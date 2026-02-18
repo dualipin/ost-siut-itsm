@@ -1,5 +1,212 @@
 {extends ../../../templates/@portal.latte}
 
 {block main}
+  {include
+    ../../../templates/components/header-page.latte,
+    title => 'Registrar Usuario',
+    description => 'Formulario para registrar nuevos agremiados.',
+    icon => 'bi-person-plus'
+  }
+  <div class="row justify-content-center">
+  <form method="post" enctype="multipart/form-data">
+
+    <!-- Sección: Foto de perfil -->
+    <div class="mb-4">
+      <label for="foto_perfil" class="form-label fw-semibold">Foto de Perfil</label>
+      <div class="d-flex align-items-center gap-4">
+        <img src="https://placehold.co/80" alt="Foto actual" class="rounded-circle border"
+             style="width: 80px; height: 80px; object-fit: cover;">
+        <input class="form-control" type="file" id="foto_perfil" name="foto_perfil" accept="image/*">
+      </div>
+      <div class="form-text">JPG o PNG, máx. 2MB</div>
+    </div>
+
+    <!-- Sección: Datos Personales -->
+    <h5 class="text-secondary mb-3"><i class="bi bi-person-vcard me-2"></i>Datos Personales</h5>
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <label for="curp" class="form-label">CURP</label>
+        <input type="text" class="form-control" id="curp" name="curp" maxlength="18" required>
+      </div>
+      <div class="col-md-6">
+        <label for="nss" class="form-label">NSS</label>
+        <input type="text" class="form-control" id="nss" name="nss" maxlength="11" required>
+      </div>
+      <div class="col-md-6">
+        <label for="nombre" class="form-label">Nombre(s)</label>
+        <input type="text" class="form-control" id="nombre" name="nombre" required>
+      </div>
+      <div class="col-md-6">
+        <label for="apellidos" class="form-label">Apellidos</label>
+        <input type="text" class="form-control" id="apellidos" name="apellidos" required>
+      </div>
+      <div class="col-md-6">
+        <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
+        <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento" required>
+      </div>
+      <div class="col-md-6">
+        <label for="telefono" class="form-label">Teléfono</label>
+        <input type="tel" class="form-control" id="telefono" name="telefono" maxlength="10" required>
+      </div>
+      <div class="col-12">
+        <label for="direccion" class="form-label">Dirección</label>
+        <textarea class="form-control" id="direccion" name="direccion" rows="2" required></textarea>
+      </div>
+    </div>
+
+    <!-- Sección: Datos Laborales -->
+    <h5 class="text-secondary mb-3"><i class="bi bi-briefcase me-2"></i>Datos Laborales</h5>
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <label for="departamento" class="form-label">Departamento</label>
+        <input type="text" class="form-control" id="departamento" name="departamento" required>
+      </div>
+      <div class="col-md-6">
+        <label for="categoria" class="form-label">Categoría</label>
+        <input type="text" class="form-control" id="categoria" name="categoria" required>
+      </div>
+      <div class="col-md-6">
+        <label for="salario_quincenal" class="form-label">Salario Quincenal</label>
+        <div class="input-group">
+          <span class="input-group-text">$</span>
+          <input type="number" step="0.01" class="form-control" id="salario_quincenal"
+                 name="salario_quincenal" required>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <label for="fecha_ingreso" class="form-label">Fecha de Ingreso</label>
+        <input type="date" class="form-control" id="fecha_ingreso" name="fecha_ingreso" required>
+      </div>
+    </div>
+
+    <!-- Sección: Cuenta -->
+    <h5 class="text-secondary mb-3"><i class="bi bi-shield-lock me-2"></i>Cuenta y Acceso</h5>
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <label for="correo" class="form-label">Correo Electrónico</label>
+        <input type="email" class="form-control" id="correo" name="correo" required>
+      </div>
+      <div class="col-md-6"></div>
+      <div class="col-md-6">
+        <label for="contrasena" class="form-label">Contraseña</label>
+        <input type="password" class="form-control" id="contrasena" name="contrasena" minlength="6" required>
+      </div>
+      <div class="col-md-6">
+        <label for="repetir_contrasena" class="form-label">Repetir Contraseña</label>
+        <input type="password" class="form-control" id="repetir_contrasena" name="repetir_contrasena"
+               minlength="6" required>
+      </div>
+    </div>
+
+    <!-- Sección: Documentos -->
+    <h5 class="text-secondary mb-3"><i class="bi bi-folder-check me-2"></i>Documentos (Obligatorios)</h5>
+    <div class="row g-3 mb-4">
+      {foreach ['afiliacion' => 'Documento de Afiliación', 'comprobante_domicilio' => 'Comprobante de Domicilio', 'ine' => 'INE (Frente y Reverso)', 'comprobante_pago' => 'Comprobante de Pago'] as $key => $label}
+        <div class="col-md-6">
+          <label for="{$key}" class="form-label">{$label}</label>
+          <input class="form-control" type="file" id="{$key}" name="{$key}" accept=".pdf,.jpg,.jpeg,.png"
+                 required>
+          <div class="form-text">PDF, JPG o PNG, máx. 2MB</div>
+        </div>
+      {/foreach}
+    </div>
+
+    <!-- Botones -->
+    <div class="d-flex justify-content-end gap-3 mt-5">
+      <button type="submit" class="btn btn-success btn-lg px-4 shadow-sm">
+        <i class="bi bi-check-circle me-2"></i>Registrar Agremiado
+      </button>
+      <a href="./index.php" class="btn btn-outline-secondary btn-lg px-4">
+        Cancelar
+      </a>
+    </div>
+  </form>
+
+
+  {include ../../../templates/components/toast.latte, idToast => 'registroToast'}
+
+  <button type="button" class="btn btn-primary" onclick="addAndShowToast('Hola', 'registroToast')">Show live toast
+  </button>
+
+  <script>
+    const toastTrigger = document.getElementById('registroToastBtn')
+    const toastLiveExample = document.getElementById('registroToast')
+    if (toastTrigger) {
+      toastTrigger.addEventListener('click', () => {
+        const toast = new bootstrap.Toast(toastLiveExample)
+
+        toast.show()
+      })
+    }
+
+
+  </script>
+
+  <script src="/assets/js/components/toast.js"></script>
+
+
+  <!-- Bootstrap Icons -->
+  <script n:syntax="double">
+    document.addEventListener('DOMContentLoaded', function () {
+      /* ---------- CONFIGURACIÓN ---------- */
+      const MAX_IMG = 2 * 1024 * 1024; // 2 MB
+      const MAX_PDF = 3 * 1024 * 1024; // 3 MB
+
+      /* ---------- PREVIEW + VALIDACIÓN ---------- */
+      document.querySelectorAll('input[type="file"]').forEach(input => {
+        input.addEventListener('change', function () {
+          const file = this.files[0];
+          if (!file) return;
+
+          const tipo = file.type;
+          const tam = file.size;
+          const esImg = tipo.startsWith('image/');
+          const esPDF = tipo === 'application/pdf';
+
+          /* ---------- Validaciones ---------- */
+          if (!esImg && !esPDF) {
+            alertBootstrap('Formato no permitido. Solo JPG, PNG o PDF.', 'danger');
+            this.value = '';
+            return;
+          }
+
+          if (esImg && tam > MAX_IMG) {
+            alertBootstrap('La imagen excede 2 MB.', 'danger');
+            this.value = '';
+            return;
+          }
+
+          if (esPDF && tam > MAX_PDF) {
+            alertBootstrap('El PDF excede 3 MB.', 'danger');
+            this.value = '';
+            return;
+          }
+
+          /* ---------- Preview (solo imágenes) ---------- */
+          if (this.id === 'foto_perfil' && esImg) {
+            const img = document.querySelector('img[alt="Foto actual"]');
+            const reader = new FileReader();
+            reader.onload = e => img.src = e.target.result;
+            reader.readAsDataURL(file);
+          }
+
+          /* ---------- Feedback visual ---------- */
+          addAndShowToast('Archivo "' + file.name + '" listo.', 'registroToast', 'success');
+        });
+      });
+
+      /* ---------- Alerta Bootstrap sin JS extra ---------- */
+      function alertBootstrap(mensaje, tipo) {
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = `
+      <div class="alert alert-${tipo} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3" role="alert" style="z-index: 1050;">
+        ${mensaje}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>`;
+        document.body.appendChild(wrapper);
+        setTimeout(() => wrapper.remove(), 4000);
+      }
+    });
+  </script>
 
 {/block}
