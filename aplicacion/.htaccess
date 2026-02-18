@@ -1,4 +1,0 @@
-RewriteEngine On
-
-ErrorDocument 403 /aplicacion/prohibido.php
-ErrorDocument 404 /aplicacion/no-encontrado.php
