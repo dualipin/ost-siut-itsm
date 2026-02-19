@@ -4,7 +4,7 @@ namespace App\Module\Prestamo\Service;
 
 use App\Module\Prestamo\DTO\AmortizacionCorridaDTO;
 use App\Module\Prestamo\Entity\UnidadEnum;
-use App\Module\Prestamo\Service\CalculadoraPrestamoInterface;
+use DateInterval;
 use DateTimeImmutable;
 
 class CalculadoraSimpleAleman
@@ -12,7 +12,6 @@ class CalculadoraSimpleAleman
     /**
      * @return AmortizacionCorridaDTO[]
      */
-
     public function generarCorrida(
         float $capital,
         float $tasa,
@@ -26,9 +25,9 @@ class CalculadoraSimpleAleman
         }
 
         // opciones
-        $alinearCalendario = $options['alinear'] ?? false; // si true, alinea primer pago a fin de periodo (mes/quincena)
-        $fechaPrimerPagoOverride = $options['fechaPrimerPago'] ?? null; // DateTimeImmutable opcional
-        $dayCount = $options['dayCount'] ?? 'actual/365'; // 'actual/365'|'actual/360'|'period'
+        $alinearCalendario = $options["alinear"] ?? false; // si true, alinea primer pago a fin de periodo (mes/quincena)
+        $fechaPrimerPagoOverride = $options["fechaPrimerPago"] ?? null; // DateTimeImmutable opcional
+        $dayCount = $options["dayCount"] ?? "actual/365"; // 'actual/365'|'actual/360'|'period'
 
         // Normalizar tasa si viene como porcentaje (p.ej. 3 => 0.03)
         if ($tasa > 1) {
@@ -62,14 +61,21 @@ class CalculadoraSimpleAleman
             switch ($unidad) {
                 case UnidadEnum::Mes:
                     // primer pago = último día del mes de la fecha de desembolso
-                    $firstPaymentDate = new DateTimeImmutable($fechaInicio->format('Y-m-t'));
+                    $firstPaymentDate = new DateTimeImmutable(
+                        $fechaInicio->format("Y-m-t"),
+                    );
                     break;
                 case UnidadEnum::Quincena:
-                    $day = (int)$fechaInicio->format('d');
+                    $day = (int) $fechaInicio->format("d");
                     if ($day <= 15) {
-                        $firstPaymentDate = DateTimeImmutable::createFromFormat('Y-m-d', $fechaInicio->format('Y-m-15'));
+                        $firstPaymentDate = DateTimeImmutable::createFromFormat(
+                            "Y-m-d",
+                            $fechaInicio->format("Y-m-15"),
+                        );
                     } else {
-                        $firstPaymentDate = new DateTimeImmutable($fechaInicio->format('Y-m-t'));
+                        $firstPaymentDate = new DateTimeImmutable(
+                            $fechaInicio->format("Y-m-t"),
+                        );
                     }
                     break;
                 default:
@@ -80,8 +86,12 @@ class CalculadoraSimpleAleman
 
         // si se determinó una fecha de primer pago por calendario, calcular días del primer periodo
         $diasPrimerPeriodo = 0;
-        if ($firstPaymentDate instanceof DateTimeImmutable && $firstPaymentDate > $fechaInicio) {
-            $diasPrimerPeriodo = (int)$fechaInicio->diff($firstPaymentDate)->days;
+        if (
+            $firstPaymentDate instanceof DateTimeImmutable &&
+            $firstPaymentDate > $fechaInicio
+        ) {
+            $diasPrimerPeriodo = (int) $fechaInicio->diff($firstPaymentDate)
+                ->days;
             $hasPartialFirst = $diasPrimerPeriodo > 0;
         }
 
@@ -94,20 +104,35 @@ class CalculadoraSimpleAleman
 
         for ($i = 1; $i <= $periodos; $i++) {
             // capital soluto constante (ajustar último periodo)
-            $capitalSoluto = ($i === $periodos) ? round($saldo, 2) : round($capitalSolutoBase, 2);
+            $capitalSoluto =
+                $i === $periodos
+                    ? round($saldo, 2)
+                    : round($capitalSolutoBase, 2);
 
             // calcular interés: primer periodo puede ser parcial (días) si alineado a calendario
             if ($i === 1 && $hasPartialFirst) {
                 // convención de día: actual/365 o actual/360 o proporcional al periodo
-                if ($dayCount === 'actual/360') {
-                    $interesPeriodo = round($saldo * $tasa * ($diasPrimerPeriodo / 360.0), 2);
-                } elseif ($dayCount === 'period') {
+                if ($dayCount === "actual/360") {
+                    $interesPeriodo = round(
+                        $saldo * $tasa * ($diasPrimerPeriodo / 360.0),
+                        2,
+                    );
+                } elseif ($dayCount === "period") {
                     // fracción del periodo usando tasaPeriodo
-                    $longitudPeriodo = $unidad === UnidadEnum::Quincena ? 15 : 30; // aproximación para mes
-                    $interesPeriodo = round($saldo * $tasaPeriodo * ($diasPrimerPeriodo / $longitudPeriodo), 2);
+                    $longitudPeriodo =
+                        $unidad === UnidadEnum::Quincena ? 15 : 30; // aproximación para mes
+                    $interesPeriodo = round(
+                        $saldo *
+                            $tasaPeriodo *
+                            ($diasPrimerPeriodo / $longitudPeriodo),
+                        2,
+                    );
                 } else {
                     // default actual/365
-                    $interesPeriodo = round($saldo * $tasa * ($diasPrimerPeriodo / 365.0), 2);
+                    $interesPeriodo = round(
+                        $saldo * $tasa * ($diasPrimerPeriodo / 365.0),
+                        2,
+                    );
                 }
             } else {
                 // interés para periodos completos
@@ -126,17 +151,25 @@ class CalculadoraSimpleAleman
 
             switch ($unidad) {
                 case UnidadEnum::Mes:
-                    $fechaPago = $baseDate->add(new \DateInterval("P{$periodIndex}M"));
+                    $fechaPago = $baseDate->add(
+                        new DateInterval("P{$periodIndex}M"),
+                    );
                     break;
                 case UnidadEnum::Quincena:
-                    $fechaPago = $baseDate->add(new \DateInterval('P' . (15 * $periodIndex) . 'D'));
+                    $fechaPago = $baseDate->add(
+                        new DateInterval("P" . 15 * $periodIndex . "D"),
+                    );
                     break;
                 case UnidadEnum::Semana:
-                    $fechaPago = $baseDate->add(new \DateInterval('P' . (7 * $periodIndex) . 'D'));
+                    $fechaPago = $baseDate->add(
+                        new DateInterval("P" . 7 * $periodIndex . "D"),
+                    );
                     break;
                 case UnidadEnum::Dia:
                 default:
-                    $fechaPago = $baseDate->add(new \DateInterval('P' . $periodIndex . 'D'));
+                    $fechaPago = $baseDate->add(
+                        new DateInterval("P" . $periodIndex . "D"),
+                    );
                     break;
             }
 
@@ -145,10 +178,10 @@ class CalculadoraSimpleAleman
 
             $corrida[] = new AmortizacionCorridaDTO(
                 $fechaPago,
-                number_format($capitalSoluto, 2, '.', ''),
-                number_format($interesPeriodo, 2, '.', ''),
-                number_format($pagoPeriodo, 2, '.', ''),
-                number_format($saldo, 2, '.', ''),
+                number_format($capitalSoluto, 2, ".", ""),
+                number_format($interesPeriodo, 2, ".", ""),
+                number_format($pagoPeriodo, 2, ".", ""),
+                number_format($saldo, 2, ".", ""),
             );
         }
 
