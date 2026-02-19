@@ -1,0 +1,211 @@
+{layout ../plantillas/@layout.latte}
+
+{block content}
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="">
+        <div class=" border-0 rounded-4">
+          <div class="card-header bg-warning text-white text-center rounded-top-4">
+            <h4 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Editar Agremiado</h4>
+          </div>
+          <div class="card-body p-5">
+            <form id="formEditar" method="post" action="./actualizar.php?id_agremiado={$agremiado['id']}"
+                  enctype="multipart/form-data">
+              <input type="hidden" name="id_agremiado" value="{$agremiado['id']}">
+              <!-- Foto de perfil -->
+              <div class="mb-4 text-center">
+                <label for="foto_perfil" class="form-label fw-semibold">Foto de Perfil</label>
+                <div class="d-flex align-items-center justify-content-center gap-4">
+                  {if $docs['perfil'] == ''}
+                    <img src="https://placehold.co/100" alt="Foto actual"
+                         class="rounded-circle border" id="imgPreview"
+                         style="width: 100px; height: 100px; object-fit: cover;">
+                  {else}
+                    <img src="/archivos/subidos/agremiados/{$docs['perfil']}" alt="Foto actual"
+                         class="rounded-circle border" id="imgPreview"
+                         style="width: 100px; height: 100px; object-fit: cover;">
+                  {/if}
+                  <div>
+                    <input class="form-control mb-1" type="file" id="foto_perfil" name="foto_perfil" accept="image/*">
+                    <div class="form-text">JPG o PNG, máx. 2MB. Dejar vacío para conservar la actual.</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Datos Personales -->
+              <h5 class="text-secondary mb-3"><i class="bi bi-person-vcard me-2"></i>Datos Personales</h5>
+              <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                  <label for="curp" class="form-label">CURP</label>
+                  <input type="text" class="form-control" id="curp" name="curp" maxlength="18"
+                         value="{$agremiado['curp']}" required>
+                </div>
+                <div class="col-md-6">
+                  <label for="nss" class="form-label">NSS</label>
+                  <input type="text" class="form-control" id="nss" name="nss" maxlength="11"
+                         value="{$agremiado['nss']}" required>
+                </div>
+                <div class="col-md-6">
+                  <label for="nombre" class="form-label">Nombre(s)</label>
+                  <input type="text" class="form-control" id="nombre" name="nombre"
+                         value="{$agremiado['nombre']}" required>
+                </div>
+                <div class="col-md-6">
+                  <label for="apellidos" class="form-label">Apellidos</label>
+                  <input type="text" class="form-control" id="apellidos" name="apellidos"
+                         value="{$agremiado['apellidos']}" required>
+                </div>
+                <div class="col-md-6">
+                  <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
+                  <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento"
+                         value="{$agremiado['fecha_nacimiento']}" required>
+                </div>
+                <div class="col-md-6">
+                  <label for="telefono" class="form-label">Teléfono</label>
+                  <input type="tel" class="form-control" id="telefono" name="telefono" maxlength="10"
+                         value="{$agremiado['telefono']}" required>
+                </div>
+                <div class="col-12">
+                  <label for="direccion" class="form-label">Dirección</label>
+                  <textarea class="form-control" id="direccion" name="direccion" rows="2"
+                            required>{$agremiado['direccion']}</textarea>
+                </div>
+              </div>
+
+              <!-- Datos Laborales -->
+              <h5 class="text-secondary mb-3"><i class="bi bi-briefcase me-2"></i>Datos Laborales</h5>
+              <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                  <label for="departamento" class="form-label">Departamento</label>
+                  <input type="text" class="form-control" id="departamento" name="departamento"
+                         value="{$agremiado['departamento']}" required>
+                </div>
+                <div class="col-md-6">
+                  <label for="categoria" class="form-label">Categoría</label>
+                  <input type="text" class="form-control" id="categoria" name="categoria"
+                         value="{$agremiado['categoria']}" required>
+                </div>
+                <div class="col-md-6">
+                  <label for="salario_quincenal" class="form-label">Salario Quincenal</label>
+                  <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" step="0.01" class="form-control" id="salario_quincenal"
+                           name="salario_quincenal" value="{$agremiado['salario_quincenal']}" required>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label for="fecha_ingreso" class="form-label">Fecha de Ingreso</label>
+                  <input type="date" class="form-control" id="fecha_ingreso" name="fecha_ingreso"
+                         value="{$agremiado['fecha_ingreso']}" required>
+                </div>
+              </div>
+
+              <!-- Cuenta -->
+              <h5 class="text-secondary mb-3"><i class="bi bi-shield-lock me-2"></i>Cuenta</h5>
+              <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                  <label for="correo" class="form-label">Correo Electrónico</label>
+                  <input type="email" class="form-control" id="correo" name="correo"
+                         value="{$usuario['correo']}" required>
+                </div>
+                <div class="col-md-6"></div>
+                <div class="col-md-6">
+                  <label for="contrasena" class="form-label">Nueva Contraseña</label>
+                  <input type="password" class="form-control" id="contrasena" name="contrasena" minlength="6">
+                  <div class="form-text">Dejar vacío para conservar la actual.</div>
+                </div>
+                <div class="col-md-6">
+                  <label for="repetir_contrasena" class="form-label">Repetir Contraseña</label>
+                  <input type="password" class="form-control" id="repetir_contrasena"
+                         name="repetir_contrasena" minlength="6">
+                </div>
+              </div>
+
+              <!-- Documentos (opcionales) -->
+              <h5 class="text-secondary mb-3"><i class="bi bi-folder-check me-2"></i>Documentos (solo si deseas
+                cambiarlos)</h5>
+              <div class="row g-3 mb-4">
+                {foreach [
+                'afiliacion' => 'Documento de Afiliación',
+                'comprobante_domicilio' => 'Comprobante de Domicilio',
+                'ine' => 'INE (Frente y Reverso)',
+                'comprobante_pago' => 'Comprobante de Pago'
+                ] as $key => $label}
+                  <div class="col-md-6">
+                    <label for="{$key}" class="form-label">{$label}</label>
+                    <input class="form-control" type="file" id="{$key}" name="{$key}" accept=".pdf,.jpg,.jpeg,.png"
+                           {if $docs[$key] == ''}required{/if}>
+                    <div class="form-text">
+                      {if $docs[$key] == ''}
+                        No hay archivo subido. PDF, JPG o PNG, máx. 2MB
+                      {else}
+                        Actual: <a href="/archivos/subidos/agremiados/{$docs[$key]}" target="_blank"
+                                   class="link-primary">Ver
+                        archivo</a> | Subir solo si deseas cambiarlo
+                      {/if}
+                    </div>
+                  </div>
+                {/foreach}
+              </div>
+
+              <!-- Botones -->
+              <div class="d-flex justify-content-end gap-3 mt-5">
+                <button type="submit" class="btn btn-warning btn-lg px-4 shadow-sm">
+                  <i class="bi bi-check-circle me-2"></i>Actualizar Agremiado
+                </button>
+                <a href="./index.php" class="btn btn-outline-secondary btn-lg px-4">Cancelar</a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap Icons -->
+
+    <!-- Preview de foto -->
+    <script n:syntax="off">
+      const fileInput = document.getElementById('foto_perfil');
+      const imgPreview = document.getElementById('imgPreview');
+      fileInput.addEventListener('change', () => {
+        const file = fileInput.files[0];
+        if (file && file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = e => imgPreview.src = e.target.result;
+          reader.readAsDataURL(file);
+        }
+      });
+
+
+      document.getElementById('formEditar').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const form = e.target;
+        const data = new FormData(form); // <-- incluye archivos
+
+        // Validación rápida (opcional)
+        const img = form.foto_perfil.files[0];
+        if (img && img.size > 2 * 1024 * 1024) {
+          alert('Imagen mayor a 2 MB');
+          return;
+        }
+
+        try {
+          const res = await fetch('actualizar.php', {
+            method: 'POST',
+            body: data // ¡NO agregues headers Content-Type!
+          });
+          const json = await res.json();
+
+          if (json.ok) {
+            alert('✅ Actualizado');
+            location.href = './index.php';
+          } else {
+            alert('❌ ' + json.msg);
+          }
+        } catch (err) {
+          alert('Error de red: ' + err);
+        }
+      });
+    </script>
+{/block}
