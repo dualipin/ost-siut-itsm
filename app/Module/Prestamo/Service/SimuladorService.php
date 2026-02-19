@@ -9,12 +9,15 @@ use DateTimeImmutable;
 
 /**
  * Servicio de Simulador de Préstamos.
- * Orquesta el cálculo de simulaciones usando la calculadora de interés compuesto.
+ * Orquesta el cálculo de simulaciones eligiendo entre:
+ * - Préstamos periódicos: Método alemán (saldo decreciente) con interés compuesto
+ * - Préstamos no periódicos: Interés compuesto con cuota constante
  */
 class SimuladorService
 {
     public function __construct(
-        private readonly CalculadoraCompuesto $calculadora,
+        private readonly CalculadoraCompuesto $calculadoraCompuesto,
+        private readonly CalculadoraIntereSimple $calculadoraSimple,
     ) {}
 
     /**
@@ -23,6 +26,7 @@ class SimuladorService
      * @param float $monto Monto del préstamo
      * @param Intereses $tipoInteres Tipo de interés a aplicar
      * @param int $periodos Número de períodos (quincenas)
+     * @param bool $esPeriodico ¿Es un beneficio periódico? (true = método alemán, false = anualidad)
      * @param DateTimeImmutable|null $fechaInicio Fecha de inicio (por defecto hoy)
      * @param array $options Opciones adicionales (alinear, fechaPrimerPago, dayCount)
      *
@@ -32,6 +36,7 @@ class SimuladorService
         float $monto,
         Intereses $tipoInteres,
         int $periodos,
+        bool $esPeriodico = false,
         ?DateTimeImmutable $fechaInicio = null,
         array $options = [],
     ): array {
@@ -46,8 +51,11 @@ class SimuladorService
 
         $fechaInicio = $fechaInicio ?? new DateTimeImmutable();
 
-        // Generar corrida usando la calculadora compuesta
-        $corrida = $this->calculadora->generarCorrida(
+        // Elegir calculadora según si es periódico o no
+        $calculadora = $esPeriodico ? $this->calculadoraSimple : $this->calculadoraCompuesto;
+
+        // Generar corrida usando la calculadora seleccionada
+        $corrida = $calculadora->generarCorrida(
             $monto,
             $tipoInteres->valor(),
             $periodos,

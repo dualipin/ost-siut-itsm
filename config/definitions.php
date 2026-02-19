@@ -4,6 +4,9 @@ use App\Infrastructure\Config\AppConfig;
 use App\Infrastructure\Templating\LatteExtensions;
 use App\Infrastructure\Templating\LatteRenderer;
 use App\Infrastructure\Templating\RendererInterface;
+use App\Module\Prestamo\Service\CalculadoraCompuesto;
+use App\Module\Prestamo\Service\CalculadoraIntereSimple;
+use App\Module\Prestamo\Service\SimuladorService;
 use Dompdf\Dompdf;
 use Latte\Engine;
 
@@ -68,5 +71,9 @@ return function (\DI\ContainerBuilder $container) {
         },
 
         RendererInterface::class => autowire(LatteRenderer::class),
+        
+        CalculadoraCompuesto::class => autowire(),
+        CalculadoraIntereSimple::class => autowire(),
+        SimuladorService::class => autowire(),
     ]);
 };

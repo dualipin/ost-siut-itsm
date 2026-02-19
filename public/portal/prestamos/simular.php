@@ -71,7 +71,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         $plazo = 12;
                     }
                     
-                    // Usar interés compuesto
+                    // Usar 3% de interés (temporalmente)
                     $tipoInteres = Intereses::AHORRADOR_NO_AGREMIADO;
                     
                     try {
@@ -79,6 +79,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             $monto,
                             $tipoInteres,
                             $plazo,
+                            $categoria->esPeriodico,  // true = interés simple, false = interés compuesto
                             new DateTimeImmutable()
                         );
                         

@@ -65,6 +65,7 @@ if ($descuentosJson) {
                         $monto,
                         $tipoInteres,
                         $plazo,
+                        $categoria->esPeriodico,  // true = interés simple, false = interés compuesto
                         new \DateTimeImmutable()
                     );
                     
