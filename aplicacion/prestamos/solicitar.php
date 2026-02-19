@@ -81,9 +81,25 @@ if ($usuario->esAdmin() || $usuario->esLider()) {
             ->fetchAll(PDO::FETCH_ASSOC);
 }
 
+$pdo = \App\Configuracion\MysqlConexion::conexion();
+$categoriasTipoIngresoRows = $pdo->query("SELECT tipo_ingreso_id, nombre, descripcion, es_periodico, frecuencia_dias, mes_pago_tentativo, dia_pago_tentativo, activo FROM cat_tipos_ingreso WHERE activo = 1 ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
+$categoriasTipoIngreso = array_map(function($r) {
+    return [
+        'id' => (int) $r['tipo_ingreso_id'],
+        'nombre' => $r['nombre'],
+        'descripcion' => $r['descripcion'] ?? null,
+        'esPeriodico' => (bool) $r['es_periodico'],
+        'frecuenciaDias' => $r['frecuencia_dias'] !== null ? (int) $r['frecuencia_dias'] : null,
+        'mesPagoTentativo' => $r['mes_pago_tentativo'] ?? null,
+        'diaPagoTentativo' => $r['dia_pago_tentativo'] ?? null,
+        'activo' => (bool) $r['activo'],
+    ];
+}, $categoriasTipoIngresoRows);
+
 $datos = [
         'mensaje' => $mensaje,
         'error' => $error,
         'miembros' => $miembros,
+        'categoriasTipoIngreso' => $categoriasTipoIngreso,
 ];
 ServicioLatte::renderizar(__DIR__ . '/solicitar.latte', $datos);
