@@ -8,9 +8,9 @@ final readonly class AmortizacionCorridaDTO
 {
     public function __construct(
         public DateTimeImmutable $fechaPago,
-        public string $capitalSoluto,
-        public string $interes,
-        public string $valor,
-        public string $saldo,
+        public float $capitalSoluto,
+        public float $interes,
+        public float $valor,
+        public float $saldo,
     ) {}
 }

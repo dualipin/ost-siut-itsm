@@ -144,10 +144,10 @@ class CalculadoraCompuesto
 
             $corrida[] = new AmortizacionCorridaDTO(
                 $fechaPago,
-                number_format($capitalSoluto, 2, '.', ''),
-                number_format($interesPeriodo, 2, '.', ''),
-                number_format($cuota, 2, '.', ''),
-                number_format($saldo, 2, '.', ''),
+                $capitalSoluto,
+                $interesPeriodo,
+                $cuota,
+                $saldo,
             );
         }
 

@@ -1,0 +1,34 @@
+{extends ../@document.latte}
+{varType App\Module\Prestamo\DTO\AmortizacionCorridaDTO[] $amortizacion}
+{varType App\Module\Usuario\DTO\UsuarioSimpleDTO $usuario}
+
+{block content}
+  <h1>Corrida financiera simulada</h1>
+
+  <p>
+    Esta es una corrida financiera simulada para el préstamo con ID {$loan->id}.
+  </p>
+
+  <table>
+    <thead>
+    <tr>
+      <th>Fecha</th>
+      <th>Pago</th>
+      <th>Interés</th>
+      <th>Principal</th>
+      <th>Saldo</th>
+    </tr>
+    </thead>
+    <tbody>
+    {foreach $simulatedSchedule as $payment}
+      <tr>
+
+      </tr>
+    {/foreach}
+    </tbody>
+  </table>
+
+  <p>
+    Esta corrida financiera es solo una simulación y no representa los términos reales del préstamo.
+  </p>
+{/block}

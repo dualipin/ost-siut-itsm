@@ -1,0 +1,107 @@
+{extends ../../../templates/@document.latte}
+
+{block title}Simulación de Préstamos - ITSM{/block}
+
+{block content}
+
+  <h2 style="color: var(--bs-primary); margin-bottom: 1rem; text-align: center;">
+    Simulación de Amortización de Préstamos
+  </h2>
+
+  <div style="background-color: var(--bs-light); padding: 10px; margin-bottom: 15px; border-radius: 4px; font-size: 10px;">
+    <strong>Fecha de Simulación:</strong> {$fecha_simulacion} |
+    <strong>Tipo:</strong> Múltiples Descuentos |
+    <strong>Método:</strong> Interés Compuesto Constante
+  </div>
+
+  {if !empty($resumen['montoTotal'])}
+    <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+      <div style="flex: 1; background-color: var(--bs-light); padding: 10px; border-left: 3px solid var(--bs-primary); text-align: center;">
+        <div style="font-size: 9px; color: var(--bs-body-color); margin-bottom: 5px;">MONTO TOTAL SOLICITADO</div>
+        <div style="font-size: 14px; font-weight: bold; color: var(--bs-primary);">${number_format($resumen['montoTotal'], 2, ',', '.')}</div>
+      </div>
+      <div style="flex: 1; background-color: var(--bs-light); padding: 10px; border-left: 3px solid var(--bs-info); text-align: center;">
+        <div style="font-size: 9px; color: var(--bs-body-color); margin-bottom: 5px;">INTERÉS TOTAL</div>
+        <div style="font-size: 14px; font-weight: bold; color: var(--bs-info);">${number_format($resumen['interesTotal'], 2, ',', '.')}</div>
+      </div>
+      <div style="flex: 1; background-color: var(--bs-light); padding: 10px; border-left: 3px solid var(--bs-success); text-align: center;">
+        <div style="font-size: 9px; color: var(--bs-body-color); margin-bottom: 5px;">TOTAL A PAGAR</div>
+        <div style="font-size: 14px; font-weight: bold; color: var(--bs-success);">${number_format($resumen['pagoTotal'], 2, ',', '.')}</div>
+      </div>
+    </div>
+  {/if}
+
+  <style>
+    .simulacion { margin-bottom: 25px; page-break-inside: avoid; }
+    .simulacion-header { background-color: var(--bs-primary); color: var(--bs-primary-text); padding: 10px; margin-bottom: 10px; border-radius: 4px; }
+    .simulacion-header h3 { font-size: 12px; margin-bottom: 3px; }
+    .simulacion-header p { font-size: 9px; margin: 2px 0; }
+    .simulacion-info { margin-bottom: 10px; padding: 8px; background-color: var(--bs-primary-bg-subtle); border-radius: 4px; font-size: 9px; }
+    .simulacion-info strong { color: var(--bs-primary); }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9px; }
+    table th { background-color: var(--bs-light); border: 1px solid var(--bs-border-color); padding: 6px; text-align: left; font-weight: bold; }
+    table td { border: 1px solid var(--bs-border-color); padding: 6px; }
+    table tr:nth-child(even) { background-color: var(--bs-body-bg); }
+    table tfoot { background-color: var(--bs-light); font-weight: bold; }
+    .text-right { text-align: right; }
+    @media print { .simulacion { page-break-inside: avoid; } }
+  </style>
+
+  {foreach $simulaciones as $sim}
+    <div class="simulacion">
+      <div class="simulacion-header">
+        <h3>{$sim['categoria_nombre']}</h3>
+        <p><strong>Monto:</strong> ${number_format($sim['monto'], 2, ',', '.')} |
+          <strong>Plazo:</strong> {$sim['plazo']} quincenas |
+          <strong>Tasa:</strong> {$sim['interes_tipo']}% anual</p>
+      </div>
+
+      <div class="simulacion-info">
+        <strong>Resumen:</strong>
+        Capital: ${number_format($sim['totales']['totalCapital'], 2, ',', '.')} |
+        Interés: ${number_format($sim['totales']['totalInteres'], 2, ',', '.')} |
+        Cuota Promedio: ${number_format($sim['totales']['totalPago'] / count($sim['corrida']), 2, ',', '.')} |
+        Total: ${number_format($sim['totales']['totalPago'], 2, ',', '.')}
+      </div>
+
+      <table>
+        <thead>
+        <tr>
+          <th>#</th>
+          <th>Fecha de Pago</th>
+          <th class="text-right">Capital Soluto</th>
+          <th class="text-right">Interés</th>
+          <th class="text-right">Cuota</th>
+          <th class="text-right">Saldo Final</th>
+        </tr>
+        </thead>
+        <tbody>
+        {foreach $sim['corrida_con_numero'] as $row}
+          <tr>
+            <td>{$row['numero']}</td>
+            <td>{$row['dto']->fechaPago->format('d/m/Y')}</td>
+            <td class="text-right">${number_format($row['dto']->capitalSoluto, 2, ',', '.')}</td>
+            <td class="text-right">${number_format($row['dto']->interes, 2, ',', '.')}</td>
+            <td class="text-right"><strong>${number_format($row['dto']->valor, 2, ',', '.')}</strong></td>
+            <td class="text-right">${number_format($row['dto']->saldo, 2, ',', '.')}</td>
+          </tr>
+        {/foreach}
+        </tbody>
+        <tfoot>
+        <tr>
+          <td colspan="2">TOTALES</td>
+          <td class="text-right">${number_format($sim['totales']['totalCapital'], 2, ',', '.')}</td>
+          <td class="text-right">${number_format($sim['totales']['totalInteres'], 2, ',', '.')}</td>
+          <td class="text-right">${number_format($sim['totales']['totalPago'], 2, ',', '.')}</td>
+          <td class="text-right">-</td>
+        </tr>
+        </tfoot>
+      </table>
+    </div>
+  {/foreach}
+
+  <p style="margin-top: 30px; padding-top: 15px; border-top: 1px solid var(--bs-border-color); text-align: center; font-size: 8px; color: var(--bs-body-color);">
+    <strong>Documento generado automáticamente.</strong> Esta simulación es una estimación y puede variar según cambios en el salario o prestaciones.
+  </p>
+
+{/block}
