@@ -1,4 +1,4 @@
-create table usuarios
+create table if not exists usuarios
 (
     usuario_id            BINARY(16) PRIMARY KEY,
 
@@ -36,7 +36,7 @@ create table usuarios
     fecha_eliminacion     DATETIME       DEFAULT NULL
 );
 
-CREATE TABLE usuario_documentacion
+CREATE TABLE if not exists usuario_documentos
 (
     documento_id     INT AUTO_INCREMENT PRIMARY KEY,
     usuario_id       binary(16)   NOT NULL,
@@ -58,7 +58,25 @@ CREATE TABLE usuario_documentacion
 );
 
 
-CREATE TABLE cat_tipos_ingreso
+CREATE TABLE IF NOT EXISTS autenticacion_logs
+(
+    autenticacion_id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id       binary(16),
+    email            VARCHAR(255),
+    action           VARCHAR(50) NOT NULL,
+    ip_address       VARCHAR(45),
+    user_agent       VARCHAR(255),
+    success          BOOLEAN     NOT NULL DEFAULT FALSE,
+    error_message    TEXT,
+    created_at       TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios (usuario_id) ON DELETE SET NULL,
+    INDEX idx_usuario_id (usuario_id),
+    INDEX idx_action (action),
+    INDEX idx_created_at (created_at)
+);
+
+
+CREATE TABLE if not exists cat_tipos_ingreso
 (
     tipo_ingreso_id    INT AUTO_INCREMENT PRIMARY KEY,
     nombre             VARCHAR(100) NOT NULL, -- "Aguinaldo", "Quincena", "Bono"
@@ -71,7 +89,7 @@ CREATE TABLE cat_tipos_ingreso
 );
 
 
-CREATE TABLE prestamos
+CREATE TABLE if not exists prestamos
 (
     prestamo_id                  INT AUTO_INCREMENT PRIMARY KEY,
     usuario_id                   binary(16)     NOT NULL,
@@ -147,7 +165,7 @@ CREATE TABLE prestamos
 );
 
 -- Configuración de pagos del préstamo (mix nómina + prestaciones)
-CREATE TABLE prestamo_configuracion_pagos
+CREATE TABLE if not exists prestamo_configuracion_pagos
 (
     config_pago_id             INT AUTO_INCREMENT PRIMARY KEY,
     prestamo_id                INT            NOT NULL,
@@ -183,7 +201,7 @@ CREATE TABLE prestamo_configuracion_pagos
 );
 
 -- Documentos legales generados del préstamo
-CREATE TABLE prestamo_documentos_legales
+CREATE TABLE if not exists prestamo_documentos_legales
 (
     doc_legal_id                 INT AUTO_INCREMENT PRIMARY KEY,
     prestamo_id                  INT          NOT NULL,
@@ -206,12 +224,12 @@ CREATE TABLE prestamo_documentos_legales
 
     requiere_validacion_finanzas BOOLEAN  DEFAULT FALSE,
     validado_por_finanzas        BOOLEAN  DEFAULT FALSE,
-    validado_por                 binary(16),        -- usuario_id
+    validado_por                 binary(16),         -- usuario_id
     fecha_validacion             DATETIME,
     observaciones_validacion     TEXT,
 
     fecha_generacion             DATETIME DEFAULT CURRENT_TIMESTAMP,
-    generado_por                 binary(16),        -- usuario_id
+    generado_por                 binary(16),         -- usuario_id
 
     CONSTRAINT fk_doc_legal_prestamo
         FOREIGN KEY (prestamo_id)
@@ -223,7 +241,7 @@ CREATE TABLE prestamo_documentos_legales
 );
 
 -- Tabla de amortización (corrida financiera)
-CREATE TABLE prestamo_amortizacion
+CREATE TABLE if not exists prestamo_amortizacion
 (
     amortizacion_id            INT AUTO_INCREMENT PRIMARY KEY,
     prestamo_id                INT            NOT NULL,
@@ -250,7 +268,7 @@ CREATE TABLE prestamo_amortizacion
     interes_moratorio_generado DECIMAL(10, 2)                                            DEFAULT 0,
 
     -- Trazabilidad
-    pagado_por                 binary(16),                                                            -- usuario_id que registró el pago
+    pagado_por                 binary(16),                                                             -- usuario_id que registró el pago
     comprobante_pago           VARCHAR(255),                                                           -- URL del comprobante
 
     -- Control de regeneración
@@ -272,7 +290,7 @@ CREATE TABLE prestamo_amortizacion
 );
 
 -- Pagos extraordinarios (anticipos, abonos adicionales)
-CREATE TABLE prestamo_pagos_extraordinarios
+CREATE TABLE if not exists prestamo_pagos_extraordinarios
 (
     pago_extraordinario_id      INT AUTO_INCREMENT PRIMARY KEY,
     prestamo_id                 INT                                                     NOT NULL,
@@ -288,7 +306,7 @@ CREATE TABLE prestamo_pagos_extraordinarios
 
     -- Efecto
     regenero_tabla_amortizacion BOOLEAN  DEFAULT TRUE,
-    version_tabla_generada      INT,         -- Nueva versión de amortización creada
+    version_tabla_generada      INT,        -- Nueva versión de amortización creada
 
     observaciones               TEXT,
     comprobante_pago            VARCHAR(255),
@@ -304,7 +322,7 @@ CREATE TABLE prestamo_pagos_extraordinarios
 );
 
 -- Historial de reestructuraciones
-CREATE TABLE prestamo_reestructuraciones
+CREATE TABLE if not exists prestamo_reestructuraciones
 (
     reestructuracion_id      INT AUTO_INCREMENT PRIMARY KEY,
     prestamo_original_id     INT            NOT NULL,
@@ -343,7 +361,7 @@ CREATE TABLE prestamo_reestructuraciones
 );
 
 -- Comprobantes generados automáticamente
-CREATE TABLE prestamo_comprobantes
+CREATE TABLE if not exists prestamo_comprobantes
 (
     comprobante_id    INT AUTO_INCREMENT PRIMARY KEY,
     prestamo_id       INT                NOT NULL,
@@ -377,7 +395,7 @@ CREATE TABLE prestamo_comprobantes
     INDEX idx_prestamo_fecha (prestamo_id, fecha_emision)
 );
 
-create table publicaciones
+create table if not exists publicaciones
 (
     publicacion_id    int auto_increment primary key,
     titulo            varchar(100)                         not null,
@@ -405,7 +423,3 @@ CREATE TABLE IF NOT EXISTS colores_sistema
     cuerpo       varchar(7)                          default '#212529',
     fondo_cuerpo varchar(7)                          default '#f8f9fa'
 );
-
-insert into colores_sistema (id)
-values (1)
-on duplicate key update id=id;

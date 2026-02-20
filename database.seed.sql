@@ -1,3 +1,7 @@
+insert into colores_sistema (id)
+values (1)
+on duplicate key update id=id;
+
 insert into cat_tipos_ingreso (nombre,
                                descripcion,
                                es_periodico,
