@@ -1,0 +1,118 @@
+{layout ../templates/@document.latte}
+
+{block title}Simulación de Préstamo{/block}
+
+{block content}
+<div class="container">
+  <div style="margin: 6.5in 0 0 0;">
+    <h1 style="font-size: 1.8em; font-weight: bold; margin: 0 0 10px 0; text-align: center;">
+      Simulación de Amortización de Préstamo
+    </h1>
+
+    <div style="margin: 20px 0; padding: 15px; background-color: #f5f5f5; border-left: 4px solid var(--bs-primary);">
+      <p style="margin: 5px 0; font-weight: bold;">Parámetros de la Simulación:</p>
+      <table style="width: 100%; margin-top: 10px; font-size: 10px;">
+        <tr>
+          <td style="width: 50%; padding: 5px;">
+            <strong>Monto Solicitado:</strong> ${($monto)}<br>
+            <strong>Tasa de Interés Anual:</strong> {$tasa}%
+          </td>
+          <td style="width: 50%; padding: 5px;">
+            <strong>Plazo (Quincenas):</strong> {$plazo}<br>
+            <strong>Fecha de Simulación:</strong> {$fecha_simulacion}
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <div style="margin: 20px 0; padding: 15px; background-color: #f9f9f9; border: 1px solid #ddd;">
+      <p style="margin: 5px 0; font-weight: bold;">Resumen Financiero:</p>
+      <table style="width: 100%; margin-top: 10px; font-size: 11px;">
+        <tr style="background-color: #fff;">
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Capital:</strong></td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: right;">${number_format($totales_capital, 2, ',', '.')}</td>
+        </tr>
+        <tr style="background-color: #fff;">
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Interés Total:</strong></td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: right;">${number_format($totales_interes, 2, ',', '.')}</td>
+        </tr>
+        <tr style="background-color: #f0f0f0;">
+          <td style="padding: 8px; font-weight: bold; border-bottom: 1px solid #999;"><strong>Monto Total a Pagar:</strong></td>
+          <td style="padding: 8px; font-weight: bold; border-bottom: 1px solid #999; text-align: right;">${number_format($totales_pago, 2, ',', '.')}</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Tabla de Amortización -->
+    <h3 style="font-size: 1.2em; font-weight: bold; margin: 20px 0 10px 0;">Cronograma de Pagos</h3>
+    <table style="width: 100%; border-collapse: collapse; font-size: 9px; margin-bottom: 20px;">
+      <thead>
+        <tr style="background-color: #e8e8e8; border: 1px solid #999;">
+          <th style="padding: 6px; border: 1px solid #999; text-align: center; font-weight: bold;">No.</th>
+          <th style="padding: 6px; border: 1px solid #999; text-align: center; font-weight: bold;">Fecha de Pago</th>
+          <th style="padding: 6px; border: 1px solid #999; text-align: right; font-weight: bold;">Capital Soluto</th>
+          <th style="padding: 6px; border: 1px solid #999; text-align: right; font-weight: bold;">Interés</th>
+          <th style="padding: 6px; border: 1px solid #999; text-align: right; font-weight: bold;">Cuota</th>
+          <th style="padding: 6px; border: 1px solid #999; text-align: right; font-weight: bold;">Saldo Final</th>
+        </tr>
+      </thead>
+      <tbody>
+        {set $numero = 1}
+        {set $bg_color = '#ffffff'}
+        {foreach $corrida as $fila}
+          <tr style="background-color: {$bg_color}; border: 1px solid #ccc;">
+            <td style="padding: 5px; border: 1px solid #ccc; text-align: center;">{$numero}</td>
+            <td style="padding: 5px; border: 1px solid #ccc; text-align: center;">{$fila->fechaPago->format('d/m/Y')}</td>
+            <td style="padding: 5px; border: 1px solid #ccc; text-align: right;">${number_format($fila->capitalSoluto, 2, ',', '.')}</td>
+            <td style="padding: 5px; border: 1px solid #ccc; text-align: right;">${number_format($fila->interes, 2, ',', '.')}</td>
+            <td style="padding: 5px; border: 1px solid #ccc; text-align: right; font-weight: bold;">${number_format($fila->valor, 2, ',', '.')}</td>
+            <td style="padding: 5px; border: 1px solid #ccc; text-align: right;">${number_format($fila->saldo, 2, ',', '.')}</td>
+          </tr>
+          {set $bg_color = $bg_color === '#ffffff' ? '#f5f5f5' : '#ffffff'}
+          {set $numero = $numero + 1}
+        {/foreach}
+      </tbody>
+      <tfoot>
+        <tr style="background-color: #e8e8e8; border: 1px solid #999; font-weight: bold;">
+          <td colspan="2" style="padding: 6px; border: 1px solid #999; text-align: right;"><strong>TOTALES:</strong></td>
+          <td style="padding: 6px; border: 1px solid #999; text-align: right;">${number_format($totales_capital, 2, ',', '.')}</td>
+          <td style="padding: 6px; border: 1px solid #999; text-align: right;">${number_format($totales_interes, 2, ',', '.')}</td>
+          <td style="padding: 6px; border: 1px solid #999; text-align: right;">${number_format($totales_pago, 2, ',', '.')}</td>
+          <td style="padding: 6px; border: 1px solid #999; text-align: right;">-</td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <!-- Notas -->
+    <div style="margin-top: 20px; padding: 10px; background-color: #fffacd; border-left: 3px solid #ff9800; font-size: 9px;">
+      <p style="margin: 0; font-weight: bold;">NOTAS IMPORTANTES:</p>
+      <ul style="margin: 5px 0; padding-left: 20px; font-size: 8px;">
+        <li>Esta simulación es aproximada y puede variar según cambios en el salario o situación laboral.</li>
+        <li>Los pagos se realizarán de conformidad con lo establecido en el contrato de préstamo.</li>
+        <li>El interés se calcula sobre el saldo insoluto mediante el sistema de amortización con cuota periódica constante.</li>
+        <li>Para cambiar el simulador, ingresa nuevamente con parámetros diferentes.</li>
+      </ul>
+    </div>
+
+    <!-- Espacio para firmas -->
+    <div style="margin-top: 40px; page-break-inside: avoid;">
+      <p style="text-align: center; font-weight: bold; margin-bottom: 20px;">Autoridad Responsable del Sindicato</p>
+      <div style="display: table; width: 100%;">
+        <div style="display: table-cell; width: 40%; text-align: center; padding: 20px 10px;">
+          <div style="border-top: 1px solid #000; padding-top: 10px; font-size: 9px;">
+            Firma Autorizada<br>
+            Fecha: ____________________
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  @page { margin: 0.5in; }
+  body { font-family: Arial, sans-serif; color: #333; }
+  table { border-collapse: collapse; }
+  strong { font-weight: bold; }
+</style>
+{/block}

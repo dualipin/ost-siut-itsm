@@ -1,0 +1,218 @@
+{layout _layout.latte}
+
+{block title}Solicitar Préstamo{/block}
+
+{block content}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Solicitar Préstamo</h3>
+                </div>
+                <div class="card-body">
+                    {if isset($_SESSION['mensaje_error'])}
+                        <div class="alert alert-danger">
+                            {$_SESSION['mensaje_error']}
+                            {php unset($_SESSION['mensaje_error']);}
+                        </div>
+                    {/if}
+
+                    <form action="procesar-solicitud.php" method="POST" enctype="multipart/form-data" id="formSolicitud">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="monto_solicitado">Monto Solicitado *</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">$</span>
+                                        </div>
+                                        <input type="number" class="form-control" id="monto_solicitado" 
+                                               name="monto_solicitado" step="0.01" min="1" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="plazo_meses">Plazo (meses) *</label>
+                                    <select class="form-control" id="plazo_meses" name="plazo_meses" required>
+                                        <option value="">Seleccione...</option>
+                                        <option value="3">3 meses</option>
+                                        <option value="6">6 meses</option>
+                                        <option value="12">12 meses</option>
+                                        <option value="18">18 meses</option>
+                                        <option value="24">24 meses</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="tipo_descuento">Tipo de Descuento *</label>
+                                    <select class="form-control" id="tipo_descuento" name="tipo_descuento" required>
+                                        <option value="quincenal">Quincenal</option>
+                                        <option value="aguinaldo">Aguinaldo</option>
+                                        <option value="prima_vacacional">Prima Vacacional</option>
+                                    </select>
+                                    <small class="form-text text-muted">
+                                        Seleccione de dónde se realizará el descuento del préstamo
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="recibo_nomina">Recibo de Nómina *</label>
+                                    <input type="file" class="form-control-file" id="recibo_nomina" 
+                                           name="recibo_nomina" accept=".pdf,.jpg,.jpeg,.png" required>
+                                    <small class="form-text text-muted">
+                                        Adjunte el recibo de nómina correspondiente al tipo de descuento seleccionado
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="justificacion">Justificación *</label>
+                            <textarea class="form-control" id="justificacion" name="justificacion" 
+                                      rows="4" required placeholder="Explique el motivo de su solicitud de préstamo"></textarea>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <h5><i class="icon fas fa-info"></i> Información Importante:</h5>
+                            <ul class="mb-0">
+                                <li>El monto máximo que puede solicitar es el 70% de su salario quincenal</li>
+                                <li>Debe adjuntar el recibo de nómina del período donde se realizará el descuento</li>
+                                <li>Una vez aprobado, deberá descargar, firmar y subir el pagaré para activar el préstamo</li>
+                                <li>Los préstamos activos se descuentan del monto disponible para nuevas solicitudes</li>
+                            </ul>
+                        </div>
+
+                        <div class="form-group">
+                            <button type="button" class="btn btn-info" onclick="simularPrestamo()">
+                                <i class="fas fa-calculator"></i> Simular Préstamo
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i> Enviar Solicitud
+                            </button>
+                            <a href="index.php" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Regresar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para simulación -->
+<div class="modal fade" id="modalSimulacion" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Simulación de Préstamo</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body" id="contenidoSimulacion">
+                <!-- Contenido generado por JavaScript -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function simularPrestamo() {
+    const monto = document.getElementById('monto_solicitado').value;
+    const plazo = document.getElementById('plazo_meses').value;
+    const tipoDescuento = document.getElementById('tipo_descuento').value;
+    
+    if (!monto || !plazo) {
+        alert('Por favor complete el monto y plazo para simular');
+        return;
+    }
+    
+    // Aquí harías una llamada AJAX para obtener la simulación
+    // Por simplicidad, genero una simulación básica
+    const montoNum = parseFloat(monto);
+    const plazoNum = parseInt(plazo);
+    
+    let pagos = [];
+    if (tipoDescuento === 'quincenal') {
+        const numPagos = plazoNum * 2;
+        const montoPorPago = montoNum / numPagos;
+        
+        for (let i = 1; i <= numPagos; i++) {
+            const fecha = new Date();
+            fecha.setDate(fecha.getDate() + (i * 15));
+            pagos.push({
+                numero: i,
+                monto: montoPorPago,
+                fecha: fecha.toLocaleDateString('es-MX')
+            });
+        }
+    } else {
+        // Para aguinaldo o prima, mostrar pagos quincenales hasta fin de año
+        const fechaObjetivo = tipoDescuento === 'aguinaldo' ? 
+            new Date(new Date().getFullYear(), 11, 15) : 
+            new Date(new Date().getFullYear() + 1, 6, 15);
+        
+        const diasHasta = Math.ceil((fechaObjetivo - new Date()) / (1000 * 60 * 60 * 24));
+        const numPagos = Math.ceil(diasHasta / 15);
+        const montoPorPago = montoNum / numPagos;
+        
+        for (let i = 1; i <= numPagos; i++) {
+            const fecha = new Date();
+            fecha.setDate(fecha.getDate() + (i * 15));
+            pagos.push({
+                numero: i,
+                monto: montoPorPago,
+                fecha: fecha.toLocaleDateString('es-MX')
+            });
+        }
+    }
+    
+    let html = `
+        <h5>Simulación para $${montoNum.toLocaleString('es-MX', {minimumFractionDigits: 2})}</h5>
+        <p><strong>Plazo:</strong> ${plazoNum} meses</p>
+        <p><strong>Tipo de descuento:</strong> ${tipoDescuento}</p>
+        <p><strong>Total de pagos:</strong> ${pagos.length}</p>
+        
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Pago #</th>
+                        <th>Fecha</th>
+                        <th>Monto</th>
+                        <th>Saldo</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    let saldo = montoNum;
+    pagos.forEach(pago => {
+        saldo -= pago.monto;
+        html += `
+            <tr>
+                <td>${pago.numero}</td>
+                <td>${pago.fecha}</td>
+                <td>$${pago.monto.toLocaleString('es-MX', {minimumFractionDigits: 2})}</td>
+                <td>$${saldo.toLocaleString('es-MX', {minimumFractionDigits: 2})}</td>
+            </tr>
+        `;
+    });
+    
+    html += `
+                </tbody>
+            </table>
+        </div>
+    `;
+    
+    document.getElementById('contenidoSimulacion').innerHTML = html;
+    $('#modalSimulacion').modal('show');
+}
+</script>
+{/block}
