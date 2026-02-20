@@ -18,12 +18,6 @@ services:
     volumes:
       - db_data:/var/lib/mysql:Z
 
-  composer:
-    image: composer:latest
-    volumes:
-      - .:/app:Z
-    working_dir: /app
-
   dbhub:
     image: docker.io/bytebase/dbhub
     ports:
