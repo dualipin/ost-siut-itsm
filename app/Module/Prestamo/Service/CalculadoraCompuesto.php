@@ -38,22 +38,9 @@ class CalculadoraCompuesto
             $tasa = $tasa / 100.0;
         }
 
-        switch ($unidad) {
-            case UnidadEnum::Mes:
-                $r = $tasa / 12.0;
-                break;
-            case UnidadEnum::Quincena:
-                $r = $tasa / 24.0;
-                break;
-            case UnidadEnum::Semana:
-                $r = $tasa / 52.0;
-                break;
-            case UnidadEnum::Dia:
-                $r = $tasa / 365.0;
-                break;
-            default:
-                $r = $tasa;
-        }
+        // La tasa se aplica directamente al período
+        // No se divide por frecuencia (ya es la tasa para el periodo especificado)
+        $r = $tasa;
 
         // determinar primer pago alineado si corresponde
         $hasPartialFirst = false;
