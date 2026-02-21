@@ -1,5 +1,4 @@
 # Project exclude paths
-/temp/
 /tmp/
 /vendor/
 /node_modules/
@@ -7,5 +6,4 @@
 /.vscode/
 .env
 
-/privado
-/archivos
+/upload
