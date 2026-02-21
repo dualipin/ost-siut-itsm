@@ -2,15 +2,14 @@
 
 namespace App\Module\Usuario\Service;
 
+use App\Module\Usuario\DTO\UserAuthDTO;
 use App\Module\Usuario\Repository\UsuarioRepository;
 
-final class AuthService
+final readonly class AuthService
 {
-    public function __construct(
-        private readonly UsuarioRepository $repository,
-    ) {}
+    public function __construct(private UsuarioRepository $repository) {}
 
-    public function login(string $email, string $password)
+    public function login(string $email, string $password): ?UserAuthDTO
     {
         $usuario = $this->repository->buscarUsuarioPorEmail($email);
 
@@ -22,7 +21,6 @@ final class AuthService
             return null;
         }
 
-        // Aquí podrías generar un token JWT o una sesión
         return $usuario;
     }
 }
