@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Module\Usuario\Entity;
+namespace App\Module\Usuario\DTO;
 
 use DateTimeImmutable;
 
-final readonly class UsuarioLog
+final readonly class AutenticacionLogDTO
 {
     public function __construct(
         public string $action,
