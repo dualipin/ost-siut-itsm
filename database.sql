@@ -1,6 +1,6 @@
 create table if not exists usuarios
 (
-    usuario_id            BINARY(16) PRIMARY KEY,
+    usuario_id            int auto_increment PRIMARY KEY,
 
     -- auth
     email                 varchar(100) not null unique,
@@ -39,14 +39,14 @@ create table if not exists usuarios
 CREATE TABLE if not exists usuario_documentos
 (
     documento_id     INT AUTO_INCREMENT PRIMARY KEY,
-    usuario_id       binary(16)   NOT NULL,
+    usuario_id       int   NOT NULL,
     tipo_documento   VARCHAR(100) NOT NULL, -- 'afiliacion', 'ine', 'comprobante_domicilio', etc.
     ruta_archivo     VARCHAR(255) NOT NULL,
     estado           varchar(30)  NOT NULL DEFAULT 'pendiente',
     observaciones    TEXT,
     fecha_subida     DATETIME              DEFAULT CURRENT_TIMESTAMP,
     fecha_validacion DATETIME,
-    validado_por     binary(16),            -- usuario_id de quien validó
+    validado_por     int,            -- usuario_id de quien validó
 
     CONSTRAINT fk_documentos_usuario
         FOREIGN KEY (usuario_id)
@@ -61,7 +61,7 @@ CREATE TABLE if not exists usuario_documentos
 CREATE TABLE IF NOT EXISTS autenticacion_logs
 (
     autenticacion_id INT AUTO_INCREMENT PRIMARY KEY,
-    usuario_id       binary(16),
+    usuario_id       int,
     email            VARCHAR(255),
     action           VARCHAR(50) NOT NULL,
     ip_address       VARCHAR(45),
@@ -92,7 +92,7 @@ CREATE TABLE if not exists cat_tipos_ingreso
 CREATE TABLE if not exists prestamos
 (
     prestamo_id                  INT AUTO_INCREMENT PRIMARY KEY,
-    usuario_id                   binary(16)     NOT NULL,
+    usuario_id                   int     NOT NULL,
 
     -- Identificación
     folio                        VARCHAR(50) UNIQUE,      -- Generado automáticamente: SIN-2025-001
@@ -147,7 +147,7 @@ CREATE TABLE if not exists prestamos
 
     -- Control
     requiere_reestructuracion    BOOLEAN                 DEFAULT FALSE,
-    creado_por                   binary(16),              -- Admin que procesó
+    creado_por                   int,              -- Admin que procesó
     fecha_eliminacion            DATETIME                default NULL,
 
     CONSTRAINT fk_prestamo_usuario
@@ -229,12 +229,12 @@ CREATE TABLE if not exists prestamo_documentos_legales
 
     requiere_validacion_finanzas BOOLEAN  DEFAULT FALSE,
     validado_por_finanzas        BOOLEAN  DEFAULT FALSE,
-    validado_por                 binary(16),            -- usuario_id
+    validado_por                 int,            -- usuario_id
     fecha_validacion             DATETIME,
     observaciones_validacion     TEXT,
 
     fecha_generacion             DATETIME DEFAULT CURRENT_TIMESTAMP,
-    generado_por                 binary(16),            -- usuario_id
+    generado_por                 int,            -- usuario_id
 
     CONSTRAINT fk_doc_legal_prestamo
         FOREIGN KEY (prestamo_id)
@@ -274,7 +274,7 @@ CREATE TABLE if not exists prestamo_amortizacion
     interes_moratorio_generado DECIMAL(10, 2)          DEFAULT 0,
 
     -- Trazabilidad
-    pagado_por                 binary(16),                           -- usuario_id que registró el pago
+    pagado_por                 int,                           -- usuario_id que registró el pago
     comprobante_pago           VARCHAR(255),                         -- URL del comprobante
 
     -- Control de regeneración
@@ -317,7 +317,7 @@ CREATE TABLE if not exists prestamo_pagos_extraordinarios
 
     observaciones               TEXT,
     comprobante_pago            VARCHAR(255),
-    registrado_por              binary(16),              -- usuario_id
+    registrado_por              int,              -- usuario_id
 
     CONSTRAINT fk_pago_extra_prestamo
         FOREIGN KEY (prestamo_id)
@@ -351,7 +351,7 @@ CREATE TABLE if not exists prestamo_reestructuraciones
     nuevo_plazo_quincenas    INT,
 
     fecha_reestructuracion   DATETIME DEFAULT CURRENT_TIMESTAMP,
-    autorizado_por           binary(16),              -- usuario_id
+    autorizado_por           int,              -- usuario_id
     observaciones            TEXT,
 
     CONSTRAINT fk_reest_original
