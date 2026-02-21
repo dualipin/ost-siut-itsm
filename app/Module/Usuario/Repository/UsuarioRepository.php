@@ -3,11 +3,16 @@
 namespace App\Module\Usuario\Repository;
 
 use App\Infrastructure\Persistence\BaseRepository;
+use App\Module\Usuario\DTO\AutenticacionLogDTO;
 use App\Module\Usuario\DTO\UserAuthDTO;
 
 use App\Module\Usuario\DTO\UsuarioSimpleDTO;
 
 use App\Module\Usuario\Entity\RolEnum;
+
+use App\Module\Usuario\Entity\Usuario;
+
+use Faker\Core\Uuid;
 
 use function array_map;
 use function DI\string;
@@ -60,4 +65,51 @@ final class UsuarioRepository extends BaseRepository
             $result,
         );
     }
+
+    public function registrarUsuario(Usuario $usuario): void
+    {
+        $stmt = $this->pdo->prepare(
+            "INSERT INTO usuarios (email, password_hash, rol, curp, nombre, apellidos, 
+                  fecha_nacimiento, direccion, telefono, foto, banco_nombre, 
+                  clabe_interbancaria, cuenta_bancaria, categoria, departamento, 
+                  nss, salario_quincenal, fecha_ingreso_laboral)
+         VALUES (:email, :password_hash, :rol, :curp, :nombre, :apellidos, 
+                 :fecha_nacimiento, :direccion, :telefono, :foto, :banco_nombre, 
+                 :clabe_interbancaria, :cuenta_bancaria, :categoria, :departamento,
+                 :nss, :salario_quincenal, :fecha_ingreso_laboral)",
+        );
+
+        $stmt->execute([
+            ":email" => $usuario->email,
+            ":password_hash" => $usuario->passwordHash,
+            ":rol" => $usuario->rol->value,
+            ":curp" => $usuario->curp,
+            ":nombre" => $usuario->nombre,
+            ":apellidos" => $usuario->apellidos,
+            ":fecha_nacimiento" => $usuario->fechaNacimiento?->format("Y-m-d"),
+            ":direccion" => $usuario->direccion,
+            ":telefono" => $usuario->telefono,
+            ":foto" => $usuario->foto,
+            ":banco_nombre" => $usuario->bancoNombre,
+            ":clabe_interbancaria" => $usuario->clabeInterbancaria,
+            ":cuenta_bancaria" => $usuario->cuentaBancaria,
+            ":categoria" => $usuario->categoria,
+            ":departamento" => $usuario->departamento,
+            ":nss" => $usuario->nss,
+            ":salario_quincenal" => $usuario->salarioQuincenal,
+            ":fecha_ingreso_laboral" => $usuario->fechaIngresoLaboral?->format(
+                "Y-m-d",
+            ),
+        ]);
+    }
+
+    public function registrarEventoUsuario(
+        AutenticacionLogDTO $autenticacionLog,
+    ) {
+        $stmt = $this->pdo->prepare("insert into");
+    }
+
+    private function generateUuid() {}
+
+    private function readUuid() {}
 }
