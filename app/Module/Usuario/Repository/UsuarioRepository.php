@@ -71,7 +71,7 @@ final class UsuarioRepository extends BaseRepository
     public function findAuthContextById(int $id): ?UserAuthContextDTO
     {
         $stmt = $this->pdo->prepare(
-            "select usuario_id, nombre, apellidos, email from usuarios where usuario_id = :id",
+            "select usuario_id, nombre, apellidos, email, rol from usuarios where usuario_id = :id",
         );
 
         $stmt->execute([":id" => $id]);
@@ -87,6 +87,7 @@ final class UsuarioRepository extends BaseRepository
             nombre: $result["nombre"],
             apellidos: $result["apellidos"],
             email: $result["email"],
+            rol: RolEnum::tryFrom($result["rol"]),
         );
     }
 
