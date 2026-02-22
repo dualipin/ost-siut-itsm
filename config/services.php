@@ -1,21 +1,24 @@
 <?php
 
+use App\Http\Middleware\MiddlewareFactory;
+use App\Infrastructure\Security\CsrfTokenManager;
+use App\Infrastructure\Session\SessionManager;
 use App\Module\Auth\Service\AuthenticationService;
-use App\Module\Auth\Service\RoleService;
-use App\Module\Auth\Session\SessionManager;
-use App\Module\Auth\Middleware\MiddlewareFactory;
 use App\Module\Prestamo\Service\CalculadoraCompuesto;
 use App\Module\Prestamo\Service\SimuladorService;
+use App\Shared\Utils\AuthHelper;
+
 use function DI\autowire;
 
 return function (\DI\ContainerBuilder $container) {
     $container->addDefinitions([
-        // Auth Services
+        // Session & Security
+        SessionManager::class => fn() => new SessionManager(),
+        CsrfTokenManager::class => autowire(CsrfTokenManager::class),
+
+        // Auth Services & Helpers
         AuthenticationService::class => autowire(AuthenticationService::class),
-        RoleService::class => autowire(RoleService::class),
-        SessionManager::class => function () {
-            return new SessionManager(3600); // 1 hora
-        },
+        AuthHelper::class => autowire(AuthHelper::class),
         MiddlewareFactory::class => autowire(MiddlewareFactory::class),
 
         // Prestamo Services
