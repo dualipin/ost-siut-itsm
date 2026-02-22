@@ -3,7 +3,7 @@
 use App\Infrastructure\Config\AppConfig;
 use App\Infrastructure\Mail\DatabaseMailQueue;
 use App\Infrastructure\Mail\MailerInterface;
-use App\Infrastructure\Templating\LatteExtensions;
+use App\Infrastructure\Templating\LatteExtension;
 use App\Infrastructure\Templating\LatteRenderer;
 use App\Infrastructure\Templating\RendererInterface;
 use App\Module\Prestamo\Service\CalculadoraCompuesto;
@@ -20,7 +20,7 @@ return function (\DI\ContainerBuilder $container) {
     $container->addDefinitions([
         Engine::class => function (
             AppConfig $config,
-            LatteExtensions $extensions,
+            LatteExtension $extensions,
         ) {
             $cacheDir = __DIR__ . "/../tmp/latte_cache";
 
