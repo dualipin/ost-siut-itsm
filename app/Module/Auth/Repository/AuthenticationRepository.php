@@ -33,7 +33,7 @@ final class AuthenticationRepository extends BaseRepository
             "ip" => $autenticacionLog->ipAddress,
             "ua" => $autenticacionLog->userAgent,
             "error" => $autenticacionLog->errorMessage,
-            "success" => $autenticacionLog->success,
+            "success" => (int) $autenticacionLog->success,
         ]);
     }
 

@@ -3,26 +3,22 @@
 namespace App\Module\Usuario\Repository;
 
 use App\Infrastructure\Persistence\BaseRepository;
-use App\Module\Usuario\DTO\AutenticacionLogDTO;
-use App\Module\Usuario\DTO\UserAuthDTO;
-
+use App\Module\Auth\DTO\AuthLogDTO;
+use App\Module\Auth\DTO\UserAuthDTO;
+use App\Module\Usuario\DTO\UserProfileDTO;
 use App\Module\Usuario\DTO\UsuarioSimpleDTO;
-
 use App\Module\Usuario\Entity\RolEnum;
-
 use App\Module\Usuario\Entity\Usuario;
-
-use Faker\Core\Uuid;
+use DateTimeImmutable;
 
 use function array_map;
-use function DI\string;
 
 final class UsuarioRepository extends BaseRepository
 {
-    public function buscarUsuarioPorEmail(string $email): ?UserAuthDTO
+    public function findAuthByEmail(string $email): ?UserAuthDTO
     {
         $stmt = $this->pdo->prepare(
-            "SELECT usuario_id, email, password_hash, rol, activo FROM usuarios WHERE email = :email",
+            "SELECT usuario_id, email, password_hash, rol, activo, ultimo_ingreso FROM usuarios WHERE email = :email",
         );
         $stmt->bindParam(":email", $email);
         $stmt->execute();
@@ -36,10 +32,45 @@ final class UsuarioRepository extends BaseRepository
         return new UserAuthDTO(
             id: $result["usuario_id"],
             email: $result["email"],
-            password: $result["password_hash"],
-            rol: $result["rol"],
+            passwordHash: $result["password_hash"],
+            rol: RolEnum::tryFrom($result["rol"]),
             active: (bool) $result["activo"],
+            ultimoIngreso: $result["ultimo_ingreso"]
+                ? new DateTimeImmutable($result["ultimo_ingreso"])
+                : null,
         );
+    }
+
+    public function findAuthById(int $id): ?UserAuthDTO
+    {
+        $stmt = $this->pdo->prepare(
+            "select usuario_id, email, password_hash, rol, activo, ultimo_ingreso from usuarios where usuario_id = :id",
+        );
+
+        $stmt->bindParam(":id", $id);
+        $stmt->execute();
+
+        $result = $stmt->fetch();
+
+        if (!$result) {
+            return null;
+        }
+
+        return new UserAuthDTO(
+            id: $result["usuario_id"],
+            email: $result["email"],
+            passwordHash: $result["password_hash"],
+            rol: RolEnum::tryFrom($result["rol"]),
+            active: (bool) $result["activo"],
+            ultimoIngreso: $result["ultimo_ingreso"]
+                ? new DateTimeImmutable($result["ultimo_ingreso"])
+                : null,
+        );
+    }
+
+    public function findProfileById(int $id): ?UserProfileDTO
+    {
+        return new UserProfileDTO();
     }
 
     /**
@@ -103,13 +134,15 @@ final class UsuarioRepository extends BaseRepository
         ]);
     }
 
-    public function registrarEventoUsuario(
-        AutenticacionLogDTO $autenticacionLog,
-    ) {
-        $stmt = $this->pdo->prepare("insert into");
+    // Relativo a la autenticación
+    public function updatePassword(int $id, string $newPassword): void
+    {
+        $stmt = $this->pdo->prepare(
+            "UPDATE usuarios SET password_hash = :password WHERE usuario_id = :id",
+        );
+        $stmt->execute([
+            ":password" => $newPassword,
+            ":id" => $id,
+        ]);
     }
-
-    private function generateUuid() {}
-
-    private function readUuid() {}
 }
