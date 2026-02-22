@@ -3,27 +3,66 @@
 namespace App\Shared\Context;
 
 use App\Infrastructure\Session\SessionManager;
+use App\Module\Auth\DTO\SessionUserDTO;
+use App\Module\Auth\DTO\UserAuthContextDTO;
+use App\Module\Auth\Enum\RolEnum;
 
+/**
+ * @implements ContextInterface<UserAuthContextDTO>
+ *
+ * Almacena y recupera el contexto del usuario autenticado desde la sesión.
+ */
 final readonly class UserContext implements ContextInterface
 {
-    // Previously the key was "user" but the application stores the ID under
-    // "user_id" in several places (login, AuthHelper, etc.). Keeping them in
-    // sync lets the context reliably tell us whether someone is logged in.
-    private const string Key = "user_id";
-    public function __construct(private SessionManager $manager) {}
+    private const string SessionKey = "auth_user";
 
-    public function get(): ?int
+    public function __construct(private SessionManager $session) {}
+
+    /**
+     * Obtiene el usuario autenticado desde la sesión.
+     *
+     * @return UserAuthContextDTO|null
+     */
+    public function get(): ?SessionUserDTO
     {
-        return $this->manager->get(self::Key);
+        $data = $this->session->get(self::SessionKey);
+
+        if (!$data || !is_array($data)) {
+            return null;
+        }
+
+        return new SessionUserDTO(
+            id: (int) $data["id"],
+            rol: RolEnum::tryFrom($data["rol"]),
+        );
     }
 
+    /**
+     * Guarda el usuario autenticado en la sesión.
+     *
+     * @param SessionUserDTO $value
+     */
     public function set($value): void
     {
-        $this->manager->set(self::Key, $value);
+        $this->session->set(self::SessionKey, [
+            "id" => $value->id,
+            "rol" => $value->rol->value,
+        ]);
     }
 
+    /**
+     * Elimina el usuario de la sesión (logout).
+     */
     public function clear(): void
     {
-        $this->manager->remove(self::Key);
+        $this->session->remove(self::SessionKey);
+    }
+
+    /**
+     * Indica si hay un usuario autenticado en sesión.
+     */
+    public function isAuthenticated(): bool
+    {
+        return $this->get() !== null;
     }
 }
