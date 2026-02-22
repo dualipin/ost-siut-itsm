@@ -10,17 +10,17 @@ final readonly class UrlBuilder
 
     public function to(string $path, array $params = []): string
     {
-        $url = filter_var($path, FILTER_VALIDATE_URL)
+        // Validar si ya es una URL absoluta
+        $url = str_contains($path, "://")
             ? $path
             : rtrim($this->config->baseUrl, "/") . "/" . ltrim($path, "/");
 
-        return empty($params) ? $url : $url . "?" . http_build_query($params);
-    }
+        if (empty($params)) {
+            return $url;
+        }
 
-    public function away(string $absoluteUrl, array $params = []): string
-    {
-        return empty($params)
-            ? $absoluteUrl
-            : $absoluteUrl . "?" . http_build_query($params);
+        // Detectar si ya hay un "?" en la URL para usar "&" en su lugar
+        $separator = str_contains($url, "?") ? "&" : "?";
+        return $url . $separator . http_build_query($params);
     }
 }
