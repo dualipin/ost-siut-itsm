@@ -15,7 +15,7 @@ final readonly class UserContextProvider implements ContextProviderInterface
     public function get(): ?UserAuthContextDTO
     {
         $session = $this->context->get();
-        if (!$session) {
+        if ($session === null) {
             return null;
         }
         return $this->repository->findAuthContextById($session->id);
