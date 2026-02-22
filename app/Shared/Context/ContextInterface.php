@@ -20,4 +20,6 @@ interface ContextInterface
     public function set($value): void;
 
     public function clear(): void;
+
+    public function isAuthenticated(): bool;
 }
