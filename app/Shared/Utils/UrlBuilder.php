@@ -8,13 +8,19 @@ final readonly class UrlBuilder
 {
     public function __construct(private AppConfig $config) {}
 
-    /**
-     * Construye una URL absoluta a una ruta interna.
-     * Ej: ->to('/cuentas/reset-password.php', ['token' => $uuid])
-     */
     public function to(string $path, array $params = []): string
     {
-        $base = rtrim($this->config->baseUrl, "/") . "/" . ltrim($path, "/");
-        return empty($params) ? $base : $base . "?" . http_build_query($params);
+        $url = filter_var($path, FILTER_VALIDATE_URL)
+            ? $path
+            : rtrim($this->config->baseUrl, "/") . "/" . ltrim($path, "/");
+
+        return empty($params) ? $url : $url . "?" . http_build_query($params);
+    }
+
+    public function away(string $absoluteUrl, array $params = []): string
+    {
+        return empty($params)
+            ? $absoluteUrl
+            : $absoluteUrl . "?" . http_build_query($params);
     }
 }
