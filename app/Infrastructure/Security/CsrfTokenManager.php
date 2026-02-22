@@ -9,8 +9,8 @@ use App\Infrastructure\Session\SessionManager;
  */
 final class CsrfTokenManager
 {
-    private const TOKEN_FIELD_NAME = '_csrf_token';
-    private const SESSION_KEY = '_csrf_tokens';
+    private const string TOKEN_FIELD_NAME = '_csrf_token';
+    private const string SESSION_KEY = '_csrf_tokens';
 
     public function __construct(private readonly SessionManager $session) {}
 
