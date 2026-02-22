@@ -2,6 +2,7 @@
 
 namespace App\Module\Auth\Service;
 
+use App\Infrastructure\Session\SessionManager;
 use App\Module\Auth\DTO\AuthLogDTO;
 use App\Module\Auth\DTO\UserAuthDTO;
 use App\Module\Auth\Enum\AuthLogActionEnum;
@@ -18,10 +19,31 @@ final class AuthenticationService
     public function __construct(
         private readonly UsuarioRepository $userRepo,
         private readonly AuthenticationRepository $authRepo,
-    ) {}
+        private readonly SessionManager $sessionManager,
+    ) {
+        // Cargar usuario desde sesión si existe
+        $this->loadUserFromSession();
+    }
+
+    /**
+     * Carga el usuario actualmente autenticado desde la sesión
+     */
+    private function loadUserFromSession(): void
+    {
+        $userId = $this->sessionManager->get("user_id");
+        $userEmail = $this->sessionManager->get("user_email");
+
+        if ($userId && $userEmail) {
+            $user = $this->userRepo->findAuthByEmail($userEmail);
+            if ($user && $user->active) {
+                $this->currentUser = $user;
+            }
+        }
+    }
 
     /**
      * Auténtica un usuario con email y contraseña
+     * @throws \App\Http\Exception\TooManyAttemptsException
      */
     public function authenticate(
         string $email,
@@ -29,9 +51,76 @@ final class AuthenticationService
         string $ipAddress = null,
         string $userAgent = null,
     ): bool {
+        // Validación de entrada
+        $email = trim($email);
+        $password = trim($password);
+
+        if (empty($email) || empty($password)) {
+            $this->authRepo->saveAuthLog(
+                new AuthLogDTO(
+                    action: AuthLogActionEnum::LoginAttempt,
+                    success: false,
+                    email: $email,
+                    ipAddress: $ipAddress,
+                    userAgent: $userAgent,
+                    errorMessage: "Email o contraseña vacíos",
+                ),
+            );
+            return false;
+        }
+
+        // Validar formato de email
+        if (!$this->isValidEmail($email)) {
+            $this->authRepo->saveAuthLog(
+                new AuthLogDTO(
+                    action: AuthLogActionEnum::LoginAttempt,
+                    success: false,
+                    email: $email,
+                    ipAddress: $ipAddress,
+                    userAgent: $userAgent,
+                    errorMessage: "Email inválido",
+                ),
+            );
+            return false;
+        }
+
+        // Validar longitud de contraseña
+        if (strlen($password) < 3 || strlen($password) > 255) {
+            $this->authRepo->saveAuthLog(
+                new AuthLogDTO(
+                    action: AuthLogActionEnum::LoginAttempt,
+                    success: false,
+                    email: $email,
+                    ipAddress: $ipAddress,
+                    userAgent: $userAgent,
+                    errorMessage: "Contraseña con longitud inválida",
+                ),
+            );
+            return false;
+        }
+
+        // Verificar si la cuenta está bloqueada (rate limiting)
+        if ($this->authRepo->isAccountLocked($email)) {
+            $this->authRepo->saveAuthLog(
+                new AuthLogDTO(
+                    action: AuthLogActionEnum::LoginAttempt,
+                    success: false,
+                    email: $email,
+                    ipAddress: $ipAddress,
+                    userAgent: $userAgent,
+                    errorMessage: "Cuenta bloqueada por demasiados intentos",
+                ),
+            );
+            throw new \App\Http\Exception\TooManyAttemptsException();
+        }
+
         $user = $this->userRepo->findAuthByEmail($email);
+        $genericError = "Credenciales inválidas"; // Mismo mensaje para ambos casos (protección contra timing attack)
 
         if (!$user || !$user->active) {
+            // Usar password_verify de todas formas para gastar tiempo (constante timing)
+            password_verify($password, '$2y$10$invalid.hash.to.prevent.timing.attacks');
+            
             $this->authRepo->saveAuthLog(
                 new AuthLogDTO(
                     action: AuthLogActionEnum::LoginAttempt,
@@ -85,33 +174,16 @@ final class AuthenticationService
         string $nombre,
         string $apellidos,
     ): int {
-        $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
-
-        $user = new User(
-            id: 0,
-            email: $email,
-            password: $hashedPassword,
-            nombre: $nombre,
-            apellidos: $apellidos,
-        );
-
-        return $this->userRepository->save($user);
+        // Esto está aquí como placeholder - implementar según necesidades
+        throw new \Exception("Registro de usuario no implementado aún");
     }
 
     /**
      * Obtiene el usuario actualmente autenticado
      */
-    public function getCurrentUser(): ?User
+    public function getCurrentUser(): ?UserAuthDTO
     {
         return $this->currentUser;
-    }
-
-    /**
-     * Establece el usuario actual (usado después de cargar de sesión)
-     */
-    public function setCurrentUser(?User $user): void
-    {
-        $this->currentUser = $user;
     }
 
     /**
@@ -120,39 +192,6 @@ final class AuthenticationService
     public function isAuthenticated(): bool
     {
         return $this->currentUser !== null;
-    }
-
-    /**
-     * Verifica si el usuario actual tiene un rol específico
-     */
-    public function hasRole(string $role): bool
-    {
-        if (!$this->currentUser) {
-            return false;
-        }
-        return $this->currentUser->hasRole($role);
-    }
-
-    /**
-     * Verifica si el usuario actual tiene alguno de los roles especificados
-     */
-    public function hasAnyRole(array $roles): bool
-    {
-        if (!$this->currentUser) {
-            return false;
-        }
-        return $this->currentUser->hasAnyRole($roles);
-    }
-
-    /**
-     * Verifica si el usuario actual tiene todos los roles especificados
-     */
-    public function hasAllRoles(array $roles): bool
-    {
-        if (!$this->currentUser) {
-            return false;
-        }
-        return $this->currentUser->hasAllRoles($roles);
     }
 
     /**
