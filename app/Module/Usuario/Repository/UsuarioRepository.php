@@ -79,7 +79,7 @@ final class UsuarioRepository extends BaseRepository
     public function listado(): array
     {
         $stmt = $this->pdo->query(
-            "select usuario_id, nombre, apellidos, email, departamento from usuarios",
+            "select usuario_id, nombre, apellidos, email, rol, activo, departamento from usuarios",
         );
         $result = $stmt->fetchAll();
 
@@ -89,7 +89,7 @@ final class UsuarioRepository extends BaseRepository
                 nombre: $row["nombre"],
                 apellidos: $row["apellidos"],
                 email: $row["email"],
-                rol: RolEnum::tryFrom($row["rol"]),
+                rol: RolEnum::tryFrom($row["rol"]) ?? RolEnum::Agremiado,
                 activo: (bool) $row["activo"],
                 departamento: $row["departamento"],
             ),
