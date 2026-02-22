@@ -4,11 +4,10 @@ namespace App\Shared\Context;
 
 use App\Infrastructure\Session\SessionManager;
 use App\Module\Auth\DTO\SessionUserDTO;
-use App\Module\Auth\DTO\UserAuthContextDTO;
 use App\Module\Auth\Enum\RolEnum;
 
 /**
- * @implements ContextInterface<UserAuthContextDTO>
+ * @implements ContextInterface<SessionUserDTO>
  *
  * Almacena y recupera el contexto del usuario autenticado desde la sesión.
  */
@@ -21,7 +20,7 @@ final readonly class UserContext implements ContextInterface
     /**
      * Obtiene el usuario autenticado desde la sesión.
      *
-     * @return UserAuthContextDTO|null
+     * @return SessionUserDTO|null
      */
     public function get(): ?SessionUserDTO
     {
