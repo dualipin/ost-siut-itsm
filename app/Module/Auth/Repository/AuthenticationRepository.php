@@ -46,7 +46,7 @@ final class AuthenticationRepository extends BaseRepository
         $stmt->execute();
     }
 
-    public function getCountLastFailedAttempts($email): int
+    public function getCountLastFailedAttempts(string $email): int
     {
         $stmt = $this->pdo->prepare(
             "SELECT COUNT(*) FROM autenticacion_logs 
@@ -56,5 +56,19 @@ final class AuthenticationRepository extends BaseRepository
         $stmt->execute();
 
         return (int) $stmt->fetchColumn();
+    }
+
+    public function isAccountLocked(string $email): bool
+    {
+        return $this->getCountLastFailedAttempts($email) >= 5;
+    }
+
+    public function emailExists(string $email): bool
+    {
+        $stmt = $this->pdo->prepare("SELECT 1 FROM usuarios WHERE email = :email LIMIT 1");
+        $stmt->bindParam(":email", $email);
+        $stmt->execute();
+        
+        return $stmt->fetchColumn() !== false;
     }
 }
