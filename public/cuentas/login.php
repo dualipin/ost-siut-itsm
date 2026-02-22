@@ -8,6 +8,7 @@ use App\Infrastructure\Security\CsrfTokenManager;
 use App\Infrastructure\Session\SessionManager;
 use App\Infrastructure\Templating\RendererInterface;
 use App\Module\Auth\Service\AuthenticationService;
+use App\Shared\Context\UserContext;
 
 require_once __DIR__ . "/../../bootstrap.php";
 
@@ -15,6 +16,7 @@ $container = Bootstrap::buildContainer();
 $redirector = $container->get(Redirector::class);
 $sessionManager = $container->get(SessionManager::class);
 $csrfManager = $container->get(CsrfTokenManager::class);
+$userContext = $container->get(UserContext::class);
 
 // Iniciar sesión
 $sessionManager->start();
@@ -24,6 +26,11 @@ $request = new FormRequest();
 $redirect = $request->input("redirect", "/portal/");
 $error = $request->input("error");
 $email = $request->input("email");
+
+if ($userContext->get() !== null) {
+    // Si el usuario ya está autenticado, redirigirlo al portal
+    $redirector->to($redirect)->send();
+}
 
 if ($request->isSubmitted()) {
     // Verificar CSRF token
@@ -51,9 +58,18 @@ if ($request->isSubmitted()) {
         if ($service->authenticate($email, $password, $ipAddress, $userAgent)) {
             // Guardar usuario en sesión
             $sessionManager->set("user_id", $service->getCurrentUser()->id);
-            $sessionManager->set("user_email", $service->getCurrentUser()->email);
+            $sessionManager->set(
+                "user_email",
+                $service->getCurrentUser()->email,
+            );
+
+            // También actualizamos el contexto para que otras utilidades puedan
+            // detectar al usuario logeado rápidamente (y, por ejemplo, el acceso
+            // al login redirija correctamente).
+            $userContext->set($service->getCurrentUser()->id);
+
             $sessionManager->regenerate();
-            
+
             $redirector->to($redirect)->send();
         } else {
             $error = "Credenciales inválidas";
@@ -89,5 +105,3 @@ $data = [
 ];
 
 $renderer->render("./login.latte", $data);
-
-

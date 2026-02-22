@@ -9,7 +9,7 @@ class AuthMiddleware extends BaseMiddleware
 {
     public function execute(): bool
     {
-        if (!$this->authService->isAuthenticated()) {
+        if (!$this->context->get()) {
             return $this->deny(
                 "Debe estar autenticado para acceder a este recurso",
             );

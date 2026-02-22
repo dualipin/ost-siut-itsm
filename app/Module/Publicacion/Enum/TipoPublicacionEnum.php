@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Module\Publicacion\Entity;
+namespace App\Module\Publicacion\Enum;
 
 enum TipoPublicacionEnum: string
 {

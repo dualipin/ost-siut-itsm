@@ -2,6 +2,7 @@
 
 namespace App\Module\Publicacion\Entity;
 
+use App\Module\Publicacion\Enum\TipoPublicacionEnum;
 use DateTimeImmutable;
 
 final readonly class Publicacion

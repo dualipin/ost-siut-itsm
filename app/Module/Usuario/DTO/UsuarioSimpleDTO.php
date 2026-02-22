@@ -2,7 +2,7 @@
 
 namespace App\Module\Usuario\DTO;
 
-use App\Module\Usuario\Entity\RolEnum;
+use App\Module\Auth\Enum\RolEnum;
 
 final readonly class UsuarioSimpleDTO
 {

@@ -8,8 +8,6 @@ require __DIR__ . "/../bootstrap.php";
 
 $container = Bootstrap::buildContainer();
 
-$env = $container->get(EnvironmentInterface::class);
-
 $renderer = $container->get(RendererInterface::class);
 
 $renderer->render("./index.latte");

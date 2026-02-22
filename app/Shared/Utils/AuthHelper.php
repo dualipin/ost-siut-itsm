@@ -3,39 +3,40 @@
 namespace App\Shared\Utils;
 
 use App\Infrastructure\Session\SessionManager;
+use App\Module\Usuario\DTO\UsuarioSimpleDTO;
 use App\Module\Usuario\Repository\UsuarioRepository;
 
 /**
  * Utilidad para obtener el usuario actualmente autenticado desde la sesión
  */
-final class AuthHelper
+final readonly class AuthHelper
 {
     public function __construct(
-        private readonly SessionManager $sessionManager,
-        private readonly UsuarioRepository $usuarioRepository,
+        private SessionManager $sessionManager,
+        private UsuarioRepository $usuarioRepository,
     ) {}
 
     /**
      * Obtiene el usuario actualmente autenticado desde la sesión
-     * @return \App\Module\Usuario\DTO\UsuarioSimpleDTO|null
+     * @return UsuarioSimpleDTO|null
      */
-    public function getAuthenticatedUser()
+    public function getAuthenticatedUser(): ?UsuarioSimpleDTO
     {
         $userId = $this->sessionManager->get("user_id");
-        
+
         if (!$userId) {
             return null;
         }
 
         // Obtener el usuario con todos sus datos del listado
         $usuarios = $this->usuarioRepository->listado();
-        
+
         foreach ($usuarios as $usuario) {
-            if ((int)$usuario->id === (int)$userId) {
+            if ((int) $usuario->id === (int) $userId) {
                 return $usuario;
             }
         }
-        
+
         return null;
     }
 

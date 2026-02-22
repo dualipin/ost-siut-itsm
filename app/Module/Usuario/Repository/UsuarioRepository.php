@@ -3,11 +3,11 @@
 namespace App\Module\Usuario\Repository;
 
 use App\Infrastructure\Persistence\BaseRepository;
-use App\Module\Auth\DTO\AuthLogDTO;
+use App\Module\Auth\DTO\UserAuthContextDTO;
 use App\Module\Auth\DTO\UserAuthDTO;
+use App\Module\Auth\Enum\RolEnum;
 use App\Module\Usuario\DTO\UserProfileDTO;
 use App\Module\Usuario\DTO\UsuarioSimpleDTO;
-use App\Module\Usuario\Entity\RolEnum;
 use App\Module\Usuario\Entity\Usuario;
 use DateTimeImmutable;
 
@@ -65,6 +65,28 @@ final class UsuarioRepository extends BaseRepository
             ultimoIngreso: $result["ultimo_ingreso"]
                 ? new DateTimeImmutable($result["ultimo_ingreso"])
                 : null,
+        );
+    }
+
+    public function findAuthContextById(int $id): ?UserAuthContextDTO
+    {
+        $stmt = $this->pdo->prepare(
+            "select usuario_id, nombre, apellidos, email from usuarios where usuario_id = :id",
+        );
+
+        $stmt->execute([":id" => $id]);
+
+        $result = $stmt->fetch();
+
+        if (!$result) {
+            return null;
+        }
+
+        return new UserAuthContextDTO(
+            id: $result["usuario_id"],
+            nombre: $result["nombre"],
+            apellidos: $result["apellidos"],
+            email: $result["email"],
         );
     }
 

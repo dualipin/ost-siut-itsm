@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Http\Exception\UnauthorizedException;
 use App\Module\Auth\Service\AuthenticationService;
+use App\Shared\Context\ContextInterface;
 
 /**
  * Middleware base para proteger rutas
@@ -12,7 +13,7 @@ abstract class BaseMiddleware
 {
     protected UnauthorizedException $lastException;
 
-    public function __construct(protected AuthenticationService $authService) {}
+    public function __construct(protected ContextInterface $context) {}
 
     /**
      * Ejecuta el middleware

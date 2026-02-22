@@ -1,6 +1,7 @@
 <?php
+
 use App\Bootstrap;
-use App\Module\Usuario\Entity\RolEnum;
+use App\Module\Auth\Enum\RolEnum;
 use App\Module\Usuario\Entity\Usuario;
 use App\Module\Usuario\Repository\UsuarioRepository;
 use Faker\Factory;

@@ -3,7 +3,7 @@
 namespace App\Module\Prestamo\Service;
 
 use App\Module\Prestamo\DTO\AmortizacionCorridaDTO;
-use App\Module\Prestamo\Entity\UnidadEnum;
+use App\Module\Prestamo\Enum\UnidadEnum;
 use DateTimeImmutable;
 
 class CalculadoraIntereSimple
@@ -33,8 +33,8 @@ class CalculadoraIntereSimple
             return [];
         }
 
-        $alinearCalendario = $options['alinear'] ?? false;
-        $fechaPrimerPagoOverride = $options['fechaPrimerPago'] ?? null;
+        $alinearCalendario = $options["alinear"] ?? false;
+        $fechaPrimerPagoOverride = $options["fechaPrimerPago"] ?? null;
 
         if ($tasa > 1) {
             $tasa = $tasa / 100.0;
@@ -42,7 +42,7 @@ class CalculadoraIntereSimple
 
         // Determinar la tasa por período
         // La tasa se aplica directamente (no se divide por frecuencia)
-        $tasaPeriodo = $tasa > 1 ? ($tasa / 100.0) : $tasa;
+        $tasaPeriodo = $tasa > 1 ? $tasa / 100.0 : $tasa;
 
         // Determinar primer pago alineado si corresponde
         $firstPaymentDate = null;
@@ -51,14 +51,21 @@ class CalculadoraIntereSimple
         } elseif ($alinearCalendario) {
             switch ($unidad) {
                 case UnidadEnum::Mes:
-                    $firstPaymentDate = new DateTimeImmutable($fechaInicio->format('Y-m-t'));
+                    $firstPaymentDate = new DateTimeImmutable(
+                        $fechaInicio->format("Y-m-t"),
+                    );
                     break;
                 case UnidadEnum::Quincena:
-                    $day = (int)$fechaInicio->format('d');
+                    $day = (int) $fechaInicio->format("d");
                     if ($day <= 15) {
-                        $firstPaymentDate = DateTimeImmutable::createFromFormat('Y-m-d', $fechaInicio->format('Y-m-15'));
+                        $firstPaymentDate = DateTimeImmutable::createFromFormat(
+                            "Y-m-d",
+                            $fechaInicio->format("Y-m-15"),
+                        );
                     } else {
-                        $firstPaymentDate = new DateTimeImmutable($fechaInicio->format('Y-m-t'));
+                        $firstPaymentDate = new DateTimeImmutable(
+                            $fechaInicio->format("Y-m-t"),
+                        );
                     }
                     break;
                 default:
@@ -70,22 +77,22 @@ class CalculadoraIntereSimple
 
         $corrida = [];
         $saldo = round($capital, 2);
-        
+
         // Capital fijo a amortizar por período
         $capitalFijo = round($capital / $periodos, 2);
 
         for ($i = 1; $i <= $periodos; $i++) {
             // Interés COMPUESTO sobre saldo decreciente
             $interes = round($saldo * $tasaPeriodo, 2);
-            
+
             // Capital soluto es fijo
             $capitalSoluto = $capitalFijo;
-            
+
             // En el último período, ajustar capital para que cuadre exactamente
             if ($i === $periodos) {
                 $capitalSoluto = round($saldo, 2);
             }
-            
+
             // Cuota total = Capital fijo + Interés sobre saldo
             $cuota = round($capitalSoluto + $interes, 2);
 
@@ -97,14 +104,20 @@ class CalculadoraIntereSimple
                     $fechaPago = $baseDate->add(new \DateInterval("P{$i}M"));
                     break;
                 case UnidadEnum::Quincena:
-                    $fechaPago = $baseDate->add(new \DateInterval('P' . (15 * $i) . 'D'));
+                    $fechaPago = $baseDate->add(
+                        new \DateInterval("P" . 15 * $i . "D"),
+                    );
                     break;
                 case UnidadEnum::Semana:
-                    $fechaPago = $baseDate->add(new \DateInterval('P' . (7 * $i) . 'D'));
+                    $fechaPago = $baseDate->add(
+                        new \DateInterval("P" . 7 * $i . "D"),
+                    );
                     break;
                 case UnidadEnum::Dia:
                 default:
-                    $fechaPago = $baseDate->add(new \DateInterval('P' . $i . 'D'));
+                    $fechaPago = $baseDate->add(
+                        new \DateInterval("P" . $i . "D"),
+                    );
                     break;
             }
 

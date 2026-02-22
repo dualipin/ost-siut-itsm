@@ -13,6 +13,9 @@ $container = Bootstrap::buildContainer();
 $sessionManager = $container->get(SessionManager::class);
 $sessionManager->start();
 
+
+// $middleware = $container->get(Mid)
+
 // Obtener usuario autenticado
 $authHelper = $container->get(AuthHelper::class);
 $usuario = $authHelper->getAuthenticatedUser();
