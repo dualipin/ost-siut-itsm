@@ -1,9 +1,9 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm"
-     style="position: sticky; top: 0; z-index: 1020;" data-aos="fade-down">
+  style="position: sticky; top: 0; z-index: 1020;" data-aos="fade-down">
   <div class="container-fluid">
     <!-- Sidebar Toggle Button (Mobile) -->
     <button class="btn btn-link d-lg-none me-2 p-0 text-primary" type="button" data-bs-toggle="offcanvas"
-            data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-label="Toggle navigation">
+      data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-label="Toggle navigation">
       <i class="bi bi-list fs-3"></i>
     </button>
 
@@ -14,12 +14,15 @@
 
     <!-- User Info and Logout -->
     <div class="d-flex align-items-center gap-3">
-      <a href="{=new App\Shared\Utils\UrlBuilder('/portal/perfil.php')}" class="fw-semibold text-primary"><i
-                class="bi bi-person-circle me-1"></i>
-        {isset($usuario) ? $usuario->nombre : 'Usuario'}
+      <a href="{url('/portal/perfil.php')}" class="btn btn-outline-primary d-flex align-items-center gap-2">
+        <i class="bi bi-person-circle"></i>
+        <span>
+          {isset($usuario) ? $usuario->nombre : 'Usuario'}
+        </span>
       </a>
-      <a class="btn btn-outline-danger btn-sm" href="/cuentas/logout.php">
-        <i class="bi bi-box-arrow-right me-1"></i> Cerrar Sesión
+      <a class="btn btn-outline-danger d-flex align-items-center gap-2" href="{url('/cuentas/logout.php')}">
+        <i class="bi bi-box-arrow-right"></i>
+        <span class="d-lg-inline d-none">Cerrar Sesión</span>
       </a>
     </div>
   </div>
