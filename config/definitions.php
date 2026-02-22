@@ -1,6 +1,8 @@
 <?php
 
 use App\Infrastructure\Config\AppConfig;
+use App\Infrastructure\Mail\DatabaseMailQueue;
+use App\Infrastructure\Mail\MailerInterface;
 use App\Infrastructure\Templating\LatteExtensions;
 use App\Infrastructure\Templating\LatteRenderer;
 use App\Infrastructure\Templating\RendererInterface;
@@ -71,7 +73,8 @@ return function (\DI\ContainerBuilder $container) {
         },
 
         RendererInterface::class => autowire(LatteRenderer::class),
-        
+        MailerInterface::class => autowire(DatabaseMailQueue::class),
+
         CalculadoraCompuesto::class => autowire(),
         CalculadoraIntereSimple::class => autowire(),
         SimuladorService::class => autowire(),
