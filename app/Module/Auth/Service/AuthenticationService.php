@@ -2,43 +2,77 @@
 
 namespace App\Module\Auth\Service;
 
-use App\Module\Auth\Entity\User;
-use App\Module\Auth\Repository\UserRepositoryInterface;
-use App\Module\Auth\Repository\RoleRepositoryInterface;
+use App\Module\Auth\DTO\AuthLogDTO;
+use App\Module\Auth\DTO\UserAuthDTO;
+use App\Module\Auth\Enum\AuthLogActionEnum;
+use App\Module\Auth\Repository\AuthenticationRepository;
+use App\Module\Usuario\Repository\UsuarioRepository;
 
 /**
  * Servicio de autenticación
  */
-class AuthenticationService
+final class AuthenticationService
 {
-    private ?User $currentUser = null;
+    private ?UserAuthDTO $currentUser = null;
 
     public function __construct(
-        private UserRepositoryInterface $userRepository,
-        private RoleRepositoryInterface $roleRepository,
-    ) {
-    }
+        private readonly UsuarioRepository $userRepo,
+        private readonly AuthenticationRepository $authRepo,
+    ) {}
 
     /**
-     * Autentica un usuario con email y contraseña
+     * Auténtica un usuario con email y contraseña
      */
-    public function authenticate(string $email, string $password): bool
-    {
-        $user = $this->userRepository->findByEmail($email);
+    public function authenticate(
+        string $email,
+        string $password,
+        string $ipAddress = null,
+        string $userAgent = null,
+    ): bool {
+        $user = $this->userRepo->findAuthByEmail($email);
 
-        if (!$user || !$user->isActivo()) {
+        if (!$user || !$user->active) {
+            $this->authRepo->saveAuthLog(
+                new AuthLogDTO(
+                    action: AuthLogActionEnum::LoginAttempt,
+                    success: false,
+                    email: $email,
+                    ipAddress: $ipAddress,
+                    userAgent: $userAgent,
+                    errorMessage: "Usuario no encontrado o inactivo",
+                ),
+            );
             return false;
         }
 
-        if (!password_verify($password, $user->getPassword())) {
+        if (!password_verify($password, $user->passwordHash)) {
+            $this->authRepo->saveAuthLog(
+                new AuthLogDTO(
+                    action: AuthLogActionEnum::LoginAttempt,
+                    success: false,
+                    usuarioId: (int) $user->id,
+                    email: $email,
+                    ipAddress: $ipAddress,
+                    userAgent: $userAgent,
+                    errorMessage: "Contraseña incorrecta",
+                ),
+            );
             return false;
         }
 
         // Actualizar último login
-        $user->updateLastLogin();
-        $this->userRepository->update($user);
-
+        $this->authRepo->updateLastLogin($user->id);
         $this->currentUser = $user;
+        $this->authRepo->saveAuthLog(
+            new AuthLogDTO(
+                action: AuthLogActionEnum::LoginAttempt,
+                success: true,
+                usuarioId: (int) $user->id,
+                email: $email,
+                ipAddress: $ipAddress,
+                userAgent: $userAgent,
+            ),
+        );
         return true;
     }
 
@@ -51,7 +85,7 @@ class AuthenticationService
         string $nombre,
         string $apellidos,
     ): int {
-        $hashedPassword = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
+        $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
         $user = new User(
             id: 0,
@@ -122,69 +156,11 @@ class AuthenticationService
     }
 
     /**
-     * Verifica si el usuario actual tiene un permiso específico
-     */
-    public function hasPermission(string $permission): bool
-    {
-        if (!$this->currentUser) {
-            return false;
-        }
-        return $this->currentUser->hasPermission($permission);
-    }
-
-    /**
-     * Obtiene todos los permisos del usuario actual
-     */
-    public function getCurrentUserPermissions(): array
-    {
-        if (!$this->currentUser) {
-            return [];
-        }
-
-        $permissions = [];
-        foreach ($this->currentUser->getRoles() as $role) {
-            $permissions = array_merge($permissions, $role->getPermissions());
-        }
-
-        return array_unique($permissions);
-    }
-
-    /**
      * Cierra la sesión del usuario
      */
     public function logout(): void
     {
         $this->currentUser = null;
-    }
-
-    /**
-     * Cambia la contraseña de un usuario
-     */
-    public function changePassword(int $userId, string $oldPassword, string $newPassword): bool
-    {
-        $user = $this->userRepository->findById($userId);
-
-        if (!$user || !password_verify($oldPassword, $user->getPassword())) {
-            return false;
-        }
-
-        $user->setPassword(password_hash($newPassword, PASSWORD_BCRYPT, ['cost' => 12]));
-        return $this->userRepository->update($user);
-    }
-
-    /**
-     * Reinicia la contraseña de un usuario (admin)
-     */
-    public function resetPassword(int $userId, string $newPassword): bool
-    {
-        $user = $this->userRepository->findById($userId);
-
-        if (!$user) {
-            return false;
-        }
-
-        $user->setPassword(password_hash($newPassword, PASSWORD_BCRYPT, ['cost' => 12]));
-        return $this->userRepository->update($user);
     }
 
     /**
@@ -200,6 +176,6 @@ class AuthenticationService
      */
     public function emailExists(string $email): bool
     {
-        return $this->userRepository->findByEmail($email) !== null;
+        return $this->userRepo->findAuthByEmail($email) !== null;
     }
 }
