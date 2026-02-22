@@ -2,6 +2,7 @@
 
 namespace App\Module\Auth\Service;
 
+use App\Http\Exception\TooManyAttemptsException;
 use App\Infrastructure\Session\SessionManager;
 use App\Module\Auth\DTO\AuthLogDTO;
 use App\Module\Auth\DTO\UserAuthDTO;
@@ -43,7 +44,7 @@ final class AuthenticationService
 
     /**
      * Auténtica un usuario con email y contraseña
-     * @throws \App\Http\Exception\TooManyAttemptsException
+     * @throws TooManyAttemptsException
      */
     public function authenticate(
         string $email,
@@ -111,7 +112,7 @@ final class AuthenticationService
                     errorMessage: "Cuenta bloqueada por demasiados intentos",
                 ),
             );
-            throw new \App\Http\Exception\TooManyAttemptsException();
+            throw new TooManyAttemptsException();
         }
 
         $user = $this->userRepo->findAuthByEmail($email);
@@ -119,8 +120,11 @@ final class AuthenticationService
 
         if (!$user || !$user->active) {
             // Usar password_verify de todas formas para gastar tiempo (constante timing)
-            password_verify($password, '$2y$10$invalid.hash.to.prevent.timing.attacks');
-            
+            password_verify(
+                $password,
+                '$2y$10$invalid.hash.to.prevent.timing.attacks',
+            );
+
             $this->authRepo->saveAuthLog(
                 new AuthLogDTO(
                     action: AuthLogActionEnum::LoginAttempt,

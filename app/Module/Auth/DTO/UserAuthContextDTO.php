@@ -1,17 +1,21 @@
 <?php
+
 namespace App\Module\Auth\DTO;
 
 use App\Module\Auth\Enum\RolEnum;
-use DateTimeImmutable;
 
-final readonly class UserAuthDTO
+class UserAuthContextDTO
 {
     public function __construct(
         public int $id,
+        public string $nombre,
+        public string $apellidos,
         public string $email,
-        public string $passwordHash,
         public RolEnum $rol,
-        public bool $active,
-        public ?DateTimeImmutable $ultimoIngreso = null,
     ) {}
+
+    public function getFullName(): string
+    {
+        return "$this->nombre $this->apellidos";
+    }
 }

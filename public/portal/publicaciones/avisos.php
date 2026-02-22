@@ -3,7 +3,7 @@
 use App\Bootstrap;
 use App\Infrastructure\Templating\RendererInterface;
 use App\Module\Publicacion\Entity\Publicacion;
-use App\Module\Publicacion\Entity\TipoPublicacionEnum;
+use App\Module\Publicacion\Enum\TipoPublicacionEnum;
 
 require_once __DIR__ . "/../../../bootstrap.php";
 

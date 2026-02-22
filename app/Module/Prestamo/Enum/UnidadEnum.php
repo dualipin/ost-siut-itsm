@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Module\Prestamo\Entity;
+namespace App\Module\Prestamo\Enum;
 
 enum UnidadEnum
 {

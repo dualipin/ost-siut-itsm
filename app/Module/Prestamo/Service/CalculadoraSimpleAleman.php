@@ -3,7 +3,7 @@
 namespace App\Module\Prestamo\Service;
 
 use App\Module\Prestamo\DTO\AmortizacionCorridaDTO;
-use App\Module\Prestamo\Entity\UnidadEnum;
+use App\Module\Prestamo\Enum\UnidadEnum;
 use DateInterval;
 use DateTimeImmutable;
 

@@ -3,7 +3,7 @@
 namespace App\Module\Prestamo\Service;
 
 use App\Module\Prestamo\DTO\AmortizacionCorridaDTO;
-use App\Module\Prestamo\Entity\UnidadEnum;
+use App\Module\Prestamo\Enum\UnidadEnum;
 use DateTimeImmutable;
 
 class CalculadoraCompuesto
@@ -30,9 +30,9 @@ class CalculadoraCompuesto
             return [];
         }
 
-        $alinearCalendario = $options['alinear'] ?? false;
-        $fechaPrimerPagoOverride = $options['fechaPrimerPago'] ?? null;
-        $dayCount = $options['dayCount'] ?? 'actual/365';
+        $alinearCalendario = $options["alinear"] ?? false;
+        $fechaPrimerPagoOverride = $options["fechaPrimerPago"] ?? null;
+        $dayCount = $options["dayCount"] ?? "actual/365";
 
         if ($tasa > 1) {
             $tasa = $tasa / 100.0;
@@ -50,14 +50,21 @@ class CalculadoraCompuesto
         } elseif ($alinearCalendario) {
             switch ($unidad) {
                 case UnidadEnum::Mes:
-                    $firstPaymentDate = new DateTimeImmutable($fechaInicio->format('Y-m-t'));
+                    $firstPaymentDate = new DateTimeImmutable(
+                        $fechaInicio->format("Y-m-t"),
+                    );
                     break;
                 case UnidadEnum::Quincena:
-                    $day = (int)$fechaInicio->format('d');
+                    $day = (int) $fechaInicio->format("d");
                     if ($day <= 15) {
-                        $firstPaymentDate = DateTimeImmutable::createFromFormat('Y-m-d', $fechaInicio->format('Y-m-15'));
+                        $firstPaymentDate = DateTimeImmutable::createFromFormat(
+                            "Y-m-d",
+                            $fechaInicio->format("Y-m-15"),
+                        );
                     } else {
-                        $firstPaymentDate = new DateTimeImmutable($fechaInicio->format('Y-m-t'));
+                        $firstPaymentDate = new DateTimeImmutable(
+                            $fechaInicio->format("Y-m-t"),
+                        );
                     }
                     break;
                 default:
@@ -66,8 +73,12 @@ class CalculadoraCompuesto
         }
 
         $diasPrimerPeriodo = 0;
-        if ($firstPaymentDate instanceof DateTimeImmutable && $firstPaymentDate > $fechaInicio) {
-            $diasPrimerPeriodo = (int)$fechaInicio->diff($firstPaymentDate)->days;
+        if (
+            $firstPaymentDate instanceof DateTimeImmutable &&
+            $firstPaymentDate > $fechaInicio
+        ) {
+            $diasPrimerPeriodo = (int) $fechaInicio->diff($firstPaymentDate)
+                ->days;
             $hasPartialFirst = $diasPrimerPeriodo > 0;
         }
 
@@ -77,7 +88,10 @@ class CalculadoraCompuesto
         // cuota periódica constante (anualidad)
         if ($r > 0.0) {
             $den = 1 - pow(1 + $r, -$periodos);
-            $cuota = $den > 0 ? round($capital * $r / $den, 2) : round($capital / $periodos, 2);
+            $cuota =
+                $den > 0
+                    ? round(($capital * $r) / $den, 2)
+                    : round($capital / $periodos, 2);
         } else {
             $cuota = round($capital / $periodos, 2);
         }
@@ -88,11 +102,17 @@ class CalculadoraCompuesto
         for ($i = 1; $i <= $periodos; $i++) {
             // interés del periodo — primer periodo puede ser parcial
             if ($i === 1 && $hasPartialFirst) {
-                if ($dayCount === 'actual/360') {
-                    $interesPeriodo = round($saldo * $tasa * ($diasPrimerPeriodo / 360.0), 2);
+                if ($dayCount === "actual/360") {
+                    $interesPeriodo = round(
+                        $saldo * $tasa * ($diasPrimerPeriodo / 360.0),
+                        2,
+                    );
                 } else {
                     // default actual/365
-                    $interesPeriodo = round($saldo * $tasa * ($diasPrimerPeriodo / 365.0), 2);
+                    $interesPeriodo = round(
+                        $saldo * $tasa * ($diasPrimerPeriodo / 365.0),
+                        2,
+                    );
                 }
             } else {
                 $interesPeriodo = round($saldo * $r, 2);
@@ -112,20 +132,28 @@ class CalculadoraCompuesto
             $saldo = round(max($saldo - $capitalSoluto, 0.0), 2);
 
             // calcular fecha de pago
-            $periodIndex = $hasPartialFirst ? ($i - 1) : $i;
+            $periodIndex = $hasPartialFirst ? $i - 1 : $i;
             switch ($unidad) {
                 case UnidadEnum::Mes:
-                    $fechaPago = $baseDate->add(new \DateInterval("P{$periodIndex}M"));
+                    $fechaPago = $baseDate->add(
+                        new \DateInterval("P{$periodIndex}M"),
+                    );
                     break;
                 case UnidadEnum::Quincena:
-                    $fechaPago = $baseDate->add(new \DateInterval('P' . (15 * $periodIndex) . 'D'));
+                    $fechaPago = $baseDate->add(
+                        new \DateInterval("P" . 15 * $periodIndex . "D"),
+                    );
                     break;
                 case UnidadEnum::Semana:
-                    $fechaPago = $baseDate->add(new \DateInterval('P' . (7 * $periodIndex) . 'D'));
+                    $fechaPago = $baseDate->add(
+                        new \DateInterval("P" . 7 * $periodIndex . "D"),
+                    );
                     break;
                 case UnidadEnum::Dia:
                 default:
-                    $fechaPago = $baseDate->add(new \DateInterval('P' . $periodIndex . 'D'));
+                    $fechaPago = $baseDate->add(
+                        new \DateInterval("P" . $periodIndex . "D"),
+                    );
                     break;
             }
 

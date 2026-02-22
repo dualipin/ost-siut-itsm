@@ -2,6 +2,7 @@
 
 namespace App\Module\Usuario\Entity;
 
+use App\Module\Auth\Enum\RolEnum;
 use DateTimeImmutable;
 
 final readonly class Usuario

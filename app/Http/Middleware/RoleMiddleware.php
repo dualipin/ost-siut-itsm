@@ -2,11 +2,19 @@
 
 namespace App\Http\Middleware;
 
+use App\Shared\Context\ContextInterface;
+
 /**
  * Middleware de roles - Requiere que el usuario tenga al menos uno de los roles especificados
  */
-class RoleMiddleware extends BaseMiddleware
+final class RoleMiddleware extends BaseMiddleware
 {
+    public function __construct(
+        ContextInterface $context,
+        private readonly AuthMiddleware $authMiddleware,
+    ) {
+        parent::__construct($context);
+    }
     private array $requiredRoles = [];
 
     public function setRequiredRoles(array $roles): self
@@ -17,7 +25,7 @@ class RoleMiddleware extends BaseMiddleware
 
     public function execute(): bool
     {
-        if (!$this->authService->isAuthenticated()) {
+        if (!$this->context->get()) {
             return $this->deny(
                 "Debe estar autenticado para acceder a este recurso",
             );
@@ -27,7 +35,7 @@ class RoleMiddleware extends BaseMiddleware
             return true;
         }
 
-        if (!$this->authService->hasAnyRole($this->requiredRoles)) {
+        if (!$this->context->get($this->requiredRoles)) {
             return $this->deny(
                 "No tiene los permisos necesarios. Roles requeridos: " .
                     implode(", ", $this->requiredRoles),
