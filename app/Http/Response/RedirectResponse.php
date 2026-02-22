@@ -2,8 +2,6 @@
 
 namespace App\Http\Response;
 
-use App\Infrastructure\Config\AppConfig;
-
 final readonly class RedirectResponse
 {
     public function __construct(private string $location) {}

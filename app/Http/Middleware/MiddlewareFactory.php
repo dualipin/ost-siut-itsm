@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\Response\Redirector;
+use App\Module\Auth\Enum\RolEnum;
 use App\Shared\Context\UserContext;
 
 /**
@@ -9,21 +11,31 @@ use App\Shared\Context\UserContext;
  */
 final readonly class MiddlewareFactory
 {
-    public function __construct(private UserContext $userContext) {}
+    public function __construct(
+        private UserContext $userContext,
+        private Redirector $redirector,
+    ) {}
     /**
      * Crea un middleware de autenticación
      */
-    public function createAuthMiddleware(): AuthMiddleware
+    public function auth(): AuthMiddleware
     {
         return new AuthMiddleware($this->userContext);
     }
-
     /**
      * Crea un middleware de roles
      */
-    public function createRoleMiddleware(array $roles): RoleMiddleware
+    public function role(RolEnum ...$roles): RoleMiddleware
     {
-        $middleware = new RoleMiddleware($this->authService);
-        return $middleware->setRequiredRoles($roles);
+        return new RoleMiddleware($this->userContext, ...$roles);
+    }
+
+    public function runOrRedirect(
+        BaseMiddleware $middleware,
+        string $redirectTo = "/cuentas/login.php",
+    ): void {
+        if (!$middleware->execute()) {
+            $this->redirector->to($redirectTo)->send();
+        }
     }
 }

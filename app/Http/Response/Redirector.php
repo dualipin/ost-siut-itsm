@@ -12,13 +12,4 @@ final readonly class Redirector
     {
         return new RedirectResponse($this->urlBuilder->to($path, $params));
     }
-
-    public function away(
-        string $absoluteUrl,
-        array $params = [],
-    ): RedirectResponse {
-        return new RedirectResponse(
-            $this->urlBuilder->away($absoluteUrl, $params),
-        );
-    }
 }
