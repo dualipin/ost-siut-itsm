@@ -10,8 +10,6 @@
     icon => 'bi-calculator'
   }
 
-  <button x-data @click="$store.toast.show({ 'message': 'Hola'})">Toast</button>
-
   <div x-data="simuladorData()">
     <form class="needs-validation" method="POST">
 
@@ -43,7 +41,7 @@
 
                 <div class="col-12 col-sm-6">
                   <label class="form-label mb-1 small d-none d-sm-block">Tipo</label>
-                  <select  x-model="item.tipoId" @change="onTipoChange(index)" class="form-select" required>
+                  <select x-model="item.tipoId" @change="onTipoChange(index)" class="form-select" required>
                     <option value="" selected disabled>Seleccione...</option>
                     <template x-for="dato in categoriasTipoIngreso">
                       <option :value="dato.id" x-text="dato.nombre"
@@ -157,7 +155,7 @@
      * @returns { Object }
      */
     function simuladorData() {
-      const data = {= json_encode($categoriasTipoIngreso) };
+      const data = {= json_encode($categoriasTipoIngreso)};
       /** @type { TipoPrestamoRaw[] } */
       const parsed = typeof data === 'string' ? JSON.parse(data) : data;
       /** @type { TipoPrestamoRaw[] } */
@@ -165,17 +163,22 @@
 
       /** @type { TipoPrestamo[] } */
       const tiposPrestamos = dataTipoPrestamos.map((item) => new TipoPrestamo(
-        item.id,
-        item.nombre,
-        item.esPeriodico,
-        item.frecuenciaDias,
-        item.mesPagoTentativo,
-        item.diasPagoTentativo,
-        item.activo
+              item.id,
+              item.nombre,
+              item.esPeriodico,
+              item.frecuenciaDias,
+              item.mesPagoTentativo,
+              item.diasPagoTentativo,
+              item.activo
       ));
 
       /** @type { () => DescuentoItem } */
-      const buildDescuento = () => ({ monto: 0, tipoId: '', cantidad: 1, unidad: 'meses' });
+      const buildDescuento = () => ({
+        monto: 0,
+        tipoId: '',
+        cantidad: 1,
+        unidad: 'meses'
+      });
 
       return {
         monto: 0,
@@ -337,7 +340,10 @@
          * @returns { string }
          */
         formatCurrency(v) {
-          return '$' + Number(v || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          return '$' + Number(v || 0).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          });
         },
         /**
          * @param { string } dateStr
