@@ -1,41 +1,42 @@
-function addAndShowToast(
-  message,
-  containerId = "registroToast",
-  type = "success" | "error" | "advertencia",
-) {
-  const container = document.getElementById(containerId);
-  const template = document.getElementById("toast-template");
+/**
+ * @typedef ToastType
+ * @property {number} id
+ * @property {"success" | "danger" | "warning"} type
+ * @property {string} message
+ */
 
-  if (!container || !template) return;
+document.addEventListener("alpine:init", () => {
+  Alpine.store("toast", {
+    /** @type {ToastType[]} */
+    list: [],
+    /** @param {ToastType} props */
+    show(props) {
+      const id = Date.now();
+      const { message, type } = props;
 
-  // 1. Clonamos el contenido del template (el nodo completo)
-  const clone = document.importNode(template.content, true);
-  const toastElement = clone.querySelector(".toast");
+      // Use assignment to ensure reactivity instead of push
+      this.list = [...this.list, { id, message, type }];
 
-  // 2. Mapeo de títulos y estilos
-  const config = {
-    success: { title: "Éxito", class: "text-success" },
-    error: { title: "Error", class: "text-danger" },
-    advertencia: { title: "Advertencia", class: "text-warning" },
-  };
-  const { title, class: textClass } = config[type] || {
-    title: "Aviso",
-    class: "",
-  };
+      // Wait for Alpine to render the template before showing the toast
+      setTimeout(async () => {
+        await Alpine.nextTick(() => {
+          const toastEl = document.getElementById(`toast-${id}`);
 
-  // 3. Llenamos los datos manipulando el DOM directamente
-  const headerStrong = toastElement.querySelector(".toast-header strong");
-  headerStrong.textContent = title;
-  if (textClass) headerStrong.classList.add(textClass);
+          if (!toastEl) {
+            // Debug: log all toast elements in DOM
+            const allToasts = document.querySelectorAll('[id^="toast-"]');
+            return;
+          }
 
-  toastElement.querySelector(".toast-body").textContent = message;
+          const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+          toast.show();
 
-  // 4. Lo inyectamos en el contenedor y lo activamos
-  container.appendChild(toastElement);
-
-  const toast = new bootstrap.Toast(toastElement);
-  toast.show();
-
-  // 5. Autolimpieza del DOM al cerrarse
-  toastElement.addEventListener("hidden.bs.toast", () => toastElement.remove());
-}
+          toastEl.addEventListener("hidden.bs.toast", () => {
+            this.list = this.list.filter((t) => t.id !== id);
+            toastEl.remove();
+          });
+        });
+      }, 50);
+    },
+  });
+});
