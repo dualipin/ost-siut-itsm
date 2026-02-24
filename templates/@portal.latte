@@ -40,6 +40,25 @@
     </div>
   </div>
 
+  <div class="toast-container position-fixed bottom-0 end-0 p-3" x-data="{}" @click="$event.stopPropagation()">
+    <template x-for="toast in $store.toast.list" :key="toast.id">
+      <div :id="'toast-' + toast.id"
+           class="toast"
+           role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+          <strong class="me-auto">
+            <span x-text="toast.type === 'success' ? 'Éxito' : toast.type === 'error' ? 'Error' : 'Notificación'"></span>
+          </strong>
+          <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+          <span x-text="toast.message"></span>
+        </div>
+      </div>
+    </template>
+  </div>
+
+
   <style>
     small.text-muted {
       font-size: 0.8rem;
@@ -67,4 +86,6 @@
       });
     });
   </script>
+
+  <script src="{url('assets/js/components/toast.js')}"></script>
 {/block}

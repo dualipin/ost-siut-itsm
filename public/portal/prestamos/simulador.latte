@@ -10,6 +10,8 @@
     icon => 'bi-calculator'
   }
 
+  <button x-data @click="$store.toast.show({ 'message': 'Hola'})">Toast</button>
+
   <div x-data="simuladorData()">
     <form class="needs-validation" method="POST">
 
