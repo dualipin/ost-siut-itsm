@@ -1,7 +1,7 @@
 <?php
 
 use App\Bootstrap;
-use App\Module\Auth\Enum\RolEnum;
+use App\Module\Auth\Enum\RoleEnum;
 use App\Module\Usuario\Entity\Usuario;
 use App\Module\Usuario\Repository\UsuarioRepository;
 use Faker\Factory;
@@ -51,7 +51,7 @@ if (isset($path)) {
                 apellidos: $record["apellidos"],
                 email: $record["email"] ?: $faker->email(),
                 passwordHash: $defaultPassword,
-                rol: RolEnum::tryFrom($record["rol"]),
+                rol: RoleEnum::tryFrom($record["rol"]),
                 curp: $record["curp"],
                 fechaNacimiento: $fechaNacimiento,
                 direccion: $record["direccion"],

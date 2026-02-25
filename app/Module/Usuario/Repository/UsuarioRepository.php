@@ -5,7 +5,7 @@ namespace App\Module\Usuario\Repository;
 use App\Infrastructure\Persistence\BaseRepository;
 use App\Module\Auth\DTO\UserAuthContextDTO;
 use App\Module\Auth\DTO\UserAuthDTO;
-use App\Module\Auth\Enum\RolEnum;
+use App\Module\Auth\Enum\RoleEnum;
 use App\Module\Usuario\DTO\UserProfileDTO;
 use App\Module\Usuario\DTO\UsuarioSimpleDTO;
 use App\Module\Usuario\Entity\Usuario;
@@ -33,7 +33,7 @@ final class UsuarioRepository extends BaseRepository
             id: $result["usuario_id"],
             email: $result["email"],
             passwordHash: $result["password_hash"],
-            rol: RolEnum::tryFrom($result["rol"]),
+            rol: RoleEnum::tryFrom($result["rol"]),
             active: (bool) $result["activo"],
             ultimoIngreso: $result["ultimo_ingreso"]
                 ? new DateTimeImmutable($result["ultimo_ingreso"])
@@ -60,7 +60,7 @@ final class UsuarioRepository extends BaseRepository
             id: $result["usuario_id"],
             email: $result["email"],
             passwordHash: $result["password_hash"],
-            rol: RolEnum::tryFrom($result["rol"]),
+            rol: RoleEnum::tryFrom($result["rol"]),
             active: (bool) $result["activo"],
             ultimoIngreso: $result["ultimo_ingreso"]
                 ? new DateTimeImmutable($result["ultimo_ingreso"])
@@ -87,7 +87,7 @@ final class UsuarioRepository extends BaseRepository
             nombre: $result["nombre"],
             apellidos: $result["apellidos"],
             email: $result["email"],
-            rol: RolEnum::tryFrom($result["rol"]),
+            rol: RoleEnum::tryFrom($result["rol"]),
         );
     }
 
@@ -112,7 +112,7 @@ final class UsuarioRepository extends BaseRepository
                 nombre: $row["nombre"],
                 apellidos: $row["apellidos"],
                 email: $row["email"],
-                rol: RolEnum::tryFrom($row["rol"]) ?? RolEnum::Agremiado,
+                rol: RoleEnum::tryFrom($row["rol"]) ?? RoleEnum::Agremiado,
                 activo: (bool) $row["activo"],
                 departamento: $row["departamento"],
             ),

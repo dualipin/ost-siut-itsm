@@ -4,7 +4,7 @@ namespace App\Shared\Context;
 
 use App\Infrastructure\Session\SessionManager;
 use App\Module\Auth\DTO\SessionUserDTO;
-use App\Module\Auth\Enum\RolEnum;
+use App\Module\Auth\Enum\RoleEnum;
 
 /**
  * @implements ContextInterface<SessionUserDTO>
@@ -32,7 +32,8 @@ final readonly class UserContext implements ContextInterface
 
         return new SessionUserDTO(
             id: (int) $data["id"],
-            rol: RolEnum::tryFrom($data["rol"]),
+            email: $data["email"],
+            rol: RoleEnum::tryFrom($data["rol"]),
         );
     }
 
@@ -45,6 +46,7 @@ final readonly class UserContext implements ContextInterface
     {
         $this->session->set(self::SessionKey, [
             "id" => $value->id,
+            "email" => $value->email,
             "rol" => $value->rol->value,
         ]);
     }
