@@ -5,7 +5,6 @@ use App\Http\Middleware\MiddlewareFactory;
 use App\Http\Middleware\MiddlewareRunner;
 use App\Infrastructure\Session\SessionManager;
 use App\Infrastructure\Templating\RendererInterface;
-use App\Shared\Provider\UserContextProvider;
 
 require_once __DIR__ . "/../../bootstrap.php";
 
@@ -20,11 +19,7 @@ $runner = $container->get(MiddlewareRunner::class);
 
 $runner->runOrRedirect($middleware->auth());
 
-// Obtener usuario autenticado
-$userProvider = $container->get(UserContextProvider::class);
-$usuario = $userProvider->get();
+http_response_code(403);
 
 $renderer = $container->get(RendererInterface::class);
-$renderer->render("./index.latte", [
-    "usuario" => $usuario,
-]);
+$renderer->render("./acceso-denegado.latte");
