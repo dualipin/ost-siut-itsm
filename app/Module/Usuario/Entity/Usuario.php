@@ -2,7 +2,7 @@
 
 namespace App\Module\Usuario\Entity;
 
-use App\Module\Auth\Enum\RolEnum;
+use App\Module\Auth\Enum\RoleEnum;
 use DateTimeImmutable;
 
 final readonly class Usuario
@@ -12,7 +12,7 @@ final readonly class Usuario
         public string $apellidos,
         public string $email,
         public string $passwordHash,
-        public RolEnum $rol,
+        public RoleEnum $rol,
 
         // optional / nullable fields (map to DB nullable columns)
         public bool $activo = true,

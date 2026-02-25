@@ -3,7 +3,6 @@
 namespace App\Http\Middleware;
 
 use App\Http\Exception\UnauthorizedException;
-use App\Module\Auth\Service\AuthenticationService;
 use App\Shared\Context\ContextInterface;
 
 /**
@@ -11,29 +10,19 @@ use App\Shared\Context\ContextInterface;
  */
 abstract class BaseMiddleware
 {
-    protected UnauthorizedException $lastException;
-
     public function __construct(protected ContextInterface $context) {}
 
     /**
-     * Ejecuta el middleware
+     * Ejecuta el middleware, lanza UnauthorizedException si falla
+     * @throws UnauthorizedException
      */
-    abstract public function execute(): bool;
+    abstract public function execute(): void;
 
     /**
-     * Obtiene la última excepción generada
+     * @throws UnauthorizedException
      */
-    public function getLastException(): ?UnauthorizedException
+    protected function deny(string $message = "Access denied"): never
     {
-        return $this->lastException ?? null;
-    }
-
-    /**
-     * Genera un error 403
-     */
-    protected function deny(string $message = "Acceso denegado"): bool
-    {
-        $this->lastException = new UnauthorizedException($message);
-        return false;
+        throw new UnauthorizedException($message);
     }
 }

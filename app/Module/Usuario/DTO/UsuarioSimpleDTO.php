@@ -2,7 +2,7 @@
 
 namespace App\Module\Usuario\DTO;
 
-use App\Module\Auth\Enum\RolEnum;
+use App\Module\Auth\Enum\RoleEnum;
 
 final readonly class UsuarioSimpleDTO
 {
@@ -11,7 +11,7 @@ final readonly class UsuarioSimpleDTO
         public string $nombre,
         public string $apellidos,
         public string $email,
-        public RolEnum $rol,
+        public RoleEnum $rol,
         public bool $activo,
         public ?string $departamento = null,
     ) {}

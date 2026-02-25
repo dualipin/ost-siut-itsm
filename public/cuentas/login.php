@@ -18,29 +18,24 @@ $sessionManager = $container->get(SessionManager::class);
 $csrfManager = $container->get(CsrfTokenManager::class);
 $userContext = $container->get(UserContext::class);
 
-// Iniciar sesión
 $sessionManager->start();
 
 $request = new FormRequest();
-
 $redirect = $request->input("redirect", "/portal/");
 $error = $request->input("error");
 $email = $request->input("email");
 
-if ($userContext->get() !== null) {
-    // Si el usuario ya está autenticado, redirigirlo al portal
+if ($userContext->isAuthenticated()) {
     $redirector->to($redirect)->send();
 }
 
 if ($request->isSubmitted()) {
-    // Verificar CSRF token
     $submittedToken = $request->input("_csrf_token");
     if (!$submittedToken || !$csrfManager->verify($submittedToken)) {
-        $error = "Token de seguridad inválido";
         $redirector
             ->to($_SERVER["REQUEST_URI"], [
                 "email" => $email,
-                "error" => $error,
+                "error" => "Token de seguridad inválido",
                 "redirect" => $redirect,
             ])
             ->send();
@@ -48,42 +43,28 @@ if ($request->isSubmitted()) {
 
     $service = $container->get(AuthenticationService::class);
 
-    $path = $_SERVER["REQUEST_URI"];
-    $userAgent = $_SERVER["HTTP_USER_AGENT"] ?? "unknown";
-    $ipAddress = $_SERVER["REMOTE_ADDR"] ?? "unknown";
-    $email = $request->input("email");
-    $password = $request->input("password");
-
     try {
-        if ($service->authenticate($email, $password, $ipAddress, $userAgent)) {
-            // Guardar usuario en sesión
-            $sessionManager->set("user_id", $service->getCurrentUser()->id);
-            $sessionManager->set(
-                "user_email",
-                $service->getCurrentUser()->email,
-            );
+        $authenticated = $service->authenticate(
+            email: $request->input("email"),
+            password: $request->input("password"),
+            ipAddress: $_SERVER["REMOTE_ADDR"] ?? null,
+            userAgent: $_SERVER["HTTP_USER_AGENT"] ?? null,
+        );
 
-            // También actualizamos el contexto para que otras utilidades puedan
-            // detectar al usuario logeado rápidamente (y, por ejemplo, el acceso
-            // al login redirija correctamente).
-            $userContext->set($service->getCurrentUser()->id);
-
-            $sessionManager->regenerate();
-
+        if ($authenticated) {
             $redirector->to($redirect)->send();
         } else {
-            $error = "Credenciales inválidas";
             $redirector
-                ->to($path, [
+                ->to($_SERVER["REQUEST_URI"], [
                     "email" => $email,
-                    "error" => $error,
+                    "error" => "Credenciales inválidas",
                     "redirect" => $redirect,
                 ])
                 ->send();
         }
     } catch (TooManyAttemptsException $e) {
         $redirector
-            ->to($path, [
+            ->to($_SERVER["REQUEST_URI"], [
                 "email" => $email,
                 "error" => $e->getMessage(),
                 "redirect" => $redirect,
@@ -92,16 +73,12 @@ if ($request->isSubmitted()) {
     }
 }
 
-// Generar nuevo CSRF token para GET requests y redisplays
 $csrfToken = $csrfManager->generate();
 
 $renderer = $container->get(RendererInterface::class);
-
-$data = [
+$renderer->render("./login.latte", [
     "email" => $email,
     "error" => $error,
     "redirect" => $redirect,
     CsrfTokenManager::getFieldName() => $csrfToken,
-];
-
-$renderer->render("./login.latte", $data);
+]);

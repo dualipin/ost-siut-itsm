@@ -2,8 +2,8 @@
 
 namespace App\Http\Middleware;
 
-use App\Module\Auth\Enum\RolEnum;
-use App\Shared\Context\ContextInterface;
+use App\Http\Exception\UnauthorizedException;
+use App\Module\Auth\Enum\RoleEnum;
 use App\Shared\Context\UserContext;
 
 /**
@@ -11,29 +11,26 @@ use App\Shared\Context\UserContext;
  */
 final class RoleMiddleware extends BaseMiddleware
 {
-    /** @var RolEnum[] */
+    /** @var RoleEnum[] */
     private array $rolesPermitidos;
-    public function __construct(UserContext $context, RolEnum ...$roles)
+    public function __construct(UserContext $context, RoleEnum ...$roles)
     {
         parent::__construct($context);
         $this->rolesPermitidos = $roles;
     }
 
-    public function execute(): bool
+    /**
+     * @throws UnauthorizedException
+     */
+    public function execute(): void
     {
         $session = $this->context->get(); // SessionUserDTO
         if ($session === null) {
-            return $this->deny(
-                "Debes iniciar sesión para acceder a este recurso.",
-            );
+            $this->deny("Debes iniciar sesión para acceder a este recurso.");
         }
 
         if (!in_array($session->rol, $this->rolesPermitidos, strict: true)) {
-            return $this->deny(
-                "No tienes permisos para acceder a este recurso.",
-            );
+            $this->deny("No tienes permisos para acceder a este recurso.");
         }
-
-        return true;
     }
 }

@@ -13,8 +13,8 @@ final readonly class AuthLogDTO
         public ?int $id = null,
         public ?string $usuarioId = null,
         public ?string $email = null,
-        public ?string $ipAddress = null,
-        public ?string $userAgent = null,
+        public ?string $ipAddress = "unknown",
+        public ?string $userAgent = "unknown",
         public ?string $errorMessage = null,
         public ?DateTimeImmutable $createdAt = null,
     ) {}

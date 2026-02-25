@@ -2,30 +2,26 @@
 
 namespace App\Http\Middleware;
 
-use App\Shared\Context\ContextInterface;
+use App\Http\Exception\UnauthorizedException;
 use App\Shared\Context\UserContext;
 
 /**
  * Middleware de autenticación - Requiere que el usuario esté autenticado
  */
-class AuthMiddleware extends BaseMiddleware
+final class AuthMiddleware extends BaseMiddleware
 {
-    /**
-     * @param UserContext $context
-     */
     public function __construct(UserContext $context)
     {
         parent::__construct($context);
     }
 
-    public function execute(): bool
+    /**
+     * @throws UnauthorizedException
+     */
+    public function execute(): void
     {
         if (!$this->context->isAuthenticated()) {
-            return $this->deny(
-                "Debes iniciar sesión para acceder a este recurso",
-            );
+            $this->deny("Access denied: authentication required");
         }
-
-        return true;
     }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Module\Auth\Enum;
 
-enum RolEnum: string
+enum RoleEnum: string
 {
     case Lider = "lider";
     case Admin = "administrador";

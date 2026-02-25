@@ -2,7 +2,7 @@
 
 namespace App\Module\Auth\DTO;
 
-use App\Module\Auth\Enum\RolEnum;
+use App\Module\Auth\Enum\RoleEnum;
 
 class UserAuthContextDTO
 {
@@ -11,7 +11,7 @@ class UserAuthContextDTO
         public string $nombre,
         public string $apellidos,
         public string $email,
-        public RolEnum $rol,
+        public RoleEnum $rol,
     ) {}
 
     public function getFullName(): string

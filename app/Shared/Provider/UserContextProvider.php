@@ -1,23 +1,29 @@
 <?php
+
 namespace App\Shared\Provider;
 
 use App\Module\Auth\DTO\UserAuthContextDTO;
 use App\Module\Usuario\Repository\UsuarioRepository;
 use App\Shared\Context\UserContext;
 
-final readonly class UserContextProvider implements ContextProviderInterface
+/**
+ * @extends AbstractContextProvider<UserAuthContextDTO>
+ */
+final class UserContextProvider extends AbstractContextProvider
 {
     public function __construct(
-        private UserContext $context,
-        private UsuarioRepository $repository,
+        private readonly UserContext $context,
+        private readonly UsuarioRepository $repository,
     ) {}
 
-    public function get(): ?UserAuthContextDTO
+    protected function resolve(): ?UserAuthContextDTO
     {
         $session = $this->context->get();
+
         if ($session === null) {
             return null;
         }
+
         return $this->repository->findAuthContextById($session->id);
     }
 }
