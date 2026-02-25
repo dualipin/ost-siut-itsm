@@ -2,12 +2,16 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\Exception\ForbiddenException;
 use App\Http\Exception\UnauthorizedException;
 use App\Module\Auth\Enum\RoleEnum;
 use App\Shared\Context\UserContext;
 
 /**
  * Middleware de roles - Requiere que el usuario tenga al menos uno de los roles especificados
+ *
+ * Lanza UnauthorizedException si no está autenticado
+ * Lanza ForbiddenException si está autenticado pero no tiene el rol requerido
  */
 final class RoleMiddleware extends BaseMiddleware
 {
@@ -20,7 +24,8 @@ final class RoleMiddleware extends BaseMiddleware
     }
 
     /**
-     * @throws UnauthorizedException
+     * @throws UnauthorizedException Si no está autenticado
+     * @throws ForbiddenException Si está autenticado, pero no tiene el rol requerido
      */
     public function execute(): void
     {
@@ -30,7 +35,9 @@ final class RoleMiddleware extends BaseMiddleware
         }
 
         if (!in_array($session->rol, $this->rolesPermitidos, strict: true)) {
-            $this->deny("No tienes permisos para acceder a este recurso.");
+            throw new ForbiddenException(
+                "No tienes permisos para acceder a este recurso.",
+            );
         }
     }
 }
