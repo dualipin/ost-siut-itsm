@@ -30,6 +30,11 @@ final readonly class UserContext implements ContextInterface
             return null;
         }
 
+        // Validar que todos los campos requeridos existan
+        if (!isset($data["id"]) || !isset($data["email"]) || !isset($data["rol"])) {
+            return null;
+        }
+
         return new SessionUserDTO(
             id: (int) $data["id"],
             email: $data["email"],
