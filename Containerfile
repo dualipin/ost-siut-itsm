@@ -3,6 +3,8 @@ FROM docker.io/php:8.3-apache
 ARG HOST_UID=1000
 ARG HOST_GID=1000
 
+ENV COMPOSER_CACHE_DIR=/dev/null
+
 RUN apt-get update && apt-get install -y \
     libicu-dev \
     libzip-dev \
