@@ -453,4 +453,4 @@ CREATE TABLE IF NOT EXISTS colores_sistema
     blanco       varchar(7)                          default '#ffffff',
     cuerpo       varchar(7)                          default '#212529',
     fondo_cuerpo varchar(7)                          default '#f8f9fa'
-);
+);  

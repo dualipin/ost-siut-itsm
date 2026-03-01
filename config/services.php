@@ -6,7 +6,6 @@ use App\Infrastructure\Session\SessionManager;
 use App\Module\Auth\Service\AuthenticationService;
 use App\Module\Prestamo\Service\CalculadoraCompuesto;
 use App\Module\Prestamo\Service\SimuladorService;
-use App\Shared\Utils\AuthHelper;
 
 use function DI\autowire;
 
@@ -18,7 +17,6 @@ return function (\DI\ContainerBuilder $container) {
 
         // Auth Services & Helpers
         AuthenticationService::class => autowire(AuthenticationService::class),
-        AuthHelper::class => autowire(AuthHelper::class),
         MiddlewareFactory::class => autowire(MiddlewareFactory::class),
 
         // Prestamo Services
