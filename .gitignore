@@ -7,3 +7,6 @@
 .env
 
 /uploads
+
+.env.*
+!.env.example

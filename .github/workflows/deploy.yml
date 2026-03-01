@@ -52,3 +52,14 @@ jobs:
             composer.lock
             phpunit.xml
             compose.yaml
+            Containerfile
+            Dockerfile
+            .prettier*
+            .vscode/
+            .github/
+            *.sql
+            package.json
+            package-lock.json
+            .phpstorm.meta.php
+            .editorconfig
+
