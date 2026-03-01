@@ -20,14 +20,17 @@ jobs:
           php-version: "8.3" # Cambia a tu versión de PHP
           extensions: mbstring, xml, ctype, iconv, pdo_mysql # Extensiones comunes
 
+      - name: 🔍 Get Composer Cache Directory
+        id: composer-cache-dir
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
       - name: 💾 Cache Composer packages
-        id: composer-cache
-        uses: actions/cache@v4 # v4 es la versión estable actual más rápida
+        uses: actions/cache@v4
         with:
-          path: ~/.composer/cache
-          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          path: ${{ steps.composer-cache-dir.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: |
-            ${{ runner.os }}-php-
+            ${{ runner.os }}-composer-
 
       - name: 📦 Install Dependencies
         run: composer install --no-dev --optimize-autoloader --no-interaction --no-progress
