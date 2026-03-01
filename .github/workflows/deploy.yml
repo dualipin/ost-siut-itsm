@@ -1,0 +1,55 @@
+name: 🚀 Deploy PHP App
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  build-and-deploy:
+    name: 🏗️ Build & 🎉 Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v4
+
+      - name: 🐘 Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3' # Cambia a tu versión de PHP
+          extensions: mbstring, xml, ctype, iconv, mysql # Extensiones comunes
+          
+      - name: 💾 Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v4 # v4 es la versión estable actual más rápida
+        with:
+          path: vendor/
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+
+      - name: 📦 Install Dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+
+      - name: 📂 Sync files via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: ./public_html/
+          # Excluimos archivos de desarrollo para un deploy limpio
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/tests/**
+            .gitignore
+            README.md
+            composer.json
+            composer.lock
+            phpunit.xml
+            compose.yaml
+            
