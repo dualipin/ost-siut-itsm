@@ -18,9 +18,9 @@ jobs:
       - name: 🐘 Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3' # Cambia a tu versión de PHP
+          php-version: "8.3" # Cambia a tu versión de PHP
           extensions: mbstring, xml, ctype, iconv, mysql # Extensiones comunes
-          
+
       - name: 💾 Cache Composer packages
         id: composer-cache
         uses: actions/cache@v4 # v4 es la versión estable actual más rápida
@@ -39,8 +39,8 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: ./public_html/
-          # Excluimos archivos de desarrollo para un deploy limpio
+          server-dir: ./${{ secrets.SERVER_DIR }}/
+          local-dir: ./
           exclude: |
             **/.git*
             **/.git*/**
@@ -52,4 +52,3 @@ jobs:
             composer.lock
             phpunit.xml
             compose.yaml
-            
