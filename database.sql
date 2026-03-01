@@ -441,7 +441,7 @@ create table if not exists publicaciones
 
 CREATE TABLE IF NOT EXISTS colores_sistema
 (
-    id           tinyint primary key check ( id = 1) default 1,
+    id           int primary key default 1,
     primario     varchar(7)                          default '#611232',
     secundario   varchar(7)                          default '#a57f2c',
     exito        varchar(7)                          default '#38b44a',
