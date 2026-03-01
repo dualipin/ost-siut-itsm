@@ -1,5 +1,6 @@
 services:
   app:
+<<<<<<< HEAD
     build: .
     ports:
       - "8080:80"
@@ -10,27 +11,82 @@ services:
 
   db:
     image: mysql:8.0
+=======
+    build:
+      context: .
+      dockerfile: Containerfile
+      args:
+        HOST_UID: ${UID:-1000}
+        HOST_GID: ${GID:-1000}
+    userns_mode: "keep-id"
+    ports:
+      - "8000:8080"        # ← host:contenedor, ambos puertos altos ahora
+    volumes:
+      - .:/var/www/html:Z
+      - vendor_data:/var/www/html/vendor
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: docker.io/mysql:8.0
+>>>>>>> 6fd90c8df46194c98751b1bbd5a49fe7b551b626
     ports:
       - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: root
+<<<<<<< HEAD
       MYSQL_DATABASE: my_db
     volumes:
       - db_data:/var/lib/mysql:Z
+=======
+      MYSQL_DATABASE: db
+      MYSQL_ROOT_HOST: "%"
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - db_data:/var/lib/mysql:Z
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+>>>>>>> 6fd90c8df46194c98751b1bbd5a49fe7b551b626
 
   dbhub:
     image: docker.io/bytebase/dbhub
     ports:
+<<<<<<< HEAD
       - "8081:8080"
+=======
+      - "8080:8080"
+    restart: on-failure
+>>>>>>> 6fd90c8df46194c98751b1bbd5a49fe7b551b626
     command:
       - "--transport"
       - "http"
       - "--port"
       - "8080"
       - "--dsn"
+<<<<<<< HEAD
       - "mysql://root:root@db:3306/my_db"
     depends_on:
       - db
 
 volumes:
   db_data:
+=======
+      - "mysql://root:root@db:3306/db"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db_data:
+  vendor_data:
+>>>>>>> 6fd90c8df46194c98751b1bbd5a49fe7b551b626

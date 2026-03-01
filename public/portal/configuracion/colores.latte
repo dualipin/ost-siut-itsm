@@ -75,3 +75,31 @@
     </div>
   </div>
 {/block}
+
+{block scripts}
+  <script n:syntax="off">
+    (() => {
+      const colorInputs = document.querySelectorAll('.color-input');
+
+      colorInputs.forEach((colorInput) => {
+        const name = colorInput.dataset.name;
+        const hexInput = document.querySelector(`.hex-input[name="${name}"]`);
+
+        if (!hexInput) {
+          return;
+        }
+
+        colorInput.addEventListener('input', () => {
+          hexInput.value = colorInput.value.toLowerCase();
+        });
+
+        hexInput.addEventListener('input', () => {
+          const value = hexInput.value.trim();
+          if (/^#[0-9a-fA-F]{6}$/.test(value)) {
+            colorInput.value = value;
+          }
+        });
+      });
+    })();
+  </script>
+{/block}

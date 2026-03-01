@@ -36,21 +36,48 @@ class ColoresRepository extends BaseRepository
     public function actualizarColores(Colores $colores): void
     {
         $stmt = $this->pdo->prepare(
-            "update colores_sistema set
-      primario = :primario,
-      secundario = :secundario,
-      exito = :exito,
-      info = :info,
-      advertencia = :advertencia,
-      peligro = :peligro,
-      claro = :claro,
-      oscuro = :oscuro,
-      blanco = :blanco,
-      cuerpo = :cuerpo,
-      fondo_cuerpo = :fondo_cuerpo
-      where id = 1",
+                        "insert into colores_sistema (
+            id,
+            primario,
+            secundario,
+            exito,
+            info,
+            advertencia,
+            peligro,
+            claro,
+            oscuro,
+            blanco,
+            cuerpo,
+            fondo_cuerpo
+        ) values (
+            1,
+            :primario,
+            :secundario,
+            :exito,
+            :info,
+            :advertencia,
+            :peligro,
+            :claro,
+            :oscuro,
+            :blanco,
+            :cuerpo,
+            :fondo_cuerpo
+        )
+        on duplicate key update
+            primario = values(primario),
+            secundario = values(secundario),
+            exito = values(exito),
+            info = values(info),
+            advertencia = values(advertencia),
+            peligro = values(peligro),
+            claro = values(claro),
+            oscuro = values(oscuro),
+            blanco = values(blanco),
+            cuerpo = values(cuerpo),
+            fondo_cuerpo = values(fondo_cuerpo)",
         );
-        $stmt->execute([
+
+        $result = $stmt->execute([
             ":primario" => $colores->primario,
             ":secundario" => $colores->secundario,
             ":exito" => $colores->exito,
@@ -64,10 +91,8 @@ class ColoresRepository extends BaseRepository
             ":fondo_cuerpo" => $colores->fondoCuerpo,
         ]);
 
-        if ($stmt->rowCount() === 0) {
-            throw new RuntimeException(
-                "No se encontró la configuración de colores.",
-            );
+        if (!$result) {
+            throw new RuntimeException("Error al actualizar colores: " . implode(", ", $stmt->errorInfo()));
         }
     }
 }
