@@ -37,8 +37,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     foreach ($esperados as $campo) {
         $v = trim((string) ($_POST[$campo] ?? ""));
         if ($v === "") {
-            $valores[$campo] = null;
-            continue;
+            $redirector
+                ->to($path, [
+                    "error" => "El campo '$campo' es obligatorio.",
+                ])
+                ->send();
         }
         if (!preg_match('/^#[0-9a-fA-F]{6}$/', $v)) {
             $redirector
@@ -66,7 +69,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 fondoCuerpo: $valores["fondo_cuerpo"],
             ),
         );
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         $redirector
             ->to($path, [
                 "error" => "Error al actualizar colores: " . $e->getMessage(),
