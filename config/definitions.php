@@ -6,9 +6,6 @@ use App\Infrastructure\Mail\MailerInterface;
 use App\Infrastructure\Templating\LatteExtension;
 use App\Infrastructure\Templating\LatteRenderer;
 use App\Infrastructure\Templating\RendererInterface;
-use App\Module\Prestamo\Service\CalculadoraCompuesto;
-use App\Module\Prestamo\Service\CalculadoraIntereSimple;
-use App\Module\Prestamo\Service\SimuladorService;
 use Dompdf\Dompdf;
 use Latte\Engine;
 
@@ -74,9 +71,5 @@ return function (\DI\ContainerBuilder $container) {
 
         RendererInterface::class => autowire(LatteRenderer::class),
         MailerInterface::class => autowire(DatabaseMailQueue::class),
-
-        CalculadoraCompuesto::class => autowire(),
-        CalculadoraIntereSimple::class => autowire(),
-        SimuladorService::class => autowire(),
     ]);
 };
