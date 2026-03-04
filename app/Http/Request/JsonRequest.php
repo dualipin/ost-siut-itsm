@@ -58,17 +58,6 @@ final readonly class JsonRequest
         return $this->headers[$normalized] ?? $default;
     }
 
-    public function bearerToken(): ?string
-    {
-        $auth = $this->header("Authorization");
-
-        if ($auth && str_starts_with($auth, "Bearer ")) {
-            return substr($auth, 7);
-        }
-
-        return null;
-    }
-
     public function isJson(): bool
     {
         $contentType = $this->header("Content_Type", "");
