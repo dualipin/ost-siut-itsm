@@ -4,7 +4,6 @@ namespace App\Module\Prestamo\Service;
 
 use App\Module\Prestamo\DTO\AmortizacionCorridaDTO;
 use App\Module\Prestamo\Enum\UnidadEnum;
-use App\Shared\Context\Intereses;
 use DateTimeImmutable;
 
 /**
@@ -13,11 +12,11 @@ use DateTimeImmutable;
  * - Préstamos periódicos: Método alemán (saldo decreciente) con interés compuesto
  * - Préstamos no periódicos: Interés compuesto con cuota constante
  */
-class SimuladorService
+final readonly class SimuladorService
 {
     public function __construct(
-        private readonly CalculadoraCompuesto $calculadoraCompuesto,
-        private readonly CalculadoraIntereSimple $calculadoraSimple,
+        private CalculadoraCompuesto $calculadoraCompuesto,
+        private CalculadoraIntereSimple $calculadoraSimple,
     ) {}
 
     /**

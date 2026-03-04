@@ -43,9 +43,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
   <!-- End Styles-->
 
-
-  <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.6/dist/htmx.min.js"></script>
-
   <!-- ======= Theme Style =======-->
   <!-- Font Override MUST load AFTER Litera -->
   <link href="{url('assets/css/font-override.css')}?v={filemtime(__DIR__ . '/../public/assets/css/font-override.css')}"
@@ -68,13 +65,7 @@
 
 
 
-
-
-
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.1/dist/gsap.min.js"></script>
-
-
-
 
 
 
@@ -82,15 +73,12 @@
 
 
 
-
-
-
 <script>
   AOS.init({
     duration: 800,
     easing: 'slide',
-    once: true
-  });
+    once: true,
+  })
 </script>
 
       {block scripts}{/block}
