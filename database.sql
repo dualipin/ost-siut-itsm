@@ -439,18 +439,73 @@ create table if not exists publicaciones
 );
 
 
+-- Mensajería
+
+create table if not exists mensajes
+(
+    mensaje_id           int auto_increment primary key,
+    usuario_id           int,
+    tipo                 varchar(50)  not null,
+    asunto               varchar(255) not null,
+    prioridad            varchar(20)  not null default 'media',
+    estado               varchar(20)  not null default 'no_leido',
+    -- Datos de contacto externo (si no está logueado)
+    nombre_externo       VARCHAR(100),
+    correo_externo       VARCHAR(100),
+    telefono_externo     VARCHAR(20),
+
+    -- Asignación
+    asignado_a           VARCHAR(36), -- usuario_id del admin/staff
+
+    -- Control
+    fecha_creacion       DATETIME              DEFAULT CURRENT_TIMESTAMP,
+    fecha_ultimo_mensaje DATETIME,
+    fecha_cierre         DATETIME,
+
+    constraint fk_mensaje_usuario
+        foreign key (usuario_id) references usuarios (usuario_id) on delete set null,
+    index idx_tipo_estado (tipo, estado)
+);
+
+
+create table if not exists mensaje_detalles
+(
+    detalle_id         int auto_increment primary key,
+    mensaje_id         int  not null,
+    -- Autor (puede ser usuario logueado o externo)
+    autor_usuario_id   int, -- NULL si es externo
+    es_respuesta_staff BOOLEAN  DEFAULT FALSE,
+
+    mensaje            TEXT NOT NULL,
+    adjunto_url        VARCHAR(255),
+
+    -- Control
+    fecha_envio        DATETIME DEFAULT CURRENT_TIMESTAMP,
+    leido              BOOLEAN  DEFAULT FALSE,
+    fecha_lectura      DATETIME,
+
+    constraint fk_detalle_mensaje
+        foreign key (mensaje_id) references mensajes (mensaje_id) on delete cascade,
+    constraint fk_detalle_autor_usuario
+        foreign key (autor_usuario_id) references usuarios (usuario_id) on delete set null,
+
+    index idx_mensaje_fecha (mensaje_id, fecha_envio),
+    index idx_no_leidos (mensaje_id, es_respuesta_staff)
+);
+
+
 CREATE TABLE IF NOT EXISTS colores_sistema
 (
     id           int primary key default 1,
-    primario     varchar(7)                          default '#611232',
-    secundario   varchar(7)                          default '#a57f2c',
-    exito        varchar(7)                          default '#38b44a',
-    info         varchar(7)                          default '#17a2b8',
-    advertencia  varchar(7)                          default '#efb73e',
-    peligro      varchar(7)                          default '#df382c',
-    claro        varchar(7)                          default '#e9ecef',
-    oscuro       varchar(7)                          default '#002f2a',
-    blanco       varchar(7)                          default '#ffffff',
-    cuerpo       varchar(7)                          default '#212529',
-    fondo_cuerpo varchar(7)                          default '#f8f9fa'
+    primario     varchar(7)      default '#611232',
+    secundario   varchar(7)      default '#a57f2c',
+    exito        varchar(7)      default '#38b44a',
+    info         varchar(7)      default '#17a2b8',
+    advertencia  varchar(7)      default '#efb73e',
+    peligro      varchar(7)      default '#df382c',
+    claro        varchar(7)      default '#e9ecef',
+    oscuro       varchar(7)      default '#002f2a',
+    blanco       varchar(7)      default '#ffffff',
+    cuerpo       varchar(7)      default '#212529',
+    fondo_cuerpo varchar(7)      default '#f8f9fa'
 );  
