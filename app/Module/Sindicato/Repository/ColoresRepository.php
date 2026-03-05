@@ -36,7 +36,7 @@ class ColoresRepository extends BaseRepository
     public function actualizarColores(Colores $colores): void
     {
         $stmt = $this->pdo->prepare(
-                        "insert into colores_sistema (
+            "insert into colores_sistema (
             id,
             primario,
             secundario,
@@ -92,7 +92,10 @@ class ColoresRepository extends BaseRepository
         ]);
 
         if (!$result) {
-            throw new RuntimeException("Error al actualizar colores: " . implode(", ", $stmt->errorInfo()));
+            throw new RuntimeException(
+                "Error al actualizar colores: " .
+                    implode(", ", $stmt->errorInfo()),
+            );
         }
     }
 }
