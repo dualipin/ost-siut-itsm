@@ -6,7 +6,8 @@
 /.vscode/
 .env
 
-/uploads
+**/uploads/*
+!**/uploads/.gitkeep
 
 .env.*
 !.env.example
