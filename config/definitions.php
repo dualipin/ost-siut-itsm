@@ -6,14 +6,14 @@ use App\Infrastructure\Mail\MailerInterface;
 use App\Infrastructure\Templating\LatteExtension;
 use App\Infrastructure\Templating\LatteRenderer;
 use App\Infrastructure\Templating\RendererInterface;
+use DI\ContainerBuilder;
 use Dompdf\Dompdf;
 use Latte\Engine;
-
 use PHPMailer\PHPMailer\PHPMailer;
 
 use function DI\autowire;
 
-return function (\DI\ContainerBuilder $container) {
+return function (ContainerBuilder $container) {
     $container->addDefinitions([
         Engine::class => function (
             AppConfig $config,
@@ -29,7 +29,7 @@ return function (\DI\ContainerBuilder $container) {
 
             $latte->addExtension($extensions);
 
-            $latte->setTempDirectory($cacheDir);
+            $latte->setCacheDirectory($cacheDir);
             $latte->setAutoRefresh($config->isDev);
 
             return $latte;
