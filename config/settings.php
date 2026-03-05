@@ -5,8 +5,9 @@ use App\Infrastructure\Config\DatabaseConfig;
 use App\Infrastructure\Config\MailerConfig;
 use App\Infrastructure\Config\UploadConfig;
 use App\Infrastructure\Env\EnvironmentInterface;
+use DI\ContainerBuilder;
 
-return function (\DI\ContainerBuilder $container): void {
+return function (ContainerBuilder $container): void {
     $container->addDefinitions([
         AppConfig::class => fn(EnvironmentInterface $env) => new AppConfig(
             isDev: $env->get("APP_ENV", "prod") === "dev",
@@ -20,10 +21,12 @@ return function (\DI\ContainerBuilder $container): void {
                 charset: "utf8mb4",
             ),
             mailer: new MailerConfig(
-                host: (string) $env->get("MAILER_HOST"), // ← unificado
-                user: (string) $env->get("MAILER_USER"), // ← unificado
+                host: (string) $env->get("MAILER_HOST"),
+                user: (string) $env->get("MAILER_USER"),
                 password: (string) $env->get("MAILER_PASSWORD"),
                 port: (int) $env->get("MAILER_PORT", 465),
+                fromAddress: (string) $env->get("MAILER_FROM_ADDRESS"),
+                fromName: (string) $env->get("MAILER_FROM_NAME"),
                 charset: "UTF-8",
             ),
             upload: new UploadConfig(
