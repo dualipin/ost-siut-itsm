@@ -6,10 +6,11 @@ use App\Infrastructure\Session\SessionManager;
 use App\Module\Auth\Service\AuthenticationService;
 use App\Module\Prestamo\Service\CalculadoraCompuesto;
 use App\Module\Prestamo\Service\SimuladorService;
+use DI\ContainerBuilder;
 
 use function DI\autowire;
 
-return function (\DI\ContainerBuilder $container) {
+return function (ContainerBuilder $container) {
     $container->addDefinitions([
         // Session & Security
         SessionManager::class => fn() => new SessionManager(),
