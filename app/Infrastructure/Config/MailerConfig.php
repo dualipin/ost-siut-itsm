@@ -9,7 +9,8 @@ final readonly class MailerConfig
         public string $user,
         public string $password,
         public int $port,
+        public string $fromAddress,
+        public string $fromName,
         public string $charset,
-    ) {
-    }
+    ) {}
 }
