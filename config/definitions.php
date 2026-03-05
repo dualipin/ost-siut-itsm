@@ -2,6 +2,7 @@
 
 use App\Infrastructure\Config\AppConfig;
 use App\Infrastructure\Mail\DatabaseMailQueue;
+use App\Infrastructure\Mail\EmailService;
 use App\Infrastructure\Mail\MailerInterface;
 use App\Infrastructure\Templating\LatteExtension;
 use App\Infrastructure\Templating\LatteRenderer;
@@ -55,8 +56,18 @@ return function (ContainerBuilder $container) {
             $mail->SMTPAuth = true;
             $mail->Username = $config->mailer->user;
             $mail->Password = $config->mailer->password;
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            
+            // Puerto 465 = SSL (SMTPS), otros puertos = TLS (STARTTLS)
+            if ($config->mailer->port === 465) {
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            } else {
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            }
+            
             $mail->Port = $config->mailer->port;
+            $mail->Timeout = 30;  // Timeout explícito para SMTP
+            $mail->SMTPKeepAlive = false;  // Reconectar para cada email
+            
             return $mail;
         },
 
@@ -70,6 +81,7 @@ return function (ContainerBuilder $container) {
         },
 
         RendererInterface::class => autowire(LatteRenderer::class),
+        EmailService::class => autowire(EmailService::class),
         MailerInterface::class => autowire(DatabaseMailQueue::class),
     ]);
 };
