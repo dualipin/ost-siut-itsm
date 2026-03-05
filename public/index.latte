@@ -97,6 +97,7 @@
             <div class="d-flex flex-wrap gap-2 mb-4 mb-lg-5" data-aos="fade-up" data-aos-delay="300">
               <a class="btn btn-primary" href="/cuentas/login.php">Acceder al Portal</a>
               <a class="btn btn-outline-primary" href="/transparencia.php">Transparencia</a>
+              <a class="btn btn-outline-primary" href="{upload('informe-financiero-2025.pdf')}">Informe Financiero 2025</a>
             </div>
 
             <!-- Logos -->
@@ -239,9 +240,9 @@
             Enviando mensaje...
           </div>
           <div x-show="enviado" x-transition class="mt-3">
-            <div :class="tipo==='exito'?'alert-success':'alert-danger'" class="alert" role="alert">
+            <div :class="tipo==='exito'?'alert-success':'alert-danger'" class="alert alert-dismissible fade show" role="alert">
               <div x-text="mensaje"></div>
-              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" @click="enviado=false">
+              <button type="button" class="btn-close" aria-label="Close" @click="enviado=false">
               </button>
             </div>
           </div>
