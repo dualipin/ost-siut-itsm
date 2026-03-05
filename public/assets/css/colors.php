@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 // 1. Evitar caché del navegador para ver cambios inmediatos durante desarrollo
+use App\Bootstrap;
 use App\Module\Sindicato\Repository\ColoresRepository;
 
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
@@ -133,7 +134,7 @@ if (!function_exists("lightenDarkenColor")) {
 
 require_once __DIR__ . "/../../../bootstrap.php";
 
-$c = \App\Bootstrap::buildContainer();
+$c = Bootstrap::buildContainer();
 
 $repo = $c->get(ColoresRepository::class);
 
