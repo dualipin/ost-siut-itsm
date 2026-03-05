@@ -27,6 +27,9 @@ return function (ContainerBuilder $container): void {
                 port: (int) $env->get("MAILER_PORT", 465),
                 fromAddress: (string) $env->get("MAILER_FROM_ADDRESS"),
                 fromName: (string) $env->get("MAILER_FROM_NAME"),
+                adminNotifications: (string) $env->get(
+                    "MAILER_ADMIN_NOTIFICATIONS",
+                ),
                 charset: "UTF-8",
             ),
             upload: new UploadConfig(

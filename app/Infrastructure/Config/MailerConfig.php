@@ -11,6 +11,7 @@ final readonly class MailerConfig
         public int $port,
         public string $fromAddress,
         public string $fromName,
+        public string $adminNotifications,
         public string $charset,
     ) {}
 }
