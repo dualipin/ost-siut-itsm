@@ -5,7 +5,7 @@ use App\Http\Exception\TooManyAttemptsException;
 use App\Http\Request\FormRequest;
 use App\Http\Response\Redirector;
 use App\Infrastructure\Security\CsrfTokenManager;
-use App\Infrastructure\Session\SessionManager;
+use App\Infrastructure\Session\PhpSession;
 use App\Infrastructure\Templating\RendererInterface;
 use App\Module\Auth\Service\AuthenticationService;
 use App\Shared\Context\UserContext;
@@ -14,7 +14,7 @@ require_once __DIR__ . "/../../bootstrap.php";
 
 $container = Bootstrap::buildContainer();
 $redirector = $container->get(Redirector::class);
-$sessionManager = $container->get(SessionManager::class);
+$sessionManager = $container->get(PhpSession::class);
 $csrfManager = $container->get(CsrfTokenManager::class);
 $userContext = $container->get(UserContext::class);
 

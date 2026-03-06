@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Infrastructure\Config\AppConfig;
 use App\Infrastructure\Env\Environment;
 use App\Infrastructure\Env\EnvironmentInterface;
 use DI\ContainerBuilder;
@@ -59,6 +60,21 @@ class Bootstrap
             $loader($builder);
         }
 
-        return $builder->build();
+        $container = $builder->build();
+
+        $appConfig = $container->get(AppConfig::class);
+
+        $session = $appConfig->session;
+
+        ini_set("session.use_strict_mode", $session->useStrictMode ? "1" : "0");
+        ini_set("session.cookie_secure", $session->cookieSecure ? "1" : "0");
+        ini_set(
+            "session.cookie_httponly",
+            $session->cookieHttpOnly ? "1" : "0",
+        );
+        ini_set("session.cookie_samesite", $session->cookieSameSite);
+        ini_set("session.use_only_cookies", "1");
+
+        return $container;
     }
 }

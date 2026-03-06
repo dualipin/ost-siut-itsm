@@ -10,6 +10,6 @@ final readonly class AppConfig
         public DatabaseConfig $database,
         public MailerConfig $mailer,
         public UploadConfig $upload,
-    ) {
-    }
+        public SessionConfig $session,
+    ) {}
 }

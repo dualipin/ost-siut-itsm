@@ -3,7 +3,7 @@
 use App\Bootstrap;
 use App\Http\Middleware\MiddlewareFactory;
 use App\Http\Middleware\MiddlewareRunner;
-use App\Infrastructure\Session\SessionManager;
+use App\Infrastructure\Session\PhpSession;
 use App\Infrastructure\Templating\RendererInterface;
 use App\Shared\Provider\UserContextProvider;
 
@@ -12,7 +12,7 @@ require_once __DIR__ . "/../../bootstrap.php";
 $container = Bootstrap::buildContainer();
 
 // Iniciar sesión
-$sessionManager = $container->get(SessionManager::class);
+$sessionManager = $container->get(PhpSession::class);
 $sessionManager->start();
 
 $middleware = $container->get(MiddlewareFactory::class);

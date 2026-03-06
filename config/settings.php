@@ -3,6 +3,7 @@
 use App\Infrastructure\Config\AppConfig;
 use App\Infrastructure\Config\DatabaseConfig;
 use App\Infrastructure\Config\MailerConfig;
+use App\Infrastructure\Config\SessionConfig;
 use App\Infrastructure\Config\UploadConfig;
 use App\Infrastructure\Env\EnvironmentInterface;
 use DI\ContainerBuilder;
@@ -36,6 +37,12 @@ return function (ContainerBuilder $container): void {
                 publicUrl: "uploads",
                 publicDir: dirname(__DIR__) . "/public/uploads",
                 privateDir: dirname(__DIR__) . "/uploads",
+            ),
+            session: new SessionConfig(
+                useStrictMode: true,
+                cookieSecure: !$env->get("APP_ENV", "prod") == "dev",
+                cookieHttpOnly: true,
+                cookieSameSite: "Lax",
             ),
         ),
     ]);

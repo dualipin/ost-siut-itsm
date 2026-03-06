@@ -3,7 +3,7 @@
 use App\Http\Middleware\MiddlewareFactory;
 use App\Infrastructure\Logging\FileLogger;
 use App\Infrastructure\Security\CsrfTokenManager;
-use App\Infrastructure\Session\SessionManager;
+use App\Infrastructure\Session\PhpSession;
 use App\Module\Auth\Service\AuthenticationService;
 use App\Module\Mensajeria\Service\ContactoGeneralService;
 use App\Module\Prestamo\Service\CalculadoraCompuesto;
@@ -16,7 +16,7 @@ use function DI\autowire;
 return function (ContainerBuilder $container) {
     $container->addDefinitions([
         // Session & Security
-        SessionManager::class => fn() => new SessionManager(),
+        PhpSession::class => fn() => new PhpSession(),
         CsrfTokenManager::class => autowire(CsrfTokenManager::class),
 
         // Logging
@@ -27,7 +27,9 @@ return function (ContainerBuilder $container) {
         MiddlewareFactory::class => autowire(MiddlewareFactory::class),
 
         // Mensajeria Services
-        ContactoGeneralService::class => autowire(ContactoGeneralService::class),
+        ContactoGeneralService::class => autowire(
+            ContactoGeneralService::class,
+        ),
 
         // Prestamo Services
         SimuladorService::class => autowire(SimuladorService::class),

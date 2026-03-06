@@ -3,7 +3,7 @@
 namespace App\Module\Auth\Service;
 
 use App\Http\Exception\TooManyAttemptsException;
-use App\Infrastructure\Session\SessionManager;
+use App\Infrastructure\Session\PhpSession;
 use App\Module\Auth\DTO\AuthLogDTO;
 use App\Module\Auth\DTO\SessionUserDTO;
 use App\Module\Auth\Enum\AuthLogActionEnum;
@@ -17,7 +17,7 @@ final readonly class AuthenticationService
         private UsuarioRepository $userRepo,
         private AuthenticationRepository $authRepo,
         private UserContext $context,
-        private SessionManager $session,
+        private PhpSession $session,
     ) {}
 
     /**

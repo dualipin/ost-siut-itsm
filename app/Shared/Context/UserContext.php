@@ -2,7 +2,7 @@
 
 namespace App\Shared\Context;
 
-use App\Infrastructure\Session\SessionManager;
+use App\Infrastructure\Session\PhpSession;
 use App\Module\Auth\DTO\SessionUserDTO;
 use App\Module\Auth\Enum\RoleEnum;
 
@@ -15,7 +15,7 @@ final readonly class UserContext implements ContextInterface
 {
     private const string SessionKey = "auth_user";
 
-    public function __construct(private SessionManager $session) {}
+    public function __construct(private PhpSession $session) {}
 
     /**
      * Obtiene el usuario autenticado desde la sesión.
@@ -31,7 +31,11 @@ final readonly class UserContext implements ContextInterface
         }
 
         // Validar que todos los campos requeridos existan
-        if (!isset($data["id"]) || !isset($data["email"]) || !isset($data["rol"])) {
+        if (
+            !isset($data["id"]) ||
+            !isset($data["email"]) ||
+            !isset($data["rol"])
+        ) {
             return null;
         }
 
