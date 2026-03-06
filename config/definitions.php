@@ -10,9 +10,14 @@ use App\Infrastructure\Templating\RendererInterface;
 use DI\ContainerBuilder;
 use Dompdf\Dompdf;
 use Latte\Engine;
+use Monolog\Handler\StreamHandler;
+use Monolog\Level;
+use Monolog\Logger;
 use PHPMailer\PHPMailer\PHPMailer;
 
 use PHPMailer\PHPMailer\SMTP;
+
+use Psr\Log\LoggerInterface;
 
 use function DI\autowire;
 
@@ -80,6 +85,18 @@ return function (ContainerBuilder $container) {
             $options->setIsRemoteEnabled(true);
             $dompdf->setOptions($options);
             return $dompdf;
+        },
+
+        LoggerInterface::class => function () {
+            $log = new Logger("app");
+            $log->pushHandler(
+                new StreamHandler(
+                    dirname(__DIR__) . "/logs/app.log",
+                    Level::Warning,
+                ),
+            );
+
+            return $log;
         },
 
         RendererInterface::class => autowire(LatteRenderer::class),

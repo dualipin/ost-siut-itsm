@@ -24,9 +24,9 @@
     "dompdf/dompdf": "^3.1",
     "ext-zip": "*",
     "php-di/php-di": "^7.1",
-    "mpdf/mpdf": "^8.2",
     "ramsey/uuid": "^4.9",
-    "ext-intl": "*"
+    "ext-intl": "*",
+    "monolog/monolog": "^3.10"
   },
   "require-dev": {
     "matthiasmullie/minify": "^1.3",
