@@ -495,18 +495,18 @@ create table if not exists mensaje_detalles
 );
 
 
-CREATE TABLE IF NOT EXISTS colores_sistema
+CREATE TABLE IF NOT EXISTS system_colors
 (
-    id           int primary key default 1,
-    primario     varchar(7)      default '#611232',
-    secundario   varchar(7)      default '#a57f2c',
-    exito        varchar(7)      default '#38b44a',
-    info         varchar(7)      default '#17a2b8',
-    advertencia  varchar(7)      default '#efb73e',
-    peligro      varchar(7)      default '#df382c',
-    claro        varchar(7)      default '#e9ecef',
-    oscuro       varchar(7)      default '#002f2a',
-    blanco       varchar(7)      default '#ffffff',
-    cuerpo       varchar(7)      default '#212529',
-    fondo_cuerpo varchar(7)      default '#f8f9fa'
-);  
+    id                int primary key default 1,
+    c_primary         varchar(7)      default '#611232',
+    c_secondary       varchar(7)      default '#a57f2c',
+    c_success         varchar(7)      default '#38b44a',
+    c_info            varchar(7)      default '#17a2b8',
+    c_warning         varchar(7)      default '#efb73e',
+    c_danger          varchar(7)      default '#df382c',
+    c_light           varchar(7)      default '#e9ecef',
+    c_dark            varchar(7)      default '#002f2a',
+    c_white           varchar(7)      default '#ffffff',
+    c_body            varchar(7)      default '#212529',
+    c_body_background varchar(7)      default '#f8f9fa'
+);
