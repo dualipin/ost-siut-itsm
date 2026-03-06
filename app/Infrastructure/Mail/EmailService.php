@@ -5,12 +5,14 @@ namespace App\Infrastructure\Mail;
 use App\Infrastructure\Config\AppConfig;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception as PHPMailerException;
+use Psr\Log\LoggerInterface;
 
 final readonly class EmailService implements MailerInterface
 {
     public function __construct(
         private PHPMailer $phpMailer,
         private AppConfig $config,
+        private LoggerInterface $logger,
     ) {}
 
     public function send(
@@ -23,16 +25,25 @@ final readonly class EmailService implements MailerInterface
         $this->phpMailer->clearAllRecipients();
         $this->phpMailer->clearAttachments();
 
-        $this->phpMailer->setFrom(
-            $this->config->mailer->fromAddress,
-            $this->config->mailer->fromName,
-        );
-
         try {
-            foreach ($addresses as $address) {
-                if (filter_var($address, FILTER_VALIDATE_EMAIL)) {
-                    $this->phpMailer->addAddress($address);
-                }
+            $this->phpMailer->setFrom(
+                $this->config->mailer->fromAddress,
+                $this->config->mailer->fromName,
+            );
+
+            $validAddresses = array_filter(
+                $addresses,
+                fn($address) => filter_var($address, FILTER_VALIDATE_EMAIL),
+            );
+
+            if (empty($validAddresses)) {
+                throw new \InvalidArgumentException(
+                    "No hay destinatarios válidos",
+                );
+            }
+
+            foreach ($validAddresses as $address) {
+                $this->phpMailer->addAddress($address);
             }
 
             $this->phpMailer->isHTML(true);
@@ -46,9 +57,15 @@ final readonly class EmailService implements MailerInterface
                 );
             }
         } catch (PHPMailerException $e) {
+            $this->logger->error("Error al enviar correo: " . $e->getMessage());
             throw new \RuntimeException(
                 "Error al enviar correo: " . $e->getMessage(),
             );
+        } catch (\InvalidArgumentException $e) {
+            $this->logger->warning(
+                "Intento de envío sin destinatarios válidos",
+            );
+            throw $e; // relanzas tal cual, es un error del llamador
         }
     }
 }

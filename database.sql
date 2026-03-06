@@ -73,6 +73,7 @@ CREATE TABLE if not exists mail_queue
     recipient  TEXT NOT NULL, -- JSON array de correos
     subject    VARCHAR(255),
     body       TEXT,
+    alt_body   TEXT,
     attempts   INT                                DEFAULT 0,
     status     ENUM ('pending', 'sent', 'failed') DEFAULT 'pending',
     created_at TIMESTAMP                          DEFAULT CURRENT_TIMESTAMP

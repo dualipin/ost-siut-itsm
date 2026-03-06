@@ -14,15 +14,15 @@ final readonly class DatabaseMailQueue implements MailerInterface
         string $body,
         string $altBody = "",
     ): void {
-        $stmt = $this->pdo->prepare("
-     insert into mail_queue (recipient, subject, body, status)
-     values (:recipient, :subject, :body, 'pending')
-    ");
+        $stmt = $this->pdo->prepare(
+            "insert into mail_queue (recipient, subject, body, alt_body, status) values (:recipient, :subject, :body, :alt_body, 'pending')",
+        );
 
         $stmt->execute([
             ":recipient" => json_encode($addresses),
             ":subject" => $subject,
             ":body" => $body,
+            ":alt_body" => $altBody,
         ]);
     }
 }
