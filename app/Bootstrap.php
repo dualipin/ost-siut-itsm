@@ -5,6 +5,12 @@ namespace App;
 use App\Infrastructure\Config\AppConfig;
 use App\Infrastructure\Env\Environment;
 use App\Infrastructure\Env\EnvironmentInterface;
+use App\Modules\Auth\AuthModule;
+use App\Modules\LaborUnion\LaborUnionModule;
+use App\Modules\Loan\LoanModule;
+use App\Modules\Messaging\MessagingModule;
+use App\Modules\Publication\PublicationModule;
+use App\Modules\User\UserModule;
 use DI\ContainerBuilder;
 use Dotenv\Dotenv;
 use Psr\Container\ContainerInterface;
@@ -49,6 +55,19 @@ class Bootstrap
                 true,
                 dirname(__DIR__) . "/tmp/di_proxies",
             );
+        }
+
+        $modules = [
+            new AuthModule(),
+            new LaborUnionModule(),
+            new LoanModule(),
+            new MessagingModule(),
+            new PublicationModule(),
+            new UserModule(),
+        ];
+
+        foreach ($modules as $module) {
+            $module->register($builder);
         }
 
         // Cargar configuraciones
