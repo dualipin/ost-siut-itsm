@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Infrastructure\Templating;
+namespace App\Infrastructure\Templating\Latte;
 
 use App\Infrastructure\Config\AppConfig;
 use App\Shared\Utils\UrlBuilder;

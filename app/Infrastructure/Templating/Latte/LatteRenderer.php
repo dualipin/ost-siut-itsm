@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Templating;
+namespace App\Infrastructure\Templating\Latte;
 
+use App\Infrastructure\Templating\RendererInterface;
 use Latte\Engine;
 
 final readonly class LatteRenderer implements RendererInterface

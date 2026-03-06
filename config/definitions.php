@@ -4,8 +4,8 @@ use App\Infrastructure\Config\AppConfig;
 use App\Infrastructure\Mail\DatabaseMailQueue;
 use App\Infrastructure\Mail\EmailService;
 use App\Infrastructure\Mail\MailerInterface;
-use App\Infrastructure\Templating\LatteExtension;
-use App\Infrastructure\Templating\LatteRenderer;
+use App\Infrastructure\Templating\Latte\LatteExtension;
+use App\Infrastructure\Templating\Latte\LatteRenderer;
 use App\Infrastructure\Templating\RendererInterface;
 use DI\ContainerBuilder;
 use Dompdf\Dompdf;
@@ -14,9 +14,6 @@ use Monolog\Handler\StreamHandler;
 use Monolog\Level;
 use Monolog\Logger;
 use PHPMailer\PHPMailer\PHPMailer;
-
-use PHPMailer\PHPMailer\SMTP;
-
 use Psr\Log\LoggerInterface;
 
 use function DI\autowire;
