@@ -4,9 +4,12 @@ namespace App\Module\Mensajeria\Service;
 
 use App\Infrastructure\Config\AppConfig;
 use App\Infrastructure\Mail\MailerInterface;
+use App\Infrastructure\Templating\RendererInterface;
 use App\Module\Mensajeria\DTO\CrearMensajeExternoDTO;
 use App\Module\Mensajeria\Repository\MensajeRepository;
 use Psr\Log\LoggerInterface;
+
+use function dirname;
 
 final readonly class ContactoGeneralService
 {
@@ -15,6 +18,7 @@ final readonly class ContactoGeneralService
         private AppConfig $config,
         private MailerInterface $mailer,
         private LoggerInterface $logger,
+        private RendererInterface $renderer,
     ) {}
 
     public function enviarMensaje(CrearMensajeExternoDTO $mensaje): void
@@ -22,22 +26,28 @@ final readonly class ContactoGeneralService
         try {
             // 1. Guardar en DB
             $this->repository->registrarMensajeExterno($mensaje);
-            
+
             // 2. Enviar email de confirmación
             try {
                 $this->mailer->send(
                     addresses: [$mensaje->correo],
-                    subject: "Mensaje recibido",
-                    body: "Hemos recibido tu mensaje y nos pondremos en contacto contigo lo antes posible.",
+                    subject: "Confirmación de envío de mensaje",
+                    body: $this->renderer->renderToString(
+                        __DIR__ .
+                            "/../../../../templates/emails/mensajeria/contacto-general.latte",
+                        [
+                            "nombreCompleto" => $mensaje->nombreCompleto,
+                            "asunto" => $mensaje->asunto,
+                        ],
+                    ),
                 );
             } catch (\Throwable $e) {
-                $this->logger->error('Error al enviar email de confirmación', [
-                    'correo' => $mensaje->correo,
-                    'error' => $e->getMessage(),
+                $this->logger->error("Error al enviar email de confirmación", [
+                    "correo" => $mensaje->correo,
+                    "error" => $e->getMessage(),
                 ]);
-                // No re-lanzar: mensaje guardado correctamente en DB
             }
-            
+
             // 3. Enviar email al admin
             try {
                 $this->mailer->send(
@@ -49,19 +59,18 @@ final readonly class ContactoGeneralService
                         "Mensaje: {$mensaje->mensaje}",
                 );
             } catch (\Throwable $e) {
-                $this->logger->error('Error al enviar email al administrador', [
-                    'asunto' => $mensaje->asunto,
-                    'error' => $e->getMessage(),
+                $this->logger->error("Error al enviar email al administrador", [
+                    "asunto" => $mensaje->asunto,
+                    "error" => $e->getMessage(),
                 ]);
                 // No re-lanzar: mensaje guardado correctamente en DB
             }
-            
         } catch (\PDOException $e) {
-            $this->logger->error('Error al guardar mensaje en base de datos', [
-                'asunto' => $mensaje->asunto,
-                'correo' => $mensaje->correo,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
+            $this->logger->error("Error al guardar mensaje en base de datos", [
+                "asunto" => $mensaje->asunto,
+                "correo" => $mensaje->correo,
+                "error" => $e->getMessage(),
+                "trace" => $e->getTraceAsString(),
             ]);
             throw $e; // Re-lanzar: fallo crítico
         }

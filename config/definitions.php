@@ -12,6 +12,8 @@ use Dompdf\Dompdf;
 use Latte\Engine;
 use PHPMailer\PHPMailer\PHPMailer;
 
+use PHPMailer\PHPMailer\SMTP;
+
 use function DI\autowire;
 
 return function (ContainerBuilder $container) {
@@ -56,18 +58,18 @@ return function (ContainerBuilder $container) {
             $mail->SMTPAuth = true;
             $mail->Username = $config->mailer->user;
             $mail->Password = $config->mailer->password;
-            
+
             // Puerto 465 = SSL (SMTPS), otros puertos = TLS (STARTTLS)
             if ($config->mailer->port === 465) {
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
             } else {
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             }
-            
+
             $mail->Port = $config->mailer->port;
-            $mail->Timeout = 30;  // Timeout explícito para SMTP
-            $mail->SMTPKeepAlive = false;  // Reconectar para cada email
-            
+            $mail->Timeout = 30; // Timeout explícito para SMTP
+            $mail->SMTPKeepAlive = false; // Reconectar para cada email
+
             return $mail;
         },
 
