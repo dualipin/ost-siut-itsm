@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Infrastructure\Persistence;
+namespace App\Infrastructure\Persistence\Repository;
 
 use PDO;
 
