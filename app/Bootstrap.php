@@ -71,10 +71,7 @@ class Bootstrap
         }
 
         // Cargar configuraciones
-        foreach (
-            ["settings", "definitions", "services", "repositories"]
-            as $config
-        ) {
+        foreach (["settings", "definitions"] as $config) {
             $loader = require dirname(__DIR__) . "/config/{$config}.php";
             $loader($builder);
         }
