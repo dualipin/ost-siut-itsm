@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Settings\Entity;
+namespace App\Modules\Setting\Entity;
 
 final readonly class Color
 {

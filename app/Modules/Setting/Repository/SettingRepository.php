@@ -3,7 +3,7 @@
 namespace App\Modules\Setting\Repository;
 
 use App\Infrastructure\Persistence\Repository\BaseRepository;
-use App\Modules\Settings\Entity\Color;
+use App\Modules\Setting\Entity\Color;
 
 final class SettingRepository extends BaseRepository implements
     SettingRepositoryInterface

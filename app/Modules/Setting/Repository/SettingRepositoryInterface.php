@@ -2,7 +2,7 @@
 
 namespace App\Modules\Setting\Repository;
 
-use App\Modules\Settings\Entity\Color;
+use App\Modules\Setting\Entity\Color;
 
 interface SettingRepositoryInterface
 {
