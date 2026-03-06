@@ -7,7 +7,7 @@ use App\Infrastructure\Session\PhpSession;
 use App\Module\Auth\DTO\AuthLogDTO;
 use App\Module\Auth\DTO\SessionUserDTO;
 use App\Module\Auth\Enum\AuthLogActionEnum;
-use App\Module\Auth\Repository\AuthenticationRepository;
+use App\Module\Auth\Repository\AuthRepository;
 use App\Module\Usuario\Repository\UsuarioRepository;
 use App\Shared\Context\UserContext;
 
@@ -15,7 +15,7 @@ final readonly class AuthenticationService
 {
     public function __construct(
         private UsuarioRepository $userRepo,
-        private AuthenticationRepository $authRepo,
+        private AuthRepository $authRepo,
         private UserContext $context,
         private PhpSession $session,
     ) {}

@@ -8,7 +8,7 @@ use App\Module\Auth\DTO\AuthLogDTO;
 /**
  * Implementación de repositorio de usuarios
  */
-final class AuthenticationRepository extends BaseRepository
+final class AuthRepository extends BaseRepository
 {
     public function saveResetToken(string $email, string $token): void
     {
@@ -65,10 +65,12 @@ final class AuthenticationRepository extends BaseRepository
 
     public function emailExists(string $email): bool
     {
-        $stmt = $this->pdo->prepare("SELECT 1 FROM usuarios WHERE email = :email LIMIT 1");
+        $stmt = $this->pdo->prepare(
+            "SELECT 1 FROM usuarios WHERE email = :email LIMIT 1",
+        );
         $stmt->bindParam(":email", $email);
         $stmt->execute();
-        
+
         return $stmt->fetchColumn() !== false;
     }
 }

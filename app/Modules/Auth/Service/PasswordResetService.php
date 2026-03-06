@@ -4,7 +4,7 @@ namespace App\Module\Auth\Service;
 
 use App\Infrastructure\Mail\MailerInterface;
 use App\Infrastructure\Templating\RendererInterface;
-use App\Module\Auth\Repository\AuthenticationRepository;
+use App\Module\Auth\Repository\AuthRepository;
 use App\Module\Usuario\Repository\UsuarioRepository;
 use App\Shared\Utils\UrlBuilder;
 use Ramsey\Uuid\Uuid;
@@ -13,7 +13,7 @@ final readonly class PasswordResetService
 {
     public function __construct(
         private UsuarioRepository $userRepo,
-        private AuthenticationRepository $authRepo,
+        private AuthRepository $authRepo,
         private RendererInterface $renderer,
         private MailerInterface $mailer,
         private UrlBuilder $urlBuilder,
