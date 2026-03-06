@@ -9,8 +9,6 @@ use App\Module\Mensajeria\DTO\CrearMensajeExternoDTO;
 use App\Module\Mensajeria\Repository\MensajeRepository;
 use Psr\Log\LoggerInterface;
 
-use function dirname;
-
 final readonly class ContactoGeneralService
 {
     public function __construct(
