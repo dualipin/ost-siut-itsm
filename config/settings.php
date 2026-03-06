@@ -40,7 +40,7 @@ return function (ContainerBuilder $container): void {
             ),
             session: new SessionConfig(
                 useStrictMode: true,
-                cookieSecure: !$env->get("APP_ENV", "prod") == "dev",
+                cookieSecure: $env->get("APP_ENV", "prod") !== "dev",
                 cookieHttpOnly: true,
                 cookieSameSite: "Lax",
             ),
