@@ -11,9 +11,4 @@ final readonly class RedirectResponse
         header("Location: {$this->location}", true, 302);
         exit();
     }
-
-    public function getLocation(): string
-    {
-        return $this->location;
-    }
 }
