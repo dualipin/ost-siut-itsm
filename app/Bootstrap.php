@@ -6,7 +6,6 @@ use App\Infrastructure\Config\AppConfig;
 use App\Infrastructure\Env\Environment;
 use App\Infrastructure\Env\EnvironmentInterface;
 use App\Modules\Auth\AuthModule;
-use App\Modules\LaborUnion\LaborUnionModule;
 use App\Modules\Messaging\MessagingModule;
 use App\Modules\Publication\PublicationModule;
 use App\Modules\Setting\SettingModule;
@@ -59,7 +58,6 @@ class Bootstrap
 
         $modules = [
             new AuthModule(),
-            new LaborUnionModule(),
             new MessagingModule(),
             new PublicationModule(),
             new SettingModule(),
