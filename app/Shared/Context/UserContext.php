@@ -2,27 +2,27 @@
 
 namespace App\Shared\Context;
 
-use App\Infrastructure\Session\PhpSession;
-use App\Module\Auth\DTO\SessionUserDTO;
-use App\Module\Auth\Enum\RoleEnum;
+use App\Infrastructure\Session\SessionInterface;
+use App\Modules\Auth\Application\DTO\UserSession;
+use App\Modules\Auth\Enum\RoleEnum;
 
 /**
- * @implements ContextInterface<SessionUserDTO>
+ * @implements ContextInterface<UserSession>
  *
  * Almacena y recupera el contexto del usuario autenticado desde la sesión.
  */
-final readonly class UserContext implements ContextInterface
+final readonly class UserContext implements UserContextInterface
 {
     private const string SessionKey = "auth_user";
 
-    public function __construct(private PhpSession $session) {}
+    public function __construct(private SessionInterface $session) {}
 
     /**
      * Obtiene el usuario autenticado desde la sesión.
      *
-     * @return SessionUserDTO|null
+     * @return UserSession|null
      */
-    public function get(): ?SessionUserDTO
+    public function get(): ?UserSession
     {
         $data = $this->session->get(self::SessionKey);
 
@@ -39,17 +39,17 @@ final readonly class UserContext implements ContextInterface
             return null;
         }
 
-        return new SessionUserDTO(
+        return new UserSession(
             id: (int) $data["id"],
             email: $data["email"],
-            rol: RoleEnum::tryFrom($data["rol"]),
+            role: RoleEnum::tryFrom($data["rol"]) ?? RoleEnum::Agremiado,
         );
     }
 
     /**
      * Guarda el usuario autenticado en la sesión.
      *
-     * @param SessionUserDTO $value
+     * @param UserSession $value
      */
     public function set($value): void
     {

@@ -2,8 +2,6 @@
 
 namespace App\Shared\Context;
 
-namespace App\Shared\Context;
-
 /**
  * @template T
  */
@@ -20,6 +18,4 @@ interface ContextInterface
     public function set($value): void;
 
     public function clear(): void;
-
-    public function isAuthenticated(): bool;
 }
