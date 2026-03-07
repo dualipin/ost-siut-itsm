@@ -4,9 +4,15 @@ use App\Infrastructure\Config\AppConfig;
 use App\Infrastructure\Mail\DatabaseMailQueue;
 use App\Infrastructure\Mail\EmailService;
 use App\Infrastructure\Mail\MailerInterface;
+use App\Infrastructure\Session\PhpSession;
+use App\Infrastructure\Session\SessionInterface;
 use App\Infrastructure\Templating\Latte\LatteExtension;
 use App\Infrastructure\Templating\Latte\LatteRenderer;
 use App\Infrastructure\Templating\RendererInterface;
+use App\Modules\Setting\Repository\SettingRepositoryPdo;
+use App\Modules\Setting\Repository\SettingRepositoryInterface;
+use App\Shared\Context\UserContext;
+use App\Shared\Context\UserContextInterface;
 use DI\ContainerBuilder;
 use Dompdf\Dompdf;
 use Latte\Engine;
@@ -99,5 +105,9 @@ return function (ContainerBuilder $container) {
         RendererInterface::class => autowire(LatteRenderer::class),
         EmailService::class => autowire(EmailService::class),
         MailerInterface::class => autowire(DatabaseMailQueue::class),
+        SessionInterface::class => autowire(PhpSession::class),
+
+        // shared
+        UserContextInterface::class => autowire(UserContext::class),
     ]);
 };
