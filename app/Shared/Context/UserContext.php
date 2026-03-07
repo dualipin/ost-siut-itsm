@@ -4,7 +4,7 @@ namespace App\Shared\Context;
 
 use App\Infrastructure\Session\SessionInterface;
 use App\Modules\Auth\Application\DTO\UserSession;
-use App\Modules\Auth\Enum\RoleEnum;
+use App\Modules\Auth\Domain\Enum\RoleEnum;
 
 /**
  * @implements ContextInterface<UserSession>
@@ -56,7 +56,7 @@ final readonly class UserContext implements UserContextInterface
         $this->session->set(self::SessionKey, [
             "id" => $value->id,
             "email" => $value->email,
-            "rol" => $value->rol->value,
+            "rol" => $value->role->value,
         ]);
     }
 
