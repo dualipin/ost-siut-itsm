@@ -1,40 +1,59 @@
-create table if not exists usuarios
+create table if not exists users
 (
-    usuario_id            int auto_increment PRIMARY KEY,
+    user_id         int auto_increment PRIMARY KEY,
 
     -- auth
-    email                 varchar(100) not null unique,
-    password_hash         varchar(255) not null,
-    rol                   VARCHAR(20)  NOT NULL DEFAULT 'no_agremiado',
-    activo                BOOLEAN               DEFAULT TRUE,
+    email           varchar(100) not null unique,
+    password_hash   varchar(255) not null,
+    role            VARCHAR(20)  NOT NULL DEFAULT 'no_agremiado',
+    active          BOOLEAN               DEFAULT TRUE,
 
     -- info personal
-    curp                  VARCHAR(20),
-    nombre                VARCHAR(100) NOT NULL,
-    apellidos             VARCHAR(255) NOT NULL,
-    fecha_nacimiento      DATE                  DEFAULT NULL,
-    direccion             VARCHAR(255),
-    telefono              VARCHAR(50),
-    foto                  VARCHAR(255),
+    curp            VARCHAR(20),
+    name            VARCHAR(100) NOT NULL,
+    surnames        VARCHAR(255) NOT NULL,
+    birthdate       DATE                  DEFAULT NULL,
+    address         VARCHAR(255),
+    phone           VARCHAR(50),
+    photo           VARCHAR(255),
 
     -- datos bancarios
-    banco_nombre          VARCHAR(100),
-    clabe_interbancaria   VARCHAR(18),
-    cuenta_bancaria       VARCHAR(20),
+    bank_name       VARCHAR(100),
+    interbank_code  VARCHAR(18),
+    bank_account    VARCHAR(20),
 
     -- laboral
-    categoria             VARCHAR(100),
-    departamento          VARCHAR(100),
-    nss                   VARCHAR(15),
-    salario_quincenal     DECIMAL(12, 2)        DEFAULT 0,
-    fecha_ingreso_laboral DATE                  DEFAULT NULL,
+    category        VARCHAR(100),
+    department      VARCHAR(100),
+    nss             VARCHAR(15),
+    salary          DECIMAL(12, 2)        DEFAULT 0,
+    work_start_date DATE                  DEFAULT NULL,
 
     -- sesion
-    ultimo_ingreso        DATETIME              DEFAULT NULL,
-    fecha_creacion        DATETIME              DEFAULT CURRENT_TIMESTAMP,
-    fecha_actualizacion   DATETIME              DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    fecha_eliminacion     DATETIME              DEFAULT NULL
+    last_entry      DATETIME              DEFAULT NULL,
+    created_at      DATETIME              DEFAULT CURRENT_TIMESTAMP,
+    update_at       DATETIME              DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    delete_at       DATETIME              DEFAULT NULL
 );
+
+
+CREATE TABLE IF NOT EXISTS auth_logs
+(
+    auth_id       INT AUTO_INCREMENT PRIMARY KEY,
+    user_id       int,
+    email         VARCHAR(255),
+    action        VARCHAR(50) NOT NULL,
+    ip_address    VARCHAR(45),
+    user_agent    VARCHAR(255),
+    success       BOOLEAN     NOT NULL DEFAULT FALSE,
+    error_message TEXT,
+    created_at    TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE SET NULL,
+    INDEX idx_usuario_id (user_id),
+    INDEX idx_action (action),
+    INDEX idx_created_at (created_at)
+);
+
 
 CREATE TABLE if not exists usuario_documentos
 (
@@ -77,24 +96,6 @@ CREATE TABLE if not exists mail_queue
     attempts   INT                                DEFAULT 0,
     status     ENUM ('pending', 'sent', 'failed') DEFAULT 'pending',
     created_at TIMESTAMP                          DEFAULT CURRENT_TIMESTAMP
-);
-
-
-CREATE TABLE IF NOT EXISTS autenticacion_logs
-(
-    autenticacion_id INT AUTO_INCREMENT PRIMARY KEY,
-    usuario_id       int,
-    email            VARCHAR(255),
-    action           VARCHAR(50) NOT NULL,
-    ip_address       VARCHAR(45),
-    user_agent       VARCHAR(255),
-    success          BOOLEAN     NOT NULL DEFAULT FALSE,
-    error_message    TEXT,
-    created_at       TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (usuario_id) REFERENCES usuarios (usuario_id) ON DELETE SET NULL,
-    INDEX idx_usuario_id (usuario_id),
-    INDEX idx_action (action),
-    INDEX idx_created_at (created_at)
 );
 
 
