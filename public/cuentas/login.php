@@ -1,24 +1,19 @@
 <?php
 
 use App\Bootstrap;
-use App\Http\Exception\TooManyAttemptsException;
 use App\Http\Request\FormRequest;
-use App\Http\Response\Redirector;
-use App\Infrastructure\Security\CsrfTokenManager;
-use App\Infrastructure\Session\PhpSession;
+use App\Http\Response\Redirect;
 use App\Infrastructure\Templating\RendererInterface;
-use App\Module\Auth\Service\AuthenticationService;
-use App\Shared\Context\UserContext;
+use App\Modules\Auth\Application\UseCase\LoginUseCase;
+use App\Modules\Auth\Domain\Exception\TooManyAttemptsException;
+use App\Shared\Context\UserContextInterface;
 
 require_once __DIR__ . "/../../bootstrap.php";
 
 $container = Bootstrap::buildContainer();
-$redirector = $container->get(Redirector::class);
-$sessionManager = $container->get(PhpSession::class);
-$csrfManager = $container->get(CsrfTokenManager::class);
-$userContext = $container->get(UserContext::class);
 
-$sessionManager->start();
+$redirector = $container->get(Redirect::class);
+$userContext = $container->get(UserContextInterface::class);
 
 $request = new FormRequest();
 $redirect = $request->input("redirect", "/portal/");
@@ -30,21 +25,10 @@ if ($userContext->isAuthenticated()) {
 }
 
 if ($request->isSubmitted()) {
-    $submittedToken = $request->input("_csrf_token");
-    if (!$submittedToken || !$csrfManager->verify($submittedToken)) {
-        $redirector
-            ->to($_SERVER["REQUEST_URI"], [
-                "email" => $email,
-                "error" => "Token de seguridad inválido",
-                "redirect" => $redirect,
-            ])
-            ->send();
-    }
-
-    $service = $container->get(AuthenticationService::class);
+    $useCase = $container->get(LoginUseCase::class);
 
     try {
-        $authenticated = $service->authenticate(
+        $authenticated = $useCase->execute(
             email: $request->input("email"),
             password: $request->input("password"),
             ipAddress: $_SERVER["REMOTE_ADDR"] ?? null,
@@ -64,21 +48,22 @@ if ($request->isSubmitted()) {
         }
     } catch (TooManyAttemptsException $e) {
         $redirector
-            ->to($_SERVER["REQUEST_URI"], [
-                "email" => $email,
-                "error" => $e->getMessage(),
-                "redirect" => $redirect,
-            ])
+            ->to(
+                $_SERVER["REQUEST_URI"],
+                [
+                    "email" => $email,
+                    "error" => $e->getMessage(),
+                    "redirect" => $redirect,
+                ],
+                false,
+            )
             ->send();
     }
 }
-
-$csrfToken = $csrfManager->generate();
 
 $renderer = $container->get(RendererInterface::class);
 $renderer->render("./login.latte", [
     "email" => $email,
     "error" => $error,
     "redirect" => $redirect,
-    CsrfTokenManager::getFieldName() => $csrfToken,
 ]);
