@@ -14,32 +14,91 @@
         <div class="col-12 col-md-8 col-lg-5">
           <div class="card border-0 shadow-sm rounded-4 animate__animated animate__fadeInDown animate__faster">
             <div class="card-body p-4 p-md-5">
-              <div class="text-center mb-4">
-                <h3 class="fw-bold">Recuperar contraseña</h3>
-                <p class="text-muted small">Ingresa tu correo para recibir las instrucciones</p>
-              </div>
+              {if $showPasswordForm}
+                {* Formulario para establecer nueva contraseña *}
+                <div class="text-center mb-4">
+                  <h3 class="fw-bold">Establecer nueva contraseña</h3>
+                  <p class="text-muted small">Ingresa tu nueva contraseña para {$email}</p>
+                </div>
 
-              <form method="post">
-                <div class="mb-4">
-                  <label for="email" class="form-label">Correo electrónico</label>
-                  <div class="input-group">
-                    <span class="input-group-text bg-white"><i class="bi bi-envelope"></i></span>
-                    <input type="email" class="form-control" id="email" name="email"
-                           placeholder="micorreo@correo.com" required/>
+                {if $error}
+                  <div class="alert alert-danger alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    {$error}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                   </div>
+                {/if}
+
+                <form method="post">
+                  <input type="hidden" name="token" value="{$token}">
+                  
+                  <div class="mb-3">
+                    <label for="password" class="form-label">Nueva contraseña</label>
+                    <div class="input-group">
+                      <span class="input-group-text bg-white"><i class="bi bi-lock"></i></span>
+                      <input type="password" class="form-control" id="password" name="password"
+                             placeholder="Mínimo 8 caracteres" required minlength="8"/>
+                    </div>
+                  </div>
+
+                  <div class="mb-4">
+                    <label for="confirm_password" class="form-label">Confirmar contraseña</label>
+                    <div class="input-group">
+                      <span class="input-group-text bg-white"><i class="bi bi-lock-fill"></i></span>
+                      <input type="password" class="form-control" id="confirm_password" name="confirm_password"
+                             placeholder="Repite tu contraseña" required minlength="8"/>
+                    </div>
+                  </div>
+
+                  <button type="submit" class="btn btn-primary w-100 mb-3 py-2">
+                    <i class="bi bi-check-circle-fill me-2"></i>Establecer contraseña
+                  </button>
+                </form>
+              {else}
+                {* Formulario para solicitar recuperación *}
+                <div class="text-center mb-4">
+                  <h3 class="fw-bold">Recuperar contraseña</h3>
+                  <p class="text-muted small">Ingresa tu correo para recibir las instrucciones</p>
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100 mb-3 py-2">
-                  <i class="bi bi-send-fill me-2"></i>Recuperar
-                </button>
+                {if $status}
+                  <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    {$status}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                  </div>
+                {/if}
 
-                <div class="text-center mt-4">
-                  <p class="mb-1 text-muted small">Recordé mi contraseña</p>
-                  <a href="/cuentas/login.php" class="btn btn-link link-primary p-0 text-decoration-none">
-                    Iniciar sesión
-                  </a>
-                </div>
-              </form>
+                {if $error}
+                  <div class="alert alert-danger alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    {$error}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                  </div>
+                {/if}
+
+                <form method="post">
+                  <div class="mb-4">
+                    <label for="email" class="form-label">Correo electrónico</label>
+                    <div class="input-group">
+                      <span class="input-group-text bg-white"><i class="bi bi-envelope"></i></span>
+                      <input type="email" class="form-control" id="email" name="email"
+                             placeholder="micorreo@correo.com" required/>
+                    </div>
+                  </div>
+
+                  <button type="submit" class="btn btn-primary w-100 mb-3 py-2">
+                    <i class="bi bi-send-fill me-2"></i>Recuperar
+                  </button>
+
+                  <div class="text-center mt-4">
+                    <p class="mb-1 text-muted small">Recordé mi contraseña</p>
+                    <a href="/cuentas/login.php" class="btn btn-link link-primary p-0 text-decoration-none">
+                      Iniciar sesión
+                    </a>
+                  </div>
+                </form>
+              {/if}
             </div>
           </div>
         </div>
