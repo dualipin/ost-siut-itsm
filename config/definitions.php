@@ -4,11 +4,15 @@ use App\Infrastructure\Config\AppConfig;
 use App\Infrastructure\Mail\DatabaseMailQueue;
 use App\Infrastructure\Mail\EmailService;
 use App\Infrastructure\Mail\MailerInterface;
+use App\Infrastructure\Persistence\PdoTransactionManager;
+use App\Infrastructure\Persistence\TransactionManager;
 use App\Infrastructure\Session\PhpSession;
 use App\Infrastructure\Session\SessionInterface;
 use App\Infrastructure\Templating\Latte\LatteExtension;
 use App\Infrastructure\Templating\Latte\LatteRenderer;
 use App\Infrastructure\Templating\RendererInterface;
+use App\Modules\Auth\Infrastructure\Mail\PasswordRecoveryMailer;
+use App\Modules\Auth\Domain\Service\PasswordRecoveryNotifierInterface;
 use App\Shared\Context\UserContext;
 use App\Shared\Context\UserContextInterface;
 use DI\ContainerBuilder;
@@ -105,6 +109,20 @@ return function (ContainerBuilder $container) {
         EmailService::class => autowire(EmailService::class),
         MailerInterface::class => autowire(DatabaseMailQueue::class),
         SessionInterface::class => autowire(PhpSession::class),
+        TransactionManager::class => autowire(PdoTransactionManager::class),
+
+        PasswordRecoveryMailer::class => function (
+            MailerInterface $mailer,
+            RendererInterface $renderer,
+        ) {
+            return new PasswordRecoveryMailer(
+                $mailer,
+                $renderer,
+                dirname(__DIR__),
+            );
+        },
+
+        PasswordRecoveryNotifierInterface::class => autowire(PasswordRecoveryMailer::class),
 
         // shared
         UserContextInterface::class => autowire(UserContext::class),
