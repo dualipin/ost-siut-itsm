@@ -2,13 +2,13 @@
 
 namespace App\Modules\Auth\Application\UseCase;
 
-use App\Modules\Auth\Application\DTO\UserSession;
 use App\Modules\Auth\Domain\Exception\TooManyAttemptsException;
 use App\Modules\Auth\Domain\Repository\CredentialRepositoryInterface;
 use App\Modules\Auth\Domain\Service\AuthEventLogger;
 use App\Modules\Auth\Domain\Service\CredentialVerifier;
 use App\Modules\Auth\Domain\Service\LoginAttemptPolicy;
 use App\Shared\Context\UserContextInterface;
+use App\Shared\Security\AuthenticatedUser;
 
 final readonly class LoginUseCase
 {
@@ -52,7 +52,7 @@ final readonly class LoginUseCase
         );
 
         $this->userContext->set(
-            new UserSession(
+            new AuthenticatedUser(
                 id: $credential->id,
                 email: $credential->email,
                 role: $credential->role,
