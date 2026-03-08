@@ -50,11 +50,6 @@ final readonly class UserContext implements UserContextInterface
         ]);
     }
 
-    public function clear(): void
-    {
-        $this->session->remove(self::SessionKey);
-    }
-
     public function isAuthenticated(): bool
     {
         return $this->get() !== null;
