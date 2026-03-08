@@ -8,14 +8,9 @@ namespace App\Shared\Context;
 interface ContextInterface
 {
     /**
-     * @return T
+     * @return T|null
      */
     public function get();
-
-    /**
-     * @param T $value
-     */
-    public function set($value): void;
 
     public function clear(): void;
 }

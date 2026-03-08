@@ -2,12 +2,14 @@
 
 namespace App\Shared\Context;
 
-use App\Modules\Auth\Application\DTO\UserSession;
+use App\Shared\Security\AuthenticatedUser;
 
 /**
- * @implements ContextInterface<UserSession>
+ * @extends ContextInterface<AuthenticatedUser>
  */
 interface UserContextInterface extends ContextInterface
 {
+    public function set(AuthenticatedUser $user): void;
+
     public function isAuthenticated(): bool;
 }
