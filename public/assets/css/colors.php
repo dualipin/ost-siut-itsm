@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 // 1. Evitar caché del navegador para ver cambios inmediatos durante desarrollo
 use App\Bootstrap;
-use App\Module\Sindicato\Repository\ColoresRepository;
+use App\Modules\Setting\Application\UseCase\GetColorUseCase;
 
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Cache-Control: post-check=0, pre-check=0", false);
@@ -136,50 +136,54 @@ require_once __DIR__ . "/../../../bootstrap.php";
 
 $c = Bootstrap::buildContainer();
 
-$repo = $c->get(ColoresRepository::class);
+$useCase = $c->get(GetColorUseCase::class);
 
-$colores = $repo->getColores();
+// Intentar cargar colores desde la base de datos
+$colores = $useCase->execute();
 
 $settings = [];
 
 if ($colores) {
+    // ✅ USANDO COLORES DINÁMICOS (Cargados desde system_colors en BD)
     $settings = [
-        "primario" => $colores->primario,
-        "secundario" => $colores->secundario,
-        "exito" => $colores->exito,
+        "primario" => $colores->primary,
+        "secundario" => $colores->secondary,
+        "exito" => $colores->success,
         "info" => $colores->info,
-        "advertencia" => $colores->advertencia,
-        "peligro" => $colores->peligro,
-        "claro" => $colores->claro,
-        "oscuro" => $colores->oscuro,
-        "blanco" => $colores->blanco,
-        "cuerpo" => $colores->cuerpo,
-        "fondo-cuerpo" => $colores->fondoCuerpo,
+        "advertencia" => $colores->warning,
+        "peligro" => $colores->danger,
+        "claro" => $colores->light,
+        "oscuro" => $colores->dark,
+        "blanco" => $colores->white,
+        "cuerpo" => $colores->body,
+        "fondo-cuerpo" => $colores->bodyBackground,
     ];
 } else {
      ?>
-  /* Si no hay colores configurados, se usarán los valores por defecto definidos en el CSS */
+  /* ⚠️ USANDO COLORES POR DEFECTO (No se encontraron colores en la base de datos) */
   <?php
 }
 
 // ============================================================================
 // DEFINICIÓN DE COLORES
 // ============================================================================
+// NOTA: El operador ?? significa: "usa el valor de $settings si existe, 
+//       sino usa el valor por defecto (hardcoded)"
 
 // Colores temáticos
-$primaryColor = $settings["primario"] ?? "#611232";
-$secondaryColor = $settings["secundario"] ?? "#a57f2c";
-$successColor = $settings["exito"] ?? "#38b44a";
-$infoColor = $settings["info"] ?? "#17a2b8";
-$warningColor = $settings["advertencia"] ?? "#efb73e";
-$dangerColor = $settings["peligro"] ?? "#df382c";
-$lightColor = $settings["claro"] ?? "#f8f9fa";
-$darkColor = $settings["oscuro"] ?? "#212529";
+$primaryColor = $settings["primario"] ?? "#611232";      // Vino oscuro (default)
+$secondaryColor = $settings["secundario"] ?? "#a57f2c";  // Dorado (default)
+$successColor = $settings["exito"] ?? "#38b44a";         // Verde (default)
+$infoColor = $settings["info"] ?? "#17a2b8";             // Azul cielo (default)
+$warningColor = $settings["advertencia"] ?? "#efb73e";   // Amarillo (default)
+$dangerColor = $settings["peligro"] ?? "#df382c";        // Rojo (default)
+$lightColor = $settings["claro"] ?? "#f8f9fa";           // Gris claro (default)
+$darkColor = $settings["oscuro"] ?? "#212529";           // Negro/gris oscuro (default)
 
-// Colores de sistema (puedes hacerlos dinámicos también si lo deseas)
-$whiteColor = $settings["blanco"] ?? "#ffffff";
-$bodyColor = $settings["cuerpo"] ?? "#212529";
-$bodyBg = $settings["fondo-cuerpo"] ?? "#ffffff";
+// Colores de sistema
+$whiteColor = $settings["blanco"] ?? "#ffffff";          // Blanco puro (default)
+$bodyColor = $settings["cuerpo"] ?? "#212529";           // Color de texto (default)
+$bodyBg = $settings["fondo-cuerpo"] ?? "#ffffff";        // Fondo del body (default)
 
 // Definir array de colores para iterar
 $themeColors = [
