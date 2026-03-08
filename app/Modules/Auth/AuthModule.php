@@ -4,6 +4,7 @@ namespace App\Modules\Auth;
 
 use App\Modules\AbstractModule;
 use App\Modules\Auth\Application\Service\AuthEventLogger;
+use App\Modules\Auth\Application\UseCase\ChangePasswordWithTokenUseCase;
 use App\Modules\Auth\Application\UseCase\LoginUseCase;
 use App\Modules\Auth\Application\UseCase\LogoutUseCase;
 use App\Modules\Auth\Application\UseCase\PasswordResetUseCase;
@@ -37,6 +38,7 @@ final class AuthModule extends AbstractModule
     ];
 
     protected const array USE_CASES = [
+        ChangePasswordWithTokenUseCase::class,
         LoginUseCase::class,
         LogoutUseCase::class,
         PasswordResetUseCase::class,

@@ -32,4 +32,15 @@ class PdoCredentialRepository extends PdoBaseRepository implements
             isActive: (bool) $result["active"],
         );
     }
+
+    public function updatePassword(int $userId, string $passwordHash): void
+    {
+        $stmt = $this->pdo->prepare(
+            "UPDATE users SET password_hash = :password WHERE user_id = :id",
+        );
+        $stmt->execute([
+            ":password" => $passwordHash,
+            ":id" => $userId,
+        ]);
+    }
 }
