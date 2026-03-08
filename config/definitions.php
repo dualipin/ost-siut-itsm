@@ -9,8 +9,6 @@ use App\Infrastructure\Session\SessionInterface;
 use App\Infrastructure\Templating\Latte\LatteExtension;
 use App\Infrastructure\Templating\Latte\LatteRenderer;
 use App\Infrastructure\Templating\RendererInterface;
-use App\Modules\Setting\Repository\SettingRepositoryPdo;
-use App\Modules\Setting\Repository\SettingRepositoryInterface;
 use App\Shared\Context\UserContext;
 use App\Shared\Context\UserContextInterface;
 use DI\ContainerBuilder;
@@ -61,6 +59,7 @@ return function (ContainerBuilder $container) {
 
         PHPMailer::class => function (AppConfig $config) {
             $mail = new PHPMailer(true);
+            $mail->CharSet = 'UTF-8';
             $mail->isSMTP();
             $mail->Host = $config->mailer->host;
             $mail->SMTPAuth = true;
