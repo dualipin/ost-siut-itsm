@@ -34,8 +34,8 @@ final readonly class AuthEventLogger
 
     public function failedLoginAttempt(
         string $email,
-        string $ipAddress,
-        string $userAgent,
+        ?string $ipAddress,
+        ?string $userAgent,
         ?string $errorMessage = null,
     ): void {
         $this->authLogRepository->saveAuthLog(
@@ -53,8 +53,8 @@ final readonly class AuthEventLogger
     public function logoutSuccess(
         int $userId,
         string $email,
-        string $ipAddress,
-        string $userAgent,
+        ?string $ipAddress,
+        ?string $userAgent,
     ): void {
         $this->authLogRepository->saveAuthLog(
             new AuthLog(
@@ -68,7 +68,7 @@ final readonly class AuthEventLogger
         );
     }
 
-    public function logoutFailed(string $ipAddress, string $userAgent): void
+    public function logoutFailed(?string $ipAddress, ?string $userAgent): void
     {
         $this->authLogRepository->saveAuthLog(
             new AuthLog(
@@ -77,6 +77,60 @@ final readonly class AuthEventLogger
                 ipAddress: $ipAddress,
                 userAgent: $userAgent,
                 errorMessage: "intento fallido de cierre de sesión",
+            ),
+        );
+    }
+
+    public function passwordResetRequested(
+        string $email,
+        ?string $ipAddress,
+        ?string $userAgent,
+    ): void {
+        $this->authLogRepository->saveAuthLog(
+            new AuthLog(
+                action: AuthLogActionEnum::PasswordReset,
+                success: true,
+                email: $email,
+                ipAddress: $ipAddress,
+                userAgent: $userAgent,
+            ),
+        );
+    }
+
+    public function passwordResetSuccess(
+        int $userId,
+        string $email,
+        ?string $ipAddress,
+        ?string $userAgent,
+    ): void {
+        $this->authLogRepository->saveAuthLog(
+            new AuthLog(
+                action: AuthLogActionEnum::PasswordReset,
+                success: true,
+                userId: $userId,
+                email: $email,
+                ipAddress: $ipAddress,
+                userAgent: $userAgent,
+            ),
+        );
+
+        $this->authLogRepository->updateLastLogin($userId);
+    }
+
+    public function passwordResetFailed(
+        string $email,
+        ?string $ipAddress,
+        ?string $userAgent,
+        string $errorMessage,
+    ): void {
+        $this->authLogRepository->saveAuthLog(
+            new AuthLog(
+                action: AuthLogActionEnum::PasswordReset,
+                success: false,
+                email: $email,
+                ipAddress: $ipAddress,
+                userAgent: $userAgent,
+                errorMessage: $errorMessage,
             ),
         );
     }
