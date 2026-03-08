@@ -21,21 +21,20 @@
               </div>
 
               {foreach [
-                'primario' => ['label' => 'Primario', 'var' => '--bs-primary'],
-                'secundario' => ['label' => 'Secundario', 'var' => '--bs-secondary'],
-                'exito' => ['label' => 'Éxito', 'var' => '--bs-success'],
-                'info' => ['label' => 'Info', 'var' => '--bs-info'],
-                'advertencia' => ['label' => 'Advertencia', 'var' => '--bs-warning'],
-                'peligro' => ['label' => 'Peligro', 'var' => '--bs-danger'],
-                'claro' => ['label' => 'Claro', 'var' => '--bs-light'],
-                'oscuro' => ['label' => 'Oscuro', 'var' => '--bs-dark'],
-                'blanco' => ['label' => 'Blanco', 'var' => '--bs-white'],
-                'cuerpo' => ['label' => 'Texto (cuerpo)', 'var' => '--bs-body-color'],
-                'fondo_cuerpo' => ['label' => 'Fondo de cuerpo', 'var' => '--bs-body-bg']
+                'primario' => ['label' => 'Primario', 'var' => '--bs-primary', 'prop' => 'primary'],
+                'secundario' => ['label' => 'Secundario', 'var' => '--bs-secondary', 'prop' => 'secondary'],
+                'exito' => ['label' => 'Éxito', 'var' => '--bs-success', 'prop' => 'success'],
+                'info' => ['label' => 'Info', 'var' => '--bs-info', 'prop' => 'info'],
+                'advertencia' => ['label' => 'Advertencia', 'var' => '--bs-warning', 'prop' => 'warning'],
+                'peligro' => ['label' => 'Peligro', 'var' => '--bs-danger', 'prop' => 'danger'],
+                'claro' => ['label' => 'Claro', 'var' => '--bs-light', 'prop' => 'light'],
+                'oscuro' => ['label' => 'Oscuro', 'var' => '--bs-dark', 'prop' => 'dark'],
+                'blanco' => ['label' => 'Blanco', 'var' => '--bs-white', 'prop' => 'white'],
+                'cuerpo' => ['label' => 'Texto (cuerpo)', 'var' => '--bs-body-color', 'prop' => 'body'],
+                'fondo_cuerpo' => ['label' => 'Fondo de cuerpo', 'var' => '--bs-body-bg', 'prop' => 'bodyBackground']
               ] as $name => $meta}
-                {var $value = (isset($colores) && isset($colores->$name))
-                  ? $colores->$name
-                  : ($name === 'fondo_cuerpo' && isset($colores->fondoCuerpo) ? $colores->fondoCuerpo : '#000000')}
+                {var $prop = $meta['prop']}
+                {var $value = $colores->$prop}
 
                 <div class="col-md-6 col-lg-4">
                   <label class="form-label">{$meta['label']}</label>
