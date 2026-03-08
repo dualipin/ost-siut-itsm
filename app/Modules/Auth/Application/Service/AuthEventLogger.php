@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Auth\Domain\Service;
+namespace App\Modules\Auth\Application\Service;
 
 use App\Modules\Auth\Domain\Entity\AuthLog;
 use App\Modules\Auth\Domain\Enum\AuthLogActionEnum;
@@ -46,6 +46,37 @@ final readonly class AuthEventLogger
                 ipAddress: $ipAddress,
                 userAgent: $userAgent,
                 errorMessage: $errorMessage,
+            ),
+        );
+    }
+
+    public function logoutSuccess(
+        int $userId,
+        string $email,
+        string $ipAddress,
+        string $userAgent,
+    ): void {
+        $this->authLogRepository->saveAuthLog(
+            new AuthLog(
+                action: AuthLogActionEnum::Logout,
+                success: true,
+                userId: $userId,
+                email: $email,
+                ipAddress: $ipAddress,
+                userAgent: $userAgent,
+            ),
+        );
+    }
+
+    public function logoutFailed(string $ipAddress, string $userAgent): void
+    {
+        $this->authLogRepository->saveAuthLog(
+            new AuthLog(
+                action: AuthLogActionEnum::Logout,
+                success: false,
+                ipAddress: $ipAddress,
+                userAgent: $userAgent,
+                errorMessage: "intento fallido de cierre de sesión",
             ),
         );
     }

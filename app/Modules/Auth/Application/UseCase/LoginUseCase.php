@@ -2,9 +2,9 @@
 
 namespace App\Modules\Auth\Application\UseCase;
 
+use App\Modules\Auth\Application\Service\AuthEventLogger;
 use App\Modules\Auth\Domain\Exception\TooManyAttemptsException;
 use App\Modules\Auth\Domain\Repository\CredentialRepositoryInterface;
-use App\Modules\Auth\Domain\Service\AuthEventLogger;
 use App\Modules\Auth\Domain\Service\CredentialVerifier;
 use App\Modules\Auth\Domain\Service\LoginAttemptPolicy;
 use App\Shared\Context\UserContextInterface;
