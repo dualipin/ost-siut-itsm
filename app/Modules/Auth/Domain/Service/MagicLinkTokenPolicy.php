@@ -18,19 +18,6 @@ final class MagicLinkTokenPolicy
 
     public function isValid(string $token): bool
     {
-        if (strlen($token) !== self::TokenHexLength) {
-            return false;
-        }
-
-        $formatted = sprintf(
-            "%s-%s-%s-%s-%s",
-            substr($token, 0, 8),
-            substr($token, 8, 4),
-            substr($token, 12, 4),
-            substr($token, 16, 4),
-            substr($token, 20, 12),
-        );
-
-        return Uuid::isValid($formatted);
+        return ctype_xdigit($token) && strlen($token) === self::TokenHexLength;
     }
 }

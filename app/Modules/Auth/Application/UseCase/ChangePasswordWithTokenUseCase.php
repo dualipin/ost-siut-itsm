@@ -2,13 +2,13 @@
 
 namespace App\Modules\Auth\Application\UseCase;
 
+use App\Infrastructure\Persistence\TransactionManager;
 use App\Modules\Auth\Application\Service\AuthEventLogger;
 use App\Modules\Auth\Domain\Repository\CredentialRepositoryInterface;
 use App\Modules\Auth\Domain\Repository\PasswordRecoveryInterface;
 use App\Modules\Auth\Domain\Service\MagicLinkTokenPolicy;
 use App\Shared\Context\UserContextInterface;
 use App\Shared\Security\AuthenticatedUser;
-use PDO;
 
 final readonly class ChangePasswordWithTokenUseCase
 {
@@ -20,7 +20,7 @@ final readonly class ChangePasswordWithTokenUseCase
         private MagicLinkTokenPolicy $magicLinkTokenPolicy,
         private UserContextInterface $userContext,
         private AuthEventLogger $authEventLogger,
-        private PDO $pdo,
+        private TransactionManager $transactionManager,
     ) {}
 
     public function execute(
@@ -68,15 +68,10 @@ final readonly class ChangePasswordWithTokenUseCase
         $passwordHash = password_hash($newPassword, PASSWORD_DEFAULT);
 
         // Update password and consume token atomically
-        $this->pdo->beginTransaction();
-        try {
+        $this->transactionManager->transactional(function () use ($credential, $passwordHash, $token) {
             $this->credentialRepository->updatePassword($credential->id, $passwordHash);
             $this->passwordRecoveryRepository->consumeToken($token);
-            $this->pdo->commit();
-        } catch (\Exception $e) {
-            $this->pdo->rollBack();
-            throw $e;
-        }
+        });
 
         // Authenticate the user
         $this->userContext->set(

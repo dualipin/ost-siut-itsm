@@ -16,7 +16,6 @@ use App\Modules\Auth\Domain\Service\CredentialVerifier;
 use App\Modules\Auth\Domain\Service\LoginAttemptPolicy;
 use App\Modules\Auth\Domain\Service\MagicLinkTokenPolicy;
 use App\Modules\Auth\Domain\Service\PasswordRecoveryNotifierInterface;
-use App\Modules\Auth\Infrastructure\Mail\PasswordRecoveryMailer;
 use App\Modules\Auth\Infrastructure\Persistence\PdoAuthLogRepository;
 use App\Modules\Auth\Infrastructure\Persistence\PdoCredentialRepository;
 use App\Modules\Auth\Infrastructure\Persistence\PdoPasswordRecoveryRepository;
@@ -27,7 +26,6 @@ final class AuthModule extends AbstractModule
         AuthLogRepositoryInterface::class => PdoAuthLogRepository::class,
         CredentialRepositoryInterface::class => PdoCredentialRepository::class,
         PasswordRecoveryInterface::class => PdoPasswordRecoveryRepository::class,
-        PasswordRecoveryNotifierInterface::class => PasswordRecoveryMailer::class,
     ];
 
     protected const array SERVICES = [

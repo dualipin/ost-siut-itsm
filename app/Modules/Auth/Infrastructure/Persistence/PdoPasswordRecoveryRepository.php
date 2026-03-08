@@ -4,40 +4,24 @@ namespace App\Modules\Auth\Infrastructure\Persistence;
 
 use App\Infrastructure\Persistence\Repository\PdoBaseRepository;
 use App\Modules\Auth\Domain\Repository\PasswordRecoveryInterface;
-use Throwable;
 
 final class PdoPasswordRecoveryRepository extends PdoBaseRepository implements
     PasswordRecoveryInterface
 {
-    /**
-     * @throws Throwable
-     */
     public function storeMagicLink(string $email, string $token): void
     {
-        $this->pdo->beginTransaction();
+        $deleteStmt = $this->pdo->prepare(
+            "DELETE FROM password_resets WHERE email = :email",
+        );
+        $deleteStmt->execute(["email" => $email]);
 
-        try {
-            $deleteStmt = $this->pdo->prepare(
-                "DELETE FROM password_resets WHERE email = :email",
-            );
-            $deleteStmt->execute(["email" => $email]);
-
-            $insertStmt = $this->pdo->prepare(
-                "INSERT INTO password_resets (email, token, created_at) VALUES (:email, UNHEX(:token), NOW())",
-            );
-            $insertStmt->execute([
-                "email" => $email,
-                "token" => $token,
-            ]);
-
-            $this->pdo->commit();
-        } catch (Throwable $error) {
-            if ($this->pdo->inTransaction()) {
-                $this->pdo->rollBack();
-            }
-
-            throw $error;
-        }
+        $insertStmt = $this->pdo->prepare(
+            "INSERT INTO password_resets (email, token, created_at) VALUES (:email, UNHEX(:token), NOW())",
+        );
+        $insertStmt->execute([
+            "email" => $email,
+            "token" => $token,
+        ]);
     }
 
     public function findEmailByValidToken(
