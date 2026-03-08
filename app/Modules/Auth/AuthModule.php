@@ -3,10 +3,10 @@
 namespace App\Modules\Auth;
 
 use App\Modules\AbstractModule;
+use App\Modules\Auth\Application\Service\AuthEventLogger;
 use App\Modules\Auth\Application\UseCase\LoginUseCase;
 use App\Modules\Auth\Domain\Repository\AuthLogRepositoryInterface;
 use App\Modules\Auth\Domain\Repository\CredentialRepositoryInterface;
-use App\Modules\Auth\Domain\Service\AuthEventLogger;
 use App\Modules\Auth\Domain\Service\CredentialVerifier;
 use App\Modules\Auth\Domain\Service\LoginAttemptPolicy;
 use App\Modules\Auth\Infrastructure\Persistence\PdoAuthLogRepository;
