@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Modules\Setting\Repository;
+namespace App\Modules\Setting\Domain\Repository;
 
-use App\Modules\Setting\Entity\Color;
+use App\Modules\Setting\Domain\Entity\Color;
 
 interface SettingRepositoryInterface
 {

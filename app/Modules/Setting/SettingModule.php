@@ -2,21 +2,20 @@
 
 namespace App\Modules\Setting;
 
-use App\Modules\ModuleInterface;
-use App\Modules\Setting\Repository\SettingRepository;
-use App\Modules\Setting\Repository\SettingRepositoryInterface;
-use DI\ContainerBuilder;
+use App\Modules\AbstractModule;
+use App\Modules\Setting\Application\UseCase\GetColorUseCase;
+use App\Modules\Setting\Application\UseCase\UpdateColorUseCase;
+use App\Modules\Setting\Domain\Repository\SettingRepositoryInterface;
+use App\Modules\Setting\Infrastructure\Persistence\PdoSettingRepository;
 
-use function DI\autowire;
-
-class SettingModule implements ModuleInterface
+final class SettingModule extends AbstractModule
 {
-    public function register(ContainerBuilder $container): void
-    {
-        $container->addDefinitions([
-            SettingRepositoryInterface::class => autowire(
-                SettingRepository::class,
-            ),
-        ]);
-    }
+    protected const array REPOSITORIES = [
+        SettingRepositoryInterface::class => PdoSettingRepository::class,
+    ];
+
+    protected const array USE_CASES = [
+        GetColorUseCase::class,
+        UpdateColorUseCase::class,
+    ];
 }
