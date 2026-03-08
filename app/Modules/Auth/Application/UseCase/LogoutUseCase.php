@@ -2,6 +2,7 @@
 
 namespace App\Modules\Auth\Application\UseCase;
 
+use App\Infrastructure\Session\SessionInterface;
 use App\Modules\Auth\Application\Service\AuthEventLogger;
 use App\Shared\Context\UserContextInterface;
 
@@ -10,24 +11,20 @@ final readonly class LogoutUseCase
     public function __construct(
         private AuthEventLogger $authEventLogger,
         private UserContextInterface $userContext,
+        private SessionInterface $session,
     ) {}
 
     public function execute(
         ?string $ipAddress = null,
         ?string $userAgent = null,
     ): void {
-        $ipAddress ??= "";
-        $userAgent ??= "";
-
         $user = $this->userContext->get();
 
         if (!$user) {
-            $this->authEventLogger->logoutFailed(
-                ipAddress: $ipAddress,
-                userAgent: $userAgent,
-            );
             return;
         }
+
+        $this->session->destroy();
 
         $this->authEventLogger->logoutSuccess(
             userId: $user->id,
@@ -35,7 +32,5 @@ final readonly class LogoutUseCase
             ipAddress: $ipAddress,
             userAgent: $userAgent,
         );
-
-        $this->userContext->clear();
     }
 }

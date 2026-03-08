@@ -20,11 +20,15 @@ class PdoCredentialRepository extends PdoBaseRepository implements
 
         $result = $stmt->fetch();
 
+        if (!$result) {
+            return null;
+        }
+
         return new UserCredential(
             id: $result["user_id"],
             email: $result["email"],
             passwordHash: $result["password_hash"],
-            role: RoleEnum::tryFrom($result["role"]),
+            role: RoleEnum::tryFrom($result["role"]) ?? RoleEnum::NoAgremiado,
             isActive: (bool) $result["active"],
         );
     }
