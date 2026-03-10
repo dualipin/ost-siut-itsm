@@ -2,13 +2,6 @@
 
 namespace App\Modules\User;
 
-use App\Modules\ModuleInterface;
-use DI\ContainerBuilder;
+use App\Modules\AbstractModule;
 
-final class UserModule implements ModuleInterface
-{
-    public function register(ContainerBuilder $container): void
-    {
-        $container->addDefinitions([]);
-    }
-}
+final class UserModule extends AbstractModule {}
