@@ -2,7 +2,7 @@
 
 use App\Bootstrap;
 use App\Http\Request\FormRequest;
-use App\Http\Response\Redirect;
+use App\Http\Response\Redirector;
 use App\Infrastructure\Templating\RendererInterface;
 use App\Modules\Auth\Application\UseCase\PasswordResetUseCase;
 use App\Modules\Auth\Application\UseCase\ChangePasswordWithTokenUseCase;
@@ -13,7 +13,7 @@ require_once __DIR__ . "/../../bootstrap.php";
 $container = Bootstrap::buildContainer();
 
 $request = new FormRequest();
-$redirect = $container->get(Redirect::class);
+$redirect = $container->get(Redirector::class);
 $userContext = $container->get(UserContextInterface::class);
 
 if ($userContext->isAuthenticated()) {

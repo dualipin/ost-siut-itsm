@@ -1,7 +1,7 @@
 <?php
 
 use App\Bootstrap;
-use App\Http\Response\Redirect;
+use App\Http\Response\Redirector;
 use App\Infrastructure\Templating\RendererInterface;
 use App\Modules\Setting\Application\Command\UpdateColorCommand;
 use App\Modules\Setting\Application\UseCase\GetColorUseCase;
@@ -17,7 +17,7 @@ $updateColorUseCase = $container->get(UpdateColorUseCase::class);
 $colores = $getColorUseCase->execute();
 $path = $_SERVER["REQUEST_URI"];
 
-$redirector = $container->get(Redirect::class);
+$redirector = $container->get(Redirector::class);
 $renderer = $container->get(RendererInterface::class);
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {

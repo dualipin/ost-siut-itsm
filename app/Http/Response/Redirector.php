@@ -4,7 +4,7 @@ namespace App\Http\Response;
 
 use App\Shared\Utils\UrlBuilder;
 
-final readonly class Redirect
+final readonly class Redirector
 {
     public function __construct(private UrlBuilder $urlBuilder) {}
 

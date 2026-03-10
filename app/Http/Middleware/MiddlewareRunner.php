@@ -21,14 +21,14 @@ final readonly class MiddlewareRunner
             $middleware->execute();
         } catch (UnauthorizedException) {
             // No autenticado: redirige a login con redirect back
-            $params = [];
-            $uri = $currentUri ?? ($_SERVER["REQUEST_URI"] ?? null);
+            $queryParams = [];
+            $requestUri = $currentUri ?? ($_SERVER["REQUEST_URI"] ?? null);
 
-            if ($withRedirectBack && $uri) {
-                $params["redirect"] = $uri;
+            if ($withRedirectBack && $requestUri) {
+                $queryParams["redirect"] = $requestUri;
             }
 
-            $this->redirector->to($redirectTo, $params)->send();
+            $this->redirector->to($redirectTo, $queryParams)->send();
         } catch (ForbiddenException) {
             // Autenticado pero sin permisos: redirige a acceso denegado SIN redirect back
             $this->redirector->to($forbiddenPage)->send();
