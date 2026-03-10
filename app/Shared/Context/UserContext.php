@@ -3,7 +3,7 @@
 namespace App\Shared\Context;
 
 use App\Infrastructure\Session\SessionInterface;
-use App\Modules\Auth\Domain\Enum\RoleEnum;
+use App\Shared\Domain\Enum\RoleEnum;
 use App\Shared\Security\AuthenticatedUser;
 
 final readonly class UserContext implements UserContextInterface
