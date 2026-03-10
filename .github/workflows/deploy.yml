@@ -3,7 +3,7 @@ name: 🚀 Deploy PHP App
 on:
   push:
     branches:
-      - dev
+      - main
 
 jobs:
   build-and-deploy:
