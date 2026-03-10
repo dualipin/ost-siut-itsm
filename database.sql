@@ -1,4 +1,4 @@
-create table if not exists users
+CREATE TABLE IF NOT EXISTS users
 (
     user_id         INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -36,7 +36,7 @@ create table if not exists users
     delete_at       DATETIME              DEFAULT NULL
 );
 
-CREATE TABLE if not exists user_documents
+CREATE TABLE IF NOT EXISTS user_documents
 (
     document_id   INT AUTO_INCREMENT PRIMARY KEY,
     user_id       INT          NOT NULL,
@@ -97,59 +97,59 @@ CREATE TABLE if NOT EXISTS mail_queue
 );
 
 
-CREATE TABLE if not exists cat_tipos_ingreso
+CREATE TABLE if not exists cat_income_types
 (
-    tipo_ingreso_id    INT AUTO_INCREMENT PRIMARY KEY,
-    nombre             VARCHAR(100) NOT NULL, -- "Aguinaldo", "Quincena", "Bono"
-    descripcion        TEXT,
-    es_periodico       BOOLEAN DEFAULT FALSE, -- TRUE para Quincena, FALSE para bonos anuales
-    frecuencia_dias    INT,                   -- 15 para quincenas, NULL para anuales
-    mes_pago_tentativo INT,                   -- Para prestaciones: 12 para Diciembre
-    dia_pago_tentativo INT,                   -- 15 o 20 típicamente
-    activo             BOOLEAN DEFAULT TRUE
+    income_type_id          INT AUTO_INCREMENT PRIMARY KEY,
+    name                    VARCHAR(100) NOT NULL, -- "Aguinaldo", "Quincena", "Bono"
+    description             TEXT,
+    is_periodic             BOOLEAN DEFAULT FALSE, -- TRUE para Quincena, FALSE para bonos anuales
+    frequency_days          INT,                   -- 15 para quincenas, NULL para anuales
+    tentative_payment_month INT,                   -- Para prestaciones: 12 para Diciembre
+    tentative_payment_day   INT,                   -- 15 o 20 típicamente
+    active                  BOOLEAN DEFAULT TRUE
 );
 
 
-CREATE TABLE if not exists prestamos
+CREATE TABLE if not exists loans
 (
-    prestamo_id                  INT AUTO_INCREMENT PRIMARY KEY,
-    usuario_id                   int            NOT NULL,
+    loan_id                     INT AUTO_INCREMENT PRIMARY KEY,
+    user_id                     int            NOT NULL,
 
     -- Identificación
-    folio                        VARCHAR(50) UNIQUE,      -- Generado automáticamente: SIN-2025-001
+    folio                       VARCHAR(50) UNIQUE,      -- Generado automáticamente: SIN-2025-001
 
     -- Montos
-    monto_solicitado             DECIMAL(10, 2) NOT NULL,
-    monto_aprobado               DECIMAL(10, 2),
-    tasa_interes_aplicada        DECIMAL(5, 2)  NOT NULL, -- % exacto usado (puede ser personalizado)
-    tasa_moratorio_diario        DECIMAL(5, 4),           -- Para calcular picos por retraso
-    total_a_pagar_estimado       DECIMAL(10, 2),
-    saldo_pendiente              DECIMAL(10, 2),          -- Se actualiza con cada pago
+    requested_amount            DECIMAL(10, 2) NOT NULL,
+    approved_amount             DECIMAL(10, 2),
+    applied_interest_rate       DECIMAL(5, 2)  NOT NULL, -- % exacto usado (puede ser personalizado)
+    daily_default_rate          DECIMAL(5, 4),           -- Para calcular picos por retraso
+    estimated_total_to_pay      DECIMAL(10, 2),
+    outstanding_balance         DECIMAL(10, 2),          -- Se actualiza con cada pago
 
     -- Plazos
-    plazo_meses                  INT,
-    plazo_quincenas              INT,
-    fecha_primer_pago            DATE,
-    fecha_ultimo_pago_programado DATE,
+    term_months                 INT,
+    term_fortnights             INT,
+    first_payment_date          DATE,
+    last_scheduled_payment_date DATE,
 
     -- Fechas del Workflow
-    fecha_solicitud              DATETIME                DEFAULT CURRENT_TIMESTAMP,
-    fecha_revision_documental    DATETIME,
-    fecha_aprobacion             DATETIME,
-    fecha_generacion_documentos  DATETIME,                -- Cuando se creó pagaré
-    fecha_validacion_firmas      DATETIME,
-    fecha_desembolso             DATETIME,                -- Inicio de devengo de intereses
-    fecha_liquidacion_total      DATETIME,
+    application_date            DATETIME                DEFAULT CURRENT_TIMESTAMP,
+    document_review_date        DATETIME,
+    approval_date               DATETIME,
+    document_generation_date    DATETIME,                -- Cuando se creó pagaré
+    signature_validation_date   DATETIME,
+    disbursement_date           DATETIME,                -- Inicio de devengo de intereses
+    total_liquidation_date      DATETIME,
 
     -- Estado del Flujo
-    estado                       varchar(30)    NOT NULL DEFAULT 'borrador',
-    -- estado                       ENUM (
+    status                      varchar(30)    NOT NULL DEFAULT 'borrador',
+    -- status                       ENUM (
     --     'borrador',                                       -- Usuario llenando solicitud
     --     'revision_documental',                            -- Admin revisando estados de cuenta
     --     'correccion_requerida',                           -- Docs rechazados, usuario corrige
     --     'aprobado_pendiente_firma',-- Pagarés generados, esperando firma
     --     'validacion_firmas',                              -- Firmas subidas, finanzas valida
-    --     'activo',                                         -- Dinero entregado, corriendo
+    --     'active',                                         -- Dinero entregado, corriendo
     --     'pagado',                                         -- Deuda saldada
     --     'vencido',                                        -- Tiene pagos atrasados
     --     'reestructurado',                                 -- Se generó nuevo préstamo para cubrir
@@ -157,81 +157,81 @@ CREATE TABLE if not exists prestamos
     --     )                                 DEFAULT 'borrador',
 
     -- Referencias
-    prestamo_origen_id           INT,                     -- Si es reestructuración, apunta al original
-    motivo_rechazo               TEXT,
-    observaciones_admin          TEXT,
-    observaciones_internas       TEXT,                    -- Notas privadas del comité
+    original_loan_id            INT,                     -- Si es reestructuración, apunta al original
+    rejection_reason            TEXT,
+    admin_observations          TEXT,
+    internal_observations       TEXT,                    -- Notas privadas del comité
 
     -- Firmas digitales de documentos generados
-    firmante_finanzas            VARCHAR(255),            -- Nombre del secretario de finanzas
-    firmante_prestamista         VARCHAR(255),            -- Confirmación del usuario
+    finance_signatory           VARCHAR(255),            -- Nombre del secretario de finanzas
+    lender_signatory            VARCHAR(255),            -- Confirmación del usuario
 
     -- Control
-    requiere_reestructuracion    BOOLEAN                 DEFAULT FALSE,
-    creado_por                   int,                     -- Admin que procesó
-    fecha_eliminacion            DATETIME                default NULL,
+    requires_restructuring      BOOLEAN                 DEFAULT FALSE,
+    created_by                  int,                     -- Admin que procesó
+    deletion_date               DATETIME                default NULL,
 
-    CONSTRAINT fk_prestamo_usuario
-        FOREIGN KEY (usuario_id)
-            REFERENCES usuarios (usuario_id)
+    CONSTRAINT fk_loan_user
+        FOREIGN KEY (user_id)
+            REFERENCES users (user_id)
             ON DELETE RESTRICT,
-    CONSTRAINT fk_prestamo_origen
-        FOREIGN KEY (prestamo_origen_id)
-            REFERENCES prestamos (prestamo_id)
+    CONSTRAINT fk_loan_origin
+        FOREIGN KEY (original_loan_id)
+            REFERENCES loans (loan_id)
             ON DELETE SET NULL,
 
     INDEX idx_folio (folio),
-    INDEX idx_usuario_estado (usuario_id, estado),
-    INDEX idx_estado_fecha (estado, fecha_solicitud),
-    INDEX idx_origen (prestamo_origen_id)
+    INDEX idx_user_status (user_id, status),
+    INDEX idx_status_date (status, application_date),
+    INDEX idx_origin (original_loan_id)
 );
 
 -- Configuración de pagos del préstamo (mix nómina + prestaciones)
-CREATE TABLE if not exists prestamo_configuracion_pagos
+CREATE TABLE if not exists loan_payment_configuration
 (
-    config_pago_id             INT AUTO_INCREMENT PRIMARY KEY,
-    prestamo_id                INT            NOT NULL,
-    tipo_ingreso_id            INT            NOT NULL,
+    payment_config_id        INT AUTO_INCREMENT PRIMARY KEY,
+    loan_id                  INT            NOT NULL,
+    income_type_id           INT            NOT NULL,
 
     -- Configuración
-    monto_total_a_descontar    DECIMAL(10, 2) NOT NULL,           -- Total de esta fuente
-    numero_cuotas              INT                     DEFAULT 1, -- Quincenas: 24, Aguinaldo: 1
-    monto_por_cuota            DECIMAL(10, 2),                    -- Para quincenas
+    total_amount_to_deduct   DECIMAL(10, 2) NOT NULL,           -- Total de esta fuente
+    number_of_installments   INT                     DEFAULT 1, -- Quincenas: 24, Aguinaldo: 1
+    amount_per_installment   DECIMAL(10, 2),                    -- Para quincenas
 
     -- Método de cálculo de interés
-    metodo_interes             varchar(20)    NOT NULL DEFAULT 'simple_aleman',
-    -- metodo_interes             ENUM ('simple_aleman', 'compuesto')         DEFAULT 'simple_aleman',
+    interest_method          varchar(20)    NOT NULL DEFAULT 'simple_aleman',
+    -- interest_method             ENUM ('simple_aleman', 'compuesto')         DEFAULT 'simple_aleman',
     -- Simple alemán: para quincenas (cuota fija de capital + interés variable)
     -- Compuesto: para prestaciones (un solo pago)
 
     -- Documento probatorio
-    ruta_documento_comprobante VARCHAR(255),
+    supporting_document_path VARCHAR(255),
     -- Estado de cuenta de esa prestación
-    estado_documento           varchar(30)    NOT NULL DEFAULT 'pendiente',
-    -- estado_documento           ENUM ('pendiente', 'validado', 'rechazado') DEFAULT 'pendiente',
-    observaciones_documento    TEXT,
-    fecha_validacion_documento DATETIME,
+    document_status          varchar(30)    NOT NULL DEFAULT 'pendiente',
+    -- document_status           ENUM ('pendiente', 'validado', 'rechazado') DEFAULT 'pendiente',
+    document_observations    TEXT,
+    document_validation_date DATETIME,
 
-    CONSTRAINT fk_config_prestamo
-        FOREIGN KEY (prestamo_id)
-            REFERENCES prestamos (prestamo_id)
+    CONSTRAINT fk_config_loan
+        FOREIGN KEY (loan_id)
+            REFERENCES loans (loan_id)
             ON DELETE CASCADE,
-    CONSTRAINT fk_config_tipo_ingreso
-        FOREIGN KEY (tipo_ingreso_id)
-            REFERENCES cat_tipos_ingreso (tipo_ingreso_id)
+    CONSTRAINT fk_config_income_type
+        FOREIGN KEY (income_type_id)
+            REFERENCES cat_income_types (income_type_id)
             ON DELETE RESTRICT,
 
-    INDEX idx_prestamo (prestamo_id),
-    INDEX idx_tipo_ingreso (tipo_ingreso_id)
+    INDEX idx_loan (loan_id),
+    INDEX idx_income_type (income_type_id)
 );
 
 -- Documentos legales generados del préstamo
-CREATE TABLE if not exists prestamo_documentos_legales
+CREATE TABLE if not exists loan_legal_documents
 (
-    doc_legal_id                 INT AUTO_INCREMENT PRIMARY KEY,
-    prestamo_id                  INT          NOT NULL,
-    tipo_documento               VARCHAR(50)  NOT NULL, -- 'pagare', 'anuencia_descuento', etc.
-    -- tipo_documento               ENUM (
+    legal_doc_id                INT AUTO_INCREMENT PRIMARY KEY,
+    loan_id                     INT          NOT NULL,
+    document_type               VARCHAR(50)  NOT NULL, -- 'pagare', 'anuencia_descuento', etc.
+    -- document_type               ENUM (
     --     'pagare',
     --     'anuencia_descuento',
     --     'corrida_financiera',
@@ -240,164 +240,164 @@ CREATE TABLE if not exists prestamo_documentos_legales
     --     'carta_reestructuracion'
     --     )                                     NOT NULL,
 
-    ruta_archivo                 VARCHAR(255) NOT NULL,
-    version                      INT      DEFAULT 1,    -- Si se regenera por reestructuración
+    file_path                   VARCHAR(255) NOT NULL,
+    version                     INT      DEFAULT 1,    -- Si se regenera por reestructuración
 
     -- Control de firmas
-    requiere_firma_usuario       BOOLEAN  DEFAULT FALSE,
-    firma_usuario_url            VARCHAR(255),          -- Archivo firmado subido
-    fecha_firma_usuario          DATETIME,
+    requires_user_signature     BOOLEAN  DEFAULT FALSE,
+    user_signature_url          VARCHAR(255),          -- Archivo firmado subido
+    user_signature_date         DATETIME,
 
-    requiere_validacion_finanzas BOOLEAN  DEFAULT FALSE,
-    validado_por_finanzas        BOOLEAN  DEFAULT FALSE,
-    validado_por                 int,                   -- usuario_id
-    fecha_validacion             DATETIME,
-    observaciones_validacion     TEXT,
+    requires_finance_validation BOOLEAN  DEFAULT FALSE,
+    validated_by_finance        BOOLEAN  DEFAULT FALSE,
+    validated_by                int,                   -- user_id
+    validation_date             DATETIME,
+    validation_observations     TEXT,
 
-    fecha_generacion             DATETIME DEFAULT CURRENT_TIMESTAMP,
-    generado_por                 int,                   -- usuario_id
+    generation_date             DATETIME DEFAULT CURRENT_TIMESTAMP,
+    generated_by                int,                   -- user_id
 
-    CONSTRAINT fk_doc_legal_prestamo
-        FOREIGN KEY (prestamo_id)
-            REFERENCES prestamos (prestamo_id)
+    CONSTRAINT fk_legal_doc_loan
+        FOREIGN KEY (loan_id)
+            REFERENCES loans (loan_id)
             ON DELETE CASCADE,
 
-    INDEX idx_prestamo_tipo (prestamo_id, tipo_documento),
-    INDEX idx_pendientes_firma (requiere_firma_usuario, fecha_firma_usuario)
+    INDEX idx_loan_type (loan_id, document_type),
+    INDEX idx_pending_signature (requires_user_signature, user_signature_date)
 );
 
 -- Tabla de amortización (corrida financiera)
-CREATE TABLE if not exists prestamo_amortizacion
+CREATE TABLE if not exists loan_amortization
 (
-    amortizacion_id            INT AUTO_INCREMENT PRIMARY KEY,
-    prestamo_id                INT            NOT NULL,
+    amortization_id            INT AUTO_INCREMENT PRIMARY KEY,
+    loan_id                    INT            NOT NULL,
 
     -- Identificación del pago
-    numero_pago                INT            NOT NULL,              -- 1, 2, 3... N
-    tipo_ingreso_id            INT            NOT NULL,              -- De qué fuente sale este pago
-    fecha_programada           DATE           NOT NULL,              -- 15 o 20 del mes
+    payment_number             INT            NOT NULL,              -- 1, 2, 3... N
+    income_type_id             INT            NOT NULL,              -- De qué fuente sale este pago
+    scheduled_date             DATE           NOT NULL,              -- 15 o 20 del mes
 
     -- Desglose Financiero Programado (calculado al generar tabla)
-    saldo_inicial              DECIMAL(10, 2) NOT NULL,
-    capital                    DECIMAL(10, 2) NOT NULL,
-    interes_ordinario          DECIMAL(10, 2) NOT NULL,
-    pago_total_programado      DECIMAL(10, 2) NOT NULL,              -- capital + interes
-    saldo_final                DECIMAL(10, 2) NOT NULL,
+    initial_balance            DECIMAL(10, 2) NOT NULL,
+    principal                  DECIMAL(10, 2) NOT NULL,
+    ordinary_interest          DECIMAL(10, 2) NOT NULL,
+    total_scheduled_payment    DECIMAL(10, 2) NOT NULL,              -- capital + interes
+    final_balance              DECIMAL(10, 2) NOT NULL,
 
     -- Control de Pagos Reales
-    estado_pago                varchar(30)    NOT NULL DEFAULT 'pendiente',
-    -- estado_pago                ENUM ('pendiente', 'pagado', 'pagado_parcial', 'vencido') DEFAULT 'pendiente',
-    fecha_pago_real            DATETIME,
-    monto_pagado_real          DECIMAL(10, 2)          DEFAULT 0,
+    payment_status             varchar(30)    NOT NULL DEFAULT 'pendiente',
+    -- payment_status                ENUM ('pendiente', 'pagado', 'pagado_parcial', 'vencido') DEFAULT 'pendiente',
+    actual_payment_date        DATETIME,
+    actual_paid_amount         DECIMAL(10, 2)          DEFAULT 0,
 
     -- Intereses Moratorios (picos por atraso)
-    dias_atraso                INT                     DEFAULT 0,
-    interes_moratorio_generado DECIMAL(10, 2)          DEFAULT 0,
+    days_overdue               INT                     DEFAULT 0,
+    generated_default_interest DECIMAL(10, 2)          DEFAULT 0,
 
     -- Trazabilidad
-    pagado_por                 int,                                  -- usuario_id que registró el pago
-    comprobante_pago           VARCHAR(255),                         -- URL del comprobante
+    paid_by                    int,                                  -- user_id que registró el pago
+    payment_receipt            VARCHAR(255),                         -- URL del comprobante
 
     -- Control de regeneración
-    version_tabla              INT                     DEFAULT 1,    -- Incrementa con reestructuraciones
-    activa                     BOOLEAN                 DEFAULT TRUE, -- FALSE si se regeneró la tabla
+    table_version              INT                     DEFAULT 1,    -- Incrementa con reestructuraciones
+    active                     BOOLEAN                 DEFAULT TRUE, -- FALSE si se regeneró la tabla
 
-    CONSTRAINT fk_amort_prestamo
-        FOREIGN KEY (prestamo_id)
-            REFERENCES prestamos (prestamo_id)
+    CONSTRAINT fk_amort_loan
+        FOREIGN KEY (loan_id)
+            REFERENCES loans (loan_id)
             ON DELETE CASCADE,
-    CONSTRAINT fk_amort_tipo_ingreso
-        FOREIGN KEY (tipo_ingreso_id)
-            REFERENCES cat_tipos_ingreso (tipo_ingreso_id)
+    CONSTRAINT fk_amort_income_type
+        FOREIGN KEY (income_type_id)
+            REFERENCES cat_income_types (income_type_id)
             ON DELETE RESTRICT,
 
-    INDEX idx_prestamo_numero (prestamo_id, numero_pago),
-    INDEX idx_fecha_estado (fecha_programada, estado_pago),
-    INDEX idx_version_activa (prestamo_id, version_tabla, activa)
+    INDEX idx_loan_number (loan_id, payment_number),
+    INDEX idx_date_status (scheduled_date, payment_status),
+    INDEX idx_version_active (loan_id, table_version, active)
 );
 
 -- Pagos extraordinarios (anticipos, abonos adicionales)
-CREATE TABLE if not exists prestamo_pagos_extraordinarios
+CREATE TABLE if not exists loan_extraordinary_payments
 (
-    pago_extraordinario_id      INT AUTO_INCREMENT PRIMARY KEY,
-    prestamo_id                 INT            NOT NULL,
+    extraordinary_payment_id       INT AUTO_INCREMENT PRIMARY KEY,
+    loan_id                        INT            NOT NULL,
 
-    tipo_pago                   varchar(30)    NOT NULL, -- 'anticipo', 'liquidacion_total', 'abono_capital'
-    -- tipo_pago                   ENUM ('anticipo', 'liquidacion_total', 'abono_capital') NOT NULL,
-    monto                       DECIMAL(10, 2) NOT NULL,
-    fecha_pago                  DATETIME DEFAULT CURRENT_TIMESTAMP,
+    payment_type                   varchar(30)    NOT NULL, -- 'anticipo', 'liquidacion_total', 'abono_capital'
+    -- payment_type                   ENUM ('anticipo', 'liquidacion_total', 'abono_capital') NOT NULL,
+    amount                         DECIMAL(10, 2) NOT NULL,
+    payment_date                   DATETIME DEFAULT CURRENT_TIMESTAMP,
 
     -- Aplicación del pago
-    aplicado_a_capital          DECIMAL(10, 2),
-    aplicado_a_interes          DECIMAL(10, 2),
-    aplicado_a_moratorio        DECIMAL(10, 2),
+    applied_to_principal           DECIMAL(10, 2),
+    applied_to_interest            DECIMAL(10, 2),
+    applied_to_default             DECIMAL(10, 2),
 
     -- Efecto
-    regenero_tabla_amortizacion BOOLEAN  DEFAULT TRUE,
-    version_tabla_generada      INT,                     -- Nueva versión de amortización creada
+    regenerated_amortization_table BOOLEAN  DEFAULT TRUE,
+    generated_table_version        INT,                     -- Nueva versión de amortización creada
 
-    observaciones               TEXT,
-    comprobante_pago            VARCHAR(255),
-    registrado_por              int,                     -- usuario_id
+    observations                   TEXT,
+    payment_receipt                VARCHAR(255),
+    registered_by                  int,                     -- user_id
 
-    CONSTRAINT fk_pago_extra_prestamo
-        FOREIGN KEY (prestamo_id)
-            REFERENCES prestamos (prestamo_id)
+    CONSTRAINT fk_extra_payment_loan
+        FOREIGN KEY (loan_id)
+            REFERENCES loans (loan_id)
             ON DELETE CASCADE,
 
-    INDEX idx_prestamo_fecha (prestamo_id, fecha_pago),
-    INDEX idx_tipo (tipo_pago)
+    INDEX idx_loan_date (loan_id, payment_date),
+    INDEX idx_type (payment_type)
 );
 
 -- Historial de reestructuraciones
-CREATE TABLE if not exists prestamo_reestructuraciones
+CREATE TABLE if not exists loan_restructurings
 (
-    reestructuracion_id      INT AUTO_INCREMENT PRIMARY KEY,
-    prestamo_original_id     INT            NOT NULL,
-    prestamo_nuevo_id        INT            NOT NULL,
+    restructuring_id             INT AUTO_INCREMENT PRIMARY KEY,
+    original_loan_id             INT            NOT NULL,
+    new_loan_id                  INT            NOT NULL,
 
-    motivo                   varchar(35)    NOT NULL, -- 'pago_anticipado', 'picos_acumulados', 'solicitud_cliente', 'ajuste_administrativo'
-    -- motivo                   ENUM (
+    reason                       varchar(35)    NOT NULL, -- 'pago_anticipado', 'picos_acumulados', 'solicitud_cliente', 'ajuste_administrativo'
+    -- reason                   ENUM (
     --     'pago_anticipado',
     --     'picos_acumulados',
     --     'solicitud_cliente',
     --     'ajuste_administrativo'
     --     )                                   NOT NULL,
 
-    saldo_pendiente_original DECIMAL(10, 2) NOT NULL,
-    intereses_pendientes     DECIMAL(10, 2) NOT NULL,
-    moratorios_pendientes    DECIMAL(10, 2) NOT NULL,
-    nuevo_monto_total        DECIMAL(10, 2) NOT NULL,
-    nueva_tasa_interes       DECIMAL(5, 2),
-    nuevo_plazo_quincenas    INT,
+    original_outstanding_balance DECIMAL(10, 2) NOT NULL,
+    pending_interest             DECIMAL(10, 2) NOT NULL,
+    pending_default_interest     DECIMAL(10, 2) NOT NULL,
+    new_total_amount             DECIMAL(10, 2) NOT NULL,
+    new_interest_rate            DECIMAL(5, 2),
+    new_term_fortnights          INT,
 
-    fecha_reestructuracion   DATETIME DEFAULT CURRENT_TIMESTAMP,
-    autorizado_por           int,                     -- usuario_id
-    observaciones            TEXT,
+    restructuring_date           DATETIME DEFAULT CURRENT_TIMESTAMP,
+    authorized_by                int,                     -- user_id
+    observations                 TEXT,
 
-    CONSTRAINT fk_reest_original
-        FOREIGN KEY (prestamo_original_id)
-            REFERENCES prestamos (prestamo_id)
+    CONSTRAINT fk_restruct_original
+        FOREIGN KEY (original_loan_id)
+            REFERENCES loans (loan_id)
             ON DELETE RESTRICT,
-    CONSTRAINT fk_reest_nuevo
-        FOREIGN KEY (prestamo_nuevo_id)
-            REFERENCES prestamos (prestamo_id)
+    CONSTRAINT fk_restruct_new
+        FOREIGN KEY (new_loan_id)
+            REFERENCES loans (loan_id)
             ON DELETE RESTRICT,
 
-    INDEX idx_original (prestamo_original_id),
-    INDEX idx_nuevo (prestamo_nuevo_id),
-    INDEX idx_fecha (fecha_reestructuracion)
+    INDEX idx_original (original_loan_id),
+    INDEX idx_new (new_loan_id),
+    INDEX idx_date (restructuring_date)
 );
 
 -- Comprobantes generados automáticamente
-CREATE TABLE if not exists prestamo_comprobantes
+CREATE TABLE if not exists loan_receipts
 (
-    comprobante_id    INT AUTO_INCREMENT PRIMARY KEY,
-    prestamo_id       INT                NOT NULL,
-    amortizacion_id   INT,                         -- NULL si es comprobante de desembolso
+    receipt_id      INT AUTO_INCREMENT PRIMARY KEY,
+    loan_id         INT                NOT NULL,
+    amortization_id INT,                         -- NULL si es comprobante de desembolso
 
-    tipo_comprobante  varchar(30)        NOT NULL, -- 'desembolso', 'pago_regular', 'pago_extraordinario', 'cargo_moratorio', 'ajuste'
-    -- tipo_comprobante  ENUM (
+    receipt_type    varchar(30)        NOT NULL, -- 'desembolso', 'pago_regular', 'pago_extraordinario', 'cargo_moratorio', 'ajuste'
+    -- receipt_type  ENUM (
     --     'desembolso',
     --     'pago_regular',
     --     'pago_extraordinario',
@@ -405,93 +405,95 @@ CREATE TABLE if not exists prestamo_comprobantes
     --     'ajuste'
     --     )                                NOT NULL,
 
-    folio_comprobante VARCHAR(50) UNIQUE NOT NULL,
-    monto             DECIMAL(10, 2)     NOT NULL,
-    descripcion       TEXT,
+    receipt_folio   VARCHAR(50) UNIQUE NOT NULL,
+    amount          DECIMAL(10, 2)     NOT NULL,
+    description     TEXT,
 
-    fecha_emision     DATETIME DEFAULT CURRENT_TIMESTAMP,
-    ruta_pdf          VARCHAR(255),                -- PDF generado automáticamente
+    issue_date      DATETIME DEFAULT CURRENT_TIMESTAMP,
+    pdf_path        VARCHAR(255),                -- PDF generado automáticamente
 
-    CONSTRAINT fk_comp_prestamo
-        FOREIGN KEY (prestamo_id)
-            REFERENCES prestamos (prestamo_id)
+    CONSTRAINT fk_receipt_loan
+        FOREIGN KEY (loan_id)
+            REFERENCES loans (loan_id)
             ON DELETE CASCADE,
-    CONSTRAINT fk_comp_amortizacion
-        FOREIGN KEY (amortizacion_id)
-            REFERENCES prestamo_amortizacion (amortizacion_id)
+    CONSTRAINT fk_receipt_amortization
+        FOREIGN KEY (amortization_id)
+            REFERENCES loan_amortization (amortization_id)
             ON DELETE SET NULL,
 
-    INDEX idx_folio (folio_comprobante),
-    INDEX idx_prestamo_fecha (prestamo_id, fecha_emision)
-);
-
-create table if not exists publicaciones
-(
-    publicacion_id    int auto_increment primary key,
-    titulo            varchar(100) not null,
-    resumen           varchar(255),
-    contenido         text         not null,
-    tipo_publicacion  varchar(20)  not null,
-    -- tipo_publicacion  enum ('noticia', 'gestion', 'aviso') not null,
-    fecha_publicacion datetime     not null,
-    fecha_expiracion  date default null,
-    autor_id          int
+    INDEX idx_folio (receipt_folio),
+    INDEX idx_loan_date (loan_id, issue_date)
 );
 
 
--- Mensajería
-
-create table if not exists mensajes
-(
-    mensaje_id           int auto_increment primary key,
-    usuario_id           int,
-    tipo                 varchar(50)  not null,
-    asunto               varchar(255) not null,
-    prioridad            varchar(20)  not null default 'media',
-    estado               varchar(20)  not null default 'no_leido',
-    -- Datos de contacto externo (si no está logueado)
-    nombre_externo       VARCHAR(100),
-    correo_externo       VARCHAR(100),
-    telefono_externo     VARCHAR(20),
-
-    -- Asignación
-    asignado_a           VARCHAR(36), -- usuario_id del admin/staff
-
-    -- Control
-    fecha_creacion       DATETIME              DEFAULT CURRENT_TIMESTAMP,
-    fecha_ultimo_mensaje DATETIME,
-    fecha_cierre         DATETIME,
-
-    constraint fk_mensaje_usuario
-        foreign key (usuario_id) references usuarios (usuario_id) on delete set null,
-    index idx_tipo_estado (tipo, estado)
-);
+#
+# create table if not exists publicaciones
+# (
+#     publicacion_id    int auto_increment primary key,
+#     titulo            varchar(100) not null,
+#     resumen           varchar(255),
+#     contenido         text         not null,
+#     tipo_publicacion  varchar(20)  not null,
+#     -- tipo_publicacion  enum ('noticia', 'gestion', 'aviso') not null,
+#     fecha_publicacion datetime     not null,
+#     fecha_expiracion  date default null,
+#     autor_id          int
+# );
 
 
-create table if not exists mensaje_detalles
-(
-    detalle_id         int auto_increment primary key,
-    mensaje_id         int  not null,
-    -- Autor (puede ser usuario logueado o externo)
-    autor_usuario_id   int, -- NULL si es externo
-    es_respuesta_staff BOOLEAN  DEFAULT FALSE,
-
-    mensaje            TEXT NOT NULL,
-    adjunto_url        VARCHAR(255),
-
-    -- Control
-    fecha_envio        DATETIME DEFAULT CURRENT_TIMESTAMP,
-    leido              BOOLEAN  DEFAULT FALSE,
-    fecha_lectura      DATETIME,
-
-    constraint fk_detalle_mensaje
-        foreign key (mensaje_id) references mensajes (mensaje_id) on delete cascade,
-    constraint fk_detalle_autor_usuario
-        foreign key (autor_usuario_id) references usuarios (usuario_id) on delete set null,
-
-    index idx_mensaje_fecha (mensaje_id, fecha_envio),
-    index idx_no_leidos (mensaje_id, es_respuesta_staff)
-);
+# -- Mensajería
+#
+# create table if not exists mensajes
+# (
+#     mensaje_id           int auto_increment primary key,
+#     usuario_id           int,
+#     tipo                 varchar(50)  not null,
+#     asunto               varchar(255) not null,
+#     prioridad            varchar(20)  not null default 'media',
+#     estado               varchar(20)  not null default 'no_leido',
+#     -- Datos de contacto externo (si no está logueado)
+#     nombre_externo       VARCHAR(100),
+#     correo_externo       VARCHAR(100),
+#     telefono_externo     VARCHAR(20),
+#
+#     -- Asignación
+#     asignado_a           VARCHAR(36), -- usuario_id del admin/staff
+#
+#     -- Control
+#     fecha_creacion       DATETIME              DEFAULT CURRENT_TIMESTAMP,
+#     fecha_ultimo_mensaje DATETIME,
+#     fecha_cierre         DATETIME,
+#
+#     constraint fk_mensaje_usuario
+#         foreign key (usuario_id) references usuarios (usuario_id) on delete set null,
+#     index idx_tipo_estado (tipo, estado)
+# );
+#
+#
+# create table if not exists mensaje_detalles
+# (
+#     detalle_id         int auto_increment primary key,
+#     mensaje_id         int  not null,
+#     -- Autor (puede ser usuario logueado o externo)
+#     autor_usuario_id   int, -- NULL si es externo
+#     es_respuesta_staff BOOLEAN  DEFAULT FALSE,
+#
+#     mensaje            TEXT NOT NULL,
+#     adjunto_url        VARCHAR(255),
+#
+#     -- Control
+#     fecha_envio        DATETIME DEFAULT CURRENT_TIMESTAMP,
+#     leido              BOOLEAN  DEFAULT FALSE,
+#     fecha_lectura      DATETIME,
+#
+#     constraint fk_detalle_mensaje
+#         foreign key (mensaje_id) references mensajes (mensaje_id) on delete cascade,
+#     constraint fk_detalle_autor_usuario
+#         foreign key (autor_usuario_id) references usuarios (usuario_id) on delete set null,
+#
+#     index idx_mensaje_fecha (mensaje_id, fecha_envio),
+#     index idx_no_leidos (mensaje_id, es_respuesta_staff)
+# );
 
 
 CREATE TABLE IF NOT EXISTS system_colors
