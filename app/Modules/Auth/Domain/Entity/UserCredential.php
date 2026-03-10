@@ -2,7 +2,7 @@
 
 namespace App\Modules\Auth\Domain\Entity;
 
-use App\Modules\Auth\Domain\Enum\RoleEnum;
+use App\Shared\Domain\Enum\RoleEnum;
 
 final readonly class UserCredential
 {

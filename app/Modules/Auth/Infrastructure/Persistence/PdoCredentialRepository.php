@@ -4,8 +4,8 @@ namespace App\Modules\Auth\Infrastructure\Persistence;
 
 use App\Infrastructure\Persistence\Repository\PdoBaseRepository;
 use App\Modules\Auth\Domain\Entity\UserCredential;
-use App\Modules\Auth\Domain\Enum\RoleEnum;
 use App\Modules\Auth\Domain\Repository\CredentialRepositoryInterface;
+use App\Shared\Domain\Enum\RoleEnum;
 
 class PdoCredentialRepository extends PdoBaseRepository implements
     CredentialRepositoryInterface
