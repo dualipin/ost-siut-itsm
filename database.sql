@@ -1,10 +1,10 @@
 create table if not exists users
 (
-    user_id         int auto_increment PRIMARY KEY,
+    user_id         INT AUTO_INCREMENT PRIMARY KEY,
 
     -- auth
-    email           varchar(100) not null unique,
-    password_hash   varchar(255) not null,
+    email           varchar(100) NOT NULL UNIQUE,
+    password_hash   varchar(255) NOT NULL,
     role            VARCHAR(20)  NOT NULL DEFAULT 'no_agremiado',
     active          BOOLEAN               DEFAULT TRUE,
 
@@ -36,6 +36,27 @@ create table if not exists users
     delete_at       DATETIME              DEFAULT NULL
 );
 
+CREATE TABLE if not exists user_documents
+(
+    document_id   INT AUTO_INCREMENT PRIMARY KEY,
+    user_id       INT          NOT NULL,
+    document_type VARCHAR(100) NOT NULL, -- 'afiliacion', 'ine', 'comprobante_domicilio', etc.
+    file_path     VARCHAR(255) NOT NULL,
+    status        varchar(30)  NOT NULL DEFAULT 'pendiente',
+    observation   TEXT,
+    created_at    DATETIME              DEFAULT CURRENT_TIMESTAMP,
+    updated_at    DATETIME              DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    validated_by  INT,                   -- usuario_id de quien validó
+
+    CONSTRAINT fk_document_user
+        FOREIGN KEY (user_id)
+            REFERENCES users (user_id)
+            ON DELETE CASCADE,
+
+    INDEX idx_user_document_type (user_id, document_type),
+    INDEX idx_status (status)
+);
+
 
 CREATE TABLE IF NOT EXISTS auth_logs
 (
@@ -54,30 +75,7 @@ CREATE TABLE IF NOT EXISTS auth_logs
     INDEX idx_created_at (created_at)
 );
 
-
-CREATE TABLE if not exists usuario_documentos
-(
-    documento_id     INT AUTO_INCREMENT PRIMARY KEY,
-    usuario_id       int          NOT NULL,
-    tipo_documento   VARCHAR(100) NOT NULL, -- 'afiliacion', 'ine', 'comprobante_domicilio', etc.
-    ruta_archivo     VARCHAR(255) NOT NULL,
-    estado           varchar(30)  NOT NULL DEFAULT 'pendiente',
-    observaciones    TEXT,
-    fecha_subida     DATETIME              DEFAULT CURRENT_TIMESTAMP,
-    fecha_validacion DATETIME,
-    validado_por     int,                   -- usuario_id de quien validó
-
-    CONSTRAINT fk_documentos_usuario
-        FOREIGN KEY (usuario_id)
-            REFERENCES usuarios (usuario_id)
-            ON DELETE CASCADE,
-
-    INDEX idx_usuario_tipo (usuario_id, tipo_documento),
-    INDEX idx_estado (estado)
-);
-
-
-CREATE TABLE if not exists password_resets
+CREATE TABLE if NOT EXISTS password_resets
 (
     email      VARCHAR(255) NOT NULL,
     token      binary(16)   NOT NULL,
@@ -86,7 +84,7 @@ CREATE TABLE if not exists password_resets
     INDEX (token)
 );
 
-CREATE TABLE if not exists mail_queue
+CREATE TABLE if NOT EXISTS mail_queue
 (
     id         INT AUTO_INCREMENT PRIMARY KEY,
     recipient  TEXT NOT NULL, -- JSON array de correos
