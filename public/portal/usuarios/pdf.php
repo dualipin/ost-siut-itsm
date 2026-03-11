@@ -50,4 +50,4 @@ $html = $container->get(RendererInterface::class)->renderToString('./pdf.latte',
 $pdf = $container->get(Dompdf::class);
 $pdf->loadHtml($html);
 $pdf->render();
-$pdf->stream('usuarios-activos.pdf', ['Attachment' => false]);
+$pdf->stream('usuarios-activos.pdf', ['Attachment' => true]);
