@@ -354,9 +354,9 @@ CREATE TABLE IF NOT EXISTS publications
     publication_type VARCHAR(30)  NOT NULL,
     expiration_date  DATE     DEFAULT NULL,
     created_at       DATETIME DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_publication_author FOREIGN KEY (author_id) REFERENCES users (user_id) ON DELETE
-        SET
-        NULL,
+    CONSTRAINT fk_publication_author
+        FOREIGN KEY (author_id) REFERENCES users (user_id)
+            ON DELETE SET NULL,
     INDEX idx_type_date (publication_type, created_at),
     INDEX idx_expiration (expiration_date)
 );
@@ -366,6 +366,7 @@ CREATE TABLE IF NOT EXISTS publication_attachments
     attachment_id   INT AUTO_INCREMENT PRIMARY KEY,
     publication_id  INT          NOT NULL,
     file_path       VARCHAR(255) NOT NULL,
+    mime_type       VARCHAR(100) NOT NULL,
     attachment_type VARCHAR(25)  NOT NULL,
     description     VARCHAR(255),
     CONSTRAINT fk_attachment_publication

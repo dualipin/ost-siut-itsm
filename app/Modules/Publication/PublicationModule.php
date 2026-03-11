@@ -2,13 +2,15 @@
 
 namespace App\Modules\Publication;
 
+use App\Modules\AbstractModule;
 use App\Modules\ModuleInterface;
-use DI\ContainerBuilder;
+use App\Modules\Publication\Domain\Repository\PublicationRepositoryInterface;
+use App\Modules\Publication\Infrastructure\Persistence\PdoPublicationRepository;
 
-class PublicationModule implements ModuleInterface
+final class PublicationModule extends AbstractModule implements ModuleInterface
 {
-    public function register(ContainerBuilder $container): void
-    {
-        $container->addDefinitions([]);
-    }
+    protected const array REPOSITORIES = [
+        PublicationRepositoryInterface::class =>
+            PdoPublicationRepository::class,
+    ];
 }

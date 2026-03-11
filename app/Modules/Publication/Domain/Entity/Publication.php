@@ -7,15 +7,31 @@ use DateTimeImmutable;
 
 final readonly class Publication
 {
+    /**
+     * @param PublicationAttachment[] $attachments
+     */
     public function __construct(
+        public int $id,
+        public int $authorId,
         public string $title,
         public string $content,
-        public array $images,
-        public DateTimeImmutable $publicationDate,
         public PublicationTypeEnum $type,
-        public ?array $attachments = null,
-        public ?DateTimeImmutable $expirationDate = null,
+        public array $attachments = [],
         public ?string $summary = null,
-        public ?int $id = null,
+        public ?DateTimeImmutable $expirationDate = null,
+        public ?DateTimeImmutable $createdAt = null,
     ) {}
+
+    public function isExpired(): bool
+    {
+        if ($this->expirationDate === null) {
+            return false;
+        }
+        return $this->expirationDate < new DateTimeImmutable();
+    }
+
+    public function hasAttachments(): bool
+    {
+        return count($this->attachments) > 0;
+    }
 }
