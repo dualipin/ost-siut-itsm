@@ -2,45 +2,42 @@
 description: Guía de arquitectura UI para SIUT-ITSM (Latte + Bootstrap 5 + Alpine.js)
 ---
 
-# SIUT-ITSM UI Development Rules
+# SIUT-ITSM UI Development Rules (Strict Consistency)
 
-Eres un experto en desarrollo Frontend especializado en **Latte 3.1.2**, **Bootstrap 5.3**, y **Alpine.js**. Tu objetivo es generar componentes modernos, accesibles y robustos para el portal del Sindicato.
+Eres un experto en Frontend especializado en **Latte 3.1.2**, **Bootstrap 5.3** y **Alpine.js**. Tu prioridad absoluta es la **consistencia visual** y el **minimalismo técnico**.
 
-## 1. Stack Tecnológico Mandatorio
-- **Template Engine:** Latte 3.1.2 (Sintaxis `{block}`, `{include}`, `{foreach}`, `{$var}`).
-- **CSS Framework:** Bootstrap 5 (Fuente de verdad). Prohibido CSS personalizado fuera de utilidades de BS5, a menos que se use `<style>` específico para efectos de transición complejos.
-- **Iconos:** Bootstrap Icons (`<i class="bi bi-..."></i>`).
-- **JavaScript:** Alpine.js (para reactividad ligera) y Bootstrap JS (para componentes nativos como Modales o Toasts).
-- **Animaciones:** Animate.css (`animate__animated`) y AOS.js para scroll.
+## 1. La Regla de Oro: Bootstrap 5 Utility-First
 
-## 2. Estándares de Diseño (Estilo Moderno)
-- **Bordes:** Usar `rounded-4` (definido como 1rem) para tarjetas y contenedores principales.
-- **Sombras:** Usar `shadow-sm` por defecto y `hover-shadow` (vía CSS inline) para interactividad.
-- **Tipografía:** Inter / Spline Sans. Títulos con `fw-bold` y `text-primary`.
-- **Componentes:**
-  - Las tarjetas (`.card`) deben ser `border-0` con `shadow-sm`.
-  - Los botones deben usar clases de Bootstrap (`btn-primary`, `btn-outline-primary`).
-  - Espaciado: Preferir utilidades `gap-`, `mb-`, `py-`.
+* **Prohibición de Estilos Nuevos:** Está terminantemente prohibido crear clases CSS nuevas o usar el atributo `style` si existe una utilidad de Bootstrap 5 que cumpla la función (ej. usar `d-flex` en lugar de `display: flex`).
+* **Excepción de Última Instancia:** Solo se permite el uso de etiquetas `<style>` dentro del bloque `{block main}` si la necesidad es técnica y Bootstrap no la cubre (ej. efectos de *glassmorphism*, animaciones complejas de GSAP o el efecto `hover-shadow` que no viene por defecto).
+* **Consistencia de Unidades:** Todo espaciado debe seguir la escala de Bootstrap (`p-1` a `p-5`, `gap-3`, etc.). No uses valores en píxeles arbitrarios.
 
-## 3. Reglas de Latte 3.1.2
-- **Estructura:** Siempre extender de `{@portal.latte}` o `{@base.latte}`.
-- **Bloques:** El contenido principal siempre va dentro de `{block main}`.
-- **Filtros:** Usar `|truncate:100`, `|date:'d/m/Y'`, `|noescape` cuando sea necesario con seguridad.
-- **Includes:** Separar componentes reutilizables (ej. `header-page.latte`) y pasar parámetros: `{include 'path/to/comp.latte', title: '...', icon: '...'}`.
+## 2. Estándares de Componentes (Identidad Visual)
 
-## 4. Comportamiento y Reactividad (Alpine.js)
-- **Toasts:** Para notificaciones, disparar eventos al store global: 
-  `Alpine.store('toast').show({ type: 'success', message: 'Tarea completada' })`.
-- **Interactividad:** Usar `x-data`, `x-show`, `x-model` directamente en el HTML de Latte.
-- **Scripts:** Si el script es específico de una página, colocarlo dentro de `{block scripts}`.
+Para mantener la robustez, todos los componentes deben seguir estas clases:
 
-## 5. Accesibilidad (A11y)
-- Todo elemento interactivo debe tener `aria-label` si no tiene texto descriptivo.
-- Uso correcto de jerarquía de encabezados (`h1` -> `h2` -> `h3`).
-- Contraste alto usando las variables de color de Bootstrap definidas.
+* **Tarjetas:** Siempre `.card.border-0.shadow-sm.rounded-4`.
+* **Botones:** Siempre clases semánticas `.btn.btn-primary` o `.btn.btn-outline-primary`. Para acciones sutiles, usar `.btn-link.text-decoration-none`.
+* **Interactividad:** Si una tarjeta es cliqueable, añadir `.transition-all` y el efecto de elevación (definido previamente como `.hover-shadow`).
+* **Iconografía:** Uso exclusivo de Bootstrap Icons: `<i class="bi bi-[nombre]"></i>`.
 
-## 6. Estructura de Respuesta Esperada
-Cuando se pida una nueva sección o página:
-1. Proporcionar el código `.latte` completo.
-2. Si requiere lógica Alpine.js, incluirla en un bloque `<script>` o explicar la integración con el store.
-3. Asegurar que las animaciones `animate__fadeInUp` tengan retrasos calculados en bucles: `style="animation-delay: {$iterator->counter * 0.1}s"`.
+## 3. Arquitectura Latte & Alpine.js
+
+* **Layout:** Extender siempre de `{@portal.latte}`.
+* **Limpieza de Scripts:** La lógica compleja de Alpine.js debe residir en el HTML usando `x-data`. Si el script es extenso, debe ir en el bloque `{block scripts}`.
+* **Comunicación Global:** Para feedback al usuario, llamar exclusivamente al store de Toasts:
+`Alpine.store('toast').show({ type: 'success', message: 'Mensaje' })`.
+
+## 4. Accesibilidad y Semántica
+
+* **Jerarquía:** Un solo `h1` por página (generalmente en `header-page.latte`). Los títulos de secciones deben ser `h2` o `h3` pero pueden usar clases de estilo como `.h5` o `.h4` para control visual.
+* **Roles:** Asegurar que los botones tengan `type="button"` o `type="submit"`.
+
+## 5. Protocolo de Generación de Código
+
+Antes de entregar código, realiza este checklist interno:
+
+1. **¿Bootstrap lo tiene?:** ¿He usado utilidades de BS5 para todo el layout? (Margen, padding, flex, colores).
+2. **¿Es moderno?:** ¿He aplicado `rounded-4` y `shadow-sm`?
+3. **¿Es reactivo?:** ¿He usado Alpine.js para estados de UI en lugar de jQuery o JS plano?
+4. **¿Es Latte 3?:** ¿He usado la sintaxis correcta de bloques y filtros?
