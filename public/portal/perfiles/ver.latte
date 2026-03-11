@@ -95,177 +95,149 @@
 {block title}Mi Perfil{/block}
 
 {block main}
-  <!-- Header -->
-  <div class="row">
-    <div class="col-12">
-      <div class="card mb-6">
-        <div class="user-profile-header d-flex flex-column flex-lg-row text-sm-start text-center my-8">
-          <div class="flex-shrink-0 mt-1 mx-sm-0 mx-auto">
-            {if empty($docs['perfil'])}
-              <img src="https://placehold.co/400" class="d-block h-auto ms-0 ms-sm-6 rounded-3 user-profile-img"
-                   width="200" alt="Foto de Perfil">
-            {else}
-              <img src="{$baseUrl}{$docs['perfil']}" width="200" alt="user image"
-                   class="d-block h-auto ms-0 ms-sm-6 rounded-3 user-profile-img">
-            {/if}
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 mb-md-5 animate__animated animate__fadeInUp">
+    <div class="p-4 p-md-5 profile-hero-bg">
+      <div class="row g-4 align-items-center">
+        <div class="col-12 col-lg-auto text-center">
+          {if empty($docs['perfil'])}
+            <div class="profile-avatar-fallback mx-auto">
+              <i class="bi bi-person-fill"></i>
+            </div>
+          {else}
+            <img src="{$baseUrl}{$docs['perfil']}" alt="Foto de perfil" class="profile-avatar mx-auto d-block">
+          {/if}
+        </div>
+
+        <div class="col-12 col-lg">
+          <p class="text-uppercase small fw-semibold text-secondary-emphasis mb-2">Perfil de usuario</p>
+          <h2 class="fw-bold mb-3">{$perfil['nombre']} {$perfil['apellidos']}</h2>
+
+          <div class="d-flex flex-wrap gap-2 mb-0">
+            <span class="badge rounded-pill text-bg-light border border-secondary-subtle px-3 py-2">
+              <i class="bi bi-building me-2"></i>{$perfil['departamento'] ?? 'Sin departamento'}
+            </span>
+            <span class="badge rounded-pill text-bg-light border border-secondary-subtle px-3 py-2">
+              <i class="bi bi-award me-2"></i>{$perfil['categoria'] ?? 'Sin categoría'}
+            </span>
+            <span class="badge rounded-pill text-bg-light border border-secondary-subtle px-3 py-2 text-capitalize">
+              <i class="bi bi-person-badge me-2"></i>{$perfil['rol'] ?? 'agremiado'}
+            </span>
           </div>
-          <div class="flex-grow-1 mt-3 mt-lg-5">
-            <div class="d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start mx-5 flex-md-row flex-column gap-4">
-              <div class="user-profile-info">
-                <h4 class="mb-2 mt-lg-7">{$perfil['nombre']} {$perfil['apellidos']}</h4>
-                <ul class="list-inline mb-0 d-flex align-items-center flex-wrap justify-content-sm-start justify-content-center gap-4 mt-4">
-                  <li class="list-inline-item">
-                    <i class="icon-base bx bx-category me-2 align-top"></i>
-                    <span class="fw-medium">{$perfil['categoria'] ?? 'Sin categoría'}</span>
-                  </li>
-                  <li class="list-inline-item">
-                    <i class="icon-base bx bx-user me-2 align-top"></i>
-                    <span class="fw-medium">{$perfil['rol'] ?? 'agremiado'}</span>
-                  </li>
-                </ul>
-              </div>
-              <button type="button" class="btn btn-primary" data-bs-toggle="modal"
-                      data-bs-target="#datosPersonalesModal">
-                <i class="icon-base bx bx-edit icon-sm me-2"></i>
-                Editar
-              </button>
-              {include modal}
+        </div>
+
+        <div class="col-12 col-lg-auto text-lg-end text-center">
+          <button type="button" class="btn btn-primary px-4" data-bs-toggle="modal" data-bs-target="#datosPersonalesModal">
+            <i class="bi bi-pencil-square me-2"></i>Editar perfil
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {include modal}
+
+  <div class="row g-4">
+    <div class="col-xl-5">
+      {include ver.datos-personales.latte}
+    </div>
+
+    <div class="col-xl-7">
+      <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-header bg-white border-0 px-4 pt-4 pb-2">
+          <h5 class="mb-1 fw-bold d-flex align-items-center">
+            <i class="bi bi-bar-chart-line me-2 text-primary"></i>Datos en el SIUT - ITSM
+          </h5>
+          <small class="text-body-secondary">Información laboral registrada en el sistema.</small>
+        </div>
+        <div class="card-body px-4 pb-4">
+          <div class="list-group list-group-flush">
+            <div class="list-group-item px-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <span class="text-body-secondary">Departamento</span>
+              <span class="fw-semibold">{$perfil['departamento'] ?? 'No disponible'}</span>
+            </div>
+            <div class="list-group-item px-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <span class="text-body-secondary">Categoría</span>
+              <span class="fw-semibold">{$perfil['categoria'] ?? 'No disponible'}</span>
+            </div>
+            <div class="list-group-item px-0 d-flex justify-content-between align-items-center flex-wrap gap-2 text-capitalize">
+              <span class="text-body-secondary">Rol</span>
+              <span class="fw-semibold">{$perfil['rol'] ?? 'Agremiado'}</span>
+            </div>
+            <div class="list-group-item px-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <span class="text-body-secondary">Fecha de alta</span>
+              <span class="fw-semibold">
+                {if !empty($perfil['fecha_ingreso'])}
+                  {$perfil['fecha_ingreso']|date:"d/m/Y"}
+                {else}
+                  Sin fecha
+                {/if}
+              </span>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
-  <!--/ Header -->
 
-  <!-- Navbar pills -->
-  <div class="row">
-    <div class="col-md-12">
-      <div class="nav-align-top">
-        <ul class="nav nav-pills flex-column flex-sm-row mb-6 gap-sm-0 gap-2">
-          <li class="nav-item">
-          <span class="nav-link active">
-            <i class="icon-base bx bx-user icon-sm me-1_5"></i>
-            Perfil
-          </span>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </div>
-  <!--/ Navbar pills -->
-
-  <!-- Contenido del perfil -->
-  <div class="row">
-    <div class="col-xl-5 col-lg-5 col-md-5">
-      <!-- Datos personales -->
-      {include perfil-datos_personales.latte}
-      <!--/ Datos personales -->
-    </div>
-    <div class="col-xl-7 col-lg-7 col-md-7">
-      <!-- Datos en el ITSM -->
-      <div class="card card-action mb-4 mb-md-6">
-        <div class="card-header align-items-center p-3 p-md-4">
-          <h5 class="card-action-title mb-0 d-flex align-items-center">
-            <i class="icon-base bx bx-bar-chart-alt-2 icon-lg text-body me-2 me-md-4"></i>
-            <span class="d-none d-sm-block">Datos en el SIUT - ITSM</span>
-            <span class="d-block d-sm-none">Datos ITSM</span>
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white border-0 px-4 pt-4 pb-2">
+          <h5 class="mb-1 fw-bold d-flex align-items-center">
+            <i class="bi bi-folder2-open me-2 text-primary"></i>Documentos
           </h5>
+          <small class="text-body-secondary">Estado de carga de tus documentos obligatorios.</small>
         </div>
-        <div class="card-body p-3 p-md-4 pt-0 pt-md-3">
-          <ul class="mb-0">
-            <li class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center mb-3 mb-md-4">
-              <div class="d-flex align-items-center mb-1 mb-sm-0 flex-shrink-0 w-sm-40">
-                <i class="icon-base bx bx-briefcase me-2"></i>
-                <span class="fw-medium text-truncate">Departamento:</span>
-              </div>
-              <span class="text-break ms-sm-2">{$perfil['departamento'] ?? 'No disponible'}</span>
-            </li>
-            <li class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center mb-3 mb-md-4">
-              <div class="d-flex align-items-center mb-1 mb-sm-0 flex-shrink-0 w-sm-40">
-                <i class="icon-base bx bx-building me-2"></i>
-                <span class="fw-medium text-truncate">Categoría:</span>
-              </div>
-              <span class="text-break ms-sm-2">{$perfil['categoria'] ?? 'No disponible'}</span>
-            </li>
-            <li class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center mb-3 mb-md-4">
-              <div class="d-flex align-items-center mb-1 mb-sm-0 flex-shrink-0 w-sm-40">
-                <i class="icon-base bx bx-user me-2"></i>
-                <span class="fw-medium text-truncate">Rol:</span>
-              </div>
-              <span class="text-break ms-sm-2">{$perfil['rol'] ?? 'Agremiado'}</span>
-            </li>
-            <li class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center mb-3 mb-md-4">
-              <div class="d-flex align-items-center mb-1 mb-sm-0 flex-shrink-0 w-sm-40">
-                <i class="icon-base bx bx-calendar me-2"></i>
-                <span class="fw-medium text-truncate">Fecha de Alta:</span>
-              </div>
-              <span class="text-break ms-sm-2">
-              {if !empty($perfil['fecha_ingreso'])}
-                {$perfil['fecha_ingreso']|date:"d/m/Y"}
-              {else}
-                Sin fecha
-              {/if}
-            </span>
-            </li>
-          </ul>
-        </div>
-      </div>
-      <!--/ Datos en el ITSM -->
 
-      <!-- Documentos -->
-      <div class="card card-action mb-4 mb-md-6">
-        <div class="card-header align-items-center p-3 p-md-4">
-          <h5 class="card-action-title mb-0 d-flex align-items-center">
-            <i class="icon-base bx bx-file icon-lg text-body me-2 me-md-4"></i>
-            Documentos
-          </h5>
-        </div>
-        <div class="card-body">
-          <div class="list-group">
-            {if empty($docs['afiliacion']) && empty($docs['comprobante_domicilio']) && empty($docs['ine']) && empty($docs['comprobante_pago'])}
-              <div class="alert alert-warning" role="alert">
-                No se han subido documentos aún.
-              </div>
-            {else}
-
+        <div class="card-body px-4 pb-4">
+          {if empty($docs['afiliacion']) && empty($docs['comprobante_domicilio']) && empty($docs['ine']) && empty($docs['comprobante_pago'])}
+            <div class="alert alert-warning border-0 rounded-4 mb-0" role="alert">
+              <i class="bi bi-exclamation-circle me-2"></i>No se han subido documentos aun.
+            </div>
+          {else}
+            <div class="list-group list-group-flush">
               {foreach ['afiliacion','comprobante_domicilio','ine','comprobante_pago'] as $key}
                 {var $doc = $docs[$key] ?? ''}
-                <div class="list-group-item list-group-item-action d-flex justify-content-between">
-                  <div class="li-wrapper d-flex justify-content-start align-items-start align-items-sm-center flex-column flex-sm-row gap-2 gap-sm-0">
-                    <i class="icon-base bx bx-file-blank icon-lg text-body me-2 me-md-4"></i>
-                    <div class="list-content">
-                      <h6 class="mb-1">{$key|replace:"_"," "|capitalize}</h6>
-                      <small class="text-body-secondary">
-                        {if $doc}Archivo cargado{else}<span class="text-danger">Pendiente</span>{/if}
-                      </small>
-                    </div>
+                <div class="list-group-item px-0 d-flex align-items-center justify-content-between gap-3 flex-wrap">
+                  <div>
+                    <h6 class="mb-1">{$key|replace:"_"," "|capitalize}</h6>
+                    <small class="text-body-secondary">{if $doc}Archivo cargado{else}Documento pendiente{/if}</small>
                   </div>
-                  <div class="my-auto">
-                    {if $doc}
-                      <a href="{$baseUrl}{$doc}" target="_blank" class="btn bg-label-primary btn-sm">Ver</a>
-                    {else}
-                      <span class="badge bg-warning">Obligatorio</span>
-                    {/if}
-                  </div>
+
+                  {if $doc}
+                    <a href="{$baseUrl}{$doc}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3">Ver archivo</a>
+                  {else}
+                    <span class="badge text-bg-warning rounded-pill px-3 py-2">Pendiente</span>
+                  {/if}
                 </div>
               {/foreach}
-            {/if}
-          </div>
+            </div>
+          {/if}
         </div>
       </div>
     </div>
   </div>
 
+  <style>
+    .profile-hero-bg {
+      background: linear-gradient(135deg, rgba(97, 18, 50, 0.08), rgba(165, 127, 44, 0.16));
+    }
 
-  <script n:syntax="off">
-    document.getElementById('formEditar')?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const form = e.target;
-      const res = await fetch('', {'method': 'POST', 'body': new FormData(form)});
-      const json = await res.json();
-      alert(json.ok ? '✅ Guardado' : '❌ ' + json.msg);
-      if (json.ok) location.reload();
-    });
-  </script>
+    .profile-avatar,
+    .profile-avatar-fallback {
+      width: 160px;
+      height: 160px;
+      border-radius: 999px;
+      border: 4px solid #fff;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+    }
+
+    .profile-avatar {
+      object-fit: cover;
+    }
+
+    .profile-avatar-fallback {
+      background: linear-gradient(135deg, #611232, #a57f2c);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 3rem;
+    }
+  </style>
 {/block}
