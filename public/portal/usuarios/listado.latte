@@ -1,5 +1,5 @@
 {extends ../../../templates/@portal.latte}
-{varType App\Module\Usuario\DTO\UsuarioSimpleDTO[] $usuarios}
+{varType App\Modules\User\Application\DTO\UserSummary[] $usuarios}
 
 {block main}
 {include
@@ -37,16 +37,16 @@
       <tbody>
       {foreach $usuarios as $usuario}
         <tr>
-          <td>{$usuario->nombreCompleto()}</td>
+          <td>{$usuario->fullName()}</td>
           <td>{$usuario->email}</td>
           <td>
-            <span class="badge bg-primary bg-opacity-75">{$usuario->departamento}</span>
+            <span class="badge bg-primary bg-opacity-75">{$usuario->department}</span>
           </td>
           <td>
-            <span class="badge bg-secondary bg-opacity-75">{$usuario->rol->value}</span>
+            <span class="badge bg-secondary bg-opacity-75">{$usuario->role->value}</span>
           </td>
           <td>
-            {if $usuario->activo}
+            {if $usuario->active}
               <span class="badge bg-success bg-opacity-75">Sí</span>
             {else}
               <span class="badge bg-danger bg-opacity-75">No</span>

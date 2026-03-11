@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\User\Infrastructure\Persistence;
 
 use App\Infrastructure\Persistence\Repository\PdoBaseRepository;
+use App\Modules\User\Application\DTO\UserSummary;
 use App\Modules\User\Domain\Entity\User;
 use App\Modules\User\Domain\Enum\DocumentTypeEnum;
 use App\Modules\User\Domain\Repository\UserRepositoryInterface;
@@ -18,6 +19,35 @@ use Exception;
 final class PdoUserRepository extends PdoBaseRepository implements
     UserRepositoryInterface
 {
+    /**
+     * @return UserSummary[]
+     */
+    public function listado(): array
+    {
+        $stmt = $this->pdo->query(
+            "SELECT user_id, name, surnames, email, role, active, department
+             FROM users
+             WHERE delete_at IS NULL
+             ORDER BY surnames, name",
+        );
+
+        $result = [];
+
+        while ($row = $stmt->fetch()) {
+            $result[] = new UserSummary(
+                id: (int) $row["user_id"],
+                name: (string) $row["name"],
+                surnames: (string) $row["surnames"],
+                email: (string) $row["email"],
+                role: RoleEnum::tryFrom((string) $row["role"]) ?? RoleEnum::NoAgremiado,
+                active: (bool) $row["active"],
+                department: $row["department"] !== null ? (string) $row["department"] : null,
+            );
+        }
+
+        return $result;
+    }
+
     public function findById(int $id): ?User
     {
         $stmt = $this->pdo->prepare(

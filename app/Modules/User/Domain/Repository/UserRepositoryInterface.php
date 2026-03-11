@@ -4,11 +4,17 @@ declare(strict_types=1);
 
 namespace App\Modules\User\Domain\Repository;
 
+use App\Modules\User\Application\DTO\UserSummary;
 use App\Modules\User\Domain\Entity\User;
 use App\Modules\User\Domain\Enum\DocumentTypeEnum;
 
 interface UserRepositoryInterface
 {
+    /**
+     * @return UserSummary[]
+     */
+    public function listado(): array;
+
     public function findById(int $id): ?User;
     public function findByEmail(string $email): ?User;
 
