@@ -126,7 +126,8 @@ return function (ContainerBuilder $container) {
             );
         },
 
-        PasswordRecoveryNotifierInterface::class => autowire(PasswordRecoveryMailer::class),
+        // Use the same factory-defined instance when the notifier interface is requested
+        PasswordRecoveryNotifierInterface::class => get(PasswordRecoveryMailer::class),
 
         // shared
         UserContextInterface::class => autowire(UserContext::class),
