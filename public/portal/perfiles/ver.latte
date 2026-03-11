@@ -1,89 +1,85 @@
 {layout ../../../templates/@portal.latte}
 
-{block local modal}
-  <!-- Modal -->
-  <div class="modal fade" id="datosPersonalesModal" tabindex="-1" aria-labelledby="exampleModalLabel"
+{block modals}
+  <div class="modal fade" id="datosPersonalesModal" tabindex="-1" aria-labelledby="datosPersonalesModalLabel"
        aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-simple modal-edit-user">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div class="text-center mb-4">
-            <h4 class="mb-2">Modifica tu información</h4>
-            <p>Actualiza tu información mas reciente.</p>
-            <small>
-              Para actualizar tu información personal, por favor contacta al administrador del sistema o pregunta con tu
-              Líder.
-            </small>
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content border-0 rounded-4 shadow">
+        <div class="modal-header border-0 px-4 pt-4 pb-2 align-items-start">
+          <div>
+            <h5 class="modal-title fw-bold" id="datosPersonalesModalLabel">Modifica tu informacion</h5>
+            <p class="text-body-secondary mb-0 small">Actualiza tus datos de contacto y documentos.</p>
           </div>
-          <form class="row g-4" method="post" id="formEditar" enctype="multipart/form-data">
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+
+        <div class="modal-body px-4 pb-4 pt-2" style="max-height: 65vh; overflow-y: auto;">
+          <div class="alert alert-light border rounded-4 small mb-4" role="alert">
+            Para actualizar datos sensibles, contacta al administrador o a tu lider.
+          </div>
+
+          <form class="row g-3" method="post" id="formEditar" enctype="multipart/form-data">
             <input type="hidden" name="id_miembro" value="{$perfil['id']}">
-            <!-- Foto de perfil -->
+
             <div class="col-12">
-              <h6 class="text-primary mb-0">Foto de Perfil</h6>
-            </div>
-            <div class="col-12">
-              <label for="modalEditUserFoto" class="form-label">Foto de Perfil</label>
-              <input class="form-control" type="file" id="modalEditUserFoto" name="fotoPerfil">
+              <p class="section-title mb-2">Foto de perfil</p>
+              <label for="modalEditUserFoto" class="form-label small">Subir foto</label>
+              <input class="form-control" type="file" id="modalEditUserFoto" name="fotoPerfil" accept="image/*">
             </div>
 
-            <!-- Información de Contacto -->
-            <div class="col-12">
-              <h6 class="text-primary mb-0">Información de Contacto</h6>
+            <div class="col-12 mt-2">
+              <p class="section-title mb-2">Informacion de contacto</p>
             </div>
             <div class="col-12 col-md-6">
-              <label class="form-label" for="modalEditUserDireccion">Dirección</label>
+              <label class="form-label small" for="modalEditUserDireccion">Direccion</label>
               <input type="text" id="modalEditUserDireccion" name="direccion" class="form-control"
-                     placeholder="Ingrese la dirección" value="{$perfil['direccion']}">
+                     placeholder="Ingresa la direccion" value="{$perfil['direccion']}">
             </div>
             <div class="col-12 col-md-6">
-              <label class="form-label" for="modalEditUserTelefono">Teléfono</label>
+              <label class="form-label small" for="modalEditUserTelefono">Telefono</label>
               <input type="text" id="modalEditUserTelefono" name="telefono" class="form-control"
-                     placeholder="Ingrese el teléfono" value="{$perfil['telefono']}">
+                     placeholder="Ingresa el telefono" value="{$perfil['telefono']}">
             </div>
             <div class="col-12">
-              <label class="form-label" for="modalEditUserCorreo">Correo Electrónico</label>
+              <label class="form-label small" for="modalEditUserCorreo">Correo electronico</label>
               <input type="email" id="modalEditUserCorreo" name="correo" class="form-control"
                      placeholder="ejemplo@dominio.com" value="{$perfil['correo']}">
             </div>
 
-            <div class="col-12">
-              <h6 class="text-primary mb-0">Documentación</h6>
+            <div class="col-12 mt-2">
+              <p class="section-title mb-2">Documentacion</p>
             </div>
             <div class="col-12 col-md-6">
-              <label for="afiliacion" class="form-label">Afiliación</label>
+              <label for="afiliacion" class="form-label small">Afiliacion</label>
               <input class="form-control" type="file" id="afiliacion" name="afiliacion" accept=".pdf,.jpg,.jpeg,.png">
             </div>
             <div class="col-12 col-md-6">
-              <label for="comprobante_domicilio" class="form-label">Comprobante de domicilio</label>
+              <label for="comprobante_domicilio" class="form-label small">Comprobante de domicilio</label>
               <input class="form-control" type="file" id="comprobante_domicilio" name="comprobante_domicilio"
                      accept=".pdf,.jpg,.jpeg,.png">
             </div>
             <div class="col-12 col-md-6">
-              <label for="ine" class="form-label">INE</label>
+              <label for="ine" class="form-label small">INE</label>
               <input class="form-control" type="file" id="ine" name="ine" accept=".pdf,.jpg,.jpeg,.png">
             </div>
             <div class="col-12 col-md-6">
-              <label for="comprobante_pago" class="form-label">Comprobante de pago</label>
+              <label for="comprobante_pago" class="form-label small">Comprobante de pago</label>
               <input class="form-control" type="file" id="comprobante_pago" name="comprobante_pago"
                      accept=".pdf,.jpg,.jpeg,.png">
             </div>
 
-            <!-- Configuración de Cuenta -->
-            <div class="col-12">
-              <h6 class="text-primary mb-0">Configuración de Cuenta</h6>
+            <div class="col-12 mt-2">
+              <p class="section-title mb-2">Configuracion de cuenta</p>
             </div>
             <div class="col-12">
-              <label class="form-label" for="modalEditUserContra">Nueva Contraseña</label>
+              <label class="form-label small" for="modalEditUserContra">Nueva contrasena</label>
               <input type="password" id="modalEditUserContra" name="contra" class="form-control"
-                     placeholder="Ingrese la contraseña">
+                     placeholder="Ingresa la nueva contrasena">
             </div>
-            <div class="col-12 text-center mt-4">
-              <button type="submit" class="btn btn-primary me-sm-3 me-1">Guardar Cambios</button>
-              <button type="reset" class="btn btn-label-secondary" data-bs-dismiss="modal" aria-label="Close">Cancelar
-              </button>
+
+            <div class="col-12 d-flex justify-content-end gap-2 mt-3">
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-primary px-4">Guardar cambios</button>
             </div>
           </form>
         </div>
@@ -126,7 +122,8 @@
         </div>
 
         <div class="col-12 col-lg-auto text-lg-end text-center">
-          <button type="button" class="btn btn-primary px-4" data-bs-toggle="modal" data-bs-target="#datosPersonalesModal">
+          <button type="button" class="btn btn-primary px-4" data-bs-toggle="modal"
+                  data-bs-target="#datosPersonalesModal">
             <i class="bi bi-pencil-square me-2"></i>Editar perfil
           </button>
         </div>
@@ -134,7 +131,6 @@
     </div>
   </div>
 
-  {include modal}
 
   <div class="row g-4">
     <div class="col-xl-5">
@@ -201,7 +197,8 @@
                   </div>
 
                   {if $doc}
-                    <a href="{$baseUrl}{$doc}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3">Ver archivo</a>
+                    <a href="{$baseUrl}{$doc}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3">Ver
+                      archivo</a>
                   {else}
                     <span class="badge text-bg-warning rounded-pill px-3 py-2">Pendiente</span>
                   {/if}
@@ -215,29 +212,41 @@
   </div>
 
   <style>
-    .profile-hero-bg {
-      background: linear-gradient(135deg, rgba(97, 18, 50, 0.08), rgba(165, 127, 44, 0.16));
-    }
+      .profile-hero-bg {
+          background: linear-gradient(135deg, rgba(97, 18, 50, 0.08), rgba(165, 127, 44, 0.16));
+      }
 
-    .profile-avatar,
-    .profile-avatar-fallback {
-      width: 160px;
-      height: 160px;
-      border-radius: 999px;
-      border: 4px solid #fff;
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
-    }
+      #datosPersonalesModal .section-title {
+          font-size: 0.8rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          color: var(--bs-primary);
+      }
 
-    .profile-avatar {
-      object-fit: cover;
-    }
+      #datosPersonalesModal .form-control {
+          border-radius: 0.75rem;
+      }
 
-    .profile-avatar-fallback {
-      background: linear-gradient(135deg, #611232, #a57f2c);
-      color: #fff;
-      display: grid;
-      place-items: center;
-      font-size: 3rem;
-    }
+      .profile-avatar,
+      .profile-avatar-fallback {
+          width: 160px;
+          height: 160px;
+          border-radius: 999px;
+          border: 4px solid #fff;
+          box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+      }
+
+      .profile-avatar {
+          object-fit: cover;
+      }
+
+      .profile-avatar-fallback {
+          background: linear-gradient(135deg, #611232, #a57f2c);
+          color: #fff;
+          display: grid;
+          place-items: center;
+          font-size: 3rem;
+      }
   </style>
 {/block}
