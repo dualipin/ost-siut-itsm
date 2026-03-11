@@ -4,6 +4,8 @@
 {varType array $old}
 
 {block main}
+  {var $selectedRole = (string) ($old['role'] ?? '')}
+
   {include
     ../../../templates/components/header-page.latte,
     title => 'Registrar Usuario',
@@ -21,23 +23,23 @@
     </div>
   {/if}
 
-  <form method="post" action="./registrar.php" class="card border-0 shadow-sm rounded-4 p-4">
+  <form method="post" action="./registrar.php" class="card border-0 shadow-sm rounded-4 p-4" autocomplete="off">
 
     <h2 class="h5 fw-semibold text-secondary mb-3"><i class="bi bi-person-vcard me-2"></i>Datos Personales</h2>
     <div class="row g-3 mb-4">
       <div class="col-md-6">
         <label for="name" class="form-label">Nombre(s)</label>
         <input type="text" class="form-control" id="name" name="name"
-               value="{$old['name'] ?? ''}" required>
+               value="{$old['name'] ?? ''}" autocomplete="given-name" required>
       </div>
       <div class="col-md-6">
         <label for="surnames" class="form-label">Apellidos</label>
         <input type="text" class="form-control" id="surnames" name="surnames"
-               value="{$old['surnames'] ?? ''}" required>
+               value="{$old['surnames'] ?? ''}" autocomplete="family-name" required>
       </div>
       <div class="col-md-6">
         <label for="curp" class="form-label">CURP</label>
-        <input type="text" class="form-control" id="curp" name="curp" maxlength="18"
+        <input type="text" class="form-control text-uppercase" id="curp" name="curp" maxlength="18"
                value="{$old['curp'] ?? ''}">
       </div>
       <div class="col-md-6">
@@ -47,12 +49,13 @@
       </div>
       <div class="col-md-6">
         <label for="phone" class="form-label">Teléfono</label>
-        <input type="tel" class="form-control" id="phone" name="phone" maxlength="10"
+        <input type="tel" class="form-control" id="phone" name="phone" maxlength="10" inputmode="numeric"
+               pattern="[0-9]{10}"
                value="{$old['phone'] ?? ''}">
       </div>
       <div class="col-12">
         <label for="address" class="form-label">Dirección</label>
-        <textarea class="form-control" id="address" name="address" rows="2">{$old['address'] ?? ''}</textarea>
+        <textarea class="form-control" id="address" name="address" rows="2" autocomplete="street-address">{$old['address'] ?? ''}</textarea>
       </div>
     </div>
 
@@ -70,14 +73,15 @@
       </div>
       <div class="col-md-6">
         <label for="nss" class="form-label">NSS</label>
-        <input type="text" class="form-control" id="nss" name="nss" maxlength="11"
+        <input type="text" class="form-control" id="nss" name="nss" maxlength="11" inputmode="numeric"
+               pattern="[0-9]{11}"
                value="{$old['nss'] ?? ''}">
       </div>
       <div class="col-md-6">
         <label for="salary" class="form-label">Salario</label>
         <div class="input-group">
           <span class="input-group-text">$</span>
-          <input type="number" step="0.01" class="form-control" id="salary" name="salary"
+          <input type="number" step="0.01" min="0" class="form-control" id="salary" name="salary"
                  value="{$old['salary'] ?? '0'}">
         </div>
       </div>
@@ -93,24 +97,25 @@
       <div class="col-md-6">
         <label for="email" class="form-label">Correo Electrónico</label>
         <input type="email" class="form-control" id="email" name="email"
-               value="{$old['email'] ?? ''}" required>
+               value="{$old['email'] ?? ''}" autocomplete="email" required>
       </div>
       <div class="col-md-6">
         <label for="role" class="form-label">Rol</label>
         <select class="form-select" id="role" name="role" required>
+          <option value="" disabled {if $selectedRole === ''}selected{/if}>Selecciona un rol...</option>
           {foreach $roles as $r}
-            <option value="{$r->value}" {if ($old['role'] ?? '') === $r->value}selected{/if}>{$r->value}</option>
+            <option value="{$r->value}" {if $selectedRole === $r->value}selected{/if}>{$r->value}</option>
           {/foreach}
         </select>
       </div>
       <div class="col-md-6">
         <label for="password" class="form-label">Contraseña</label>
-        <input type="password" class="form-control" id="password" name="password" minlength="6" required>
+        <input type="password" class="form-control" id="password" name="password" minlength="6" autocomplete="new-password" required>
       </div>
       <div class="col-md-6">
         <label for="password_confirm" class="form-label">Repetir Contraseña</label>
         <input type="password" class="form-control" id="password_confirm" name="password_confirm"
-               minlength="6" required>
+               minlength="6" autocomplete="new-password" required>
       </div>
     </div>
 
