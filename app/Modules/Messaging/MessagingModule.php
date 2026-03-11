@@ -2,13 +2,5 @@
 
 namespace App\Modules\Messaging;
 
-use App\Modules\ModuleInterface;
-use DI\ContainerBuilder;
-
-class MessagingModule implements ModuleInterface
-{
-    public function register(ContainerBuilder $container): void
-    {
-        $container->addDefinitions([]);
-    }
-}
+use App\Modules\AbstractModule;
+final class MessagingModule extends AbstractModule {}

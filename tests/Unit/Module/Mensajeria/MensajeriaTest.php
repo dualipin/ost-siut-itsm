@@ -2,8 +2,8 @@
 
 use App\Infrastructure\Config\AppConfig;
 use App\Module\Mensajeria\DTO\CrearMensajeExternoDTO;
-use App\Module\Mensajeria\Enum\PrioridadMensajeEnum;
-use App\Module\Mensajeria\Enum\TipoMensajeEnum;
+use App\Module\Mensajeria\Enum\MessagePriorityEnum;
+use App\Module\Mensajeria\Enum\MessageTypeEnum;
 use App\Module\Mensajeria\Service\ContactoGeneralService;
 
 // Helper functions
@@ -15,8 +15,8 @@ function createValidDTO(): CrearMensajeExternoDTO
         correo: "juan@example.com",
         telefono: "1234567890",
         mensaje: "This is a test message with at least 10 characters",
-        tipo: TipoMensajeEnum::ContactoGeneral,
-        prioridad: PrioridadMensajeEnum::Media,
+        tipo: MessageTypeEnum::ContactoGeneral,
+        prioridad: MessagePriorityEnum::Media,
     );
 }
 
@@ -189,8 +189,8 @@ describe("CrearMensajeExternoDTO Validation", function () {
             mensaje: "This is a test message",
         );
 
-        expect($dto->tipo)->toBe(TipoMensajeEnum::ContactoGeneral);
-        expect($dto->prioridad)->toBe(PrioridadMensajeEnum::Media);
+        expect($dto->tipo)->toBe(MessageTypeEnum::ContactoGeneral);
+        expect($dto->prioridad)->toBe(MessagePriorityEnum::Media);
     });
 });
 
@@ -198,9 +198,9 @@ describe("ContactoGeneralService", function () {
     it("guarda mensaje exitosamente cuando todo funciona", function () {
         // Test validates that the DTO can be instantiated and passed to service
         // Full integration testing requires database fixtures
-        
+
         $dto = createValidDTO();
-        
+
         expect($dto)->toBeInstanceOf(CrearMensajeExternoDTO::class);
         expect($dto->correo)->toBe("juan@example.com");
         expect($dto->asunto)->toBe("Test Subject");

@@ -4,8 +4,8 @@ use App\Bootstrap;
 use App\Http\Request\FormRequest;
 use App\Http\Response\JsonResponse;
 use App\Module\Mensajeria\DTO\CrearMensajeExternoDTO;
-use App\Module\Mensajeria\Enum\PrioridadMensajeEnum;
-use App\Module\Mensajeria\Enum\TipoMensajeEnum;
+use App\Module\Mensajeria\Enum\MessagePriorityEnum;
+use App\Module\Mensajeria\Enum\MessageTypeEnum;
 use App\Module\Mensajeria\Repository\MensajeRepository;
 use App\Module\Mensajeria\Service\ContactoGeneralService;
 
@@ -31,8 +31,8 @@ try {
             correo: $correo,
             telefono: $telefono,
             mensaje: $mensaje,
-            tipo: TipoMensajeEnum::ContactoGeneral,
-            prioridad: PrioridadMensajeEnum::Media,
+            tipo: MessageTypeEnum::ContactoGeneral,
+            prioridad: MessagePriorityEnum::Media,
         ),
     );
 
@@ -43,23 +43,20 @@ try {
     ]);
 
     $response->send();
-    
 } catch (\InvalidArgumentException $e) {
     // Error de validación (400 Bad Request)
     $response = JsonResponse::badRequest($e->getMessage());
     $response->send();
-    
 } catch (\PDOException $e) {
     // Error de base de datos (500 Internal Server Error)
     $response = JsonResponse::serverError(
-        "Ocurrió un error al procesar tu mensaje. Por favor intenta nuevamente más tarde."
+        "Ocurrió un error al procesar tu mensaje. Por favor intenta nuevamente más tarde.",
     );
     $response->send();
-    
 } catch (\Throwable $th) {
     // Cualquier otro error inesperado (500)
     $response = JsonResponse::serverError(
-        "Ocurrió un error inesperado. Por favor intenta nuevamente más tarde."
+        "Ocurrió un error inesperado. Por favor intenta nuevamente más tarde.",
     );
     $response->send();
 }
