@@ -17,17 +17,17 @@
         content="Sindicato Único de Trabajadores del Instituto Tecnológico Superior de Macuspana">
   <meta property="og:description"
         content="La gran familia sindical del ITSM. Información, gestiones y recursos para los trabajadores.">
-  <meta property="og:image" content="/assets/images/logo.png">
+  <meta property="og:image" content="{url('assets/images/logo.png')}">
   <meta property="og:url" content="https://www.siutitsm.com.mx/">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Sindicato Único de Trabajadores del ITSM">
   <meta name="twitter:description" content="Noticias, gestiones y recursos para los trabajadores del ITSM.">
-  <meta name="twitter:image" content="/assets/images/logo.png">
+  <meta name="twitter:image" content="{url('assets/images/logo.png')}">
 
 
   <link rel="canonical" href="https://www.siutitsm.com.mx/">
-  <link rel="shortcut icon" href="{url('/favicon.ico')}" type="image/x-icon">
+  <link rel="shortcut icon" href="{url('favicon.ico')}" type="image/x-icon">
 
   <!-- ======= Google Font =======-->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,7 +37,7 @@
   <!-- End Google Font-->
 
   <!-- ======= Styles =======-->
-  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="{url('assets/css/bootstrap.min.css')}">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
   <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
@@ -45,7 +45,7 @@
 
   <!-- ======= Theme Style =======-->
   <!-- Font Override MUST load AFTER Litera -->
-  <link href="{url('assets/css/font-override.css')}?v={filemtime(__DIR__ . '/../public/assets/css/font-override.css')}"
+  <link href="{url('assets/css/font-override.css', ['v'=>filemtime(__DIR__ . '/../public/assets/css/font-override.css')])}"
         rel="stylesheet">
   <link href="{url('assets/css/colors.php')}" rel="stylesheet">
   <!-- End Theme Style-->
@@ -59,9 +59,9 @@
 
 
   <!-- ======= Javascripts =======-->
-<script src="/assets/js/bootstrap.bundle.min.js"
-        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous">
+<script src="{url('assets/js/bootstrap.bundle.min.js')}">
 </script>
+
 
 
 
@@ -80,9 +80,7 @@
     once: true,
   })
 </script>
-
       {block scripts}{/block}
-<!-- End JavaScripts-->
 </body>
 
 </html>
