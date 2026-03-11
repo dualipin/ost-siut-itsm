@@ -1,5 +1,17 @@
 {layout ./@base.latte}
 
+{block head}
+<style>
+  /* Justify all paragraphs and lists within landing pages */
+  main p,
+  main ul,
+  main ol,
+  main li {
+    text-align: justify;
+  }
+</style>
+{/block}
+
 {block content}
 <!-- Layout principal con flexbox para sticky footer -->
 <div class="d-flex flex-column min-vh-100">
