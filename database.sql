@@ -77,19 +77,6 @@ CREATE TABLE if NOT EXISTS password_resets
     INDEX (token)
 );
 
-CREATE TABLE if NOT EXISTS mail_queue
-(
-    id         INT AUTO_INCREMENT PRIMARY KEY,
-    recipient  TEXT NOT NULL,
-    -- JSON array de correos
-    subject    VARCHAR(255),
-    body       TEXT,
-    alt_body   TEXT,
-    attempts   INT                                DEFAULT 0,
-    status     ENUM ('pending', 'sent', 'failed') DEFAULT 'pending',
-    created_at TIMESTAMP                          DEFAULT CURRENT_TIMESTAMP
-);
-
 CREATE TABLE if not exists cat_income_types
 (
     income_type_id          INT AUTO_INCREMENT PRIMARY KEY,
@@ -443,4 +430,25 @@ CREATE TABLE IF NOT EXISTS system_colors
     c_white           varchar(7)      default '#ffffff',
     c_body            varchar(7)      default '#212529',
     c_body_background varchar(7)      default '#f8f9fa'
+);
+
+
+CREATE TABLE IF NOT EXISTS mail_queue
+(
+    id           INT AUTO_INCREMENT PRIMARY KEY,
+    recipient    TEXT         NOT NULL,                                                   -- JSON si es necesario, pero mejor uno por fila
+    subject      VARCHAR(255) NOT NULL,
+    body         MEDIUMTEXT   NOT NULL,                                                   -- MEDIUMTEXT por si el HTML es pesado
+    alt_body     TEXT,
+    priority     TINYINT                                       DEFAULT 2,                 -- 1: Urgente, 2: Normal, 3: Newsletter
+    attempts     INT                                           DEFAULT 0,
+    max_attempts INT                                           DEFAULT 3,                 -- Límite de reintentos
+    status       ENUM ('pending', 'sending', 'sent', 'failed') DEFAULT 'pending',
+    last_error   TEXT,                                                                    -- Para depurar por qué falló
+    scheduled_at TIMESTAMP                                     DEFAULT CURRENT_TIMESTAMP, -- Envío programado
+    locked_at    TIMESTAMP    NULL,                                                       -- Evita colisiones entre procesos
+    lock_token   VARCHAR(64)  NULL,                                                       -- Identificador del proceso que reclamó el correo
+    created_at   TIMESTAMP                                     DEFAULT CURRENT_TIMESTAMP,
+    INDEX (status, priority, scheduled_at),                                               -- Optimiza la consulta del cron
+    INDEX (status, lock_token)
 );
