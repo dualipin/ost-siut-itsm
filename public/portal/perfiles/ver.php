@@ -185,7 +185,7 @@ $error = is_string($_GET["error"] ?? null) ? $_GET["error"] : null;
 $renderer = $container->get(RendererInterface::class);
 
 $renderer->render(__DIR__ . "/ver.latte", [
-	"user" => $user,
+	"authUser" => $user,
 	"perfil" => $perfil,
 	"docs" => $docs,
 	"documentFields" => $documentFields,

@@ -7,13 +7,14 @@ namespace App\Modules\User\Domain\Repository;
 use App\Modules\User\Application\DTO\UserSummary;
 use App\Modules\User\Domain\Entity\User;
 use App\Modules\User\Domain\Enum\DocumentTypeEnum;
+use App\Shared\Domain\Enum\RoleEnum;
 
 interface UserRepositoryInterface
 {
     /**
      * @return UserSummary[]
      */
-    public function listado(): array;
+    public function listado(bool $onlyActive = false): array;
 
     public function findById(int $id): ?User;
     public function findByEmail(string $email): ?User;
@@ -28,6 +29,26 @@ interface UserRepositoryInterface
         ?string $photoPath,
         ?string $curp,
     ): bool;
+
+    public function updateByAdmin(
+        int $userId,
+        string $name,
+        string $surnames,
+        string $email,
+        RoleEnum $role,
+        bool $active,
+        ?string $curp,
+        ?string $birthdate,
+        ?string $address,
+        ?string $phone,
+        ?string $department,
+        ?string $category,
+        ?string $nss,
+        float $salary,
+        ?string $workStartDate,
+    ): bool;
+
+    public function deactivate(int $id): bool;
 
     /**
      * @return array<string, string>

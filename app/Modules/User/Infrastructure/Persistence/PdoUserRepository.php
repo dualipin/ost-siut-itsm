@@ -22,12 +22,16 @@ final class PdoUserRepository extends PdoBaseRepository implements
     /**
      * @return UserSummary[]
      */
-    public function listado(): array
+    public function listado(bool $onlyActive = false): array
     {
+        $where = $onlyActive
+            ? "WHERE delete_at IS NULL AND active = 1"
+            : "WHERE delete_at IS NULL";
+
         $stmt = $this->pdo->query(
             "SELECT user_id, name, surnames, email, role, active, department
              FROM users
-             WHERE delete_at IS NULL
+             {$where}
              ORDER BY surnames, name",
         );
 
@@ -46,6 +50,76 @@ final class PdoUserRepository extends PdoBaseRepository implements
         }
 
         return $result;
+    }
+
+    public function updateByAdmin(
+        int $userId,
+        string $name,
+        string $surnames,
+        string $email,
+        RoleEnum $role,
+        bool $active,
+        ?string $curp,
+        ?string $birthdate,
+        ?string $address,
+        ?string $phone,
+        ?string $department,
+        ?string $category,
+        ?string $nss,
+        float $salary,
+        ?string $workStartDate,
+    ): bool {
+        $stmt = $this->pdo->prepare(
+            "
+            UPDATE users
+            SET
+                name            = :name,
+                surnames        = :surnames,
+                email           = :email,
+                role            = :role,
+                active          = :active,
+                curp            = :curp,
+                birthdate       = :birthdate,
+                address         = :address,
+                phone           = :phone,
+                department      = :department,
+                category        = :category,
+                nss             = :nss,
+                salary          = :salary,
+                work_start_date = :work_start_date
+            WHERE user_id = :user_id AND delete_at IS NULL
+            LIMIT 1
+            ",
+        );
+
+        return $stmt->execute([
+            "name"           => $name,
+            "surnames"       => $surnames,
+            "email"          => $email,
+            "role"           => $role->value,
+            "active"         => (int) $active,
+            "curp"           => $curp,
+            "birthdate"      => $birthdate,
+            "address"        => $address,
+            "phone"          => $phone,
+            "department"     => $department,
+            "category"       => $category,
+            "nss"            => $nss,
+            "salary"         => $salary,
+            "work_start_date" => $workStartDate,
+            "user_id"        => $userId,
+        ]);
+    }
+
+    public function deactivate(int $id): bool
+    {
+        $stmt = $this->pdo->prepare(
+            "UPDATE users SET delete_at = NOW() WHERE user_id = :id AND delete_at IS NULL LIMIT 1",
+        );
+
+        $stmt->execute(["id" => $id]);
+
+        return $stmt->rowCount() === 1;
     }
 
     public function findById(int $id): ?User

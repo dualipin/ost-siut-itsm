@@ -1,12 +1,128 @@
 {extends ../../../templates/@portal.latte}
+{varType App\Shared\Domain\Enum\RoleEnum[] $roles}
+{varType string[] $errors}
+{varType array $old}
 
 {block main}
   {include
     ../../../templates/components/header-page.latte,
     title => 'Registrar Usuario',
-    description => 'Formulario para registrar nuevos agremiados.',
+    description => 'Formulario para registrar un nuevo usuario.',
     icon => 'bi-person-plus'
   }
+
+  {if !empty($errors)}
+    <div class="alert alert-danger rounded-4 mb-4">
+      <ul class="mb-0">
+        {foreach $errors as $error}
+          <li>{$error}</li>
+        {/foreach}
+      </ul>
+    </div>
+  {/if}
+
+  <form method="post" action="./registrar.php" class="card border-0 shadow-sm rounded-4 p-4">
+
+    <h2 class="h5 fw-semibold text-secondary mb-3"><i class="bi bi-person-vcard me-2"></i>Datos Personales</h2>
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <label for="name" class="form-label">Nombre(s)</label>
+        <input type="text" class="form-control" id="name" name="name"
+               value="{$old['name'] ?? ''}" required>
+      </div>
+      <div class="col-md-6">
+        <label for="surnames" class="form-label">Apellidos</label>
+        <input type="text" class="form-control" id="surnames" name="surnames"
+               value="{$old['surnames'] ?? ''}" required>
+      </div>
+      <div class="col-md-6">
+        <label for="curp" class="form-label">CURP</label>
+        <input type="text" class="form-control" id="curp" name="curp" maxlength="18"
+               value="{$old['curp'] ?? ''}">
+      </div>
+      <div class="col-md-6">
+        <label for="birthdate" class="form-label">Fecha de Nacimiento</label>
+        <input type="date" class="form-control" id="birthdate" name="birthdate"
+               value="{$old['birthdate'] ?? ''}">
+      </div>
+      <div class="col-md-6">
+        <label for="phone" class="form-label">Teléfono</label>
+        <input type="tel" class="form-control" id="phone" name="phone" maxlength="10"
+               value="{$old['phone'] ?? ''}">
+      </div>
+      <div class="col-12">
+        <label for="address" class="form-label">Dirección</label>
+        <textarea class="form-control" id="address" name="address" rows="2">{$old['address'] ?? ''}</textarea>
+      </div>
+    </div>
+
+    <h2 class="h5 fw-semibold text-secondary mb-3"><i class="bi bi-briefcase me-2"></i>Datos Laborales</h2>
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <label for="department" class="form-label">Departamento</label>
+        <input type="text" class="form-control" id="department" name="department"
+               value="{$old['department'] ?? ''}">
+      </div>
+      <div class="col-md-6">
+        <label for="category" class="form-label">Categoría</label>
+        <input type="text" class="form-control" id="category" name="category"
+               value="{$old['category'] ?? ''}">
+      </div>
+      <div class="col-md-6">
+        <label for="nss" class="form-label">NSS</label>
+        <input type="text" class="form-control" id="nss" name="nss" maxlength="11"
+               value="{$old['nss'] ?? ''}">
+      </div>
+      <div class="col-md-6">
+        <label for="salary" class="form-label">Salario</label>
+        <div class="input-group">
+          <span class="input-group-text">$</span>
+          <input type="number" step="0.01" class="form-control" id="salary" name="salary"
+                 value="{$old['salary'] ?? '0'}">
+        </div>
+      </div>
+      <div class="col-md-6">
+        <label for="work_start_date" class="form-label">Fecha de Ingreso</label>
+        <input type="date" class="form-control" id="work_start_date" name="work_start_date"
+               value="{$old['work_start_date'] ?? ''}">
+      </div>
+    </div>
+
+    <h2 class="h5 fw-semibold text-secondary mb-3"><i class="bi bi-shield-lock me-2"></i>Cuenta y Acceso</h2>
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <label for="email" class="form-label">Correo Electrónico</label>
+        <input type="email" class="form-control" id="email" name="email"
+               value="{$old['email'] ?? ''}" required>
+      </div>
+      <div class="col-md-6">
+        <label for="role" class="form-label">Rol</label>
+        <select class="form-select" id="role" name="role" required>
+          {foreach $roles as $r}
+            <option value="{$r->value}" {if ($old['role'] ?? '') === $r->value}selected{/if}>{$r->value}</option>
+          {/foreach}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label for="password" class="form-label">Contraseña</label>
+        <input type="password" class="form-control" id="password" name="password" minlength="6" required>
+      </div>
+      <div class="col-md-6">
+        <label for="password_confirm" class="form-label">Repetir Contraseña</label>
+        <input type="password" class="form-control" id="password_confirm" name="password_confirm"
+               minlength="6" required>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-3 mt-3">
+      <button type="submit" class="btn btn-success px-4">
+        <i class="bi bi-check-circle me-2"></i>Registrar Usuario
+      </button>
+      <a href="./listado.php" class="btn btn-outline-secondary px-4">Cancelar</a>
+    </div>
+  </form>
+{/block}
+
   <div class="row justify-content-center">
   <form method="post" enctype="multipart/form-data">
 
