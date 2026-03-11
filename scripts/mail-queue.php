@@ -18,6 +18,7 @@ use App\Infrastructure\Mail\EmailService;
 $logsDir = dirname(__DIR__) . '/logs';
 $lockFile = $logsDir . '/mail-queue.lock';
 $logFile = $logsDir . '/' . date('Y-m-d') . '-mail-queue.log';
+$defaultMaxAttempts = 3;
 
 // Crear directorio de logs si no existe
 if (!is_dir($logsDir)) {
@@ -89,18 +90,25 @@ try {
     // Obtener emails pendientes
     try {
         $stmt = $pdo->prepare(
-            "SELECT * FROM mail_queue WHERE status = 'pending' LIMIT 10"
+            "SELECT *
+            FROM mail_queue
+            WHERE status IN ('pending', 'failed')
+              AND scheduled_at <= NOW()
+              AND attempts < COALESCE(max_attempts, :defaultMaxAttempts)
+            ORDER BY priority ASC, scheduled_at ASC, created_at ASC
+            LIMIT 10"
         );
+        $stmt->bindValue(':defaultMaxAttempts', $defaultMaxAttempts, PDO::PARAM_INT);
         $stmt->execute();
         $pendingEmails = $stmt->fetchAll();
         
         $total = count($pendingEmails);
         if ($total === 0) {
-            writeLog("No hay emails pendientes para procesar");
+            writeLog("No hay emails pendientes o reintentables para procesar");
             exit(0);
         }
         
-        writeLog("Encontrados $total emails pendientes");
+        writeLog("Encontrados $total emails pendientes/reintentables");
     } catch (\Exception $e) {
         writeLog("Error al consultar BD: " . $e->getMessage(), 'ERROR');
         exit(1);
@@ -111,45 +119,89 @@ try {
 
     foreach ($pendingEmails as $email) {
         $emailId = $email["id"];
-        
-        try {
-            $recipients = json_decode($email["recipient"], true);
-            if (!is_array($recipients)) {
-                throw new \RuntimeException("Formato de recipients inválido");
-            }
-            
-            // Enviar email
-            $emailService->send(
-                $recipients,
-                $email["subject"],
-                $email["body"],
-            );
+        $maxAttempts = (int)($email["max_attempts"] ?? $defaultMaxAttempts);
+        if ($maxAttempts <= 0) {
+            $maxAttempts = $defaultMaxAttempts;
+        }
 
-            // Actualizar estado a 'sent'
-            $updateStmt = $pdo->prepare(
-                "UPDATE mail_queue SET status = 'sent', sent_at = NOW() WHERE id = :id"
+        $currentAttempts = (int)($email["attempts"] ?? 0);
+        $remainingAttempts = $maxAttempts - $currentAttempts;
+        
+        if ($remainingAttempts <= 0) {
+            writeLog("Email ID $emailId omitido: alcanzó el máximo de intentos ($maxAttempts)", 'WARN');
+            continue;
+        }
+
+        // Bloquear registro para el ciclo de envío actual
+        try {
+            $lockStmt = $pdo->prepare(
+                "UPDATE mail_queue SET status = 'sending', locked_at = NOW() WHERE id = :id AND status IN ('pending', 'failed')"
             );
-            $updateStmt->execute([":id" => $emailId]);
-            
-            writeLog("Email ID $emailId enviado exitosamente");
-            $processed++;
-            
-        } catch (\Throwable $e) {
-            writeLog(
-                "Email ID $emailId falló: " . get_class($e) . " - " . $e->getMessage(),
-                'ERROR'
-            );
-            
-            // Actualizar estado a 'failed' e incrementar intentos
+            $lockStmt->execute([":id" => $emailId]);
+            if ($lockStmt->rowCount() === 0) {
+                writeLog("Email ID $emailId omitido: no se pudo adquirir bloqueo de envío", 'WARN');
+                continue;
+            }
+        } catch (\Exception $e) {
+            writeLog("Email ID $emailId no se pudo bloquear: " . $e->getMessage(), 'ERROR');
+            continue;
+        }
+
+        $sent = false;
+        for ($retry = 1; $retry <= $remainingAttempts; $retry++) {
+            $attemptNumber = $currentAttempts + $retry;
+
             try {
+                $recipients = json_decode($email["recipient"], true);
+                if (!is_array($recipients)) {
+                    throw new \RuntimeException("Formato de recipients inválido");
+                }
+
+                // Enviar email
+                $emailService->send(
+                    $recipients,
+                    $email["subject"],
+                    $email["body"],
+                );
+
+                // Actualizar estado a 'sent'
                 $updateStmt = $pdo->prepare(
-                    "UPDATE mail_queue SET status = 'failed', attempts = attempts + 1 WHERE id = :id"
+                    "UPDATE mail_queue SET status = 'sent', locked_at = NULL, last_error = NULL WHERE id = :id"
                 );
                 $updateStmt->execute([":id" => $emailId]);
-            } catch (\Exception $dbError) {
-                writeLog("Error al actualizar BD: " . $dbError->getMessage(), 'ERROR');
+
+                writeLog("Email ID $emailId enviado exitosamente en intento $attemptNumber/$maxAttempts");
+                $processed++;
+                $sent = true;
+                break;
+            } catch (\Throwable $e) {
+                $nextStatus = $attemptNumber >= $maxAttempts ? 'failed' : 'pending';
+
+                writeLog(
+                    "Email ID $emailId falló en intento $attemptNumber/$maxAttempts: " . get_class($e) . " - " . $e->getMessage(),
+                    'ERROR'
+                );
+
+                try {
+                    $updateStmt = $pdo->prepare(
+                        "UPDATE mail_queue SET status = :status, attempts = attempts + 1, last_error = :lastError, locked_at = NULL WHERE id = :id"
+                    );
+                    $updateStmt->execute([
+                        ":status" => $nextStatus,
+                        ":lastError" => $e->getMessage(),
+                        ":id" => $emailId,
+                    ]);
+                } catch (\Exception $dbError) {
+                    writeLog("Error al actualizar BD: " . $dbError->getMessage(), 'ERROR');
+                }
+
+                if ($nextStatus === 'failed') {
+                    break;
+                }
             }
-            
+        }
+
+        if (!$sent) {
             $failed++;
         }
     }
