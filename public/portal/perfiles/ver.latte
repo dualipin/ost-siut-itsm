@@ -49,24 +49,21 @@
             <div class="col-12 mt-2">
               <p class="section-title mb-2">Documentacion</p>
             </div>
-            <div class="col-12 col-md-6">
-              <label for="afiliacion" class="form-label small">Afiliacion</label>
-              <input class="form-control" type="file" id="afiliacion" name="afiliacion" accept=".pdf,.jpg,.jpeg,.png">
-            </div>
-            <div class="col-12 col-md-6">
-              <label for="comprobante_domicilio" class="form-label small">Comprobante de domicilio</label>
-              <input class="form-control" type="file" id="comprobante_domicilio" name="comprobante_domicilio"
-                     accept=".pdf,.jpg,.jpeg,.png">
-            </div>
-            <div class="col-12 col-md-6">
-              <label for="ine" class="form-label small">INE</label>
-              <input class="form-control" type="file" id="ine" name="ine" accept=".pdf,.jpg,.jpeg,.png">
-            </div>
-            <div class="col-12 col-md-6">
-              <label for="comprobante_pago" class="form-label small">Comprobante de pago</label>
-              <input class="form-control" type="file" id="comprobante_pago" name="comprobante_pago"
-                     accept=".pdf,.jpg,.jpeg,.png">
-            </div>
+            {foreach $documentFields as $field}
+              {var $docKey = $field['key']}
+              {var $docPath = $docs[$docKey] ?? ''}
+              <div class="col-12 col-md-6">
+                <label for="{$docKey}" class="form-label small">{$field['label']}</label>
+                <input class="form-control" type="file" id="{$docKey}" name="{$docKey}" accept=".pdf,.jpg,.jpeg,.png,.webp">
+                <div class="form-text">
+                  {if !empty($docPath)}
+                    Actual: <a href="{upload($docPath)}" target="_blank" class="link-primary">Ver archivo</a>
+                  {else}
+                    PDF, JPG, PNG o WEBP.
+                  {/if}
+                </div>
+              </div>
+            {/foreach}
 
             <div class="col-12 mt-2">
               <p class="section-title mb-2">Configuracion de cuenta</p>
@@ -91,6 +88,18 @@
 {block title}Mi Perfil{/block}
 
 {block main}
+  {if $mensaje}
+    <div class="alert alert-success border-0 rounded-4 mb-4" role="alert">
+      <i class="bi bi-check-circle me-2"></i>{$mensaje}
+    </div>
+  {/if}
+
+  {if $error}
+    <div class="alert alert-danger border-0 rounded-4 mb-4" role="alert">
+      <i class="bi bi-exclamation-triangle me-2"></i>{$error}
+    </div>
+  {/if}
+
   <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 mb-md-5 animate__animated animate__fadeInUp">
     <div class="p-4 p-md-5 profile-hero-bg">
       <div class="row g-4 align-items-center">
@@ -100,7 +109,7 @@
               <i class="bi bi-person-fill"></i>
             </div>
           {else}
-            <img src="{$baseUrl}{$docs['perfil']}" alt="Foto de perfil" class="profile-avatar mx-auto d-block">
+            <img src="{upload($docs['perfil'])}" alt="Foto de perfil" class="profile-avatar mx-auto d-block">
           {/if}
         </div>
 
@@ -182,22 +191,23 @@
         </div>
 
         <div class="card-body px-4 pb-4">
-          {if empty($docs['afiliacion']) && empty($docs['comprobante_domicilio']) && empty($docs['ine']) && empty($docs['comprobante_pago'])}
+          {if !$hasAnyDocument}
             <div class="alert alert-warning border-0 rounded-4 mb-0" role="alert">
               <i class="bi bi-exclamation-circle me-2"></i>No se han subido documentos aun.
             </div>
           {else}
             <div class="list-group list-group-flush">
-              {foreach ['afiliacion','comprobante_domicilio','ine','comprobante_pago'] as $key}
+              {foreach $documentFields as $field}
+                {var $key = $field['key']}
                 {var $doc = $docs[$key] ?? ''}
                 <div class="list-group-item px-0 d-flex align-items-center justify-content-between gap-3 flex-wrap">
                   <div>
-                    <h6 class="mb-1">{$key|replace:"_"," "|capitalize}</h6>
+                    <h6 class="mb-1">{$field['label']}</h6>
                     <small class="text-body-secondary">{if $doc}Archivo cargado{else}Documento pendiente{/if}</small>
                   </div>
 
                   {if $doc}
-                    <a href="{$baseUrl}{$doc}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3">Ver
+                    <a href="{upload($doc)}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3">Ver
                       archivo</a>
                   {else}
                     <span class="badge text-bg-warning rounded-pill px-3 py-2">Pendiente</span>

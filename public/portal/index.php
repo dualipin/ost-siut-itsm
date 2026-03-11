@@ -4,7 +4,7 @@ use App\Bootstrap;
 use App\Http\Middleware\MiddlewareFactory;
 use App\Http\Middleware\MiddlewareRunner;
 use App\Infrastructure\Templating\RendererInterface;
-use App\Shared\Provider\UserContextProvider;
+use App\Shared\Context\UserProviderInterface;
 
 require_once __DIR__ . "/../../bootstrap.php";
 
@@ -15,9 +15,9 @@ $runner = $container->get(MiddlewareRunner::class);
 
 $runner->runOrRedirect($middleware->auth());
 
-$userContextProvider = $container->get(UserContextProvider::class);
+$userProvider = $container->get(UserProviderInterface::class);
 
-$user = $userContextProvider->get();
+$user = $userProvider->get();
 
 $renderer = $container->get(RendererInterface::class);
 $renderer->render(__DIR__ . "/index.latte", [

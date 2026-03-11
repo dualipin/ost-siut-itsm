@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use App\Shared\Context\UserContextInterface;
+use App\Shared\Context\UserProviderInterface;
 use App\Shared\Domain\Enum\RoleEnum;
-use App\Shared\Provider\UserContextProvider;
 use App\Shared\Security\AuthenticatedUser;
 
 final class InMemoryUserContext implements UserContextInterface
@@ -32,16 +32,19 @@ final class InMemoryUserContext implements UserContextInterface
     }
 }
 
+function readCurrentUser(UserProviderInterface $provider): ?AuthenticatedUser
+{
+    return $provider->get();
+}
+
 it('returns null when there is no authenticated user', function (): void {
     $context = new InMemoryUserContext();
-    $provider = new UserContextProvider($context);
 
-    expect($provider->get())->toBeNull();
+    expect(readCurrentUser($context))->toBeNull();
 });
 
-it('returns the authenticated user from context', function (): void {
+it('returns the authenticated user through the read-only contract', function (): void {
     $context = new InMemoryUserContext();
-    $provider = new UserContextProvider($context);
 
     $user = new AuthenticatedUser(
         id: 101,
@@ -52,12 +55,11 @@ it('returns the authenticated user from context', function (): void {
 
     $context->set($user);
 
-    expect($provider->get())->toBe($user);
+    expect(readCurrentUser($context))->toBe($user);
 });
 
-it('does not cache stale user state', function (): void {
+it('does not cache stale user state through the read-only contract', function (): void {
     $context = new InMemoryUserContext();
-    $provider = new UserContextProvider($context);
 
     $first = new AuthenticatedUser(
         id: 1,
@@ -74,8 +76,8 @@ it('does not cache stale user state', function (): void {
     );
 
     $context->force($first);
-    expect($provider->get())->toBe($first);
+    expect(readCurrentUser($context))->toBe($first);
 
     $context->force($second);
-    expect($provider->get())->toBe($second);
+    expect(readCurrentUser($context))->toBe($second);
 });

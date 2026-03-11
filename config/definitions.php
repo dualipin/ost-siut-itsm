@@ -15,6 +15,7 @@ use App\Modules\Auth\Infrastructure\Mail\PasswordRecoveryMailer;
 use App\Modules\Auth\Domain\Service\PasswordRecoveryNotifierInterface;
 use App\Shared\Context\UserContext;
 use App\Shared\Context\UserContextInterface;
+use App\Shared\Context\UserProviderInterface;
 use DI\ContainerBuilder;
 use Dompdf\Dompdf;
 use Latte\Engine;
@@ -25,6 +26,7 @@ use PHPMailer\PHPMailer\PHPMailer;
 use Psr\Log\LoggerInterface;
 
 use function DI\autowire;
+use function DI\get;
 
 return function (ContainerBuilder $container) {
     $container->addDefinitions([
@@ -126,5 +128,6 @@ return function (ContainerBuilder $container) {
 
         // shared
         UserContextInterface::class => autowire(UserContext::class),
+        UserProviderInterface::class => get(UserContextInterface::class),
     ]);
 };

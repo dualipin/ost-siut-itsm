@@ -5,9 +5,9 @@ namespace App\Shared\Context;
 use App\Shared\Security\AuthenticatedUser;
 
 /**
- * @extends ContextInterface<AuthenticatedUser>
+ * @extends UserProviderInterface
  */
-interface UserContextInterface extends ContextInterface
+interface UserContextInterface extends UserProviderInterface
 {
     public function set(AuthenticatedUser $user): void;
 
