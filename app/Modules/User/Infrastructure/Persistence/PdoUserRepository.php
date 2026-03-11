@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\User\Infrastructure\Persistence;
 
 use App\Infrastructure\Persistence\Repository\PdoBaseRepository;
+use App\Modules\User\Application\DTO\UserSummary;
 use App\Modules\User\Domain\Entity\User;
 use App\Modules\User\Domain\Enum\DocumentTypeEnum;
 use App\Modules\User\Domain\Repository\UserRepositoryInterface;
@@ -18,6 +19,109 @@ use Exception;
 final class PdoUserRepository extends PdoBaseRepository implements
     UserRepositoryInterface
 {
+    /**
+     * @return UserSummary[]
+     */
+    public function listado(bool $onlyActive = false): array
+    {
+        $where = $onlyActive
+            ? "WHERE delete_at IS NULL AND active = 1"
+            : "WHERE delete_at IS NULL";
+
+        $stmt = $this->pdo->query(
+            "SELECT user_id, name, surnames, email, role, active, department
+             FROM users
+             {$where}
+             ORDER BY surnames, name",
+        );
+
+        $result = [];
+
+        while ($row = $stmt->fetch()) {
+            $result[] = new UserSummary(
+                id: (int) $row["user_id"],
+                name: (string) $row["name"],
+                surnames: (string) $row["surnames"],
+                email: (string) $row["email"],
+                role: RoleEnum::tryFrom((string) $row["role"]) ?? RoleEnum::NoAgremiado,
+                active: (bool) $row["active"],
+                department: $row["department"] !== null ? (string) $row["department"] : null,
+            );
+        }
+
+        return $result;
+    }
+
+    public function updateByAdmin(
+        int $userId,
+        string $name,
+        string $surnames,
+        string $email,
+        RoleEnum $role,
+        bool $active,
+        ?string $curp,
+        ?string $birthdate,
+        ?string $address,
+        ?string $phone,
+        ?string $department,
+        ?string $category,
+        ?string $nss,
+        float $salary,
+        ?string $workStartDate,
+    ): bool {
+        $stmt = $this->pdo->prepare(
+            "
+            UPDATE users
+            SET
+                name            = :name,
+                surnames        = :surnames,
+                email           = :email,
+                role            = :role,
+                active          = :active,
+                curp            = :curp,
+                birthdate       = :birthdate,
+                address         = :address,
+                phone           = :phone,
+                department      = :department,
+                category        = :category,
+                nss             = :nss,
+                salary          = :salary,
+                work_start_date = :work_start_date
+            WHERE user_id = :user_id AND delete_at IS NULL
+            LIMIT 1
+            ",
+        );
+
+        return $stmt->execute([
+            "name"           => $name,
+            "surnames"       => $surnames,
+            "email"          => $email,
+            "role"           => $role->value,
+            "active"         => (int) $active,
+            "curp"           => $curp,
+            "birthdate"      => $birthdate,
+            "address"        => $address,
+            "phone"          => $phone,
+            "department"     => $department,
+            "category"       => $category,
+            "nss"            => $nss,
+            "salary"         => $salary,
+            "work_start_date" => $workStartDate,
+            "user_id"        => $userId,
+        ]);
+    }
+
+    public function deactivate(int $id): bool
+    {
+        $stmt = $this->pdo->prepare(
+            "UPDATE users SET delete_at = NOW() WHERE user_id = :id AND delete_at IS NULL LIMIT 1",
+        );
+
+        $stmt->execute(["id" => $id]);
+
+        return $stmt->rowCount() === 1;
+    }
+
     public function findById(int $id): ?User
     {
         $stmt = $this->pdo->prepare(

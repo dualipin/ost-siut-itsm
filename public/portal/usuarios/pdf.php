@@ -7,6 +7,7 @@ use App\Http\Middleware\MiddlewareFactory;
 use App\Http\Middleware\MiddlewareRunner;
 use App\Infrastructure\Templating\RendererInterface;
 use App\Modules\User\Domain\Repository\UserRepositoryInterface;
+use Dompdf\Dompdf;
 
 require_once __DIR__ . "/../../../bootstrap.php";
 
@@ -15,21 +16,21 @@ $container = Bootstrap::buildContainer();
 $runner = $container->get(MiddlewareRunner::class);
 $runner->runOrRedirect($container->get(MiddlewareFactory::class)->auth());
 
-$id = (int) ($_GET['id'] ?? 0);
-
-if ($id <= 0) {
-    header('Location: ./listado.php');
-    exit;
-}
-
 $userRepository = $container->get(UserRepositoryInterface::class);
-$user = $userRepository->findById($id);
+$users = $userRepository->listado(onlyActive: true);
 
-if ($user === null) {
-    header('Location: ./listado.php');
-    exit;
-}
-
-$container->get(RendererInterface::class)->render('./detalle.latte', [
-    'user' => $user,
+$html = $container->get(RendererInterface::class)->renderToString('./pdf.latte', [
+    'users' => $users,
+    'generatedAt' => (new DateTimeImmutable())->format('d/m/Y H:i'),
 ]);
+
+$pdf = new Dompdf();
+$pdf->loadHtml($html);
+$pdf->setPaper('Letter');
+
+$options = $pdf->getOptions();
+$options->setIsRemoteEnabled(true);
+$pdf->setOptions($options);
+
+$pdf->render();
+$pdf->stream('usuarios-activos.pdf', ['Attachment' => true]);

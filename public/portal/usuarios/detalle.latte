@@ -1,109 +1,83 @@
-{layout ../plantillas/@layout.latte}
+{extends ../../../templates/@portal.latte}
+{varType App\Modules\User\Domain\Entity\User $user}
 
-{block title}Detalle del Agremiado{/block}
+{block main}
+  {include
+    ../../../templates/components/header-page.latte,
+    title => 'Detalle de Usuario',
+    description => 'Información completa del usuario.',
+    icon => 'bi-person-badge'
+  }
 
-{block content}
-  <div class="container py-5">
-    <div class="row">
-      <!-- Header -->
-      <div class="col-12">
-        <div class="card mb-6">
-          <div class="user-profile-header d-flex flex-column flex-lg-row text-sm-start text-center my-8">
-            <div class="flex-shrink-0 mt-1 mx-sm-0 mx-auto">
-              {if empty($agremiado['documentos']['perfil'])}
-                <img src="https://placehold.co/400" class="d-block h-auto ms-0 ms-sm-6 rounded-3 user-profile-img" width="200" alt="Foto">
-              {else}
-                <img src="/archivos/subidos/agremiados/{$agremiado['documentos']['perfil']}" width="200" alt="Foto" class="d-block h-auto ms-0 ms-sm-6 rounded-3 user-profile-img">
-              {/if}
-            </div>
-            <div class="flex-grow-1 mt-3 mt-lg-5">
-              <div class="d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start mx-5 flex-md-row flex-column gap-4">
-                <div class="user-profile-info">
-                  <h4 class="mb-2 mt-lg-7">{$agremiado['nombre']} {$agremiado['apellidos']}</h4>
-                  <ul class="list-inline mb-0 d-flex align-items-center flex-wrap justify-content-sm-start justify-content-center gap-4 mt-4">
-                    <li class="list-inline-item">
-                      <i class="icon-base bx bx-category me-2 align-top"></i>
-                      <span class="fw-medium">{$agremiado['categoria'] ?? 'Sin categoría'}</span>
-                    </li>
-                    <li class="list-inline-item">
-                      <i class="icon-base bx bx-user me-2 align-top"></i>
-                      <span class="fw-medium">{$agremiado['usuario']['rol'] ?? 'agremiado'}</span>
-                    </li>
-                  </ul>
-                </div>
-                <a href="./index.php" class="btn btn-outline-secondary px-4">Volver</a>
-              </div>
-            </div>
-          </div>
+  <div class="d-flex justify-content-end gap-2 mb-4">
+    <a href="./editar.php?id={$user->id}" class="btn btn-outline-primary">
+      <i class="bi bi-pencil me-1"></i>Editar
+    </a>
+    <a href="./listado.php" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>Volver
+    </a>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm rounded-4 h-100">
+        <div class="card-body p-4">
+          <h2 class="h5 fw-semibold mb-4"><i class="bi bi-person-vcard me-2 text-primary"></i>Datos Personales</h2>
+          <ul class="list-unstyled mb-0 small">
+            <li class="mb-2"><span class="text-muted">Nombre completo:</span> <strong>{$user->personalInfo->name} {$user->personalInfo->surnames}</strong></li>
+            <li class="mb-2"><span class="text-muted">Correo:</span> {$user->email}</li>
+            <li class="mb-2"><span class="text-muted">CURP:</span> {$user->personalInfo->curp ?? '—'}</li>
+            <li class="mb-2"><span class="text-muted">Teléfono:</span> {$user->personalInfo->phone ?? '—'}</li>
+            <li class="mb-2"><span class="text-muted">Dirección:</span> {$user->personalInfo->address ?? '—'}</li>
+            <li class="mb-2"><span class="text-muted">Fecha de nacimiento:</span>
+              {$user->personalInfo->birthdate?->format('d/m/Y') ?? '—'}
+            </li>
+          </ul>
         </div>
       </div>
     </div>
 
-    <!-- Contenido -->
-    <div class="row">
-      <!-- Datos personales -->
-      <div class="col-xl-5 col-lg-5 col-md-5">
-        <div class="card card-action mb-4">
-          <div class="card-header align-items-center p-3">
-            <h5 class="mb-0"><i class="bx bx-user me-2"></i>Datos Personales</h5>
-          </div>
-          <div class="card-body">
-            <ul class="list-unstyled mb-0">
-              <li class="mb-3"><strong>CURP:</strong> {$agremiado['curp']}</li>
-              <li class="mb-3"><strong>NSS:</strong> {$agremiado['nss']}</li>
-              <li class="mb-3"><strong>Teléfono:</strong> {$agremiado['telefono']}</li>
-              <li class="mb-3"><strong>Correo:</strong> {$agremiado['usuario']['correo']}</li>
-              <li class="mb-3"><strong>Dirección:</strong> {$agremiado['direccion']}</li>
-              <li class="mb-3"><strong>Fecha Nac:</strong> {$agremiado['fecha_nacimiento']|date:"d/m/Y"}</li>
-            </ul>
-          </div>
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm rounded-4 h-100">
+        <div class="card-body p-4">
+          <h2 class="h5 fw-semibold mb-4"><i class="bi bi-briefcase me-2 text-primary"></i>Datos Laborales</h2>
+          <ul class="list-unstyled mb-0 small">
+            <li class="mb-2"><span class="text-muted">Departamento:</span> {$user->workData->department ?? '—'}</li>
+            <li class="mb-2"><span class="text-muted">Categoría:</span> {$user->workData->category ?? '—'}</li>
+            <li class="mb-2"><span class="text-muted">NSS:</span> {$user->workData->nss ?? '—'}</li>
+            <li class="mb-2"><span class="text-muted">Salario:</span>
+              ${number_format($user->workData->salary, 2)}
+            </li>
+            <li class="mb-2"><span class="text-muted">Fecha de ingreso:</span>
+              {$user->workData->workStartDate?->format('d/m/Y') ?? '—'}
+            </li>
+          </ul>
         </div>
       </div>
+    </div>
 
-      <!-- Datos ITSM + Documentos -->
-      <div class="col-xl-7 col-lg-7 col-md-7">
-        <!-- ITSM -->
-        <div class="card card-action mb-4">
-          <div class="card-header align-items-center p-3">
-            <h5 class="mb-0"><i class="bx bx-bar-chart-alt-2 me-2"></i>Datos en el SIUT - ITSM</h5>
-          </div>
-          <div class="card-body">
-            <ul class="list-unstyled mb-0">
-              <li class="mb-3"><strong>Departamento:</strong> {$agremiado['departamento'] ?? 'No asignado'}</li>
-              <li class="mb-3"><strong>Categoría:</strong> {$agremiado['categoria'] ?? 'No asignada'}</li>
-              <li class="mb-3"><strong>Fecha Ingreso:</strong> {$agremiado['fecha_ingreso']|date:"d/m/Y"}</li>
-              <li class="mb-3"><strong>Salario Quincenal:</strong> ${number_format($agremiado['salario_quincenal'], 2)}</li>
-            </ul>
-          </div>
-        </div>
-
-        <!-- Documentos -->
-        <div class="card card-action">
-          <div class="card-header align-items-center p-3">
-            <h5 class="mb-0"><i class="bx bx-file me-2"></i>Documentos</h5>
-          </div>
-          <div class="card-body">
-            {if empty(array_filter($agremiado['documentos']))}
-              <div class="alert alert-warning mb-0">No se han subido documentos aún.</div>
-            {else}
-              <div class="list-group">
-                {foreach ['afiliacion','comprobante_domicilio','ine','comprobante_pago'] as $key}
-                  {var $doc = $agremiado['documentos'][$key] ?? ''}
-                  <div class="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                      <h6 class="mb-0">{$key|capitalize}</h6>
-                      <small class="text-muted">{if $doc}Archivo cargado{else}<span class="text-danger">Pendiente</span>{/if}</small>
-                    </div>
-                    {if $doc}
-                      <a href="/archivos/subidos/agremiados/{$doc}" target="_blank" class="btn btn-sm btn-outline-primary">Ver</a>
-                    {else}
-                      <span class="badge bg-warning">Obligatorio</span>
-                    {/if}
-                  </div>
-                {/foreach}
-              </div>
-            {/if}
-          </div>
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4">
+          <h2 class="h5 fw-semibold mb-4"><i class="bi bi-shield-lock me-2 text-primary"></i>Cuenta</h2>
+          <ul class="list-unstyled mb-0 small">
+            <li class="mb-2"><span class="text-muted">Rol:</span>
+              <span class="badge bg-secondary bg-opacity-75">{$user->role->value}</span>
+            </li>
+            <li class="mb-2"><span class="text-muted">Estado:</span>
+              {if $user->active}
+                <span class="badge bg-success bg-opacity-75">Activo</span>
+              {else}
+                <span class="badge bg-danger bg-opacity-75">Inactivo</span>
+              {/if}
+            </li>
+            <li class="mb-2"><span class="text-muted">Último acceso:</span>
+              {$user->lastEntry?->format('d/m/Y H:i') ?? '—'}
+            </li>
+            <li class="mb-2"><span class="text-muted">Registrado:</span>
+              {$user->createdAt?->format('d/m/Y') ?? '—'}
+            </li>
+          </ul>
         </div>
       </div>
     </div>

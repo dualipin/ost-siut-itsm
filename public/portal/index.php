@@ -21,5 +21,5 @@ $user = $userProvider->get();
 
 $renderer = $container->get(RendererInterface::class);
 $renderer->render(__DIR__ . "/index.latte", [
-    "user" => $user,
+    "authUser" => $user,
 ]);
