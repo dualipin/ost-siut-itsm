@@ -4,7 +4,7 @@ namespace App\Modules\User\Domain\Enum;
 
 enum DocumentStatusEnum: string
 {
-    case Pendiente = "pendiente";
-    case Validado = "validado";
-    case Rechazado = "rechazado";
+    case Pending = "pendiente";
+    case Validate = "validado";
+    case Rejected = "rechazado";
 }
