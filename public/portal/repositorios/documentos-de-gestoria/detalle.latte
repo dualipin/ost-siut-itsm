@@ -1,0 +1,68 @@
+{layout ../../plantillas/@layout.latte}
+{varType App\Entidades\EntidadMiembro $miembro}
+
+{block content}
+  <div class="container my-5">
+    <div class="row justify-content-center">
+      <div class="">
+        <article class="bg-white p-4 p-md-5 rounded-4 shadow-sm border border-light-subtle">
+          <header class="mb-4 border-bottom pb-3">
+            <h1 class="display-5 fw-bold mb-2">
+              {$documento['titulo']}
+            </h1>
+            <div class="d-flex flex-wrap align-items-center gap-3 small text-muted">
+              <span>
+                <i class="bi bi-calendar-event"></i>
+                {if $documento['fecha_documento']}
+                  {$documento['fecha_documento']|date:'d/m/Y'}
+                {else}
+                  <span class="text-muted">Sin fecha de documento</span>
+                {/if}
+              </span>
+              <span>
+                <i class="bi bi-upload"></i>
+                Subido: {$documento['fecha_subida']|date:'d/m/Y H:i'}
+              </span>
+              <span>
+                {if $documento['privado']}
+                  <span class="badge bg-danger"><i class="bi bi-lock-fill"></i> Privado</span>
+                {else}
+                  <span class="badge bg-success"><i class="bi bi-globe"></i> Público</span>
+                {/if}
+              </span>
+              <span class="ms-auto">ID: {$documento['id']}</span>
+            </div>
+          </header>
+          <section class="mt-4">
+            <div class="fs-5 lh-lg" style="min-height:120px;">
+              {$documento['contenido']|noescape}
+            </div>
+          </section>
+          <section class="mt-4 text-center">
+            {if $documento['adjunto']}
+              <a href="/privado/archivos/repositorios/{$documento['adjunto']}" target="_blank"
+                 class="btn btn-info btn-lg rounded-pill px-4 py-2 d-inline-flex align-items-center gap-2 shadow">
+                <i class="bi bi-paperclip"></i>
+                <span>Ver adjunto</span>
+              </a>
+            {else}
+              <span class="text-muted d-block"><i class="bi bi-paperclip"></i> Sin adjunto</span>
+            {/if}
+          </section>
+        </article>
+      </div>
+    </div>
+    <div class="row justify-content-center mt-4">
+      <div class="d-flex flex-row flex-wrap justify-content-center align-items-stretch gap-2 w-100 flex-md-row flex-sm-column">
+        <a href="index.php" class="btn btn-primary rounded-pill w-100 w-md-auto">
+          <i class="bi bi-arrow-left-circle me-2"></i> Volver al listado de documentos
+        </a>
+        {if $miembro->esAdmin() || $miembro->esLider()}
+          <a href="./actualizar.php?id_doc={$documento['id']}" class="btn btn-warning rounded-pill w-100 w-md-auto">
+            <i class="bi bi-pencil-square me-2"></i> Editar documento
+          </a>
+        {/if}
+      </div>
+    </div>
+  </div>
+{/block}

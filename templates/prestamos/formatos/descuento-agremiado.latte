@@ -1,0 +1,341 @@
+{extends ../../templates/@document.latte}
+
+
+{block content}
+    <style>
+      .page {
+        margin: 0 auto;
+        font-family: Arial, sans-serif;
+        font-size: 11pt;
+        color: #000000;
+      }
+
+      /* ── Fecha ── */
+      .fecha {
+        text-align: right;
+        margin-bottom: 18px;
+      }
+
+      /* ── Destinatario ── */
+      .destinatario {
+        margin-bottom: 6px;
+      }
+
+      .destinatario p {
+        margin: 0;
+        font-weight: bold;
+        text-transform: uppercase;
+      }
+
+      /* ── ATN ── */
+      .atencion {
+        margin-top: 14px;
+        margin-bottom: 14px;
+        text-align: center;
+      }
+
+      .atencion p {
+        margin: 0;
+        font-weight: bold;
+      }
+
+      .atencion .sub {
+        font-weight: bold;
+      }
+
+      /* ── Cuerpo ── */
+      .body-text {
+        text-align: justify;
+        margin-bottom: 14px;
+        line-height: 1.5;
+      }
+
+      /* ── Tabla ── */
+      .tabla-aplica {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 14px;
+        font-size: 10pt;
+      }
+
+      .tabla-aplica th,
+      .tabla-aplica td {
+        border: 1px solid #000000;
+        padding: 4px 8px;
+        text-align: center;
+        vertical-align: top;
+      }
+
+      .tabla-aplica th {
+        font-weight: bold;
+        background-color: #ffffff;
+      }
+
+      .tabla-aplica td.col-num {
+        width: 6%;
+      }
+
+      .tabla-aplica td.col-prestacion {
+        width: 40%;
+        text-align: left;
+      }
+
+      .tabla-aplica td.col-si {
+        width: 15%;
+      }
+
+      .tabla-aplica td.col-no {
+        width: 15%;
+      }
+
+      .tabla-aplica td.col-obs {
+        width: 24%;
+        text-align: left;
+      }
+
+      /* ── Cláusulas ── */
+      .clausulas-title {
+        text-align: center;
+        font-weight: bold;
+        text-decoration: underline;
+        margin-top: 18px;
+        margin-bottom: 10px;
+      }
+
+      .clausula {
+        text-align: justify;
+        margin-bottom: 10px;
+        line-height: 1.5;
+      }
+
+      /* ── Sección de firmas ── */
+      .firmas-section {
+        margin-top: 30px;
+      }
+
+      .firma-block {
+        margin-bottom: 30px;
+      }
+
+      .firma-label {
+        font-weight: bold;
+        margin-bottom: 40px;
+        text-align: center;
+      }
+
+      .firma-line {
+        border-top: 1px solid #000000;
+        width: 80%;
+        margin: 0 auto 6px auto;
+      }
+
+      .firma-desc {
+        text-align: center;
+        font-weight: bold;
+        font-size: 10pt;
+        width: 80%;
+        margin: 0 auto;
+      }
+
+      /* Firmas en dos columnas */
+      .firmas-dos-col {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+
+      .firmas-dos-col td {
+        width: 50%;
+        text-align: center;
+        vertical-align: top;
+        padding: 0 10px;
+      }
+
+      .firmas-dos-col .firma-inner-line {
+        border-top: 1px solid #000000;
+        width: 90%;
+        margin: 0 auto 6px auto;
+      }
+
+      .firmas-dos-col .firma-inner-desc {
+        font-weight: bold;
+        font-size: 10pt;
+      }
+
+      /* ── CCP ── */
+      .ccp-section {
+        margin-top: 24px;
+      }
+
+      .ccp-section p {
+        margin: 2px 0;
+        font-weight: bold;
+        font-size: 10pt;
+      }
+
+      .asunto {
+        font-weight: bold;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+        text-align: right;
+        width: 100%;
+      }
+    </style>
+  <div class="page">
+
+    <!-- Fecha -->
+    <p class="fecha">
+      Macuspana, Tabasco a _________________ de ____________________ de 202___.
+    </p>
+
+    <!-- Asunto -->
+    <p class="asunto">ASUNTO: ANUENCIA DE DESCUENTO.</p>
+
+    <!-- Destinatario -->
+    <div class="destinatario">
+      <p>LIC. MANOLO GÓMEZ MORALES</p>
+      <p>DIRECTOR GENERAL DEL I.T.S.M.</p>
+      <p>P R E S E N T E:</p>
+    </div>
+
+    <!-- Atención -->
+    <div class="atencion">
+      <p>AT&#8217;N: LIC. EDUARDO ANTONIO CORNELIO MONTEJO.</p>
+      <p class="sub">ENCARGADO DE LA SUBDIRECCIÓN DE ADMINISTRACIÓN Y FINANZAS DEL ITSM.</p>
+    </div>
+
+    <!-- Párrafo principal -->
+    <p class="body-text">
+      Quien suscribe ________________________________________
+      y de conformidad en lo establecido por el Artículo 110 fracción IV de la Ley Federal del Trabajo,
+      y por medio del presente tengo a bien solicitarle se me descuente de mi nómina quincenal la cantidad de
+      $___________________________________
+      y a partir de la fecha ____________________ hasta pagar en su totalidad el presente adeudo que he contraído
+      de manera voluntaria con la caja de ahorro de los Agremiados del Sindicato Único de Trabajadores del Instituto
+      tecnológico Superior de Macuspana por la cantidad total de este préstamo de $___________________
+      más el ____% de interés de manera mensual y de ser necesario se me descuente de las otras prestaciones
+      dentro del año o de las prestaciones de fin de año de acuerdo a lo listado en la siguiente tabla, al igual
+      que los otros posibles prestamos que pueda contraer de acuerdo a mi capacidad de pago con el SIUTITSM
+      y que sean referenciados de esta misma forma.
+    </p>
+
+    <!-- Tabla -->
+    <table class="tabla-aplica">
+      <tr>
+        <th colspan="2" style="text-align: center;">APLICA LA TABLA:</th>
+        <th class="col-si">SI</th>
+        <th class="col-no">NO</th>
+        <th></th>
+      </tr>
+      <tr>
+        <th class="col-num">Núm</th>
+        <th class="col-prestacion">Prestación</th>
+        <th class="col-si">CANTIDAD</th>
+        <th class="col-no"></th>
+        <th class="col-obs"><strong>Observación</strong></th>
+      </tr>
+      <tr>
+        <td class="col-num">&nbsp;</td>
+        <td class="col-prestacion">&nbsp;</td>
+        <td class="col-si">&nbsp;</td>
+        <td class="col-no">&nbsp;</td>
+        <td class="col-obs">&nbsp;</td>
+      </tr>
+      <tr>
+        <td class="col-num">&nbsp;</td>
+        <td class="col-prestacion">&nbsp;</td>
+        <td class="col-si">&nbsp;</td>
+        <td class="col-no">&nbsp;</td>
+        <td class="col-obs">&nbsp;</td>
+      </tr>
+      <tr>
+        <td class="col-num">&nbsp;</td>
+        <td class="col-prestacion">&nbsp;</td>
+        <td class="col-si">&nbsp;</td>
+        <td class="col-no">&nbsp;</td>
+        <td class="col-obs">&nbsp;</td>
+      </tr>
+    </table>
+
+    <!-- Párrafo irrevocabilidad -->
+    <p class="body-text">
+      He de expresar que estoy consciente que la Ley establece que solo se puede descontar nominalmente al
+      salario hasta un 30% del sueldo neto, más sin embargo autorizo de manera <strong>irrevocable</strong> me sea
+      descontado el porcentaje mayor a lo dictado por Ley, en virtud de que me veo en la necesidad de adquirir
+      un recurso económico con la ayuda de mi Organización Sindical de Trabajadores del Instituto Tecnológico
+      Superior de Macuspana, que de no ser así no podría obtener dicho beneficio y por el cual expreso mi
+      consentimiento al Departamento de Recursos Humanos del Instituto Tecnológico Superior de Macuspana que
+      se aplique el descuento arriba indicado en carácter legitimo e <strong>irrevocable</strong> por convenir así a mis
+      intereses y el de mi Familia, solicitando que cualquier otro documento que mi persona realice o presente
+      posterior a este y que además contenga solicitud de no descuento de este préstamo o cualquier otro adquirido
+      a través del Sindicato Único de Trabajadores del Instituto Tecnológico Superior de Macuspana, en relación
+      a revocar este documento, no se me conceda valor legal alguno y este no sea tomado en cuenta ya que me
+      obligo a respetar ante su persona y el Sindicato único de Trabajadores del Instituto tecnológico Superior
+      de Macuspana y/o quien lo represente, las siguientes cláusulas de irrevocabilidad de este documento:
+    </p>
+
+    <!-- Cláusulas -->
+    <p class="clausulas-title">CLÁUSULAS DE IRREVOCABILIDAD ABSOLUTA</p>
+
+    <p class="clausula">
+      <strong>PRIMERO:</strong> El presente acuerdo no podrá ser revocado o modificado por ningún documento posterior,
+      como contratos, acuerdos, cartas, oficios o cualquier otro tipo de comunicación que mi persona realice ante
+      el Instituto Tecnológico Superior de Macuspana o ante el Departamento de Recursos Humanos o en a su caso
+      a la Dirección General o cualquier otra área del Instituto.
+    </p>
+
+    <p class="clausula">
+      <strong>SEGUNDO:</strong> Para efectos de la irrevocabilidad expreso que cualquier intento de revocar o modificar
+      el presente acuerdo mediante un documento posterior será nulo y sin efecto. El presente acuerdo permanecerá
+      en vigor y será ejecutable según los términos que he manifestado en su totalidad.
+    </p>
+
+    <p class="clausula">
+      <strong>TERCERO:</strong> Ambas partes hemos leído y entendido los términos y condiciones del presente acuerdo
+      y lo aceptamos de manera expresa en su totalidad, por una parte; el Prestamista y por otra parte la
+      Representación de la Caja de Ahorro del Sindicato único de Trabajadores del Instituto Tecnológico Superior
+      de Macuspana al Igual que un testigo de asistencia en la elaboración y firma de dicho documento-convenio.
+    </p>
+
+    <!-- Firmas -->
+    <div class="firmas-section">
+
+      <!-- Firma 1: Prestador -->
+      <div class="firma-block">
+        <p class="firma-label">Atentamente</p>
+        <div class="firma-line"></div>
+        <p class="firma-desc">
+          Nombre, Firma y huella del Prestador a la Caja de Ahorro del SINDICATO ÚNICO DE TRABAJADORES
+          DEL INSTITUTO TECNOLÓGICO SUPERIOR DE MACUSPANA.
+        </p>
+      </div>
+
+      <!-- Firma 2: Otorgante -->
+      <div class="firma-block">
+        <p class="firma-label">Atentamente</p>
+        <div class="firma-line"></div>
+        <p class="firma-desc">
+          Nombre, Firma y huella del Otorgante del Préstamo de a la Caja de Ahorro del SINDICATO ÚNICO
+          DE TRABAJADORES DEL INSTITUTO TECNOLÓGICO SUPERIOR DE MACUSPANA.
+        </p>
+      </div>
+
+      <!-- Firma 3: Testigo (centrado) -->
+      <div class="firma-block">
+        <p class="firma-label" style="text-align:center;">TESTIGO</p>
+        <div class="firma-line"></div>
+        <p class="firma-desc">Nombre, Firma y huella.</p>
+      </div>
+
+    </div>
+
+    <!-- CCP -->
+    <div class="ccp-section">
+      <p>C.C.P. Interesado.</p>
+      <p>C.C.P. Sindicato Único de Trabajadores del Instituto Tecnológico Superior de Macuspana.</p>
+      <p>C.C.P. Recursos Humanos.</p>
+      <p>C.C.P. Archivo.</p>
+    </div>
+
+  </div>
+{/block}

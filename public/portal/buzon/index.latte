@@ -1,0 +1,155 @@
+{layout './plantillas/@layout.latte'}
+{block title}Buzón de Mensajes{/block}
+
+{block content}
+  <div class="container-fluid py-5">
+    <h2 class="mb-4 text-primary fw-bold">Buzón de Mensajes</h2>
+
+    {* Filtro por fecha (cliente) *}
+
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <label for="filtroFecha" class="form-label">Filtrar por fecha</label>
+          <input type="date" id="filtroFecha" class="form-control">
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+          <button id="btnResetFecha" class="btn btn-outline-secondary btn-sm">Limpiar</button>
+        </div>
+  </div>
+
+  {* Listado: agrupado por persona *}
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div id="mensajesAgrupados"></div>
+      </div>
+
+      {* Formulario nuevo mensaje *}
+      <div class="col-lg-4">
+        <div class="border-start border-4 border-success ps-3">
+          <h5 class="fw-semibold mb-3">Nuevo mensaje</h5>
+          <form method="post" action="buzon.php">
+            <textarea name="mensaje" class="form-control mb-3" rows="4" placeholder="Escribe tu mensaje..."
+                      required></textarea>
+            <button type="submit" class="btn btn-success w-100">Enviar mensaje</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {* Datos para JS *}
+  <script id="dataMensajes" type="application/json">{json_encode($mensajes)|noescape}</script>
+  <script id="dataRespuestas" type="application/json">{json_encode($respuestas)|noescape}</script>
+  <script id="dataRol" type="application/json">{json_encode($rol)|noescape}</script>
+{/block}
+
+{block scripts}
+<script n:syntax="off">
+  (() => {
+    const mensajes   = Array.from(JSON.parse(document.getElementById('dataMensajes')?.textContent || '[]'));
+    const respuestas = JSON.parse(document.getElementById('dataRespuestas')?.textContent || '{}');
+    const rol        = JSON.parse(document.getElementById('dataRol')?.textContent || '"agremiado"');
+
+    const filtroFecha   = document.getElementById('filtroFecha');
+    const btnResetFecha = document.getElementById('btnResetFecha');
+    const contenedor    = document.getElementById('mensajesAgrupados');
+
+    /* Escape HTML */
+    function escapeHtml(text) {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return text.replace(/[&<>"']/g, c => map[c]);
+    }
+
+    /* Agrupa mensajes por persona */
+    function agruparPorPersona(lista) {
+      const grupo = {};
+      lista.forEach(m => {
+        const key = rol === 'agremiado' ? 'Tú' : `${m.nombre} ${m.apellidos}`;
+        if (!grupo[key]) grupo[key] = [];
+        grupo[key].push(m);
+      });
+      return grupo;
+    }
+
+    /* Pinta mensajes + respuestas */
+    function renderizar(filtrados = null) {
+      const lista = filtrados || mensajes;
+      const grupo = agruparPorPersona(lista);
+
+      let html = '';
+      for (const [persona, msgs] of Object.entries(grupo)) {
+        const idCollapse = 'col-' + persona.replace(/\s+/g, '_');
+        const mensajesHtml = msgs.map(m => {
+          const fechaStr = new Date(m.fecha).toLocaleDateString('es-MX');
+          const horaStr  = new Date(m.fecha).toLocaleTimeString('es-MX');
+          const respHtml = (respuestas[m.id] && respuestas[m.id].length)
+                  ? `<div class="ps-3 border-start border-3 border-secondary opacity-75">${respuestas[m.id].map(r => `
+                  <div class="mb-1">
+                  <small class="text-muted">${new Date(r.fecha).toLocaleDateString('es-MX')} ${new Date(r.fecha).toLocaleTimeString('es-MX')}</small>
+                  <div>${escapeHtml(r.respuesta)}</div>
+                  </div>
+                  `).join('')}</div>`
+                  : '';
+
+          const formHtml = (rol === 'administrador' || rol === 'lider')
+                  ? `<div class="collapse mt-2" id="resp-${m.id}">
+               <form method="post" action="buzon.php">
+                 <textarea name="respuesta" class="form-control mb-2" rows="2" placeholder="Escribe tu respuesta..." required></textarea>
+                 <input type="hidden" name="buzon_id" value="${m.id}">
+                 <button type="submit" class="btn btn-sm btn-primary">Enviar respuesta</button>
+               </form>
+             </div>`
+                  : '';
+
+          return `
+          <li class="list-group-item px-0">
+            <div class="d-flex justify-content-between align-items-start mb-1">
+              <div class="w-100">
+                <div class="fw-semibold">${escapeHtml(m.mensaje)}</div>
+                <small class="text-muted">${fechaStr} ${horaStr}</small>
+              </div>
+              ${(rol === 'administrador' || rol === 'lider')
+          ? `<button class="btn btn-sm btn-outline-primary ms-2" data-bs-toggle="collapse" data-bs-target="#resp-${m.id}">Responder</button>`
+          : ''}
+            </div>
+            ${respHtml}
+            ${formHtml}
+          </li>
+        `;
+        }).join('');
+
+        html += `
+        <div class="mb-3">
+          <button class="btn btn-outline-primary w-100 text-start d-flex justify-content-between align-items-center"
+                  data-bs-toggle="collapse" data-bs-target="#${idCollapse}">
+            <span>${persona}</span>
+            <span class="badge bg-primary">${msgs.length}</span>
+          </button>
+          <div class="collapse mt-2" id="${idCollapse}">
+            <ul class="list-group list-group-flush">${mensajesHtml}</ul>
+          </div>
+        </div>
+      `;
+      }
+      contenedor.innerHTML = html;
+    }
+
+    /* Filtro por fecha */
+    filtroFecha.addEventListener('change', () => {
+      const sel = filtroFecha.value;
+      if (!sel) return renderizar();
+      const filtrados = mensajes.filter(m => m.fecha.startsWith(sel));
+      renderizar(filtrados);
+    });
+
+    btnResetFecha.addEventListener('click', () => {
+      filtroFecha.value = '';
+      renderizar();
+    });
+
+    /* Primera pintada */
+    renderizar();
+  })();
+</script>
+{/block}

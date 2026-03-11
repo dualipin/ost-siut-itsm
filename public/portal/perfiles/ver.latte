@@ -1,0 +1,262 @@
+{layout ../../../templates/@portal.latte}
+
+{block modals}
+  <div class="modal fade" id="datosPersonalesModal" tabindex="-1" aria-labelledby="datosPersonalesModalLabel"
+       aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content border-0 rounded-4 shadow">
+        <div class="modal-header border-0 px-4 pt-4 pb-2 align-items-start">
+          <div>
+            <h5 class="modal-title fw-bold" id="datosPersonalesModalLabel">Modifica tu informacion</h5>
+            <p class="text-body-secondary mb-0 small">Actualiza tus datos de contacto y documentos.</p>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+
+        <div class="modal-body px-4 pb-4 pt-2" style="max-height: 65vh; overflow-y: auto;">
+          <div class="alert alert-light border rounded-4 small mb-4" role="alert">
+            Para actualizar datos sensibles, contacta al administrador o a tu lider.
+          </div>
+
+          <form class="row g-3" method="post" id="formEditar" enctype="multipart/form-data">
+            <input type="hidden" name="id_miembro" value="{$perfil['id']}">
+
+            <div class="col-12">
+              <p class="section-title mb-2">Foto de perfil</p>
+              <label for="modalEditUserFoto" class="form-label small">Subir foto</label>
+              <input class="form-control" type="file" id="modalEditUserFoto" name="fotoPerfil" accept="image/*">
+            </div>
+
+            <div class="col-12 mt-2">
+              <p class="section-title mb-2">Informacion de contacto</p>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label small" for="modalEditUserDireccion">Direccion</label>
+              <input type="text" id="modalEditUserDireccion" name="direccion" class="form-control"
+                     placeholder="Ingresa la direccion" value="{$perfil['direccion']}">
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label small" for="modalEditUserTelefono">Telefono</label>
+              <input type="text" id="modalEditUserTelefono" name="telefono" class="form-control"
+                     placeholder="Ingresa el telefono" value="{$perfil['telefono']}">
+            </div>
+            <div class="col-12">
+              <label class="form-label small" for="modalEditUserCorreo">Correo electronico</label>
+              <input type="email" id="modalEditUserCorreo" name="correo" class="form-control"
+                     placeholder="ejemplo@dominio.com" value="{$perfil['correo']}">
+            </div>
+
+            <div class="col-12 mt-2">
+              <p class="section-title mb-2">Documentacion</p>
+            </div>
+            {foreach $documentFields as $field}
+              {var $docKey = $field['key']}
+              {var $docPath = $docs[$docKey] ?? ''}
+              <div class="col-12 col-md-6">
+                <label for="{$docKey}" class="form-label small">{$field['label']}</label>
+                <input class="form-control" type="file" id="{$docKey}" name="{$docKey}" accept=".pdf,.jpg,.jpeg,.png,.webp">
+                <div class="form-text">
+                  {if !empty($docPath)}
+                    Actual: <a href="/portal/perfiles/documento.php?tipo={$docKey}" target="_blank" class="link-primary">Ver archivo</a>
+                  {else}
+                    PDF, JPG, PNG o WEBP.
+                  {/if}
+                </div>
+              </div>
+            {/foreach}
+
+            <div class="col-12 mt-2">
+              <p class="section-title mb-2">Configuracion de cuenta</p>
+            </div>
+            <div class="col-12">
+              <label class="form-label small" for="modalEditUserContra">Nueva contrasena</label>
+              <input type="password" id="modalEditUserContra" name="contra" class="form-control"
+                     placeholder="Ingresa la nueva contrasena">
+            </div>
+
+            <div class="col-12 d-flex justify-content-end gap-2 mt-3">
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-primary px-4">Guardar cambios</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+{/block}
+
+{block title}Mi Perfil{/block}
+
+{block main}
+  {if $mensaje}
+    <div class="alert alert-success border-0 rounded-4 mb-4" role="alert">
+      <i class="bi bi-check-circle me-2"></i>{$mensaje}
+    </div>
+  {/if}
+
+  {if $error}
+    <div class="alert alert-danger border-0 rounded-4 mb-4" role="alert">
+      <i class="bi bi-exclamation-triangle me-2"></i>{$error}
+    </div>
+  {/if}
+
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 mb-md-5 animate__animated animate__fadeInUp">
+    <div class="p-4 p-md-5 profile-hero-bg">
+      <div class="row g-4 align-items-center">
+        <div class="col-12 col-lg-auto text-center">
+          {if empty($docs['perfil'])}
+            <div class="profile-avatar-fallback mx-auto">
+              <i class="bi bi-person-fill"></i>
+            </div>
+          {else}
+            <img src="{upload($docs['perfil'])}" alt="Foto de perfil" class="profile-avatar mx-auto d-block">
+          {/if}
+        </div>
+
+        <div class="col-12 col-lg">
+          <p class="text-uppercase small fw-semibold text-secondary-emphasis mb-2">Perfil de usuario</p>
+          <h2 class="fw-bold mb-3">{$perfil['nombre']} {$perfil['apellidos']}</h2>
+
+          <div class="d-flex flex-wrap gap-2 mb-0">
+            <span class="badge rounded-pill text-bg-light border border-secondary-subtle px-3 py-2">
+              <i class="bi bi-building me-2"></i>{$perfil['departamento'] ?? 'Sin departamento'}
+            </span>
+            <span class="badge rounded-pill text-bg-light border border-secondary-subtle px-3 py-2">
+              <i class="bi bi-award me-2"></i>{$perfil['categoria'] ?? 'Sin categoría'}
+            </span>
+            <span class="badge rounded-pill text-bg-light border border-secondary-subtle px-3 py-2 text-capitalize">
+              <i class="bi bi-person-badge me-2"></i>{$perfil['rol'] ?? 'agremiado'}
+            </span>
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-auto text-lg-end text-center">
+          <button type="button" class="btn btn-primary px-4" data-bs-toggle="modal"
+                  data-bs-target="#datosPersonalesModal">
+            <i class="bi bi-pencil-square me-2"></i>Editar perfil
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="row g-4">
+    <div class="col-xl-5">
+      {include ver.datos-personales.latte}
+    </div>
+
+    <div class="col-xl-7">
+      <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-header bg-white border-0 px-4 pt-4 pb-2">
+          <h5 class="mb-1 fw-bold d-flex align-items-center">
+            <i class="bi bi-bar-chart-line me-2 text-primary"></i>Datos en el SIUT - ITSM
+          </h5>
+          <small class="text-body-secondary">Información laboral registrada en el sistema.</small>
+        </div>
+        <div class="card-body px-4 pb-4">
+          <div class="list-group list-group-flush">
+            <div class="list-group-item px-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <span class="text-body-secondary">Departamento</span>
+              <span class="fw-semibold">{$perfil['departamento'] ?? 'No disponible'}</span>
+            </div>
+            <div class="list-group-item px-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <span class="text-body-secondary">Categoría</span>
+              <span class="fw-semibold">{$perfil['categoria'] ?? 'No disponible'}</span>
+            </div>
+            <div class="list-group-item px-0 d-flex justify-content-between align-items-center flex-wrap gap-2 text-capitalize">
+              <span class="text-body-secondary">Rol</span>
+              <span class="fw-semibold">{$perfil['rol'] ?? 'Agremiado'}</span>
+            </div>
+            <div class="list-group-item px-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <span class="text-body-secondary">Fecha de alta</span>
+              <span class="fw-semibold">
+                {if !empty($perfil['fecha_ingreso'])}
+                  {$perfil['fecha_ingreso']|date:"d/m/Y"}
+                {else}
+                  Sin fecha
+                {/if}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white border-0 px-4 pt-4 pb-2">
+          <h5 class="mb-1 fw-bold d-flex align-items-center">
+            <i class="bi bi-folder2-open me-2 text-primary"></i>Documentos
+          </h5>
+          <small class="text-body-secondary">Estado de carga de tus documentos obligatorios.</small>
+        </div>
+
+        <div class="card-body px-4 pb-4">
+          {if !$hasAnyDocument}
+            <div class="alert alert-warning border-0 rounded-4 mb-0" role="alert">
+              <i class="bi bi-exclamation-circle me-2"></i>No se han subido documentos aun.
+            </div>
+          {else}
+            <div class="list-group list-group-flush">
+              {foreach $documentFields as $field}
+                {var $key = $field['key']}
+                {var $doc = $docs[$key] ?? ''}
+                <div class="list-group-item px-0 d-flex align-items-center justify-content-between gap-3 flex-wrap">
+                  <div>
+                    <h6 class="mb-1">{$field['label']}</h6>
+                    <small class="text-body-secondary">{if $doc}Archivo cargado{else}Documento pendiente{/if}</small>
+                  </div>
+
+                  {if $doc}
+                    <a href="/portal/perfiles/documento.php?tipo={$key}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3">Ver
+                      archivo</a>
+                  {else}
+                    <span class="badge text-bg-warning rounded-pill px-3 py-2">Pendiente</span>
+                  {/if}
+                </div>
+              {/foreach}
+            </div>
+          {/if}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+      .profile-hero-bg {
+          background: linear-gradient(135deg, rgba(97, 18, 50, 0.08), rgba(165, 127, 44, 0.16));
+      }
+
+      #datosPersonalesModal .section-title {
+          font-size: 0.8rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          color: var(--bs-primary);
+      }
+
+      #datosPersonalesModal .form-control {
+          border-radius: 0.75rem;
+      }
+
+      .profile-avatar,
+      .profile-avatar-fallback {
+          width: 160px;
+          height: 160px;
+          border-radius: 999px;
+          border: 4px solid #fff;
+          box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+      }
+
+      .profile-avatar {
+          object-fit: cover;
+      }
+
+      .profile-avatar-fallback {
+          background: linear-gradient(135deg, #611232, #a57f2c);
+          color: #fff;
+          display: grid;
+          place-items: center;
+          font-size: 3rem;
+      }
+  </style>
+{/block}

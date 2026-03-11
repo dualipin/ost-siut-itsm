@@ -1,0 +1,304 @@
+{extends ../templates/@landing.latte}
+
+{block main}
+<section class="py-5 min-vh-100" id="home">
+  <div class="container py-5">
+    <div class="row align-items-center">
+      <div class="col-lg-6 mb-4 mb-lg-0">
+        <div class="row">
+          <div class="col-11">
+            <!-- Subtítulo -->
+            <span class="d-block text-uppercase text-secondary mb-2 fs-6" data-aos="fade-up" data-aos-delay="0">
+              Sindicato Único de Trabajadores del Instituto Tecnológico Superior de Macuspana
+            </span>
+
+            <!-- Título -->
+            <h1 class="display-4 fw-bold mb-3" data-aos="fade-up" data-aos-delay="100">
+              OST-SIUT-ITSM
+            </h1>
+
+            <!-- Descripción con animación -->
+            <div class="position-relative mb-4 mb-lg-5" data-aos="fade-up" data-aos-delay="200">
+              <p class="lead mb-0" id="animated-hero-desc" style="font-size: 16px;">
+                Porque la razón está en la educación; luchemos unidos por ella
+              </p>
+
+              <!-- SVG decorativo -->
+              <svg id="hero-desc-underline" width="100%" height="32" viewBox="0 0 400 32" fill="none"
+                xmlns="http://www.w3.org/2000/svg" class="position-absolute start-0"
+                style="bottom: -12px; pointer-events: none;">
+                <defs>
+                  <linearGradient id="hero-underline-gradient" x1="0" y1="0" x2="400" y2="0"
+                    gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#611232" />
+                    <stop offset="100%" stop-color="#a57f2c" />
+                  </linearGradient>
+                  <filter id="hero-underline-shadow" x="-20" y="-20" width="600" height="72"
+                    filterUnits="userSpaceOnUse">
+                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#611232" flood-opacity="0.4" />
+                  </filter>
+                </defs>
+                <path d="M20 24 C100 36 300 12 380 24" stroke="url(#hero-underline-gradient)" stroke-width="5"
+                  fill="none" filter="url(#hero-underline-shadow)" stroke-linecap="round" />
+              </svg>
+            </div>
+
+            <script>
+              document.addEventListener('DOMContentLoaded', () => {
+                  // Verificar si GSAP está disponible
+                  if (typeof gsap === 'undefined') {
+                    console.warn('GSAP no está cargado. El texto se mostrará estático.')
+                    return
+                  }
+
+                  const desc = document.getElementById('animated-hero-desc')
+                  const text = desc.textContent.trim()
+
+                  // Limpiar y preparar para animación
+                  desc.textContent = ''
+                  desc.className = 'lead mb-0'
+
+                  // Crear spans para cada carácter
+                  text.split('').forEach((char, index) => {
+                    const span = document.createElement('span')
+                    span.textContent = char === ' ' ? '\u00A0' : char // Preservar espacios
+                    span.style.display = 'inline-block'
+                    span.style.fontSize = '16px'
+                    desc.appendChild(span)
+                  })
+
+                  // Animar aparición del texto
+                  gsap.from('#animated-hero-desc span', {
+                    opacity: 0,
+                    y: 10,
+                    stagger: 0.03,
+                    duration: 0.4,
+                    ease: 'power2.out',
+                  })
+
+                  // Animar el subrayado SVG
+                  const svgPath = document.querySelector('#hero-desc-underline path')
+                  if (svgPath) {
+                    const pathLength = svgPath.getTotalLength()
+                    svgPath.style.strokeDasharray = pathLength
+                    svgPath.style.strokeDashoffset = pathLength
+
+                    gsap.to(svgPath, {
+                      strokeDashoffset: 0,
+                      duration: 1.2,
+                      delay: 0.8,
+                      ease: 'power2.inOut',
+                    })
+                  }
+                })
+            </script>
+
+            <!-- Botones CTA -->
+            <div class="d-flex flex-wrap gap-2 mb-4 mb-lg-5" data-aos="fade-up" data-aos-delay="300">
+              <a class="btn btn-primary" href="/cuentas/login.php">Acceder al Portal</a>
+              <a class="btn btn-outline-primary" href="/transparencia.php">Transparencia</a>
+              <a class="btn btn-outline-primary" href="{upload('informe-financiero-2025.pdf')}">Informe Financiero 2025</a>
+            </div>
+
+            <!-- Logos -->
+            <div class="mb-4" data-aos="fade-up" data-aos-delay="400">
+              <span class="text-uppercase text-secondary mb-3 d-block fw-semibold small">
+                En unidad permanente, TODOS SOMOS LA FUERZA
+              </span>
+              <div class="d-flex gap-3 align-items-center">
+                <img class="img-fluid rounded" src="/assets/images/logo.webp" alt="OST-SIUT-ITSM Logo"
+                  style="width: 200px; aspect-ratio: 1/1; object-fit: contain;">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Columna de imagen -->
+      <div class="col-lg-6" data-aos="fade-in" data-aos-delay="500">
+        <div class="text-center">
+          {* {include index__carrusel.latte} *}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{* Contacto *}
+
+<section class="py-5" id="contact" x-data="{ 'mensaje': '', 'tipo': '', 'enviado': false, 'enviando': false }">
+  <div class="container">
+    <!-- Header -->
+    <div class="row mb-5">
+      <div class="col-md-8 col-lg-6 mx-auto text-center">
+        <span class="d-block text-uppercase text-secondary mb-2 fs-6" data-aos="fade-up" data-aos-delay="0">
+          Contacto
+        </span>
+        <h2 class="fw-bold mb-3" data-aos="fade-up" data-aos-delay="0">Contáctanos</h2>
+        <p class="text-justify" data-aos="fade-up" data-aos-delay="100">
+          Si tienes alguna pregunta o necesitas información adicional, no dudes en contactarnos a través de
+          nuestros
+          canales oficiales. Estamos aquí para ayudarte y brindarte el apoyo que necesitas. También puedes
+          acudir a las
+          oficinas Sindicales localizadas en la Avenida Tecnológico S/N Carretera a Belén, Macuspana, Tabasco, CP.:
+          86711.
+        </p>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <!-- Info de contacto -->
+      <div class="col-md-6">
+        <div class="d-flex flex-column gap-4">
+
+          <!-- WhatsApp -->
+          <div class="d-flex align-items-start gap-3" data-aos="fade-up" data-aos-delay="0">
+            <div class="fs-3" style="color: #25D366;">
+              <i class="bi bi-whatsapp"></i>
+            </div>
+            <div>
+              <span class="d-block text-secondary">Teléfono</span>
+              <a href="https://wa.me/529361066169" target="_blank" rel="noopener" class="fw-bold text-decoration-none"
+                style="color: #25D366;">
+                936 106 6169
+              </a>
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div class="d-flex align-items-start gap-3" data-aos="fade-up" data-aos-delay="100">
+            <div class="fs-3 text-primary">
+              <i class="bi bi-send"></i>
+            </div>
+            <div>
+              <span class="d-block text-secondary">Correo electrónico</span>
+              <strong class="text-lowercase">Sindicato_SIUTITSM@outlook.com</strong>
+            </div>
+          </div>
+
+          <!-- Dirección -->
+          <div class="d-flex align-items-start gap-3" data-aos="fade-up" data-aos-delay="200">
+            <div class="fs-3 text-primary">
+              <i class="bi bi-geo-alt"></i>
+            </div>
+            <div>
+              <span class="d-block text-secondary">Dirección</span>
+              <address class="fw-bold mb-0">
+                Avenida Tecnológico S/N Carretera a Belén, Macuspana, Tabasco, CP.: 86711
+              </address>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Formulario -->
+      <div class="col-md-6">
+        <div class="p-4 rounded-4 border shadow bg-body-tertiary" data-aos="fade-up" data-aos-delay="300">
+
+          <form id="contact-form" class="needs-validation">
+
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label fw-semibold text-primary" for="name">Nombre</label>
+                <input class="form-control border-primary rounded-pill px-4" id="name" type="text" name="nombre"
+                  required>
+              </div>
+
+              <div class="col-12">
+                <label class="form-label fw-semibold text-primary" for="phone">Teléfono</label>
+                <input class="form-control border-primary rounded-pill px-4" id="phone" type="tel" name="telefono"
+                  pattern="^\d{{10}}$" title="Ingrese sólo 10 dígitos (ej: 9361066169)" required>
+              </div>
+
+              <div class="col-12">
+                <label class="form-label fw-semibold text-primary" for="email">Correo
+                  electrónico</label>
+                <input class="form-control border-primary rounded-pill px-4" id="email" type="email" name="correo"
+                  required>
+              </div>
+
+              <div class="col-12">
+                <label class="form-label fw-semibold text-primary" for="subject">Asunto</label>
+                <input class="form-control border-primary rounded-pill px-4" id="subject" type="text" name="asunto">
+              </div>
+
+              <div class="col-12">
+                <label class="form-label fw-semibold text-primary" for="message">Mensaje</label>
+                <textarea class="form-control border-primary rounded-4 px-4" id="message" name="mensaje" rows="4"
+                  required></textarea>
+              </div>
+            </div>
+
+            <button class="btn btn-primary fw-semibold rounded-pill px-4 mt-3" type="submit">
+              Enviar mensaje
+            </button>
+          </form>
+
+          <div x-show="enviando" x-transition class="text-info mt-3">
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            Enviando mensaje...
+          </div>
+          <div x-show="enviado" x-transition class="mt-3">
+            <div :class="tipo==='exito'?'alert-success':'alert-danger'" class="alert alert-dismissible fade show" role="alert">
+              <div x-text="mensaje"></div>
+              <button type="button" class="btn-close" aria-label="Close" @click="enviado=false">
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{/block}
+
+
+{block scripts}
+{include parent}
+<script>
+  const contactForm = document.getElementById('contact-form')
+    const contact = document.getElementById('contact')
+
+    if (contactForm) {
+      contactForm.addEventListener('submit', handleSubmit)
+    }
+
+    /**
+     *
+     * @param { SubmitEvent } submitEvent
+     */
+    async function handleSubmit (submitEvent) {
+      submitEvent.preventDefault()
+
+      const form = submitEvent.currentTarget
+      if (!(form instanceof HTMLFormElement)) return
+
+      const formData = new FormData(form)
+
+      const state = Alpine.$data(contact)
+      state.enviando = true
+
+      const response = await fetch('/contacto.php', {
+        method: 'POST', body: formData,
+      })
+
+      state.enviando = false
+
+      if (response.ok) {
+        const result = await response.json()
+        state.tipo = result.tipo ? 'exito' : 'error'
+        state.mensaje = result.message
+        state.enviado = true
+
+        form.reset()
+
+      } else {
+        const result = await response.json()
+        state.tipo = 'error'
+        state.mensaje = result.message || 'Ocurrió un error al enviar el mensaje. Por favor, inténtalo de nuevo más tarde.'
+        state.enviado = true
+      }
+    }
+</script>
+{/block}

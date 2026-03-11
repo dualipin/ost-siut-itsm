@@ -1,0 +1,175 @@
+/* ============================================================================
+   FONT OVERRIDE FOR BOOTSWATCH LITERA
+   
+   Este archivo sobrescribe las fuentes serif de Litera con Inter y Spline Sans.
+   DEBE cargarse DESPUÉS de Litera para que funcione correctamente.
+   ============================================================================ */
+
+/* Sobrescribir variables CSS de Bootstrap/Litera */
+:root,
+[data-bs-theme=light] {
+    --bs-font-sans-serif: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+    --bs-body-font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important;
+}
+
+/* ============================================================================
+   APLICACIÓN DIRECTA CON ALTA ESPECIFICIDAD
+   Usamos 'html body' para aumentar especificidad sobre las reglas de Litera
+   ============================================================================ */
+
+/* Body y texto general */
+html body {
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+/* Headings - Spline Sans para títulos */
+html body h1,
+html body h2,
+html body h3,
+html body h4,
+html body h5,
+html body h6,
+html body .h1,
+html body .h2,
+html body .h3,
+html body .h4,
+html body .h5,
+html body .h6 {
+    font-family: "Spline Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important;
+    font-weight: 600 !important;
+}
+
+/* ============================================================================
+   COMPONENTES ESPECÍFICOS
+   ============================================================================ */
+
+/* Navbar */
+html body .navbar,
+html body .navbar-brand,
+html body .nav-link,
+html body .navbar-text {
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important;
+}
+
+/* Botones */
+html body .btn,
+html body button {
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important;
+}
+
+/* Formularios */
+html body .form-control,
+html body .form-select,
+html body .form-label,
+html body label,
+html body input,
+html body textarea,
+html body select {
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important;
+}
+
+/* Cards */
+html body .card,
+html body .card-body,
+html body .card-text {
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important;
+}
+
+html body .card-title,
+html body .card-header {
+    font-family: "Spline Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important;
+    font-weight: 600 !important;
+}
+
+/* Alerts */
+html body .alert {
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important;
+}
+
+/* Badges */
+html body .badge {
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important;
+}
+
+/* Dropdowns */
+html body .dropdown-menu,
+html body .dropdown-item {
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important;
+}
+
+/* Modals */
+html body .modal,
+html body .modal-body,
+html body .modal-footer {
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important;
+}
+
+html body .modal-title {
+    font-family: "Spline Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important;
+    font-weight: 600 !important;
+}
+
+/* Offcanvas (Sidebar) */
+html body .offcanvas,
+html body .offcanvas-body {
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important;
+}
+
+html body .offcanvas-title {
+    font-family: "Spline Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important;
+    font-weight: 600 !important;
+}
+
+/* Tablas */
+html body table,
+html body .table,
+html body th,
+html body td {
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important;
+}
+
+/* Breadcrumbs */
+html body .breadcrumb {
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important;
+}
+
+/* Pagination */
+html body .pagination,
+html body .page-link {
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important;
+}
+
+/* List groups */
+html body .list-group,
+html body .list-group-item {
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important;
+}
+
+/* Toasts */
+html body .toast,
+html body .toast-body {
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important;
+}
+
+/* Tooltips y Popovers */
+html body .tooltip,
+html body .popover {
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important;
+}
+
+/* Párrafos y texto general */
+html body p,
+html body span,
+html body div,
+html body a,
+html body li {
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important;
+}
+
+.text-justify {
+    text-align: justify !important;
+}
+
+/* ============================================================================
+   FIN DEL OVERRIDE
+   ============================================================================ */

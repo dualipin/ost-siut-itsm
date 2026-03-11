@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Pagare</title>
+
+  <style>
+    .logo {
+      display: block;
+      margin: 0 auto;
+      width: 80px;
+      height: auto;
+    }
+
+    .container-header {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 0.8em;
+    }
+
+    .container header {
+      text-align: center;
+    }
+
+    .container .enunciado {
+      text-align: justify;
+      line-height: 1.75em;
+    }
+
+    .container .datos-deudor h2 {
+      font-size: 1.2em;
+    }
+
+    .date {
+      text-align: right;
+    }
+
+    .casillas-firma {
+      width: 100%;
+    }
+
+    .casillas-firma .casilla {
+      margin-top: 10px;
+      text-align: center;
+      display: inline-block;
+      width: 49%;
+    }
+
+    .casillas-firma .casilla span {
+      display: block;
+      border-bottom: 1px solid #000;
+      width: 90%;
+      margin: 0 auto;
+      height: 50px;
+    }
+
+    footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 0.8em;
+      color: #555;
+      border-top: 1px solid #ccc;
+      padding: 5px 0;
+    }
+  </style>
+
+</head>
+<body>
+<div class="container-header">
+  <img src="https://siutitsm.com.mx/assets/images/logo.jpg" class="logo" alt="Logo">
+  <p>
+    Sindicato Único de Trabajadores del Instituto Tecnológico de Macuspana
+  </p>
+</div>
+<div class="container">
+  <header>
+    <h1>PAGARÉ</h1>
+    <p>
+      {$selloDigital}
+    </p>
+    <p>
+      NO. 01, Bueno por <strong>${$monto}</strong>
+    </p>
+  </header>
+  <p class="date">
+    <strong>
+      En Macuspana, Tabasco a {$fechaActual}
+    </strong>
+  </p>
+  <p class="enunciado">
+    Debo y pagaré incondicionalmente por este Pagaré a la orden de Sindicato Único de Trabajadores del Instituto
+    Tecnológico de Macuspana en Macuspana, Tabasco el
+    La cantidad de: <strong>{$montoLetras|upper} PESOS 00/100 M.N</strong>.
+    Valor recibido a mi entera satisfacción. Este pagaré forma parte de una serie numerada del 1 al 1 y todos están
+    sujetos a las mismas condiciones de que al, no pagarse cualquiera de ellos a su vencimiento, serán exigibles todos
+    los que le sigan en número, además de los ya vencidos, desde la fecha de vencimiento de este documento hasta
+    el día de su liquidación, causara intereses moratorios al tipo de {$porcentaje}% mensual, pagadero en esta ciudad
+    puntualmente.
+  </p>
+
+  <div class="datos-deudor">
+    <h2>
+      Datos del Deudor
+    </h2>
+    <p>
+      Nombre: {$nombreDeudor}
+    </p>
+    <p>
+      Domicilio: {$domicilioDeudor}
+    </p>
+    <p>
+      CURP: {$curpDeudor}
+    </p>
+    <p>
+      Teléfono: {$telefonoDeudor}
+    </p>
+  </div>
+
+  <div class="firma">
+    <div style="text-align: center">
+      <p>
+        Acepto
+      </p>
+    </div>
+    <div class="casillas-firma">
+      <div class="casilla">
+        <span></span>
+        <p>
+          Firma del Deudor
+        </p>
+      </div>
+      <div class="casilla">
+        <span></span>
+        <p>
+          Nombre y Firma del Aval
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Oficina Sindical a un costado de Edificio "C" • Instituto Tecnológico Superior de Macuspana Av. Tecnológico S/n Ría.
+  Lerdo de Tejada 1ra. Sección.
+  C.P. 86719 Macuspana, Tabasco, México. Móvil: 993-234-1540 • 936-111-1037 • 936-101-8249 | www.siutitsm.com.mx
+</footer>
+</body>
+</html>

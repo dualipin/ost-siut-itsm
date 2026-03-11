@@ -1,0 +1,36 @@
+{extends ./@base.latte}
+
+{block content}
+<section class="d-flex flex-column min-vh-100 bg-primary overflow-hidden">
+  <div class="container my-auto">
+    <div class="row justify-content-center">
+      <div class="py-4">
+        {include main}
+      </div>
+    </div>
+  </div>
+  <footer class="bg-primary text-white py-4 mt-auto animate__animated animate__fadeInUp">
+    <div class="container">
+      <div class="row align-items-center g-3">
+        <div class="col-12 col-sm-12 col-md-6 mb-3 mb-md-0 text-center text-md-start">
+          &copy; {date('Y')}. SIUTITSM. Todos los derechos reservados.
+        </div>
+        <div class="col-12 col-sm-12 col-md-6 text-center text-md-end">
+          <a href="https://www.facebook.com/share/1Ha7b3oMg2/" target="_blank" class="link-light mx-2">
+            <i class="bi bi-facebook fs-2"></i>
+          </a>
+          <a href="https://wa.me/529361066169" target="_blank" class="link-light mx-2">
+            <i class="bi bi-whatsapp fs-2"></i>
+          </a>
+          <a href="mailto:Sindicato_SIUTITSM@outlook.com" target="_blank" class="link-light mx-2">
+            <i class="bi bi-envelope fs-2"></i>
+          </a>
+          <a href="/" class="link-light mx-2">
+            <i class="bi bi-globe fs-2"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</section>
+{/block}

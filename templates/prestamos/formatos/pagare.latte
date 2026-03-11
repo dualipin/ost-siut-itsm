@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>PAGARE</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 11px;
+    }
+
+    .container-children {
+      border-bottom: 1px dotted #000;
+    }
+  </style>
+</head>
+<body class="container-main">
+
+<div class="container-children">
+  <div class="hijo">
+    <style>
+      .pagare {
+        border: 2px solid black;
+        padding: 8px 15px;
+        margin: 20px;
+        border-radius: 10px;
+        position: relative;
+
+        /* fondo verde suave similar a la foto */
+        background-color: #eaf6ea;
+      }
+
+      .title-box {
+        text-align: center;
+        border-radius: 10px;
+        padding: 10px 40px;
+        font-size: 20px;
+        background-color: black;
+        color: white;
+        letter-spacing: 8px;
+        font-style: italic;
+        font-weight: bold;
+      }
+
+      .between {
+        text-align: justify;
+      }
+
+      .between:after {
+        content: "";
+        display: inline-block;
+        width: 100%;
+      }
+
+      .between > * {
+        display: inline-block;
+        vertical-align: top;
+      }
+
+      .underline {
+        border-bottom: 1px solid #aea9a9;
+        min-width: 100px;
+        padding: 0 5px;
+      }
+
+      .content {
+        margin: 8px 0;
+        text-align: justify;
+        word-wrap: break-word;
+      }
+
+      .header {
+        font-size: 13px;
+      }
+
+      .header p {
+        margin: 5px 0;
+      }
+
+      .table-content {
+        display: table;
+        width: 100%;
+        border-spacing: 0;
+      }
+
+      .cell-underline {
+        border-bottom: 1px solid #aea9a9;
+        display: table-cell;
+      }
+
+      .cell {
+        display: table-cell;
+      }
+
+      .justify {
+        text-align: justify;
+        width: 100%;
+      }
+
+      .bold {
+        font-weight: bold;
+      }
+
+      .content p {
+        margin-top: 5px;
+      }
+
+      .box {
+        border: 1px solid #aea9a9;
+        padding: 10px;
+        border-radius: 10px;
+      }
+
+      .footer-table {
+        width: 100%;
+        border-spacing: 0;
+        margin-top: 20px;
+      }
+
+      .footer-table__column {
+        width: 50%;
+      }
+
+      .text-center {
+        text-align: center;
+      }
+
+      .table {
+        width: 100%;
+        border-spacing: 0;
+      }
+
+      .text-sm {
+        font-size: 10px;
+      }
+
+      .border {
+        border: 1px solid #aea9a9;
+        border-radius: 10px;
+        padding: 5px;
+      }
+
+      .cell-space {
+        padding: 5px;
+      }
+    </style>
+
+    <section class="pagare">
+      <div class="between">
+        <h1 class="title-box">
+          Pagaré
+        </h1>
+
+        <div class="header">
+          <p>
+            No. 1. Bueno por $10000
+          </p>
+          <p>
+            En Macuspana, Tabasco a {date('Y-m-d')|date: 'd \d\e m \d\e\l\ Y'}.
+          </p>
+        </div>
+
+      </div>
+
+
+      <div class="content">
+        <p class="justify">
+          Debe(mos) y pagare(mos) incondicionalmente por este Pagaré a la orden de
+          <span class="bold underline"> Sindicato Único de Trabajadores de Instituto Tecnológico Superior de
+        Macuspana</span>
+          en <span class="underline bold">Macuspana, Tabasco</span> el <span class="underline" style="padding: 0 100px">
+      </span>
+        </p>
+        <p>
+          La cantidad de:
+        </p>
+        <p class="box">
+
+        </p>
+        <p>
+          Valor recibido a mi (nuestra) entera satisfacción. Este pagaré forma parte de una serie numerada de 1 al <span
+                  class="underline" style="padding: 0 20px"> </span> y todos están sujetos a la condición de que, al no
+          pagarse
+          cualquiera de ellos a su vencimiento, serán exigibles todos los que le sigan en número, además de los ya
+          vencidos,
+          desde la fecha de vencimiento de este documento hasta el día de su liquidación, causará intereses moratorios
+          al
+          tipo de <span class="underline" style="padding: 0 20px"> </span>% mensual, pagadero en esta ciudad juntamente
+          con
+          el
+          principal.
+        </p>
+      </div>
+
+      <table class="table">
+        <tr>
+          <td class="footer-table__column">
+            <table class="table border">
+              <tr>
+                <td class="text-center text-sm">
+                  Datos del deudor
+                </td>
+              </tr>
+              <tr>
+                <td class="cell-underline">
+                  Nombre:
+                </td>
+              </tr>
+              <tr>
+                <td class="cell-underline">
+                  Dirección:
+                </td>
+              </tr>
+              <tr>
+                <td class="cell-underline">
+                  Teléfono:
+                </td>
+              </tr>
+            </table>
+          </td>
+          <td class="cell-space"></td>
+          <td class="footer-table__column">
+            <table class="table">
+              <tr>
+                <td class="bold">
+                  Acepto(amos)
+                </td>
+              </tr>
+              <tr>
+                <td class="cell-space"></td>
+              </tr>
+              <tr>
+                <td class="cell-underline cell-space"></td>
+              </tr>
+              <tr>
+                <td class="text-center">
+                  Firma(s)
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </section>
+  </div>
+</div>
+
+</body>
+
+</html>

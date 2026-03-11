@@ -1,0 +1,72 @@
+{extends ../../../templates/@portal.latte}
+{varType App\Module\Usuario\DTO\UsuarioSimpleDTO[] $usuarios}
+
+{block main}
+{include
+  ../../../templates/components/header-page.latte,
+  title=>'Usuarios',
+  description=>'Gestion de usuarios y agremiados',
+  icon=>'bi-people'
+}
+
+<div class="row mb-3 align-items-center">
+  <div class="col-md-6">
+    <h1 class="h3">Lista de Usuarios</h1>
+  </div>
+  <div class="col-md-6 text-md-end mt-2 mt-md-0">
+    <a href="./pdf.php" class="btn btn-outline-primary">
+      <i class="bi bi-file-earmark-pdf"></i> Generar reporte PDF
+    </a>
+    <input type="text" id="filtroUsuarios" class="form-control d-inline-block w-auto" placeholder="Buscar...">
+  </div>
+</div>
+
+<tabla-gestionada rows-per-page="10" search-input="filtroUsuarios">
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead class="table-primary">
+      <tr>
+        <th>Nombre</th>
+        <th>Correo</th>
+        <th>Departamento</th>
+        <th>Rol</th>
+        <th>Esta Activo?</th>
+        <th>Acciones</th>
+      </tr>
+      </thead>
+      <tbody>
+      {foreach $usuarios as $usuario}
+        <tr>
+          <td>{$usuario->nombreCompleto()}</td>
+          <td>{$usuario->email}</td>
+          <td>
+            <span class="badge bg-primary bg-opacity-75">{$usuario->departamento}</span>
+          </td>
+          <td>
+            <span class="badge bg-secondary bg-opacity-75">{$usuario->rol->value}</span>
+          </td>
+          <td>
+            {if $usuario->activo}
+              <span class="badge bg-success bg-opacity-75">Sí</span>
+            {else}
+              <span class="badge bg-danger bg-opacity-75">No</span>
+            {/if}
+          </td>
+          <td>
+          </td>
+        </tr>
+      {/foreach}
+      </tbody>
+    </table>
+  </div>
+
+  <nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+    </ul>
+  </nav>
+</tabla-gestionada>
+
+
+{block scripts}
+  <script src="/assets/js/components/tabla-gestionada.js" type="module"></script>
+{/block}

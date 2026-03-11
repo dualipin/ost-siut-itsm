@@ -1,0 +1,200 @@
+<!-- Sidebar: Offcanvas on mobile, fixed on desktop -->
+<div class="offcanvas-lg offcanvas-start bg-primary text-white overflow-x-auto" tabindex="-1" id="sidebarMenu"
+     aria-labelledby="sidebarMenuLabel" style="width: 280px;">
+
+  <!-- Offcanvas Header (Mobile only) -->
+  <div class="offcanvas-header border-bottom border-secondary d-lg-none">
+    <h5 class="offcanvas-title" id="sidebarMenuLabel">
+      <img src="{url('/assets/images/logo.webp')}" alt="logo" width="80" height="80"
+           class="me-2 rounded-circle animate__animated animate__fadeInLeft">
+      SIUT-ITSM
+    </h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#sidebarMenu"
+            aria-label="Close"></button>
+  </div>
+
+  <!-- Sidebar Body -->
+  <div class="offcanvas-body p-0 d-flex flex-column">
+    <!-- Brand (Desktop only) -->
+    <div class="d-none d-lg-block p-3 border-bottom border-secondary">
+      <a href="{url('/portal/dashboard/index.php')}"
+         class="d-flex align-items-center text-white text-decoration-none animate__animated animate__fadeInLeft">
+        <img src="{url('/assets/images/logo.webp')}" alt="logo" width="100" height="100" class="me-2 rounded-circle">
+      </a>
+    </div>
+
+    <!-- Navigation Menu -->
+    <nav class="flex-grow-1 overflow-auto animate__animated animate__fadeIn" role="navigation" aria-label="Sidebar">
+      <ul class="nav nav-pills flex-column py-3">
+        <!-- Inicio -->
+        <li class="nav-item">
+          <a href="{url('/portal/index.php')}" class="nav-link text-white px-3">
+            <i class="bi bi-house me-2"></i>
+            <span>Inicio</span>
+          </a>
+        </li>
+
+        <li class="nav-item mb-2">
+          <a class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
+             href="#publicacion-collapse" data-bs-toggle="collapse" role="button" aria-expanded="false"
+             aria-controls="publicacion-collapse">
+            Publicaciones
+            <i class="bi bi-chevron-down"></i>
+          </a>
+
+          <div class="collapse ms-3" id="publicacion-collapse">
+            <ul class="nav flex-column pb-1">
+              <!-- Avisos -->
+              <li class="nav-item" data-aos="fade-right" data-aos-delay="200">
+                <a href="{url('/portal/publicaciones/avisos.php')}" class="nav-link text-white px-3 mb-1">
+                  <i class="bi bi-bell me-2"></i>
+                  <span>Avisos</span>
+                </a>
+              </li>
+
+              <!-- Noticias -->
+              <li class="nav-item" data-aos="fade-right" data-aos-delay="300">
+                <a href="{url('/portal/publicaciones/noticias.php')}" class="nav-link text-white px-3 mb-1">
+                  <i class="bi bi-newspaper me-2"></i>
+                  <span>Noticias</span>
+                </a>
+              </li>
+
+              <!-- Gestiones -->
+              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                <a href="{url('/portal/publicaciones/gestiones.php')}" class="nav-link text-white px-3 mb-1">
+                  <i class="bi bi-file-earmark-bar-graph-fill me-2"></i>
+                  <span>Gestiones</span>
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a href="{url('/portal/publicaciones/registrar.php')}" class="nav-link text-white px-3 mb-1">
+                  <i class="bi bi-plus-circle me-2"></i>
+                  <span>Registrar</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </li>
+
+
+        <li class="nav-item mb-2">
+          <a class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
+             href="#prestamo-collapse" data-bs-toggle="collapse" role="button" aria-expanded="false"
+             aria-controls="prestamo-collapse">
+            Prestamos
+            <i class="bi bi-chevron-down"></i>
+          </a>
+          <div class="collapse ms-3" id="prestamo-collapse">
+            <ul class="nav flex-column pb-1">
+              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                <a href="{url('/portal/prestamos/simulador.php')}" class="nav-link text-white px-3 mb-1">
+                  <i class="bi bi-calculator me-2"></i>
+                  Simulador
+                </a>
+              </li>
+              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                <a href="{url('/portal/prestamos/solicitar.php')}" class="nav-link text-white px-3 mb-1">
+                  <i class="bi bi-send me-2"></i>
+                  Solicitar
+                </a>
+              </li>
+              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                <a href="{url('/portal/prestamos/activos.php')}" class="nav-link text-white px-3 mb-1">
+                  <i class="bi bi-journal-check me-2"></i>
+                  Activos
+                </a>
+              </li>
+            </ul>
+          </div>
+        </li>
+
+        <li class="nav-item mb-2">
+          <span
+                  class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
+                  href="#finanza-collapse" data-bs-toggle="collapse" role="button" aria-expanded="false"
+                  aria-controls="finanza-collapse">
+            Finanzas
+            <i class="bi bi-chevron-down"></i>
+          </span>
+          <div class="collapse ms-3" id="finanza-collapse">
+            <ul class="nav flex-column pb-1">
+              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                <a href="{url('/portal/publicaciones/gestiones.php')}" class="nav-link text-white px-3 mb-1">
+                  <i class="bi bi-cash me-2"></i>
+                  <span>Cajas</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </li>
+
+        <li class="nav-item mb-2">
+          <span
+                  class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
+                  type="button" data-bs-toggle="collapse" data-bs-target="#usuarios-collapse" aria-expanded="false"
+                  aria-controls="usuarios-collapse">
+            Usuarios
+            <i class="bi bi-chevron-down"></i>
+          </span>
+          <div class="collapse ms-3" id="usuarios-collapse">
+            <ul class="nav flex-column pb-1">
+              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                <a href="{url('/portal/usuarios/listado.php')}" class="nav-link text-white px-3 mb-1">
+                  <i class="bi bi-people me-2"></i>
+                  <span>Listado</span>
+                </a>
+              </li>
+
+              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                <a href="{url('/portal/usuarios/registrar.php')}" class="nav-link text-white px-3 mb-1">
+                  <i class="bi bi-person-add me-2"></i>
+                  <span>Registrar</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </li>
+
+        <li class="nav-item mb-2">
+          <span
+                  class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
+                  type="button" data-bs-toggle="collapse" data-bs-target="#configuracion-collapse" aria-expanded="false"
+                  aria-controls="configuracion-collapse">
+            Configuración
+            <i class="bi bi-chevron-down"></i>
+          </span>
+          <div class="collapse ms-3" id="configuracion-collapse">
+            <ul class="nav flex-column pb-1">
+              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                <a href="{url('/portal/configuracion/colores.php')}" class="nav-link text-white px-3 mb-1">
+                  <i class="bi bi-palette  me-2"></i>
+                  <span>Colores</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</div>
+
+<style>
+  /* Fixed sidebar on desktop - required for layout */
+  @media (min-width: 992px) {
+    #sidebarMenu {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 1000;
+    }
+
+    /* Adjust main content to account for fixed sidebar */
+    .row.g-0 > .col {
+      margin-left: 280px;
+    }
+  }
+</style>

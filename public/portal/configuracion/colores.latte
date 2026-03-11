@@ -1,0 +1,104 @@
+{extends ../../../templates/@portal.latte}
+
+{block main}
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h4 class="card-title mb-3">Configuración de colores</h4>
+
+          {if $mensaje}
+            <div class="alert alert-success" role="alert">{$mensaje}</div>
+          {/if}
+          {if $error}
+            <div class="alert alert-danger" role="alert">{$error}</div>
+          {/if}
+
+          <form method="post" novalidate>
+            <div class="row g-3">
+              <div class="col-12">
+                <p class="text-muted small">Define los colores del tema del sistema. Puedes elegir con el selector o introducir el código HEX.</p>
+              </div>
+
+              {foreach [
+                'primario' => ['label' => 'Primario', 'var' => '--bs-primary', 'prop' => 'primary'],
+                'secundario' => ['label' => 'Secundario', 'var' => '--bs-secondary', 'prop' => 'secondary'],
+                'exito' => ['label' => 'Éxito', 'var' => '--bs-success', 'prop' => 'success'],
+                'info' => ['label' => 'Info', 'var' => '--bs-info', 'prop' => 'info'],
+                'advertencia' => ['label' => 'Advertencia', 'var' => '--bs-warning', 'prop' => 'warning'],
+                'peligro' => ['label' => 'Peligro', 'var' => '--bs-danger', 'prop' => 'danger'],
+                'claro' => ['label' => 'Claro', 'var' => '--bs-light', 'prop' => 'light'],
+                'oscuro' => ['label' => 'Oscuro', 'var' => '--bs-dark', 'prop' => 'dark'],
+                'blanco' => ['label' => 'Blanco', 'var' => '--bs-white', 'prop' => 'white'],
+                'cuerpo' => ['label' => 'Texto (cuerpo)', 'var' => '--bs-body-color', 'prop' => 'body'],
+                'fondo_cuerpo' => ['label' => 'Fondo de cuerpo', 'var' => '--bs-body-bg', 'prop' => 'bodyBackground']
+              ] as $name => $meta}
+                {var $prop = $meta['prop']}
+                {var $value = $colores->$prop}
+
+                <div class="col-md-6 col-lg-4">
+                  <label class="form-label">{$meta['label']}</label>
+                  <div class="input-group">
+                    <input type="color" class="form-control form-control-color p-0 color-input" data-name="{$name}" title="Selector de color" value="{$value}">
+                    <input name="{$name}" type="text" class="form-control hex-input" pattern="^#[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]$" value="{$value}" required>
+                  </div>
+                  <div class="form-text">Variable: <code>{$meta['var']}</code></div>
+                </div>
+              {/foreach}
+
+            </div>
+
+            <div class="mt-4 d-flex gap-2">
+              <button type="submit" class="btn btn-primary">Guardar cambios</button>
+              <a href="colores.php" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Vista previa</h5>
+          <div class="d-grid gap-2">
+            <button class="btn btn-primary">Botón primario</button>
+            <button class="btn btn-secondary">Botón secundario</button>
+            <div class="border rounded p-3 bg-body">
+              <h6 class="mb-2">Título de ejemplo</h6>
+              <p class="mb-0 text-muted small">Texto de ejemplo para verificar contraste y fondo.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{/block}
+
+{block scripts}
+  <script n:syntax="off">
+    (() => {
+      const colorInputs = document.querySelectorAll('.color-input');
+
+      colorInputs.forEach((colorInput) => {
+        const name = colorInput.dataset.name;
+        const hexInput = document.querySelector(`.hex-input[name="${name}"]`);
+
+        if (!hexInput) {
+          return;
+        }
+
+        colorInput.addEventListener('input', () => {
+          hexInput.value = colorInput.value.toLowerCase();
+        });
+
+        hexInput.addEventListener('input', () => {
+          const value = hexInput.value.trim();
+          if (/^#[0-9a-fA-F]{6}$/.test(value)) {
+            colorInput.value = value;
+          }
+        });
+      });
+    })();
+  </script>
+{/block}

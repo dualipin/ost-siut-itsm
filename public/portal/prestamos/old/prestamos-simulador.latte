@@ -1,0 +1,196 @@
+{layout _layout.latte}
+
+{block title}Simulador de Préstamos{/block}
+
+{block content}
+  <div class="container-xl">
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <div class="page-header d-print-none">
+          <div class="row align-items-center">
+            <div class="col">
+              <h2 class="page-title">
+                Simulador de Préstamos
+              </h2>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row">
+            <!-- Columna del formulario -->
+            <div class="col-md-4">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Parametros de Simulación</h3>
+                </div>
+                <div class="card-body">
+                  {if $error}
+                    <div class="alert alert-danger alert-dismissible">
+                      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                      {$error}
+                    </div>
+                  {/if}
+
+                  <form method="post" action="simulador.php">
+                    <div class="mb-3">
+                      <label for="monto" class="form-label">Monto ($)</label>
+                      <input type="number" step="0.01" min="0" class="form-control" id="monto" name="monto" 
+                             value="{$_POST['monto'] ?? '10000'}" placeholder="10,000" required>
+                      <small class="form-hint">Cantidad a prestar</small>
+                    </div>
+
+                    <div class="mb-3">
+                      <label for="plazo" class="form-label">Plazo (Quincenas)</label>
+                      <input type="number" min="1" class="form-control" id="plazo" name="plazo" 
+                             value="{$_POST['plazo'] ?? '12'}" placeholder="12" required>
+                      <small class="form-hint">Número de quincenas para pagar</small>
+                    </div>
+
+                    <div class="mb-3">
+                      <label for="tasa" class="form-label">Tipo de Interés</label>
+                      <select class="form-select" id="tasa" name="tasa" required>
+                        {foreach $tipos_interes as $key => $label}
+                          <option value="{$key}" {if $_POST['tasa'] ?? 'ahorrador_no_agremiado' === $key}selected{/if}>
+                            {$label}
+                          </option>
+                        {/foreach}
+                      </select>
+                    </div>
+
+                    <div class="form-footer">
+                      <button type="submit" class="btn btn-primary w-100">
+                        <i class="icon icon-calculator"></i> Simular
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            <!-- Columna de resultados -->
+            <div class="col-md-8">
+              {if $resultado !== null}
+                <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">Resultado de la Simulación</h3>
+                    <div class="card-options">
+                      <a href="javascript:window.print()" class="btn btn-icon btn-ghost-primary d-none d-md-flex" title="Imprimir">
+                        <i class="icon icon-printer"></i>
+                      </a>
+                      <a href="pdf-simulador.php?monto={$_POST['monto']}&plazo={$_POST['plazo']}&tasa={$_POST['tasa']}" 
+                         class="btn btn-sm btn-primary" target="_blank">
+                        <i class="icon icon-file-pdf"></i> Descargar PDF
+                      </a>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <div class="row mb-3">
+                      <div class="col-md-6">
+                        <div class="form-group">
+                          <label class="form-label">Monto Solicitado</label>
+                          <div class="form-control-plaintext fw-bold">
+                            ${number_format($resultado['totales']['totalCapital'], 2, ',', '.')}
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="form-group">
+                          <label class="form-label">Interés Total</label>
+                          <div class="form-control-plaintext fw-bold text-danger">
+                            ${number_format($resultado['totales']['totalInteres'], 2, ',', '.')}
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="form-group">
+                          <label class="form-label">Monto a Pagar</label>
+                          <div class="form-control-plaintext fw-bold text-success">
+                            ${number_format($resultado['totales']['totalPago'], 2, ',', '.')}
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="form-group">
+                          <label class="form-label">Cuota Promedio</label>
+                          <div class="form-control-plaintext fw-bold">
+                            ${number_format($resultado['totales']['totalPago'] / count($resultado['corrida']), 2, ',', '.')}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Tabla de amortización -->
+                    <h5 class="mt-4">Cronograma de Pagos</h5>
+                    <div class="table-responsive">
+                      <table class="table table-sm table-hover">
+                        <thead>
+                          <tr>
+                            <th>#</th>
+                            <th>Fecha Pago</th>
+                            <th class="text-end">Capital</th>
+                            <th class="text-end">Interés</th>
+                            <th class="text-end">Cuota</th>
+                            <th class="text-end">Saldo</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {set $numero = 1}
+                          {foreach $resultado['corrida'] as $pago}
+                            <tr>
+                              <td>{$numero}</td>
+                              <td>{$pago->fechaPago->format('d/m/Y')}</td>
+                              <td class="text-end">${number_format($pago->capitalSoluto, 2, ',', '.')}</td>
+                              <td class="text-end">${number_format($pago->interes, 2, ',', '.')}</td>
+                              <td class="text-end fw-bold">${number_format($pago->valor, 2, ',', '.')}</td>
+                              <td class="text-end">${number_format($pago->saldo, 2, ',', '.')}</td>
+                            </tr>
+                            {set $numero = $numero + 1}
+                          {/foreach}
+                        </tbody>
+                        <tfoot>
+                          <tr class="table-active">
+                            <td colspan="2" class="fw-bold">TOTALES</td>
+                            <td class="text-end fw-bold">${number_format($resultado['totales']['totalCapital'], 2, ',', '.')}</td>
+                            <td class="text-end fw-bold">${number_format($resultado['totales']['totalInteres'], 2, ',', '.')}</td>
+                            <td class="text-end fw-bold">${number_format($resultado['totales']['totalPago'], 2, ',', '.')}</td>
+                            <td class="text-end fw-bold">-</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+
+                    <!-- Acciones -->
+                    <div class="form-footer mt-3">
+                      <a href="solicitar.php" class="btn btn-success">
+                        <i class="icon icon-plus"></i> Solicitar este Préstamo
+                      </a>
+                      <button type="button" class="btn btn-info" onclick="window.print()">
+                        <i class="icon icon-printer"></i> Imprimir
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              {else}
+                <div class="card">
+                  <div class="card-body text-center py-5">
+                    <i class="icon icon-calculator text-muted" style="font-size: 3rem;"></i>
+                    <p class="text-muted mt-3">Ingresa los parámetros para ver la simulación</p>
+                  </div>
+                </div>
+              {/if}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    @media print {
+      .btn, .card-options { display: none !important; }
+      .table { font-size: 10px; }
+    }
+  </style>
+{/block}

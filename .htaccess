@@ -1,8 +1,19 @@
 RewriteEngine On
 
-RewriteCond %{REQUEST_FILENAME} -f [OR]
-RewriteCond %{REQUEST_FILENAME} -d
-RedirectMatch 403 ^/(src|vendor|privado|temp)(/.*)?$
+RewriteCond %{REQUEST_URI} !^/public/
+RewriteRule ^(.*)$ public/$1 [L]
 
-ErrorDocument 404 /no-encontrado.php
-ErrorDocument 403 /prohibido.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Bloquear acceso a archivos sensibles
+    <FilesMatch "\.(latte|env|log|ini)$">
+        Require all denied
+    </FilesMatch>
+
+    # Opcional: Quitar extensión .php de la URL
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME}.php -f
+    RewriteRule ^(.*)$ $1.php [L]
+</IfModule>

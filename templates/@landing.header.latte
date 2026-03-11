@@ -1,0 +1,306 @@
+{varType App\Module\Sindicato\DTO\SindicatoBasic $sindicatoActual}
+{varType App\Module\Sindicato\DTO\SindicatoBasic[] $sindicatos}
+
+<header class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+  <div class="container">
+
+    <!-- Logo -->
+    <a class="navbar-brand p-0" href="/">
+
+      <img src="/assets/images/logo.webp" alt="Sindicato" width="70" height="70"
+        class="img-fluid rounded-circle">
+    </a>
+
+    <!-- Desktop: Botones derecha / Mobile: Toggler -->
+    <div class="d-flex align-items-center gap-2 order-lg-last">
+
+      <!-- Login Desktop -->
+      <a href="/cuentas/login.php" class="btn btn-light d-none d-lg-inline-flex align-items-center gap-2">
+        <i class="bi bi-box-arrow-in-right"></i>
+        <span>Acceder</span>
+      </a>
+      
+      <!-- Mobile Toggler -->
+      <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="offcanvas"
+        data-bs-target="#navbarOffcanvas" aria-controls="navbarOffcanvas" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+    </div>
+
+    <!-- Menú Principal: Offcanvas en mobile, Collapse en desktop -->
+    <div class="offcanvas offcanvas-start d-lg-none" id="navbarOffcanvas" tabindex="-1" aria-labelledby="offcanvasLabel"
+      style="width: 85%; max-width: 320px;">
+
+      <!-- Header Offcanvas -->
+      <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title" id="offcanvasLabel">Menú</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      </div>
+
+      <!-- Cuerpo del menú Mobile -->
+      <div class="offcanvas-body p-0">
+
+        <!-- Navegación principal Mobile -->
+        <ul class="navbar-nav">
+
+          <!-- Inicio -->
+          <li class="nav-item border-bottom">
+            <a href="/" class="nav-link py-3 px-4 text-primary {empty($linkActivo) ? 'active'}">
+              <i class="bi bi-house me-2"></i>Inicio
+            </a>
+          </li>
+
+          <!-- Publicaciones -->
+          <li class="nav-item border-bottom">
+            <a class="nav-link text-primary dropdown-toggle py-3 px-4 d-flex align-items-center justify-content-between"
+              href="#" data-bs-toggle="collapse" data-bs-target="#pubCollapse" aria-expanded="false">
+              <span><i class="bi bi-newspaper me-2"></i>Publicaciones</span>
+            </a>
+            <div class="collapse bg-light" id="pubCollapse">
+              <ul class="list-unstyled mb-0">
+                <li>
+                  <a class="d-block py-2 px-5 text-decoration-none text-dark {$linkActivo === 'avisos' ? 'active fw-bold'}"
+                    href="/publicaciones/avisos.php">Avisos</a>
+                </li>
+                <li>
+                  <a class="d-block py-2 px-5 text-decoration-none text-dark {$linkActivo === 'noticias' ? 'active fw-bold'}"
+                    href="/publicaciones/noticias.php">Noticias</a>
+                </li>
+                <li>
+                  <a class="d-block py-2 px-5 text-decoration-none text-dark {$linkActivo === 'gestiones' ? 'active fw-bold'}"
+                    href="/publicaciones/gestiones.php">Gestiones</a>
+                </li>
+              </ul>
+            </div>
+          </li>
+
+          <!-- Sindicato -->
+          <li class="nav-item border-bottom">
+            <a class="nav-link text-primary dropdown-toggle py-3 px-4 d-flex align-items-center justify-content-between"
+              href="#" data-bs-toggle="collapse" data-bs-target="#sindCollapse" aria-expanded="false">
+              <span><i class="bi bi-building me-2"></i>Sindicato</span>
+            </a>
+            <div class="collapse bg-light" id="sindCollapse">
+              <ul class="list-unstyled mb-0">
+
+                <!-- Repositorios -->
+                <li class="border-top">
+                  <a class="d-block py-2 px-5 text-decoration-none text-dark dropdown-toggle d-flex align-items-center justify-content-between"
+                    href="#" data-bs-toggle="collapse" data-bs-target="#repoCollapse">
+                    <span>Repositorios</span>
+                  </a>
+                  <div class="collapse" id="repoCollapse">
+                    <ul class="list-unstyled mb-0 bg-white">
+                      <li><a class="d-block py-2 px-5 ps-5 text-decoration-none text-dark small"
+                          href="/aplicacion/repositorios/documentos-de-gestoria/index.php">Gestoría</a></li>
+                      <li><a class="d-block py-2 px-5 ps-5 text-decoration-none text-dark small"
+                          href="/aplicacion/repositorios/documentos-gremiales/index.php">Gremiales</a></li>
+                      <li><a class="d-block py-2 px-5 ps-5 text-decoration-none text-dark small"
+                          href="/aplicacion/repositorios/tramite-ante-autoridades/index.php">Trámites</a></li>
+                      <li><a class="d-block py-2 px-5 ps-5 text-decoration-none text-dark small"
+                          href="/aplicacion/repositorios/minutas-y-acuerdos/index.php">Minutas</a></li>
+                    </ul>
+                  </div>
+                </li>
+
+                <!-- Transparencia -->
+                <li class="border-top">
+                  <a class="d-block py-2 px-5 text-decoration-none text-dark dropdown-toggle d-flex align-items-center justify-content-between"
+                    href="#" data-bs-toggle="collapse" data-bs-target="#transCollapse">
+                    <span>Transparencia</span>
+                  </a>
+                  <div class="collapse" id="transCollapse">
+                    <ul class="list-unstyled mb-0 bg-white">
+                      <li><a class="d-block py-2 px-5 ps-5 text-decoration-none text-dark small"
+                          href="/dudas-transparencia.php">¿Tienes dudas?</a></li>
+                      <li><a class="d-block py-2 px-5 ps-5 text-decoration-none text-dark small"
+                          href="/aplicacion/transparencia/ahorro-altruista.php">Ahorro altruista</a></li>
+                      <li><a class="d-block py-2 px-5 ps-5 text-decoration-none text-dark small"
+                          href="/aplicacion/transparencia/cuotas-voluntarias.php">Cuotas voluntarias</a></li>
+                      <li><a class="d-block py-2 px-5 ps-5 text-decoration-none text-dark small"
+                          href="/publicaciones/gestiones.php">Gestiones</a>
+                      </li>
+                      <li><a class="d-block py-2 px-5 ps-5 text-decoration-none text-dark small"
+                          href="/transparencia.php">Normativos</a></li>
+                    </ul>
+                  </div>
+                </li>
+
+                <!-- Recursos -->
+                <li class="border-top">
+                  <a class="d-block py-2 px-5 text-decoration-none text-dark dropdown-toggle d-flex align-items-center justify-content-between"
+                    href="#" data-bs-toggle="collapse" data-bs-target="#recCollapse">
+                    <span>Recursos</span>
+                  </a>
+                  <div class="collapse" id="recCollapse">
+                    <ul class="list-unstyled mb-0 bg-white">
+                      <li><a class="d-block py-2 px-5 ps-5 text-decoration-none text-dark small"
+                          href="/formatos.php">Formatos</a>
+                      </li>
+                      <li><a class="d-block py-2 px-5 ps-5 text-decoration-none text-dark small"
+                          href="/acervo-bibliografico.php">Biblioteca</a></li>
+                    </ul>
+                  </div>
+                </li>
+
+              </ul>
+            </div>
+          </li>
+
+          <!-- Contacto -->
+          <li class="nav-item border-bottom">
+            <a href="/#contact" class="nav-link text-primary py-3 px-4">
+              <i class="bi bi-envelope me-2"></i>Contacto
+            </a>
+          </li>
+
+          <!-- Acerca de -->
+          <li class="nav-item border-bottom">
+            <a href="/acerca.php" class="nav-link text-primary py-3 px-4">
+              <i class="bi bi-info-circle me-2"></i>Acerca de
+            </a>
+          </li>
+
+          <!-- Mobile only: Login button -->
+          <li class="nav-item p-4">
+            <a href="/cuentas/login.php"
+              class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2">
+              <i class="bi bi-box-arrow-in-right"></i>Acceder al Portal
+            </a>
+          </li>
+
+        </ul>
+
+        <!-- Mobile only: Footer info adicional -->
+        <div class="mt-auto p-4 border-top bg-light">
+          <small class="text-muted d-block text-center">
+            OST-SIUT-ITMS
+          </small>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Desktop Navigation (Navbar Collapse) -->
+    <div class="collapse navbar-collapse d-none d-lg-flex justify-content-center" id="navbarDesktop">
+      <ul class="navbar-nav">
+
+        <!-- Inicio -->
+        <li class="nav-item">
+          <a href="/" class="nav-link px-3">Inicio</a>
+        </li>
+
+        <!-- Publicaciones Dropdown -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle px-3" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+            Publicaciones
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="/publicaciones/avisos.php">Avisos</a></li>
+            <li><a class="dropdown-item" href="/publicaciones/noticias.php">Noticias</a></li>
+            <li><a class="dropdown-item" href="/publicaciones/gestiones.php">Gestiones</a></li>
+          </ul>
+        </li>
+
+        <!-- Sindicato Dropdown con Submenús -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle px-3" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+            Sindicato
+          </a>
+          <ul class="dropdown-menu">
+
+            <!-- Repositorios Submenu -->
+            <li class="dropend">
+              <a class="dropdown-item dropdown-toggle d-flex align-items-center justify-content-between pe-4" href="#"
+                data-bs-toggle="dropdown" aria-expanded="false">
+                Repositorios
+              </a>
+              <ul class="dropdown-menu dropdown-submenu">
+                <li><a class="dropdown-item"
+                    href="/aplicacion/repositorios/documentos-de-gestoria/index.php">Gestoría</a></li>
+                <li><a class="dropdown-item"
+                    href="/aplicacion/repositorios/documentos-gremiales/index.php">Gremiales</a></li>
+                <li><a class="dropdown-item"
+                    href="/aplicacion/repositorios/tramite-ante-autoridades/index.php">Trámites</a></li>
+                <li><a class="dropdown-item" href="/aplicacion/repositorios/minutas-y-acuerdos/index.php">Minutas</a>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Transparencia Submenu -->
+            <li class="dropend">
+              <a class="dropdown-item dropdown-toggle d-flex align-items-center justify-content-between pe-4" href="#"
+                data-bs-toggle="dropdown" aria-expanded="false">
+                Transparencia
+              </a>
+              <ul class="dropdown-menu dropdown-submenu">
+                <li><a class="dropdown-item" href="/dudas-transparencia.php">¿Tienes dudas?</a></li>
+                <li><a class="dropdown-item" href="/aplicacion/transparencia/ahorro-altruista.php">Ahorro altruista</a>
+                </li>
+                <li><a class="dropdown-item" href="/aplicacion/transparencia/cuotas-voluntarias.php">Cuotas
+                    voluntarias</a></li>
+                <li><a class="dropdown-item" href="/publicaciones/gestiones.php">Gestiones</a></li>
+                <li><a class="dropdown-item" href="/transparencia.php">Normativos</a></li>
+              </ul>
+            </li>
+
+            <!-- Recursos Submenu -->
+            <li class="dropend">
+              <a class="dropdown-item dropdown-toggle d-flex align-items-center justify-content-between pe-4" href="#"
+                data-bs-toggle="dropdown" aria-expanded="false">
+                Recursos
+              </a>
+              <ul class="dropdown-menu dropdown-submenu">
+                <li><a class="dropdown-item" href="/formatos.php">Formatos</a></li>
+                <li><a class="dropdown-item" href="/acervo-bibliografico.php">Biblioteca</a></li>
+              </ul>
+            </li>
+
+          </ul>
+        </li>
+
+        <!-- Contacto -->
+        <li class="nav-item">
+          <a href="/#contact" class="nav-link px-3">Contacto</a>
+        </li>
+
+        <!-- Acerca de -->
+        <li class="nav-item">
+          <a href="/acerca.php" class="nav-link px-3">Acerca de</a>
+        </li>
+
+      </ul>
+    </div>
+
+  </div>
+</header>
+
+<!-- CSS mínimo para submenús (solo lo necesario) -->
+<style>
+  /* Solo para desktop: activar submenús en hover y posicionamiento correcto */
+  @media (min-width: 992px) {
+    .dropend:hover>.dropdown-menu {
+      display: block;
+    }
+
+    .dropend>.dropdown-menu {
+      top: 0;
+      left: 100%;
+      margin-top: 0;
+      margin-left: 0;
+      border-top-left-radius: 0;
+    }
+
+    /* Flecha indicadora para submenú */
+    .dropend .dropdown-toggle::after {
+      display: inline-block;
+      margin-left: 0.5em;
+      vertical-align: middle;
+      content: "";
+      border-top: 0.3em solid transparent;
+      border-right: 0;
+      border-bottom: 0.3em solid transparent;
+      border-left: 0.3em solid;
+    }
+  }
+</style>

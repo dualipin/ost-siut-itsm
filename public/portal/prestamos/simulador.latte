@@ -1,0 +1,402 @@
+{extends ../../../templates/@portal.latte}
+
+{varType App\Module\Prestamo\Entity\CategoriaTipoIngreso[] $categoriasTipoIngreso}
+
+{block main}
+  {include
+    ../../../templates/components/header-page.latte,
+    title => 'Simular Préstamo',
+    description => "Ingresa el monto del préstamo para obtener una estimación de tus pagos futuros.",
+    icon => 'bi-calculator'
+  }
+
+  <div x-data="simuladorData()">
+    <form class="needs-validation" method="POST">
+
+      <!-- Total solicitado (grande) -->
+      <div class="text-center mb-4 position-sticky bg-body py-3"
+           style="z-index: 10; border-bottom: 1px solid #dee2e6; top: 2.6em">
+        <div class="fw-bold text-primary" x-text="formatCurrency(totalSolicitado)"
+             style="font-size: clamp(1.5rem, 6vw, 3rem);"></div>
+        <div class="small text-muted">Total solicitado</div>
+        <div class="mt-2">
+          <small class="text-muted d-block">Fecha actual</small>
+          <span class="badge bg-secondary" x-text="localize(currentDate)"></span>
+        </div>
+      </div>
+
+      <template x-for="(item, index) in descuentos">
+        <div class="card mb-3 p-3">
+          <div class="d-flex flex-column flex-md-row align-items-start gap-2 row">
+            <div class="flex-fill">
+              <div class="row g-2">
+                <div class="col-12 col-sm-6">
+                  <label class="form-label mb-1 small d-none d-sm-block">Monto</label>
+                  <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input x-model.number="item.monto" type="number" class="form-control" min="0" placeholder="0.00"
+                           aria-label="Monto del descuento">
+                    <span class="input-group-text">.00</span>
+                  </div>
+                </div>
+
+                <div class="col-12 col-sm-6">
+                  <label class="form-label mb-1 small d-none d-sm-block">Tipo</label>
+                  <select x-model.number="item.tipoId" @change="onTipoChange(index)" class="form-select" required>
+                    <option value="0" selected disabled>Seleccione...</option>
+                    <template x-for="dato in categoriasTipoIngreso">
+                      <option :value="dato.id" x-text="dato.nombre"
+                              :disabled="!dato.activo || tipoEstaSeleccionado(dato.id, item.tipoId)"></option>
+                    </template>
+                  </select>
+                </div>
+
+                <div class="col-12"
+                     x-show="item.tipoId && (categoriasTipoIngreso.find(c => c.id === item.tipoId)?.esPeriodico)">
+                  <div class="row g-2">
+                    <div class="col-6 col-sm-3">
+                      <label class="form-label mb-1 small">Cantidad</label>
+                      <input x-model.number="item.cantidad" type="number" min="1"
+                             :max="calcularMaxPeriodos(categoriasTipoIngreso.find(c => c.id === item.tipoId))"
+                             :disabled="calcularMaxPeriodos(categoriasTipoIngreso.find(c => c.id === item.tipoId)) === 0"
+                             class="form-control">
+                      <div class="small text-muted mt-1 d-sm-none">Máx: <span
+                                x-text="calcularMaxPeriodos(categoriasTipoIngreso.find(c => c.id === item.tipoId))"></span>
+                      </div>
+                    </div>
+                    <div class="col-6 col-sm-3">
+                      <label class="form-label mb-1 small">Unidad</label>
+                      <div class="form-control-plaintext small"
+                           x-text="`Cada ${ categoriasTipoIngreso.find(c => c . id === item . tipoId)?.frecuenciaDias } dias`">
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                      <label class="form-label mb-1 small">Fecha aproximada de terminación</label>
+                      <div class="form-control-plaintext fw-semibold"
+                           x-text="calcularFechaFin(categoriasTipoIngreso.find(c => c.id === item.tipoId), item.cantidad)">
+                      </div>
+                      <div class="small text-muted d-none d-sm-block">Máx períodos: <span
+                                x-text="calcularMaxPeriodos(categoriasTipoIngreso.find(c => c.id === item.tipoId))"></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="d-flex flex-column align-items-lg-end">
+              <button type="button" class="btn btn-outline-danger" @click.prevent="eliminar(index)"
+                      title="Eliminar">
+                <i class="bi bi-x-lg"></i>
+                <span class="d-none d-md-inline ms-1">Eliminar</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- Campo oculto con JSON de descuentos -->
+      <input type="hidden" name="descuentos_json" :value="JSON.stringify(descuentos)">
+
+      <div class="d-grid gap-2 d-sm-flex mb-3">
+        <div class="me-sm-2" style="width:64px;">
+          <button type="button" class="btn btn-outline-secondary w-100 h-100" @click.prevent="agregar()"
+                  :disabled="!puedeAgregar" aria-label="Agregar descuento">
+            <i class="bi bi-plus" style="font-size: 1.25rem;"></i>
+          </button>
+        </div>
+        <div class="flex-fill">
+          <button class="btn btn-primary btn-lg w-100" type="submit">Simular</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    /**
+     * @typedef { Object } TipoPrestamoRaw
+     * @property { number } id
+     * @property { string } nombre
+     * @property { boolean } esPeriodico
+     * @property { number } frecuenciaDias
+     * @property { number } mesPagoTentativo
+     * @property { number } diasPagoTentativo
+     * @property { boolean } activo
+     */
+
+    /**
+     * @typedef { Object } DescuentoItem
+     * @property { number } monto
+     * @property { string | number } tipoId
+     * @property { number } cantidad
+     * @property { string } unidad
+     */
+
+    class TipoPrestamo {
+      /**
+       * @param { number } id
+       * @param { string } nombre
+       * @param { boolean } esPeriodico
+       * @param { number } frecuenciaDias
+       * @param { number } mesPagoTentativo
+       * @param { number } diasPagoTentativo
+       * @param { boolean } activo
+       */
+      constructor (id, nombre, esPeriodico, frecuenciaDias, mesPagoTentativo, diasPagoTentativo, activo) {
+        this.id = id
+        this.nombre = nombre
+        this.esPeriodico = esPeriodico
+        this.frecuenciaDias = frecuenciaDias
+        this.mesPagoTentativo = mesPagoTentativo
+        this.diasPagoTentativo = diasPagoTentativo
+        this.activo = activo
+      }
+    }
+
+    /**
+     * @returns { Object }
+     */
+    function simuladorData () {
+      const data = {= json_encode($categoriasTipoIngreso)};
+      /** @type { TipoPrestamoRaw[] } */
+      const parsed = typeof data === 'string' ? JSON.parse(data) : data
+      /** @type { TipoPrestamoRaw[] } */
+      const dataTipoPrestamos = Array.isArray(parsed) ? parsed : []
+
+      /** @type { TipoPrestamo[] } */
+      const tiposPrestamos = dataTipoPrestamos.map((item) => new TipoPrestamo(
+        item.id,
+        item.nombre,
+        item.esPeriodico,
+        item.frecuenciaDias,
+        item.mesPagoTentativo,
+        item.diasPagoTentativo,
+        item.activo,
+      ))
+
+      /** @type { () => DescuentoItem } */
+      const buildDescuento = () => ({
+        monto: 0,
+        tipoId: 0,
+        cantidad: 1,
+        unidad: 'meses',
+      })
+
+      return {
+        monto: 0,
+        /**
+         * @type { TipoPrestamo[] }
+         */
+        tiposPrestamos,
+        /**
+         * @type { () => TipoPrestamo[] }
+         * @return { TipoPrestamo[] }
+         */
+        tiposPrestamosDisponibles () {
+          return this.tiposPrestamos.filter(tp => tp.activo)
+        },
+        /** @type { DescuentoItem[] } */
+        descuentos: [buildDescuento()],
+        /** @type { string } */
+        currentDate: (function () {
+          const d = new Date()
+          const y = d.getFullYear()
+          const m = String(d.getMonth() + 1).padStart(2, '0')
+          const day = String(d.getDate()).padStart(2, '0')
+          return y + '-' + m + '-' + day
+        })(),
+
+        /**
+         * @type { TipoPrestamo[] }
+         */
+        categoriasTipoIngreso: tiposPrestamos,
+        /**
+         * Calcula la fecha máxima hasta donde se puede llegar con un tipo de ingreso
+         * Generalmente es el 20 de noviembre del año actual (antes del aguinaldo)
+         * @returns { Date }
+         */
+        obtenerFechaMaximaAnual () {
+          const hoy = new Date()
+          const anioActual = hoy.getFullYear()
+          // 20 de noviembre es aprox. cuando termina el año fiscal
+          return new Date(anioActual, 10, 20) // mes 10 = noviembre (0-indexed)
+        },
+        get selectedTipoIds () {
+          return this.descuentos.map(d => Number(d.tipoId)).filter(Boolean)
+        },
+        /**
+         * @param { number | string } tipoId
+         * @param { number | string } currentTipoId
+         * @returns { boolean }
+         */
+        tipoEstaSeleccionado (tipoId, currentTipoId) {
+          return this.selectedTipoIds.includes(Number(tipoId)) && Number(currentTipoId) !== Number(tipoId)
+        },
+        /** @returns { void } */
+        agregar () {
+          const disponible = this.categoriasTipoIngreso.find(c => c.activo && !this.selectedTipoIds.includes(c.id))
+          if (disponible) this.descuentos.push(buildDescuento())
+        },
+        /** @param { number } index */
+        eliminar (index) {
+          this.descuentos.splice(index, 1)
+        },
+        /** @param { number } index */
+        onTipoChange (index) {
+          const id = Number(this.descuentos[index].tipoId)
+          const cat = this.categoriasTipoIngreso.find(c => c.id === id)
+          if (cat && cat.esPeriodico) {
+            this.descuentos[index].unidad = (cat.frecuenciaDias === 15 ? 'quincenas' : 'meses')
+            if (!this.descuentos[index].cantidad) this.descuentos[index].cantidad = 1
+            const maxPeriodos = this.calcularMaxPeriodos(cat)
+            Alpine.store('toast').show({
+              message: `Tipo periódico: ${ cat.nombre }. Máx períodos: ${ maxPeriodos }`,
+              type: 'alert',
+            })
+          } else {
+            delete this.descuentos[index].unidad
+            delete this.descuentos[index].cantidad
+          }
+        },
+        /**
+         * Calcula el próximo día de pago a partir de hoy para un tipo de ingreso
+         * @param { TipoPrestamo } cat - Categoría de tipo de ingreso
+         * @returns { Date } - Fecha del próximo pago
+         */
+        obtenerProximoPago (cat) {
+          if (!cat || !cat.esPeriodico) return new Date()
+
+          const hoy = new Date()
+          const freq = Number(cat.frecuenciaDias) || 30
+          const diaPago = Number(cat.diasPagoTentativo) || 20
+          const mesPago = Number(cat.mesPagoTentativo) || null // null significa pago cada período
+
+          /**
+           * @param { number } y
+           * @param { number } mIndex
+           * @returns { number }
+           */
+          function daysInMonth (y, mIndex) {
+            return new Date(y, mIndex + 1, 0).getDate()
+          }
+
+          let proximoPago = new Date()
+
+          if (mesPago) {
+            // Pago en mes específico (ej: Aguinaldo en diciembre)
+            let year = hoy.getFullYear()
+            const mesIndex = mesPago - 1 // Convertir a 0-indexed
+            const diaMesActual = Math.min(diaPago, daysInMonth(year, mesIndex))
+            let candidate = new Date(year, mesIndex, diaMesActual)
+
+            if (candidate <= hoy) {
+              year += 1
+              candidate = new Date(year, mesIndex, Math.min(diaPago, daysInMonth(year, mesIndex)))
+            }
+            proximoPago = candidate
+          } else {
+            // Pago periódico (quincena, mensuales)
+            let mesActual = hoy.getMonth()
+            let yearActual = hoy.getFullYear()
+            const diaActual = hoy.getDate()
+            const diaMesActual = Math.min(diaPago, daysInMonth(yearActual, mesActual))
+
+            let candidate = new Date(yearActual, mesActual, diaMesActual)
+
+            // Si ya pasó el día de pago este mes, ir al próximo
+            if (candidate <= hoy) {
+              mesActual++
+              if (mesActual > 11) {
+                mesActual = 0
+                yearActual++
+              }
+              const diaProximoMes = Math.min(diaPago, daysInMonth(yearActual, mesActual))
+              candidate = new Date(yearActual, mesActual, diaProximoMes)
+            }
+            proximoPago = candidate
+          }
+
+          return proximoPago
+        },
+        /**
+         * @param { TipoPrestamo | undefined } cat
+         * @returns { number }
+         */
+        calcularMaxPeriodos (cat) {
+          if (!cat || !cat.esPeriodico) return 0
+
+          const hoy = new Date()
+          const fechaMaxima = this.obtenerFechaMaximaAnual()
+
+          // Si ya pasamos la fecha máxima, no hay períodos disponibles
+          if (hoy >= fechaMaxima) return 0
+
+          const proximoPago = this.obtenerProximoPago(cat)
+          const freq = Number(cat.frecuenciaDias) || 30
+
+          let periodo = 0
+          let fechaActual = new Date(proximoPago.getTime())
+
+          // Contar cuántos períodos caben hasta la fecha máxima
+          while (fechaActual <= fechaMaxima) {
+            periodo++
+            fechaActual.setDate(fechaActual.getDate() + freq)
+          }
+
+          return Math.max(0, periodo - 1) // -1 porque el último no entra completo
+        },
+        /**
+         * @param { TipoPrestamo | undefined } cat
+         * @param { number | string } cantidad
+         * @returns { string }
+         */
+        calcularFechaFin (cat, cantidad) {
+          if (!cat || !cat.esPeriodico || !(Number(cantidad) > 0)) return '-'
+
+          const freq = Number(cat.frecuenciaDias) || 30
+          const numCuotas = Math.max(1, Number(cantidad))
+
+          // Obtener el próximo pago
+          const proximoPago = this.obtenerProximoPago(cat)
+
+          // Calcular la fecha final: próximo pago + (numCuotas - 1) períodos
+          const fechaFin = new Date(proximoPago.getTime())
+          fechaFin.setDate(fechaFin.getDate() + (numCuotas - 1) * freq)
+
+          // Verificar que no supere la fecha máxima anual
+          const fechaMaxima = this.obtenerFechaMaximaAnual()
+          if (fechaFin > fechaMaxima) {
+            return fechaMaxima.toLocaleDateString('es-MX')
+          }
+
+          return fechaFin.toLocaleDateString('es-MX')
+        },
+        get totalSolicitado () {
+          return this.descuentos.reduce((s, d) => s + (Number(d.monto) || 0), 0)
+        },
+        /**
+         * @param { number } v
+         * @returns { string }
+         */
+        formatCurrency (v) {
+          return '$' + Number(v || 0).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })
+        },
+        /**
+         * @param { string } dateStr
+         * @returns { string }
+         */
+        localize (dateStr) {
+          if (!dateStr) return ''
+          const p = String(dateStr).split('-')
+          if (p.length !== 3) return dateStr
+          return `${ p[2] }/${ p[1] }/${ p[0] }`
+        },
+        get puedeAgregar () {
+          return this.categoriasTipoIngreso.some(c => c.activo && !this.selectedTipoIds.includes(c.id))
+        },
+      }
+    }
+  </script>
+{/block}
