@@ -5,91 +5,307 @@ declare(strict_types=1);
 use App\Bootstrap;
 use App\Http\Middleware\MiddlewareFactory;
 use App\Http\Middleware\MiddlewareRunner;
+use App\Http\Request\FormRequest;
+use App\Http\Response\RedirectResponse;
 use App\Infrastructure\Templating\RendererInterface;
 use App\Modules\User\Application\DTO\CreateUser;
 use App\Modules\User\Application\UseCase\CreateUserUseCase;
+use App\Modules\User\Domain\Repository\UserRepositoryInterface;
 use App\Shared\Domain\Enum\RoleEnum;
+use Psr\Container\ContainerInterface;
 
 require_once __DIR__ . "/../../../bootstrap.php";
 
 $container = Bootstrap::buildContainer();
 
-$runner = $container->get(MiddlewareRunner::class);
-$runner->runOrRedirect($container->get(MiddlewareFactory::class)->auth());
+authorize($container);
 
+$request = new FormRequest();
+$renderer = $container->get(RendererInterface::class);
 $errors = [];
+$old = [];
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name = trim((string) ($_POST['name'] ?? ''));
-    $surnames = trim((string) ($_POST['surnames'] ?? ''));
-    $email = trim((string) ($_POST['email'] ?? ''));
-    $password = (string) ($_POST['password'] ?? '');
-    $passwordConfirm = (string) ($_POST['password_confirm'] ?? '');
-    $roleValue = trim((string) ($_POST['role'] ?? ''));
-    $curp = trim((string) ($_POST['curp'] ?? '')) ?: null;
-    $nss = trim((string) ($_POST['nss'] ?? '')) ?: null;
-    $birthdateRaw = trim((string) ($_POST['birthdate'] ?? '')) ?: null;
-    $phone = trim((string) ($_POST['phone'] ?? '')) ?: null;
-    $address = trim((string) ($_POST['address'] ?? '')) ?: null;
-    $department = trim((string) ($_POST['department'] ?? '')) ?: null;
-    $category = trim((string) ($_POST['category'] ?? '')) ?: null;
-    $salary = (float) ($_POST['salary'] ?? 0);
-    $workStartDateRaw = trim((string) ($_POST['work_start_date'] ?? '')) ?: null;
+if ($request->isSubmitted()) {
+    $formData = mapRegisterUserFormData($request);
+    $old = extractOldInput($request);
+    $errors = validateRegisterUserFormData($container, $formData);
 
-    if ($name === '') {
-        $errors[] = 'El nombre es obligatorio.';
-    }
-    if ($surnames === '') {
-        $errors[] = 'Los apellidos son obligatorios.';
-    }
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors[] = 'El correo no es válido.';
-    }
-    if (strlen($password) < 6) {
-        $errors[] = 'La contraseña debe tener al menos 6 caracteres.';
-    }
-    if ($password !== $passwordConfirm) {
-        $errors[] = 'Las contraseñas no coinciden.';
-    }
-    $role = RoleEnum::tryFrom($roleValue);
-    if ($role === null) {
-        $errors[] = 'El rol seleccionado no es válido.';
-    }
-
-    if (empty($errors)) {
-        $birthdate = $birthdateRaw !== null
-            ? DateTimeImmutable::createFromFormat('Y-m-d', $birthdateRaw) ?: null
-            : null;
-        $workStartDate = $workStartDateRaw !== null
-            ? DateTimeImmutable::createFromFormat('Y-m-d', $workStartDateRaw) ?: null
-            : null;
-
-        $useCase = $container->get(CreateUserUseCase::class);
-        $useCase->execute(new CreateUser(
-            email: $email,
-            password: $password,
-            name: $name,
-            surnames: $surnames,
-            role: $role,
-            active: true,
-            curp: $curp,
-            birthdate: $birthdate,
-            address: $address,
-            phone: $phone,
-            department: $department,
-            category: $category,
-            nss: $nss,
-            salary: $salary,
-            workStartDate: $workStartDate,
-        ));
-
-        header('Location: ./listado.php?created=1');
-        exit;
+    if ($errors === []) {
+        $errors = createUser($container, $formData);
     }
 }
 
-$container->get(RendererInterface::class)->render('./registrar.latte', [
-    'roles' => RoleEnum::cases(),
-    'errors' => $errors,
-    'old' => $_POST,
-]);
+renderRegisterUserPage($renderer, $errors, $old);
+
+function authorize(ContainerInterface $container): void
+{
+    $runner = $container->get(MiddlewareRunner::class);
+    $middleware = $container->get(MiddlewareFactory::class);
+
+    $runner->runOrRedirect($middleware->auth());
+}
+
+/**
+ * @return array{
+ *     name: string,
+ *     surnames: string,
+ *     email: string,
+ *     password: string,
+ *     password_confirm: string,
+ *     role: string,
+ *     curp: ?string,
+ *     nss: ?string,
+ *     birthdate: ?string,
+ *     phone: ?string,
+ *     address: ?string,
+ *     department: ?string,
+ *     category: ?string,
+ *     salary: float,
+ *     work_start_date: ?string
+ * }
+ */
+function mapRegisterUserFormData(FormRequest $request): array
+{
+    return [
+        'name' => (string) $request->input('name', ''),
+        'surnames' => (string) $request->input('surnames', ''),
+        'email' => (string) $request->input('email', ''),
+        'password' => (string) $request->input('password', ''),
+        'password_confirm' => (string) $request->input('password_confirm', ''),
+        'role' => (string) $request->input('role', ''),
+        'curp' => nullableInput($request, 'curp'),
+        'nss' => nullableInput($request, 'nss'),
+        'birthdate' => nullableInput($request, 'birthdate'),
+        'phone' => nullableInput($request, 'phone'),
+        'address' => nullableInput($request, 'address'),
+        'department' => nullableInput($request, 'department'),
+        'category' => nullableInput($request, 'category'),
+        'salary' => $request->float('salary', 0.0),
+        'work_start_date' => nullableInput($request, 'work_start_date'),
+    ];
+}
+
+function nullableInput(FormRequest $request, string $key): ?string
+{
+    $value = (string) $request->input($key, '');
+
+    return $value !== '' ? $value : null;
+}
+
+/**
+ * @param array{
+ *     name: string,
+ *     surnames: string,
+ *     email: string,
+ *     password: string,
+ *     password_confirm: string,
+ *     role: string,
+ *     curp: ?string,
+ *     nss: ?string,
+ *     birthdate: ?string,
+ *     phone: ?string,
+ *     address: ?string,
+ *     department: ?string,
+ *     category: ?string,
+ *     salary: float,
+ *     work_start_date: ?string
+ * } $formData
+ * @return list<string>
+ */
+function validateRegisterUserFormData(ContainerInterface $container, array $formData): array
+{
+    $errors = [];
+
+    if ($formData['name'] === '') {
+        $errors[] = 'El nombre es obligatorio.';
+    }
+
+    if ($formData['surnames'] === '') {
+        $errors[] = 'Los apellidos son obligatorios.';
+    }
+
+    if (!filter_var($formData['email'], FILTER_VALIDATE_EMAIL)) {
+        $errors[] = 'El correo no es válido.';
+    }
+
+    if (strlen($formData['password']) < 6) {
+        $errors[] = 'La contraseña debe tener al menos 6 caracteres.';
+    }
+
+    if ($formData['password'] !== $formData['password_confirm']) {
+        $errors[] = 'Las contraseñas no coinciden.';
+    }
+
+    if (RoleEnum::tryFrom($formData['role']) === null) {
+        $errors[] = 'El rol seleccionado no es válido.';
+    }
+
+    if (!isValidDateValue($formData['birthdate'])) {
+        $errors[] = 'La fecha de nacimiento no es válida.';
+    }
+
+    if (!isValidDateValue($formData['work_start_date'])) {
+        $errors[] = 'La fecha de ingreso no es válida.';
+    }
+
+    if ($formData['salary'] < 0) {
+        $errors[] = 'El salario no puede ser negativo.';
+    }
+
+    if (
+        filter_var($formData['email'], FILTER_VALIDATE_EMAIL)
+        && userEmailAlreadyExists($container, $formData['email'])
+    ) {
+        $errors[] = 'Ya existe un usuario registrado con ese correo.';
+    }
+
+    return $errors;
+}
+
+function isValidDateValue(?string $value): bool
+{
+    if ($value === null) {
+        return true;
+    }
+
+    $date = DateTimeImmutable::createFromFormat('!Y-m-d', $value);
+
+    return $date !== false && $date->format('Y-m-d') === $value;
+}
+
+function userEmailAlreadyExists(ContainerInterface $container, string $email): bool
+{
+    $userRepository = $container->get(UserRepositoryInterface::class);
+
+    return $userRepository->findByEmail($email) !== null;
+}
+
+/**
+ * @param array{
+ *     name: string,
+ *     surnames: string,
+ *     email: string,
+ *     password: string,
+ *     password_confirm: string,
+ *     role: string,
+ *     curp: ?string,
+ *     nss: ?string,
+ *     birthdate: ?string,
+ *     phone: ?string,
+ *     address: ?string,
+ *     department: ?string,
+ *     category: ?string,
+ *     salary: float,
+ *     work_start_date: ?string
+ * } $formData
+ * @return list<string>
+ */
+function createUser(ContainerInterface $container, array $formData): array
+{
+    try {
+        $wasCreated = $container->get(CreateUserUseCase::class)->execute(
+            createUserDtoFromFormData($formData),
+        );
+    } catch (RuntimeException) {
+        return ['No fue posible registrar el usuario.'];
+    }
+
+    if (!$wasCreated) {
+        return ['No fue posible registrar el usuario.'];
+    }
+
+    redirectToUserList();
+}
+
+/**
+ * @param array{
+ *     name: string,
+ *     surnames: string,
+ *     email: string,
+ *     password: string,
+ *     password_confirm: string,
+ *     role: string,
+ *     curp: ?string,
+ *     nss: ?string,
+ *     birthdate: ?string,
+ *     phone: ?string,
+ *     address: ?string,
+ *     department: ?string,
+ *     category: ?string,
+ *     salary: float,
+ *     work_start_date: ?string
+ * } $formData
+ */
+function createUserDtoFromFormData(array $formData): CreateUser
+{
+    return new CreateUser(
+        email: $formData['email'],
+        password: $formData['password'],
+        name: $formData['name'],
+        surnames: $formData['surnames'],
+        role: RoleEnum::from($formData['role']),
+        active: true,
+        curp: $formData['curp'],
+        birthdate: parseDateValue($formData['birthdate']),
+        address: $formData['address'],
+        phone: $formData['phone'],
+        department: $formData['department'],
+        category: $formData['category'],
+        nss: $formData['nss'],
+        salary: $formData['salary'],
+        workStartDate: parseDateValue($formData['work_start_date']),
+    );
+}
+
+function parseDateValue(?string $value): ?DateTimeImmutable
+{
+    if ($value === null) {
+        return null;
+    }
+
+    $date = DateTimeImmutable::createFromFormat('!Y-m-d', $value);
+
+    return $date === false ? null : $date;
+}
+
+/**
+ * @return array<string, mixed>
+ */
+function extractOldInput(FormRequest $request): array
+{
+    return $request->only(
+        'name',
+        'surnames',
+        'email',
+        'role',
+        'curp',
+        'nss',
+        'birthdate',
+        'phone',
+        'address',
+        'department',
+        'category',
+        'salary',
+        'work_start_date',
+    );
+}
+
+/**
+ * @param list<string> $errors
+ * @param array<string, mixed> $old
+ */
+function renderRegisterUserPage(RendererInterface $renderer, array $errors, array $old): void
+{
+    $renderer->render(__DIR__ . '/registrar.latte', [
+        'roles' => RoleEnum::cases(),
+        'errors' => $errors,
+        'old' => $old,
+    ]);
+}
+
+function redirectToUserList(): never
+{
+    (new RedirectResponse('./listado.php?created=1'))->send();
+
+    throw new RuntimeException('Unreachable redirect flow.');
+}
