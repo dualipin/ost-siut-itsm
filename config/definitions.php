@@ -90,7 +90,9 @@ return function (ContainerBuilder $container) {
             $dompdf = new Dompdf();
             $dompdf->setPaper("Letter");
             $options = $dompdf->getOptions();
-            $options->setIsRemoteEnabled(true);
+            $options->setIsRemoteEnabled(false);
+            $options->setIsHtml5ParserEnabled(true);
+            $options->setIsFontSubsettingEnabled(false);
             $dompdf->setOptions($options);
             return $dompdf;
         },
