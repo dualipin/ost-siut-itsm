@@ -8,7 +8,7 @@ namespace App\Shared\Provider;
 interface ContextProviderInterface
 {
     /**
-     * @return T
+     * @return T|null
      */
     public function get();
 }

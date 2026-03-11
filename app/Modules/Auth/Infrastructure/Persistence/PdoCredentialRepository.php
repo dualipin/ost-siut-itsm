@@ -13,7 +13,16 @@ class PdoCredentialRepository extends PdoBaseRepository implements
     public function findByEmail(string $email): ?UserCredential
     {
         $stmt = $this->pdo->prepare("
-        SELECT user_id, email, password_hash, active, role FROM users WHERE email = :email
+        SELECT
+            user_id,
+            email,
+            password_hash,
+            active,
+            role,
+            COALESCE(NULLIF(TRIM(CONCAT_WS(' ', name, surnames)), ''), email) AS display_name
+        FROM users
+        WHERE email = :email
+        LIMIT 1
         ");
 
         $stmt->execute(["email" => $email]);
@@ -26,6 +35,7 @@ class PdoCredentialRepository extends PdoBaseRepository implements
 
         return new UserCredential(
             id: $result["user_id"],
+            name: $result["display_name"],
             email: $result["email"],
             passwordHash: $result["password_hash"],
             role: RoleEnum::tryFrom($result["role"]) ?? RoleEnum::NoAgremiado,

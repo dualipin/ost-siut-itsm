@@ -2,28 +2,22 @@
 
 namespace App\Shared\Provider;
 
-use App\Module\Auth\DTO\UserAuthContextDTO;
-use App\Module\Usuario\Repository\UsuarioRepository;
-use App\Shared\Context\UserContext;
+use App\Shared\Context\UserContextInterface;
+use App\Shared\Security\AuthenticatedUser;
 
 /**
- * @extends AbstractContextProvider<UserAuthContextDTO>
+ * Provee el usuario autenticado del request actual sin acoplarse a persistencia.
+ *
+ * @implements ContextProviderInterface<AuthenticatedUser>
  */
-final class UserContextProvider extends AbstractContextProvider
+final readonly class UserContextProvider implements ContextProviderInterface
 {
     public function __construct(
-        private readonly UserContext $context,
-        private readonly UsuarioRepository $repository,
+        private UserContextInterface $context,
     ) {}
 
-    protected function resolve(): ?UserAuthContextDTO
+    public function get(): ?AuthenticatedUser
     {
-        $session = $this->context->get();
-
-        if ($session === null) {
-            return null;
-        }
-
-        return $this->repository->findAuthContextById($session->id);
+        return $this->context->get();
     }
 }

@@ -34,8 +34,13 @@ final readonly class UserContext implements UserContextInterface
             return null;
         }
 
+        $name = is_string($data["name"] ?? null) && trim($data["name"]) !== ""
+            ? $data["name"]
+            : (string) $data["email"];
+
         return new AuthenticatedUser(
             id: (int) $data["id"],
+            name: $name,
             email: $data["email"],
             role: $role,
         );
@@ -45,6 +50,7 @@ final readonly class UserContext implements UserContextInterface
     {
         $this->session->set(self::SessionKey, [
             "id" => $user->id,
+            "name" => $user->name,
             "email" => $user->email,
             "role" => $user->role->value,
         ]);

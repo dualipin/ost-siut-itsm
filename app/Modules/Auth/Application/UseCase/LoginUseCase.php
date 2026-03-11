@@ -54,6 +54,7 @@ final readonly class LoginUseCase
         $this->userContext->set(
             new AuthenticatedUser(
                 id: $credential->id,
+                name: $credential->name,
                 email: $credential->email,
                 role: $credential->role,
             ),
