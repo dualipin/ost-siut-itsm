@@ -9,14 +9,13 @@
     | OST-SIUT-ITSM
   </title>
   <meta name="description"
-        content="Sindicato Único de Trabajadores del Instituto Tecnológico Superior de Macuspana. Noticias, gestiones, transparencia y recursos para la gran familia sindical.">
+    content="Sindicato Único de Trabajadores del Instituto Tecnológico Superior de Macuspana. Noticias, gestiones, transparencia y recursos para la gran familia sindical.">
   <meta name="keywords"
-        content="Sindicato, ITSM, Macuspana, Trabajadores, Noticias, Gestiones, Transparencia, Recursos, Tabasco">
+    content="Sindicato, ITSM, Macuspana, Trabajadores, Noticias, Gestiones, Transparencia, Recursos, Tabasco">
   <meta name="author" content="Sindicato Único de Trabajadores del ITSM">
-  <meta property="og:title"
-        content="Sindicato Único de Trabajadores del Instituto Tecnológico Superior de Macuspana">
+  <meta property="og:title" content="Sindicato Único de Trabajadores del Instituto Tecnológico Superior de Macuspana">
   <meta property="og:description"
-        content="La gran familia sindical del ITSM. Información, gestiones y recursos para los trabajadores.">
+    content="La gran familia sindical del ITSM. Información, gestiones y recursos para los trabajadores.">
   <meta property="og:image" content="{url('assets/images/logo.png')}">
   <meta property="og:url" content="https://www.siutitsm.com.mx/">
   <meta property="og:type" content="website">
@@ -32,8 +31,9 @@
   <!-- ======= Google Font =======-->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Spline+Sans:wght@300..700&display=swap"
-        rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Spline+Sans:wght@300..700&display=swap"
+    rel="stylesheet">
   <!-- End Google Font-->
 
   <!-- ======= Styles =======-->
@@ -44,34 +44,52 @@
 
   <!-- ======= Theme Style =======-->
   <!-- Font Override MUST load AFTER Litera -->
-  <link href="{url('assets/css/font-override.css', ['v'=>filemtime(__DIR__ . '/../public/assets/css/font-override.css')])}"
-        rel="stylesheet">
+  <link
+    href="{url('assets/css/font-override.css', ['v'=>filemtime(__DIR__ . '/../public/assets/css/font-override.css')])}"
+    rel="stylesheet">
   <link href="{url('assets/css/colors.php')}" rel="stylesheet">
   <!-- End Theme Style-->
   <script src="//unpkg.com/alpinejs" defer></script>
   {block head}{/block}
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+  <style>
+    .modal.fade .modal-dialog {
+      transform: none;
+    }
+
+    .modal.show .modal-dialog {
+      animation-name: fadeIn;
+      animation-duration: 0.5s;
+      animation-fill-mode: both;
+    }
+
+    .modal-backdrop.fade.show {
+      opacity: 0.5;
+      transition: opacity 0.3s linear;
+    }
+  </style>
 </head>
 
 <body>
 
-{include content}
+  {include content}
 
   <!-- ======= Javascripts =======-->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-        crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.1/dist/gsap.min.js"></script>
-<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-<script>
-  AOS.init({
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous">
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.1/dist/gsap.min.js"></script>
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script>
+    AOS.init({
     duration: 800,
     easing: 'slide',
     once: true,
   })
-</script>
-{block scripts}{/block}
-{block modals}{/block}
+  </script>
+  {block scripts}{/block}
+  {block modals}{/block}
 </body>
 
 </html>
