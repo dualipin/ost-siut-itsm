@@ -4,141 +4,169 @@
 <!-- Layout principal con flexbox para sticky footer -->
 <div class="d-flex flex-column min-vh-100">
 
-  <!-- Header -->
-  {include ./@landing.header.latte}
+	<!-- Header -->
+	{include ./@landing.header.latte}
 
-  <!-- Main content que ocupa el espacio disponible -->
-  <main class="flex-grow-1">
-    {include main}
-  </main>
+	<!-- Main content que ocupa el espacio disponible -->
+	<main class="flex-grow-1">
+		{include main}
+	</main>
 
-  <!-- Footer moderno con gradiente sutil -->
-  <footer class="mt-auto bg-primary text-white py-5 border-top border-5 border-secondary">
-    <div class="container">
+	<!-- Footer moderno con gradiente sutil -->
+	<footer class="mt-auto bg-primary text-white py-5 border-top border-5 border-secondary">
+		<div class="container">
 
-      <!-- Logo y descripción -->
-      <div class="text-center mb-5 pb-3 border-bottom border-secondary">
-        <img src="{url('/assets/images/logo.webp')}" alt="Logo del Sindicato" class="rounded-circle mb-3 shadow-sm"
-          width="120" height="120">
-        <p class="fs-5 fw-light mb-0">
-          Sindicato Único de Trabajadores del Instituto Tecnológico Superior de Macuspana
-        </p>
-      </div>
+			<!-- Logo y descripción -->
+			<div class="text-center mb-5 pb-3 border-bottom border-secondary">
+				<img src="{url('/assets/images/logo.webp')}" alt="Logo del Sindicato" class="rounded-circle mb-3 shadow-sm"
+					width="120" height="120">
+				<p class="fs-5 fw-light mb-0">
+					Sindicato Único de Trabajadores del Instituto Tecnológico Superior de Macuspana
+				</p>
+			</div>
 
-      <!-- Grid de 3 columnas para la información -->
-      <div class="row g-4 mb-4">
+			<!-- Grid de 3 columnas para la información -->
+			<div class="row g-4 mb-4">
 
-        <!-- Contacto -->
-        <div class="col-12 col-md-4">
-          <h3 class="h5 mb-3 pb-2 border-bottom border-secondary text-uppercase ls-1">Contacto</h3>
-          <ul class="list-unstyled mb-0">
-            <li class="mb-2">
-              <i class="bi bi-telephone me-2 text-secondary"></i>
-              <a href="tel:9361066169" class="text-white text-decoration-none hover-underline">
-                936 106 61 69
-              </a>
-            </li>
-            <li class="mb-2">
-              <i class="bi bi-envelope me-2 text-secondary"></i>
-              <a href="mailto:Sindicato_SIUTITSM@outlook.com"
-                class="text-white text-decoration-none text-lowercase hover-underline">
-                Sindicato_SIUTITSM@outlook.com
-              </a>
-            </li>
-            <li class="mb-0">
-              <i class="bi bi-geo-alt me-2 text-secondary"></i>
-              <span>
-                Avenida Tecnológico S/N Carretera a Belén, Macuspana, Tabasco, CP.: 86711
-              </span>
-            </li>
-          </ul>
-        </div>
+				<!-- Contacto -->
+				<div class="col-12 col-md-4">
+					<h3 class="h5 mb-3 pb-2 border-bottom border-secondary text-uppercase ls-1">Contacto</h3>
+					<ul class="list-unstyled mb-0">
+						<li class="mb-2">
+							<i class="bi bi-telephone me-2 text-secondary"></i>
+							<a href="tel:9361066169" class="text-white text-decoration-none hover-underline">
+								936 106 61 69
+							</a>
+						</li>
+						<li class="mb-2">
+							<i class="bi bi-envelope me-2 text-secondary"></i>
+							<a href="mailto:Sindicato_SIUTITSM@outlook.com"
+								class="text-white text-decoration-none text-lowercase hover-underline">
+								Sindicato_SIUTITSM@outlook.com
+							</a>
+						</li>
+						<li class="mb-0">
+							<i class="bi bi-geo-alt me-2 text-secondary"></i>
+							<span>
+								Avenida Tecnológico S/N Carretera a Belén, Macuspana, Tabasco, CP.: 86711
+							</span>
+						</li>
+					</ul>
+				</div>
 
-        <!-- Enlaces rápidos -->
-        <div class="col-12 col-md-4">
-          <h3 class="h5 mb-3 pb-2 border-bottom border-secondary text-uppercase ls-1">Enlaces Rápidos</h3>
-          <ul class="list-unstyled mb-0">
-            <li class="mb-2">
-              <a href="/" class="text-white text-decoration-none d-flex align-items-center hover-underline">
-                <i class="bi bi-chevron-right me-2 small"></i>Inicio
-              </a>
-            </li>
-            <li class="mb-2">
-              <a href="/gestiones" class="text-white text-decoration-none d-flex align-items-center hover-underline">
-                <i class="bi bi-chevron-right me-2 small"></i>Gestiones
-              </a>
-            </li>
-            <li class="mb-2">
-              <a href="/transparencia"
-                class="text-white text-decoration-none d-flex align-items-center hover-underline">
-                <i class="bi bi-chevron-right me-2 small"></i>Transparencia
-              </a>
-            </li>
-            <li class="mb-0">
-              <a href="/avisos" class="text-white text-decoration-none d-flex align-items-center hover-underline">
-                <i class="bi bi-chevron-right me-2 small"></i>Noticias
-              </a>
-            </li>
-          </ul>
-        </div>
+				<!-- Enlaces rápidos -->
+				<div class="col-12 col-md-4">
+					<h3 class="h5 mb-3 pb-2 border-bottom border-secondary text-uppercase ls-1">Enlaces Rápidos</h3>
+					<ul class="list-unstyled mb-0">
+						<li class="mb-2">
+							<a href="/" class="text-white text-decoration-none d-flex align-items-center hover-underline">
+								<i class="bi bi-chevron-right me-2 small"></i>Inicio
+							</a>
+						</li>
+						<li class="mb-2">
+							<a href="/gestiones" class="text-white text-decoration-none d-flex align-items-center hover-underline">
+								<i class="bi bi-chevron-right me-2 small"></i>Gestiones
+							</a>
+						</li>
+						<li class="mb-2">
+							<a href="/transparencia"
+								class="text-white text-decoration-none d-flex align-items-center hover-underline">
+								<i class="bi bi-chevron-right me-2 small"></i>Transparencia
+							</a>
+						</li>
+						<li class="mb-0">
+							<a href="/avisos" class="text-white text-decoration-none d-flex align-items-center hover-underline">
+								<i class="bi bi-chevron-right me-2 small"></i>Noticias
+							</a>
+						</li>
+					</ul>
+				</div>
 
-        <!-- Redes sociales -->
-        <div class="col-12 col-md-4">
-          <h3 class="h5 mb-3 pb-2 border-bottom border-secondary text-uppercase ls-1">Síguenos</h3>
-          <div class="d-flex gap-3 mb-3">
-            <a href="https://www.facebook.com/sindicatostitsm"
-              class="btn btn-outline-light btn-lg rounded-circle d-flex align-items-center justify-content-center"
-              style="width: 50px; height: 50px;" aria-label="Facebook">
-              <i class="bi bi-facebook fs-4"></i>
-            </a>
-            <a href="https://api.whatsapp.com/send/?phone=529361066169"
-              class="btn btn-outline-light btn-lg rounded-circle d-flex align-items-center justify-content-center"
-              style="width: 50px; height: 50px;" aria-label="WhatsApp">
-              <i class="bi bi-whatsapp fs-4"></i>
-            </a>
-          </div>
-        </div>
-      </div>
+				<!-- Redes sociales -->
+				<div class="col-12 col-md-4">
+					<h3 class="h5 mb-3 pb-2 border-bottom border-secondary text-uppercase ls-1">Síguenos</h3>
+					<div class="d-flex gap-3 mb-3">
+						<a href="https://www.facebook.com/sindicatostitsm"
+							class="btn btn-outline-light btn-lg rounded-circle d-flex align-items-center justify-content-center"
+							style="width: 50px; height: 50px;" aria-label="Facebook">
+							<i class="bi bi-facebook fs-4"></i>
+						</a>
+						<a href="https://api.whatsapp.com/send/?phone=529361066169"
+							class="btn btn-outline-light btn-lg rounded-circle d-flex align-items-center justify-content-center"
+							style="width: 50px; height: 50px;" aria-label="WhatsApp">
+							<i class="bi bi-whatsapp fs-4"></i>
+						</a>
+					</div>
+				</div>
+			</div>
 
-      <!-- Copyright y legal -->
-      <div class="text-center pt-4 border-top border-secondary">
-        <p class="mb-2 small text-white-50">
-          &copy; {date('Y')} Sindicato Único de Trabajadores del Instituto Tecnológico Superior de Macuspana<br>
-          Todos los derechos reservados.
-        </p>
-        <div class="d-flex justify-content-center gap-3 small">
-          <a href="#" class="text-white-50 text-decoration-none hover-white">Política de Privacidad</a>
-          <span class="text-white-50">|</span>
-          <a href="#" class="text-white-50 text-decoration-none hover-white">Términos y Condiciones</a>
-        </div>
-      </div>
-    </div>
-  </footer>
+			<!-- Copyright y legal -->
+			<div class="text-center pt-4 border-top border-secondary">
+				<p class="mb-2 small text-white-50">
+					&copy; {date('Y')} Sindicato Único de Trabajadores del Instituto Tecnológico Superior de Macuspana<br>
+					Todos los derechos reservados.
+				</p>
+				<div class="d-flex justify-content-center gap-3 small">
+					<a href="#" class="text-white-50 text-decoration-none hover-white">Política de Privacidad</a>
+					<span class="text-white-50">|</span>
+					<a href="#" class="text-white-50 text-decoration-none hover-white">Términos y Condiciones</a>
+				</div>
+			</div>
+		</div>
+	</footer>
 </div>
 
 <!-- Floating Action Buttons (Back to Top + Redes) -->
-<div id="floatingElements" class="position-fixed bottom-0 end-0 p-3 d-flex flex-column gap-2" style="z-index: 1030;">
+<div id="floatingElements" class="position-fixed bottom-0 end-0 p-3 flex-column gap-2 d-flex"
+	style="z-index: 1030; opacity:0; transform:translateY(20px); visibility:hidden; transition:opacity 0.3s ease, transform 0.3s ease;">
 
-  <!-- Facebook -->
-  <a href="https://www.facebook.com/sindicatostitsm"
-    class="btn btn-primary rounded-circle border border-secondary d-flex align-items-center justify-content-center shadow"
-    style="width: 45px; height: 45px; background-color: #3b5998;" aria-label="Facebook">
-    <i class="bi bi-facebook text-white fs-5"></i>
-  </a>
+	<!-- Facebook -->
+	<a href="https://www.facebook.com/sindicatostitsm"
+		class="btn btn-primary rounded-circle border border-secondary d-flex align-items-center justify-content-center shadow"
+		style="width: 45px; height: 45px; background-color: #3b5998;" aria-label="Facebook">
+		<i class="bi bi-facebook text-white fs-5"></i>
+	</a>
 
-  <!-- WhatsApp -->
-  <a href="https://api.whatsapp.com/send/?phone=529361066169"
-    class="btn btn-success rounded-circle border border-secondary d-flex align-items-center justify-content-center shadow"
-    style="width: 45px; height: 45px; background-color: #25D366;" aria-label="WhatsApp">
-    <i class="bi bi-whatsapp text-white fs-5"></i>
-  </a>
+	<!-- WhatsApp -->
+	<a href="https://api.whatsapp.com/send/?phone=529361066169"
+		class="btn btn-success rounded-circle border border-secondary d-flex align-items-center justify-content-center shadow"
+		style="width: 45px; height: 45px; background-color: #25D366;" aria-label="WhatsApp">
+		<i class="bi bi-whatsapp text-white fs-5"></i>
+	</a>
 
-  <!-- Back to Top -->
-  <button type="button"
-    class="btn btn-primary rounded-circle border border-secondary d-flex align-items-center justify-content-center shadow"
-    style="width: 45px; height: 45px;" aria-label="Volver arriba"
-    onclick="window.scrollTo({'top': 0, 'behavior': 'smooth'});">
-    <i class="bi bi-arrow-up-short text-white fs-4"></i>
-  </button>
+	<!-- Back to Top -->
+	<button type="button"
+		class="btn btn-primary rounded-circle border border-secondary d-flex align-items-center justify-content-center shadow"
+		style="width: 45px; height: 45px;" aria-label="Volver arriba"
+		onclick="window.scrollTo({'top': 0, 'behavior': 'smooth'});">
+		<i class="bi bi-arrow-up-short text-white fs-4"></i>
+	</button>
 </div>
+
+{/block}
+
+{block scripts}
+{include parent}
+<script>
+	document.addEventListener('DOMContentLoaded', () => {
+      const f = document.getElementById('floatingElements');
+      let shown = false;
+      function update() {
+        const should = window.scrollY > 300;
+        if (should === shown) return;
+        shown = should;
+        if (should) {
+          f.style.visibility = 'visible';
+          f.style.opacity = '1';
+          f.style.transform = 'translateY(0)';
+        } else {
+          f.style.opacity = '0';
+          f.style.transform = 'translateY(20px)';
+          f.style.visibility = 'hidden';
+        }
+      }
+      update();
+      window.addEventListener('scroll', update);
+    });
+</script>
 {/block}
