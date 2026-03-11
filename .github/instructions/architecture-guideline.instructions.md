@@ -83,4 +83,4 @@ Antes de escribir cualquier línea de código, debes ejecutar este análisis int
 
 - **Si eres un agente (Cursor/Copilot/Claude)**: Lee este archivo en cada turno. Úsalo como el validador de tus propuestas de código.
 - **Si vas a crear un módulo**: Sigue la estructura del espejo de `Auth` proporcionado por el usuario.
-- Modulo Auth: `docs/auth.md` (documentación), `app/Modules/Auth/` (código fuente).
+- Modulo Auth: [auth.md](../../docs/auth.md) (documentación), `app/Modules/Auth/` (código fuente).
