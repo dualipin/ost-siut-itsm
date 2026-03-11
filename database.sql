@@ -447,6 +447,8 @@ CREATE TABLE IF NOT EXISTS mail_queue
     last_error   TEXT,                                                                    -- Para depurar por qué falló
     scheduled_at TIMESTAMP                                     DEFAULT CURRENT_TIMESTAMP, -- Envío programado
     locked_at    TIMESTAMP    NULL,                                                       -- Evita colisiones entre procesos
+    lock_token   VARCHAR(64)  NULL,                                                       -- Identificador del proceso que reclamó el correo
     created_at   TIMESTAMP                                     DEFAULT CURRENT_TIMESTAMP,
-    INDEX (status, priority, scheduled_at)                                                -- Optimiza la consulta del cron
+    INDEX (status, priority, scheduled_at),                                               -- Optimiza la consulta del cron
+    INDEX (status, lock_token)
 );

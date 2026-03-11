@@ -3,7 +3,9 @@
 use App\Infrastructure\Config\AppConfig;
 use App\Infrastructure\Mail\DatabaseMailQueue;
 use App\Infrastructure\Mail\EmailService;
+use App\Infrastructure\Mail\MailQueueProcessor;
 use App\Infrastructure\Mail\MailerInterface;
+use App\Infrastructure\Mail\PdoMailQueueRepository;
 use App\Infrastructure\Persistence\PdoTransactionManager;
 use App\Infrastructure\Persistence\TransactionManager;
 use App\Infrastructure\Session\PhpSession;
@@ -111,6 +113,8 @@ return function (ContainerBuilder $container) {
 
         RendererInterface::class => autowire(LatteRenderer::class),
         EmailService::class => autowire(EmailService::class),
+        PdoMailQueueRepository::class => autowire(PdoMailQueueRepository::class),
+        MailQueueProcessor::class => autowire(MailQueueProcessor::class),
         MailerInterface::class => autowire(DatabaseMailQueue::class),
         SessionInterface::class => autowire(PhpSession::class),
         TransactionManager::class => autowire(PdoTransactionManager::class),
