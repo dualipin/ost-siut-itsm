@@ -41,24 +41,33 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 		}
 
 		$appConfig = $container->get(AppConfig::class);
-		$uploadRootDir = rtrim($appConfig->upload->publicDir, DIRECTORY_SEPARATOR);
+		$publicUploadRootDir = rtrim($appConfig->upload->publicDir, DIRECTORY_SEPARATOR);
+		$privateUploadRootDir = rtrim($appConfig->upload->privateDir, DIRECTORY_SEPARATOR);
 		$userRelativeDir = "users/" . $user->id;
-		$userAbsoluteDir =
-			$uploadRootDir .
+		$publicUserAbsoluteDir =
+			$publicUploadRootDir .
+			DIRECTORY_SEPARATOR .
+			"users" .
+			DIRECTORY_SEPARATOR .
+			$user->id;
+		$privateUserAbsoluteDir =
+			$privateUploadRootDir .
 			DIRECTORY_SEPARATOR .
 			"users" .
 			DIRECTORY_SEPARATOR .
 			$user->id;
 
-		if (!is_dir($userAbsoluteDir) &&
-			!mkdir($userAbsoluteDir, 0775, true) &&
-			!is_dir($userAbsoluteDir)) {
-			throw new RuntimeException("No se pudo crear el directorio de carga.");
+		foreach ([$publicUserAbsoluteDir, $privateUserAbsoluteDir] as $uploadDir) {
+			if (!is_dir($uploadDir) &&
+				!mkdir($uploadDir, 0775, true) &&
+				!is_dir($uploadDir)) {
+				throw new RuntimeException("No se pudo crear el directorio de carga.");
+			}
 		}
 
 		$photoPath = uploadProfileFile(
 			$_FILES["fotoPerfil"] ?? null,
-			$userAbsoluteDir,
+			$publicUserAbsoluteDir,
 			$userRelativeDir,
 			["image/jpeg", "image/png", "image/webp"],
 			2 * 1024 * 1024,
@@ -97,7 +106,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 			$documentPath = uploadProfileFile(
 				$_FILES[$fieldName] ?? null,
-				$userAbsoluteDir,
+				$privateUserAbsoluteDir,
 				$userRelativeDir,
 				["application/pdf", "image/jpeg", "image/png", "image/webp"],
 				5 * 1024 * 1024,
