@@ -17,6 +17,7 @@ final readonly class Publication
         public string $content,
         public PublicationTypeEnum $type,
         public array $attachments = [],
+        public ?string $thumbnailUrl = null,
         public ?string $summary = null,
         public ?DateTimeImmutable $expirationDate = null,
         public ?DateTimeImmutable $createdAt = null,
