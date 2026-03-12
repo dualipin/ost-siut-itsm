@@ -9,4 +9,4 @@ $container = Bootstrap::buildContainer();
 
 $renderer = $container->get(RendererInterface::class);
 
-$renderer->render("./registrar.latte");
+$renderer->render(__DIR__ . "/registrar.latte");
