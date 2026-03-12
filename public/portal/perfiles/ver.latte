@@ -1,6 +1,7 @@
 {layout ../../../templates/@portal.latte}
 
 {block modals}
+  {if $authUser->id === $perfil['id']}
   <div class="modal fade" id="datosPersonalesModal" tabindex="-1" aria-labelledby="datosPersonalesModalLabel"
        aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -83,6 +84,7 @@
       </div>
     </div>
   </div>
+  {/if}
 {/block}
 
 {block title}Mi Perfil{/block}
@@ -130,12 +132,14 @@
           </div>
         </div>
 
+        {if $authUser->id === $perfil['id']}
         <div class="col-12 col-lg-auto text-lg-end text-center">
           <button type="button" class="btn btn-primary px-4" data-bs-toggle="modal"
                   data-bs-target="#datosPersonalesModal">
             <i class="bi bi-pencil-square me-2"></i>Editar perfil
           </button>
         </div>
+        {/if}
       </div>
     </div>
   </div>
@@ -207,7 +211,7 @@
                   </div>
 
                   {if $doc}
-                    <a href="/portal/perfiles/documento.php?tipo={$key}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3">Ver
+                    <a href="/portal/perfiles/documento.php?tipo={$key}&uid={$perfil['id']}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3">Ver
                       archivo</a>
                   {else}
                     <span class="badge text-bg-warning rounded-pill px-3 py-2">Pendiente</span>

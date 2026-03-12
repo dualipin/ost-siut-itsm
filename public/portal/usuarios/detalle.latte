@@ -10,6 +10,9 @@
   }
 
   <div class="d-flex justify-content-end gap-2 mb-4">
+    <a href="/portal/perfiles/ver.php?uid={$user->id}" class="btn btn-outline-primary">
+      <i class="bi bi-person-lines-fill me-1"></i>Ver perfil
+    </a>
     <a href="./editar.php?id={$user->id}" class="btn btn-outline-primary">
       <i class="bi bi-pencil me-1"></i>Editar
     </a>
@@ -23,6 +26,11 @@
       <div class="card border-0 shadow-sm rounded-4 h-100">
         <div class="card-body p-4">
           <h2 class="h5 fw-semibold mb-4"><i class="bi bi-person-vcard me-2 text-primary"></i>Datos Personales</h2>
+          {if !empty($docs['perfil'])}
+            <div class="text-center mb-3">
+              <img src="{upload($docs['perfil'])}" alt="Foto de perfil" class="rounded-circle" width="120" height="120">
+            </div>
+          {/if}
           <ul class="list-unstyled mb-0 small">
             <li class="mb-2"><span class="text-muted">Nombre completo:</span> <strong>{$user->personalInfo->name} {$user->personalInfo->surnames}</strong></li>
             <li class="mb-2"><span class="text-muted">Correo:</span> {$user->email}</li>
@@ -78,6 +86,46 @@
               {$user->createdAt?->format('d/m/Y') ?? '—'}
             </li>
           </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- documentos -->
+  <div class="row g-4 mt-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white border-0 px-4 pt-4 pb-2">
+          <h5 class="mb-1 fw-bold d-flex align-items-center">
+            <i class="bi bi-folder2-open me-2 text-primary"></i>Documentos
+          </h5>
+          <small class="text-body-secondary">Estado de carga de documentos obligatorios.</small>
+        </div>
+        <div class="card-body px-4 pb-4">
+          {if !$hasAnyDocument}
+            <div class="alert alert-warning border-0 rounded-4 mb-0" role="alert">
+              <i class="bi bi-exclamation-circle me-2"></i>No se han subido documentos aun.
+            </div>
+          {else}
+            <div class="list-group list-group-flush">
+              {foreach $documentFields as $field}
+                {var $key = $field['key']}
+                {var $doc = $docs[$key] ?? ''}
+                <div class="list-group-item px-0 d-flex align-items-center justify-content-between gap-3 flex-wrap">
+                  <div>
+                    <h6 class="mb-1">{$field['label']}</h6>
+                    <small class="text-body-secondary">{if $doc}Archivo cargado{else}Documento pendiente{/if}</small>
+                  </div>
+
+                  {if $doc}
+                    <a href="/portal/perfiles/documento.php?tipo={$key}&uid={$user->id}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3">Ver archivo</a>
+                  {else}
+                    <span class="badge text-bg-warning rounded-pill px-3 py-2">Pendiente</span>
+                  {/if}
+                </div>
+              {/foreach}
+            </div>
+          {/if}
         </div>
       </div>
     </div>
