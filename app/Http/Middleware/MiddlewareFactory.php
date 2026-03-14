@@ -2,8 +2,9 @@
 
 namespace App\Http\Middleware;
 
-use App\Module\Auth\Enum\RoleEnum;
+
 use App\Shared\Context\UserContext;
+use App\Shared\Domain\Enum\RoleEnum;
 
 /**
  * Factory para crear middlewares de forma sencilla

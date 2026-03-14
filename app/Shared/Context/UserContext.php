@@ -9,11 +9,16 @@ use App\Shared\Security\AuthenticatedUser;
 final readonly class UserContext implements UserContextInterface
 {
     private const string SessionKey = "auth_user";
+    private ?AuthenticatedUser $cachedUser = null;
 
     public function __construct(private SessionInterface $session) {}
 
     public function get(): ?AuthenticatedUser
     {
+        if ($this->cachedUser !== null) {
+            return $this->cachedUser;
+        }
+
         $data = $this->session->get(self::SessionKey);
 
         if (!is_array($data)) {
@@ -34,11 +39,12 @@ final readonly class UserContext implements UserContextInterface
             return null;
         }
 
-        $name = is_string($data["name"] ?? null) && trim($data["name"]) !== ""
-            ? $data["name"]
-            : (string) $data["email"];
+        $name =
+            is_string($data["name"] ?? null) && trim($data["name"]) !== ""
+                ? $data["name"]
+                : (string) $data["email"];
 
-        return new AuthenticatedUser(
+        return $this->cachedUser = new AuthenticatedUser(
             id: (int) $data["id"],
             name: $name,
             email: $data["email"],

@@ -3,14 +3,14 @@
 namespace App\Http\Middleware;
 
 use App\Http\Exception\UnauthorizedException;
-use App\Shared\Context\UserContext;
+use App\Shared\Context\UserContextInterface;
 
 /**
  * Middleware de autenticación - Requiere que el usuario esté autenticado
  */
 final class AuthMiddleware extends BaseMiddleware
 {
-    public function __construct(UserContext $context)
+    public function __construct(UserContextInterface $context)
     {
         parent::__construct($context);
     }
