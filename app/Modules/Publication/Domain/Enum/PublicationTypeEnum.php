@@ -7,4 +7,5 @@ enum PublicationTypeEnum: string
     case Alert = "aviso";
     case News = "noticia";
     case Management = "gestion";
+    case Contracts = "contratos";
 }

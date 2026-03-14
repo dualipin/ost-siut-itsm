@@ -7,7 +7,7 @@ use App\Infrastructure\Config\AppConfig;
 use App\Modules\User\Domain\Enum\DocumentTypeEnum;
 use App\Modules\User\Domain\Repository\UserRepositoryInterface;
 use App\Shared\Context\UserProviderInterface;
-use App\Shared\Domain\Enum\RoleEnum;
+use App\Shared\Utils\DocumentHelper;
 
 require_once __DIR__ . "/../../../bootstrap.php";
 
@@ -25,6 +25,24 @@ if ($user === null) {
     exit;
 }
 
+// determine which user's document is being requested
+$ownerId = null;
+if (isset($_GET['uid']) && is_numeric($_GET['uid'])) {
+    $ownerId = (int) $_GET['uid'];
+}
+
+if ($ownerId === null || $ownerId === 0) {
+    $ownerId = $user->id;
+}
+
+// only certain roles may access other users' documents
+if ($ownerId !== $user->id) {
+    if (!DocumentHelper::canViewOtherUserDocuments($user->role)) {
+        http_response_code(403);
+        exit;
+    }
+}
+
 $documentTypeInput = is_string($_GET["tipo"] ?? null) ? $_GET["tipo"] : "";
 $documentType = DocumentTypeEnum::tryFrom($documentTypeInput);
 
@@ -34,20 +52,20 @@ if ($documentType === null) {
 }
 
 $userRepository = $container->get(UserRepositoryInterface::class);
-$profileUser = $userRepository->findById($user->id);
+$profileUser = $userRepository->findById($ownerId);
 
 if ($profileUser === null) {
     http_response_code(404);
     exit;
 }
 
-if (!in_array($documentType, resolveAllowedDocumentTypes($profileUser->role), true)) {
+if (!in_array($documentType, DocumentHelper::resolveAllowedDocumentTypes($profileUser->role), true)) {
     http_response_code(403);
     exit;
 }
 
-$documents = $userRepository->findDocumentsByUserId($user->id);
-$relativePath = normalizeUploadPath($documents[$documentType->value] ?? null);
+$documents = $userRepository->findDocumentsByUserId($ownerId);
+$relativePath = DocumentHelper::normalizeUploadPath($documents[$documentType->value] ?? null);
 
 if ($relativePath === "") {
     http_response_code(404);
@@ -87,42 +105,7 @@ header(
 readfile($filePath);
 exit;
 
-/**
- * @return array<int, DocumentTypeEnum>
- */
-function resolveAllowedDocumentTypes(RoleEnum $role): array
-{
-    if ($role === RoleEnum::NoAgremiado) {
-        return [
-            DocumentTypeEnum::Ine,
-            DocumentTypeEnum::ComprobanteDomicilio,
-            DocumentTypeEnum::Curp,
-        ];
-    }
 
-    return [
-        DocumentTypeEnum::Afiliacion,
-        DocumentTypeEnum::ComprobanteDomicilio,
-        DocumentTypeEnum::Ine,
-        DocumentTypeEnum::ComprobantePago,
-        DocumentTypeEnum::Curp,
-    ];
-}
-
-function normalizeUploadPath(?string $value): string
-{
-    $path = ltrim((string) ($value ?? ""), "/\\");
-
-    if ($path === "") {
-        return "";
-    }
-
-    if (str_starts_with($path, "uploads/")) {
-        return substr($path, 8);
-    }
-
-    return $path;
-}
 
 function resolveSafeFilePath(string $baseDir, string $relativePath): ?string
 {

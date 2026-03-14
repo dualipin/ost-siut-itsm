@@ -1,13 +1,13 @@
 insert into system_colors (id)
 values (1);
 
-insert into cat_tipos_ingreso (nombre,
-                               descripcion,
-                               es_periodico,
-                               frecuencia_dias,
-                               mes_pago_tentativo,
-                               dia_pago_tentativo,
-                               activo)
+insert into cat_income_types (name,
+                               description,
+                               is_periodic,
+                               frequency_days,
+                               tentative_payment_month,
+                               tentative_payment_day,
+                               active)
 VALUES ('Nomina',
         'Ingreso por concepto de nómina',
         true,

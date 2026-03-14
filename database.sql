@@ -338,6 +338,7 @@ CREATE TABLE IF NOT EXISTS publications
     title            VARCHAR(100) NOT NULL,
     summary          VARCHAR(255),
     content          TEXT         NOT NULL,
+    thumbnail_url    VARCHAR(255),
     publication_type VARCHAR(30)  NOT NULL,
     expiration_date  DATE     DEFAULT NULL,
     created_at       DATETIME DEFAULT CURRENT_TIMESTAMP,
