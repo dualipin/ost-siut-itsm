@@ -12,4 +12,7 @@ interface PublicationRepositoryInterface
      */
     public function findByType(PublicationTypeEnum $type): array;
     public function findById(int $id): ?Publication;
+    public function save(Publication $publication): void;
+    public function delete(int $id): void;
+    public function update(Publication $publication): void;
 }
