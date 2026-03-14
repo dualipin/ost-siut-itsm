@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Request;
 
 use function array_intersect_key;
@@ -8,15 +10,31 @@ use function array_map;
 
 final readonly class FormRequest
 {
-    private array $data;
+    /**
+     * El constructor ahora es "puro". No sabe nada de $_POST o $_GET.
+     * Simplemente recibe los datos. Esto hace que mockearlo en tests sea trivial.
+     */
+    public function __construct(
+        private array $data,
+        private array $files,
+        private string $method,
+    ) {}
 
-    public function __construct()
+    /**
+     * Factory Method: Este es el ÚNICO lugar de tu app que toca las variables globales.
+     * Lo llamas desde tu public/index.php o tu enrutador.
+     */
+    public static function capture(): self
     {
-        $this->data = match ($this->method()) {
+        $method = strtoupper($_SERVER["REQUEST_METHOD"] ?? "GET");
+
+        $data = match ($method) {
             "POST" => $_POST ?? [],
             "GET" => $_GET ?? [],
             default => [...$_GET ?? [], ...$_POST ?? []],
         };
+
+        return new self(data: $data, files: $_FILES ?? [], method: $method);
     }
 
     public function input(string $key, mixed $default = null): mixed
@@ -57,22 +75,28 @@ final readonly class FormRequest
 
     public function float(string $key, float $default = 0.0): float
     {
-        return (float) str_replace(",", ".", $this->data[$key] ?? $default);
+        // Nota: Reemplazar comas por puntos está bien para UX,
+        // pero ten cuidado si luego implementas internacionalización (i18n).
+        return (float) str_replace(
+            ",",
+            ".",
+            (string) ($this->data[$key] ?? $default),
+        );
     }
 
     public function file(string $key): ?array
     {
-        return $_FILES[$key] ?? null;
+        return $this->files[$key] ?? null;
     }
 
     public function method(): string
     {
-        return strtoupper($_SERVER["REQUEST_METHOD"] ?? "GET");
+        return $this->method;
     }
 
     public function is(string $method): bool
     {
-        return $this->method() === strtoupper($method);
+        return $this->method === strtoupper($method);
     }
 
     public function isSubmitted(): bool
