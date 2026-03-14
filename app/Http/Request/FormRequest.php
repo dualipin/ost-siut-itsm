@@ -8,7 +8,7 @@ use function array_intersect_key;
 use function array_key_exists;
 use function array_map;
 
-final readonly class FormRequest
+final readonly class FormRequest implements RequestInterface
 {
     /**
      * El constructor ahora es "puro". No sabe nada de $_POST o $_GET.
