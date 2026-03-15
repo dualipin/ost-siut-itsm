@@ -162,6 +162,27 @@ final class PdoPublicationRepository extends PdoBaseRepository implements
         }
     }
 
+    /**
+     * @param int[] $attachmentIds
+     */
+    public function deleteAttachmentsByIds(int $publicationId, array $attachmentIds): void
+    {
+        if ($attachmentIds === []) {
+            return;
+        }
+
+        $placeholders = implode(",", array_fill(0, count($attachmentIds), "?"));
+
+        $stmt = $this->pdo->prepare(
+            "DELETE FROM publication_attachments
+             WHERE publication_id = ?
+               AND attachment_id IN ({$placeholders})",
+        );
+
+        $params = [$publicationId, ...$attachmentIds];
+        $stmt->execute($params);
+    }
+
     public function deleteById(int $id): void
     {
         $stmt = $this->pdo->prepare(

@@ -20,5 +20,10 @@ interface PublicationRepositoryInterface
      * @param PublicationAttachment[] $attachments
      */
     public function addAttachments(int $publicationId, array $attachments): void;
+
+    /**
+     * @param int[] $attachmentIds
+     */
+    public function deleteAttachmentsByIds(int $publicationId, array $attachmentIds): void;
     public function deleteById(int $id): void;
 }

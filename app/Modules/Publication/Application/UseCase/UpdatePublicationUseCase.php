@@ -4,6 +4,7 @@ namespace App\Modules\Publication\Application\UseCase;
 
 use App\Infrastructure\Persistence\TransactionManager;
 use App\Modules\Publication\Domain\Entity\Publication;
+use App\Modules\Publication\Domain\Entity\PublicationAttachment;
 use App\Modules\Publication\Domain\Enum\PublicationTypeEnum;
 use App\Modules\Publication\Domain\Exception\PublicationAttachmentUploadException;
 use App\Modules\Publication\Domain\Exception\PublicationValidationException;
@@ -11,8 +12,12 @@ use App\Modules\Publication\Domain\Repository\PublicationRepositoryInterface;
 use App\Modules\Publication\Infrastructure\Upload\PublicationAttachmentUploader;
 use DateTimeImmutable;
 use Throwable;
+use function array_key_exists;
+use function array_values;
 use function html_entity_decode;
 use function is_array;
+use function is_numeric;
+use function is_scalar;
 use function trim;
 
 use const ENT_QUOTES;
@@ -42,6 +47,7 @@ final readonly class UpdatePublicationUseCase
         ?DateTimeImmutable $expirationDate = null,
         ?array $uploadedFiles = null,
         ?array $thumbnailFile = null,
+        ?array $removeAttachmentIds = null,
     ): void {
         $existingPublication = $this->publicationRepository->findById($publicationId);
 
@@ -86,6 +92,23 @@ final readonly class UpdatePublicationUseCase
             );
         }
 
+        $attachmentsToRemove = $this->resolveAttachmentsToRemove(
+            existingAttachments: $existingPublication->attachments,
+            removeAttachmentIds: $removeAttachmentIds,
+        );
+
+        $attachmentIdsToRemove = [];
+        $attachmentPathsToRemove = [];
+
+        foreach ($attachmentsToRemove as $attachmentToRemove) {
+            if ($attachmentToRemove->id === null) {
+                continue;
+            }
+
+            $attachmentIdsToRemove[] = $attachmentToRemove->id;
+            $attachmentPathsToRemove[] = $attachmentToRemove->filePath;
+        }
+
         $uploadedAttachments = $this->normalizeUploadedFiles($uploadedFiles);
         $storedAttachments = [];
         $storedThumbnail = null;
@@ -127,8 +150,15 @@ final readonly class UpdatePublicationUseCase
             $this->transactionManager->transactional(function () use (
                 $publicationToUpdate,
                 $storedAttachments,
+                $attachmentIdsToRemove,
             ): void {
                 $this->publicationRepository->update($publicationToUpdate);
+
+                $this->publicationRepository->deleteAttachmentsByIds(
+                    $publicationToUpdate->id,
+                    $attachmentIdsToRemove,
+                );
+
                 $this->publicationRepository->addAttachments(
                     $publicationToUpdate->id,
                     $storedAttachments,
@@ -141,6 +171,10 @@ final readonly class UpdatePublicationUseCase
                 $existingPublication->thumbnailUrl !== ""
             ) {
                 $this->attachmentUploader->delete($existingPublication->thumbnailUrl);
+            }
+
+            foreach ($attachmentPathsToRemove as $path) {
+                $this->attachmentUploader->delete($path);
             }
         } catch (Throwable $exception) {
             foreach ($storedAttachments as $attachment) {
@@ -289,5 +323,86 @@ final readonly class UpdatePublicationUseCase
             "tmp_name" => $tmpName,
             "size" => $size,
         ];
+    }
+
+    /**
+     * @param PublicationAttachment[] $existingAttachments
+     * @param array<int, mixed>|null $removeAttachmentIds
+     * @return PublicationAttachment[]
+     */
+    private function resolveAttachmentsToRemove(
+        array $existingAttachments,
+        ?array $removeAttachmentIds,
+    ): array {
+        $normalizedIds = $this->normalizeAttachmentIds($removeAttachmentIds);
+
+        if ($normalizedIds === []) {
+            return [];
+        }
+
+        $existingAttachmentsById = [];
+
+        foreach ($existingAttachments as $attachment) {
+            if ($attachment->id === null) {
+                continue;
+            }
+
+            $existingAttachmentsById[$attachment->id] = $attachment;
+        }
+
+        $attachmentsToRemove = [];
+
+        foreach ($normalizedIds as $attachmentId) {
+            if (!array_key_exists($attachmentId, $existingAttachmentsById)) {
+                throw new PublicationValidationException(
+                    "Uno de los adjuntos seleccionados para eliminar no existe.",
+                );
+            }
+
+            $attachmentsToRemove[] = $existingAttachmentsById[$attachmentId];
+        }
+
+        return $attachmentsToRemove;
+    }
+
+    /**
+     * @param array<int, mixed>|null $removeAttachmentIds
+     * @return int[]
+     */
+    private function normalizeAttachmentIds(?array $removeAttachmentIds): array
+    {
+        if ($removeAttachmentIds === null || $removeAttachmentIds === []) {
+            return [];
+        }
+
+        $normalized = [];
+
+        foreach ($removeAttachmentIds as $rawAttachmentId) {
+            if (!is_scalar($rawAttachmentId)) {
+                throw new PublicationValidationException(
+                    "La selección de adjuntos a eliminar no es válida.",
+                );
+            }
+
+            $rawValue = trim((string) $rawAttachmentId);
+
+            if ($rawValue === "" || !is_numeric($rawValue)) {
+                throw new PublicationValidationException(
+                    "La selección de adjuntos a eliminar no es válida.",
+                );
+            }
+
+            $attachmentId = (int) $rawValue;
+
+            if ($attachmentId <= 0) {
+                throw new PublicationValidationException(
+                    "La selección de adjuntos a eliminar no es válida.",
+                );
+            }
+
+            $normalized[$attachmentId] = $attachmentId;
+        }
+
+        return array_values($normalized);
     }
 }

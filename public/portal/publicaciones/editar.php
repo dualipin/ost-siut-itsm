@@ -58,6 +58,9 @@ $old = [
     "summary" => $request->input("summary", $publication->summary ?? ""),
     "type" => $request->input("type", $publication->type->value),
     "content" => $request->input("content", $publication->content),
+    "remove_attachment_ids" => normalizeAttachmentIdsInput(
+        $request->input("remove_attachment_ids", []),
+    ),
     "expiration_date" => $request->input(
         "expiration_date",
         $publication->expirationDate?->format("Y-m-d") ?? "",
@@ -93,6 +96,7 @@ if ($request->isSubmitted()) {
                     expirationDate: $expirationDate,
                     uploadedFiles: $request->file("attachments"),
                     thumbnailFile: $request->file("thumbnail"),
+                    removeAttachmentIds: $old["remove_attachment_ids"],
                 );
 
                 $redirector->to(resolvePublicationListPath($publicationType), [
@@ -115,6 +119,9 @@ $renderer->render(__DIR__ . "/editar.latte", [
     "publication" => $publication,
     "types" => PublicationTypeEnum::cases(),
     "backUrl" => resolvePublicationListPath($publication->type),
+    "removeAttachmentIdsLookup" => buildAttachmentIdLookup(
+        $old["remove_attachment_ids"],
+    ),
 ]);
 
 function resolvePublicationListPath(PublicationTypeEnum $type): string
@@ -125,4 +132,49 @@ function resolvePublicationListPath(PublicationTypeEnum $type): string
         PublicationTypeEnum::Management => "/portal/publicaciones/gestiones.php",
         PublicationTypeEnum::Contracts => "/portal/publicaciones/contratos.php",
     };
+}
+
+/**
+ * @param mixed $rawValue
+ * @return int[]
+ */
+function normalizeAttachmentIdsInput(mixed $rawValue): array
+{
+    if ($rawValue === null || $rawValue === "") {
+        return [];
+    }
+
+    $values = is_array($rawValue) ? $rawValue : [$rawValue];
+    $normalized = [];
+
+    foreach ($values as $value) {
+        if (!is_scalar($value)) {
+            continue;
+        }
+
+        $id = (int) $value;
+
+        if ($id <= 0) {
+            continue;
+        }
+
+        $normalized[$id] = $id;
+    }
+
+    return array_values($normalized);
+}
+
+/**
+ * @param int[] $attachmentIds
+ * @return array<int, bool>
+ */
+function buildAttachmentIdLookup(array $attachmentIds): array
+{
+    $lookup = [];
+
+    foreach ($attachmentIds as $attachmentId) {
+        $lookup[(int) $attachmentId] = true;
+    }
+
+    return $lookup;
 }
