@@ -21,6 +21,10 @@
       </div>
     </div>
 
+    {if $error}
+      <div class="alert alert-warning" role="alert">{$error}</div>
+    {/if}
+
     <div class="row g-4">
       {if count($noticias) > 0}
         {foreach $noticias as $noticia}
@@ -43,7 +47,7 @@
                 </div>
                 <h3 class="h5 card-title fw-bold mb-3">{$noticia['titulo']}</h3>
                 <p class="card-text text-muted mb-4">{$noticia['resumen']|truncate:120}</p>
-                <a href="#" class="btn btn-outline-primary rounded-pill px-4 stretched-link">Leer más</a>
+                <a href="{url('/publicaciones/noticias.php', ['detalle' => $noticia['id']])}" class="btn btn-outline-primary rounded-pill px-4 stretched-link">Leer más</a>
               </div>
             </div>
           </div>

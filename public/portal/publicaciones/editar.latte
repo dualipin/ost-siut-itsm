@@ -1,0 +1,228 @@
+{extends ../../../templates/@portal.latte}
+
+{block main}
+  <div class="row g-4">
+    <div class="col-12">
+      <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+        <div>
+          <h1 class="display-6 fw-bold text-primary mb-1">Editar publicación</h1>
+          <p class="text-muted mb-0">Actualiza contenido, tipo, miniatura y agrega nuevos adjuntos.</p>
+        </div>
+        <div class="d-flex gap-2">
+          <a href="{url($backUrl)}" class="btn btn-outline-secondary">Cancelar</a>
+          <button type="submit" form="publicationEditForm" class="btn btn-primary">
+            <i class="bi bi-pencil-square me-2"></i>
+            Guardar cambios
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12">
+      {if $error}
+        <div class="alert alert-danger" role="alert">{$error}</div>
+      {/if}
+
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4 p-lg-5">
+          <form id="publicationEditForm" method="post" enctype="multipart/form-data" class="row g-4">
+            <input type="hidden" name="id" value="{$publication->id}">
+
+            <div class="col-12 col-lg-8">
+              <label for="title" class="form-label fw-semibold">Título</label>
+              <input type="text" class="form-control" id="title" name="title" maxlength="100" required
+                     value="{$old['title']}">
+            </div>
+
+            <div class="col-12 col-lg-4">
+              <label for="type" class="form-label fw-semibold">Tipo</label>
+              <select class="form-select" id="type" name="type" required>
+                {foreach $types as $type}
+                  <option value="{$type->value}" {if $old['type'] === $type->value}selected{/if}>
+                    {$type->value|firstUpper}
+                  </option>
+                {/foreach}
+              </select>
+            </div>
+
+            <div class="col-12">
+              <label for="summary" class="form-label fw-semibold">Resumen</label>
+              <textarea class="form-control" id="summary" name="summary" rows="3" maxlength="255">{$old['summary']}</textarea>
+            </div>
+
+            <div class="col-12 col-lg-4">
+              <label for="expiration_date" class="form-label fw-semibold">Expiración (opcional)</label>
+              <input type="date" class="form-control" id="expiration_date" name="expiration_date"
+                     value="{$old['expiration_date']}">
+            </div>
+
+            <div class="col-12 col-lg-8">
+              <label for="thumbnail" class="form-label fw-semibold">Reemplazar miniatura (opcional)</label>
+              <input type="file" class="form-control" id="thumbnail" name="thumbnail"
+                     accept=".jpg,.jpeg,.png,.gif,.webp">
+              <div class="form-text">Si subes una imagen, reemplazará la miniatura actual.</div>
+            </div>
+
+            {if $publication->thumbnailUrl}
+              <div class="col-12">
+                <div class="card border rounded-4">
+                  <div class="card-body">
+                    <h2 class="h6 fw-semibold mb-3">Miniatura actual</h2>
+                    <img src="{upload($publication->thumbnailUrl)}" alt="Miniatura actual" class="img-fluid rounded-3"
+                         style="max-height: 240px; object-fit: cover;">
+                  </div>
+                </div>
+              </div>
+            {/if}
+
+            <div class="col-12 col-lg-8">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <label class="form-label fw-semibold mb-0">Agregar adjuntos</label>
+                <button type="button" id="addAttachmentInput" class="btn btn-outline-primary btn-sm">
+                  <i class="bi bi-plus-circle me-1"></i>
+                  Agregar archivo
+                </button>
+              </div>
+
+              <div id="attachmentInputs" class="d-grid gap-2">
+                <div class="input-group">
+                  <input type="file" class="form-control" name="attachments[]"
+                         accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip">
+                  <button type="button" class="btn btn-outline-danger remove-attachment" disabled>
+                    <i class="bi bi-x-lg"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-text">Los adjuntos existentes se conservan; aquí puedes agregar nuevos.</div>
+            </div>
+
+            {if count($publication->attachments) > 0}
+              <div class="col-12">
+                <div class="card border rounded-4">
+                  <div class="card-body">
+                    <h2 class="h6 fw-semibold mb-3">Adjuntos actuales</h2>
+                    <ul class="list-group list-group-flush">
+                      {foreach $publication->attachments as $attachment}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                          <a href="{upload($attachment->filePath)}" target="_blank" rel="noopener" class="text-decoration-none">
+                            <i class="bi bi-paperclip me-2"></i>
+                            {$attachment->description ?? $attachment->filePath}
+                          </a>
+                          <span class="badge bg-light text-dark border">{$attachment->type->value|firstUpper}</span>
+                        </li>
+                      {/foreach}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            {/if}
+
+            <div class="col-12">
+              <label class="form-label fw-semibold">Contenido</label>
+              <div id="publicationEditor" class="bg-white rounded border"></div>
+              <textarea class="d-none" name="content" id="publicationContent">{$old['content']}</textarea>
+            </div>
+
+            <div class="col-12 d-flex justify-content-end gap-2">
+              <a href="{url($backUrl, ['detalle' => $publication->id])}" class="btn btn-outline-secondary">Volver al detalle</a>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save me-2"></i>
+                Guardar cambios
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+{/block}
+
+{block head}
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+{/block}
+
+{block scripts}
+  {include parent}
+  <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+  <script>
+    const quill = new Quill('#publicationEditor', {
+      theme: 'snow',
+      placeholder: 'Escribe el contenido de la publicación...',
+      modules: {
+        toolbar: [
+          [{'header': [1, 2, 3, false]}],
+          ['bold', 'italic', 'underline', 'strike'],
+          [{'list': 'ordered'}, {'list': 'bullet'}],
+          ['blockquote', 'code-block'],
+          ['link', 'clean']
+        ]
+      }
+    });
+
+    const form = document.getElementById('publicationEditForm');
+    const contentInput = document.getElementById('publicationContent');
+    const attachmentInputs = document.getElementById('attachmentInputs');
+    const addAttachmentInput = document.getElementById('addAttachmentInput');
+
+    if (contentInput.value.trim() !== '') {
+      quill.root.innerHTML = contentInput.value;
+    }
+
+    form.addEventListener('submit', function () {
+      contentInput.value = typeof quill.getSemanticHTML === 'function'
+        ? quill.getSemanticHTML()
+        : quill.root.innerHTML;
+    });
+
+    addAttachmentInput.addEventListener('click', function () {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'input-group';
+
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.className = 'form-control';
+      input.name = 'attachments[]';
+      input.accept = '.jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip';
+
+      const removeButton = document.createElement('button');
+      removeButton.type = 'button';
+      removeButton.className = 'btn btn-outline-danger remove-attachment';
+      removeButton.innerHTML = '<i class="bi bi-x-lg"></i>';
+      removeButton.addEventListener('click', function () {
+        wrapper.remove();
+        updateRemoveButtons();
+      });
+
+      wrapper.appendChild(input);
+      wrapper.appendChild(removeButton);
+      attachmentInputs.appendChild(wrapper);
+      updateRemoveButtons();
+    });
+
+    function updateRemoveButtons() {
+      const groups = attachmentInputs.querySelectorAll('.input-group');
+      groups.forEach(function (group, index) {
+        const removeButton = group.querySelector('.remove-attachment');
+        if (removeButton) {
+          removeButton.disabled = groups.length === 1 && index === 0;
+        }
+      });
+    }
+
+    attachmentInputs.addEventListener('click', function (event) {
+      const button = event.target.closest('.remove-attachment');
+      if (!button || button.disabled) {
+        return;
+      }
+
+      const group = button.closest('.input-group');
+      if (group) {
+        group.remove();
+        updateRemoveButtons();
+      }
+    });
+
+    updateRemoveButtons();
+  </script>
+{/block}

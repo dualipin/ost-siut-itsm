@@ -1,0 +1,31 @@
+{layout ../../templates/@landing.latte}
+
+{block main}
+  {var $typePath = match ($publicacion->type->value) {
+    'aviso' => '/publicaciones/avisos.php',
+    'noticia' => '/publicaciones/noticias.php',
+    'gestion' => '/publicaciones/gestiones.php',
+    'contratos' => '/publicaciones/contratos.php',
+    default => '/publicaciones/avisos.php',
+  }}
+
+  <div class="container py-5">
+    <nav aria-label="breadcrumb" class="mb-4">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Inicio</a></li>
+        <li class="breadcrumb-item"><a href="{url($typePath)}" class="text-decoration-none">{$publicacion->type->value|firstUpper}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Detalle</li>
+      </ol>
+    </nav>
+
+    {if $error}
+      <div class="alert alert-warning" role="alert">{$error}</div>
+    {/if}
+
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-body p-4 p-lg-5">
+        {include ../../templates/publicacion/show.latte}
+      </div>
+    </div>
+  </div>
+{/block}

@@ -1,0 +1,82 @@
+{extends ../../../templates/@portal.latte}
+
+{block main}
+  <div class="row mb-5 align-items-center">
+    <div class="col-lg-8">
+      <h1 class="display-4 fw-bold text-primary mb-3">Contratos</h1>
+      <p class="lead text-muted">Consulta contratos, convenios y documentos legales publicados por el sindicato.</p>
+    </div>
+    <div class="col-lg-4 text-lg-end">
+      <i class="bi bi-file-earmark-text text-primary opacity-25" style="font-size: 5rem;"></i>
+    </div>
+  </div>
+
+  {if $error}
+    <div class="alert alert-warning" role="alert">{$error}</div>
+  {/if}
+
+  {if $success}
+    <div class="alert alert-success" role="alert">{$success}</div>
+  {/if}
+
+  <div class="row g-4">
+    {if count($contratosPorAnio) > 0}
+      <div class="col-12">
+        <div class="accordion" id="contratosAccordionPortal">
+          {foreach $contratosPorAnio as $anio => $contratosDelAnio}
+            {var $itemId = 'portal-contratos-anio-' . $iterator->counter}
+            <div class="accordion-item border-0 shadow-sm rounded-4 overflow-hidden mb-3">
+              <h2 class="accordion-header" id="heading-{$itemId}">
+                <button class="accordion-button {if !$iterator->first}collapsed{/if} fw-semibold" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#collapse-{$itemId}"
+                        aria-expanded="{if $iterator->first}true{else}false{/if}"
+                        aria-controls="collapse-{$itemId}">
+                  <i class="bi bi-calendar3 me-2"></i>
+                  {$anio}
+                  <span class="badge bg-primary-subtle text-primary ms-2">{count($contratosDelAnio)}</span>
+                </button>
+              </h2>
+
+              <div id="collapse-{$itemId}" class="accordion-collapse collapse {if $iterator->first}show{/if}"
+                   aria-labelledby="heading-{$itemId}" data-bs-parent="#contratosAccordionPortal">
+                <div class="accordion-body">
+                  <div class="row g-4">
+                    {foreach $contratosDelAnio as $contrato}
+                      <div class="col-md-6 col-xl-4">
+                        <div class="card h-100 border-0 shadow-sm rounded-4">
+                          {if $contrato['imagen_portada']}
+                            <img src="{upload($contrato['imagen_portada'])}" class="card-img-top" alt="{$contrato['titulo']}"
+                                 style="height: 200px; object-fit: cover;">
+                          {/if}
+                          <div class="card-body p-4">
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                              <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3">Contrato</span>
+                              <span class="text-muted small">{$contrato['fecha_publicacion']|date:'d/m/Y'}</span>
+                            </div>
+                            <h3 class="h5 card-title fw-bold mb-3">{$contrato['titulo']}</h3>
+                            <p class="card-text text-muted mb-4">{$contrato['resumen']|truncate:110}</p>
+                            <a href="{url('/portal/publicaciones/contratos.php', ['detalle' => $contrato['id']])}" class="btn btn-link text-primary text-decoration-none p-0 fw-bold stretched-link">
+                              Ver detalles <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    {/foreach}
+                  </div>
+                </div>
+              </div>
+            </div>
+          {/foreach}
+        </div>
+      </div>
+    {else}
+      <div class="col-12 text-center py-5">
+        <div class="mb-4">
+          <i class="bi bi-folder2-open text-muted opacity-25" style="font-size: 4rem;"></i>
+        </div>
+        <h2 class="h4 text-muted">No hay contratos publicados.</h2>
+        <p class="text-muted">Vuelve pronto para revisar nuevas publicaciones.</p>
+      </div>
+    {/if}
+  </div>
+{/block}

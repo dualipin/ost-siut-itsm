@@ -39,9 +39,9 @@ $renderer = $container->get(RendererInterface::class);
 if ($detailId > 0) {
     $publication = $findById->execute($detailId);
 
-    if ($publication === null || $publication->type !== PublicationTypeEnum::Management) {
-        $redirector->to("/portal/publicaciones/gestiones.php", [
-            "error" => "La gestión solicitada no existe.",
+    if ($publication === null || $publication->type !== PublicationTypeEnum::Contracts) {
+        $redirector->to("/portal/publicaciones/contratos.php", [
+            "error" => "El contrato solicitado no existe.",
         ])->send();
     }
 
@@ -50,14 +50,14 @@ if ($detailId > 0) {
         "canManagePublications" => $canManagePublications,
         "editUrl" => "/portal/publicaciones/editar.php?id={$publication->id}",
         "deleteUrl" => "/portal/publicaciones/eliminar.php",
-        "backUrl" => "/portal/publicaciones/gestiones.php",
+        "backUrl" => "/portal/publicaciones/contratos.php",
         "success" => $request->input("success"),
         "error" => $request->input("error"),
     ]);
     return;
 }
 
-$gestiones = array_map(
+$contratos = array_map(
     static fn(Publication $publication) => [
         "id" => $publication->id,
         "titulo" => $publication->title,
@@ -67,11 +67,38 @@ $gestiones = array_map(
         "fecha_publicacion" => $publication->createdAt,
         "imagen_portada" => $publication->thumbnailUrl,
     ],
-    $findByType->execute(PublicationTypeEnum::Management),
+    $findByType->execute(PublicationTypeEnum::Contracts),
 );
 
-$renderer->render(__DIR__ . "/gestiones.latte", [
-    "gestiones" => $gestiones,
+$contratosPorAnio = [];
+
+foreach ($contratos as $contrato) {
+    $anio = $contrato["fecha_publicacion"]?->format("Y") ?? "Sin fecha";
+
+    if (!isset($contratosPorAnio[$anio])) {
+        $contratosPorAnio[$anio] = [];
+    }
+
+    $contratosPorAnio[$anio][] = $contrato;
+}
+
+uksort(
+    $contratosPorAnio,
+    static function (string $a, string $b): int {
+        if ($a === "Sin fecha") {
+            return 1;
+        }
+
+        if ($b === "Sin fecha") {
+            return -1;
+        }
+
+        return (int) $b <=> (int) $a;
+    },
+);
+
+$renderer->render(__DIR__ . "/contratos.latte", [
+    "contratosPorAnio" => $contratosPorAnio,
     "error" => $request->input("error"),
     "success" => $request->input("success"),
 ]);

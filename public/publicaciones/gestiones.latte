@@ -19,11 +19,19 @@
       </div>
     </div>
 
+    {if $error}
+      <div class="alert alert-warning" role="alert">{$error}</div>
+    {/if}
+
     <div class="row g-4">
       {if count($gestiones) > 0}
         {foreach $gestiones as $gestion}
           <div class="col-md-6 col-lg-4 animate__animated animate__fadeInUp" style="animation-delay: {$iterator->counter * 0.1}s">
             <div class="card h-100 border-0 shadow-sm hover-shadow transition-all rounded-4">
+              {if $gestion['imagen_portada']}
+                <img src="{upload($gestion['imagen_portada'])}" class="card-img-top" alt="{$gestion['titulo']}"
+                     style="height: 200px; object-fit: cover;">
+              {/if}
               <div class="card-body p-4">
                 <div class="d-flex align-items-center gap-2 mb-3">
                   <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3">Gestión</span>
@@ -31,7 +39,7 @@
                 </div>
                 <h3 class="h5 card-title fw-bold mb-3">{$gestion['titulo']}</h3>
                 <p class="card-text text-muted mb-4">{$gestion['resumen']|truncate:100}</p>
-                <a href="#" class="btn btn-link text-primary text-decoration-none p-0 fw-bold stretched-link">
+                <a href="{url('/publicaciones/gestiones.php', ['detalle' => $gestion['id']])}" class="btn btn-link text-primary text-decoration-none p-0 fw-bold stretched-link">
                   Ver detalles <i class="bi bi-arrow-right ms-1"></i>
                 </a>
               </div>
