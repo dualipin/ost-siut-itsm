@@ -18,6 +18,38 @@ use function is_array;
 final class PdoPublicationRepository extends PdoBaseRepository implements
     PublicationRepositoryInterface
 {
+    public function findLatest(int $limit): array
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT
+                publication_id,
+                author_id,
+                title,
+                summary,
+                content,
+                thumbnail_url,
+                publication_type,
+                expiration_date,
+                created_at
+            FROM publications
+            WHERE (expiration_date IS NULL OR expiration_date >= CURRENT_DATE())
+            ORDER BY created_at DESC
+            LIMIT :limit",
+        );
+
+        $limitInt = (int) $limit;
+        $stmt->bindParam("limit", $limitInt, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (!is_array($rows) || $rows === []) {
+            return [];
+        }
+
+        return $this->hydratePublications($rows);
+    }
+
     public function findByType(PublicationTypeEnum $type): array
     {
         $stmt = $this->pdo->prepare(

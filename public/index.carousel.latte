@@ -1,0 +1,65 @@
+<style>
+    #latestPublicationsCarousel .carousel-caption {
+        z-index: 10;
+        pointer-events: none; /* Let clicks pass through the caption container */
+    }
+    #latestPublicationsCarousel .carousel-caption a {
+        pointer-events: auto; /* Re-enable clicks for the button */
+        position: relative;
+        z-index: 20; /* Ensure button is above carousel controls */
+    }
+    #latestPublicationsCarousel .carousel-control-prev,
+    #latestPublicationsCarousel .carousel-control-next {
+        z-index: 15; /* Controls should be below the button but above the caption background */
+    }
+</style>
+
+<div id="latestPublicationsCarousel" class="carousel slide shadow rounded-4 overflow-hidden" data-bs-ride="carousel">
+    <div class="carousel-indicators">
+        {foreach $latestPublications as $publication}
+            <button type="button" data-bs-target="#latestPublicationsCarousel" data-bs-slide-to="{$iterator->counter0}" {if $iterator->first}class="active" aria-current="true"{/if} aria-label="Slide {$iterator->counter}"></button>
+        {/foreach}
+    </div>
+    <div class="carousel-inner">
+        {foreach $latestPublications as $publication}
+            {var $typeUrl = match ($publication->type->value) {
+                'aviso' => '/publicaciones/avisos.php',
+                'noticia' => '/publicaciones/noticias.php',
+                'gestion' => '/publicaciones/gestiones.php',
+                'contratos' => '/publicaciones/contratos.php',
+                default => '/publicaciones/noticias.php'
+            }}
+            <div class="carousel-item {if $iterator->first}active{/if}" data-bs-interval="5000">
+                <div class="position-relative" style="height: 400px;">
+                    {if $publication->thumbnailUrl}
+                        <img src="{$publication->thumbnailUrl}" class="d-block w-100 h-100 object-fit-cover" alt="{$publication->title}">
+                    {else}
+                        <div class="d-block w-100 h-100 bg-secondary d-flex align-items-center justify-content-center text-white">
+                            <i class="bi bi-card-image display-1"></i>
+                        </div>
+                    {/if}
+                    <div class="carousel-caption d-none d-md-block text-start start-0 end-0 bottom-0 p-4" style="background: linear-gradient(transparent, rgba(0,0,0,0.8));">
+                        <h5 class="fw-bold">{$publication->title}</h5>
+                        {if $publication->summary}
+                            <p class="small mb-2">{$publication->summary|truncate:150}</p>
+                        {/if}
+                        <a href="{$typeUrl}?detalle={$publication->id}" class="btn btn-sm btn-primary rounded-pill" onclick="event.stopPropagation()">Leer más</a>
+                    </div>
+                    <!-- Caption para móviles -->
+                    <div class="d-md-none position-absolute bottom-0 start-0 end-0 p-3 text-white" style="background: linear-gradient(transparent, rgba(0,0,0,0.9)); z-index: 20;">
+                        <h6 class="fw-bold mb-1">{$publication->title}</h6>
+                        <a href="{$typeUrl}?detalle={$publication->id}" class="btn btn-xs btn-primary rounded-pill py-0 px-2" style="font-size: 0.7rem;" onclick="event.stopPropagation()">Leer más</a>
+                    </div>
+                </div>
+            </div>
+        {/foreach}
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#latestPublicationsCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Anterior</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#latestPublicationsCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Siguiente</span>
+    </button>
+</div>

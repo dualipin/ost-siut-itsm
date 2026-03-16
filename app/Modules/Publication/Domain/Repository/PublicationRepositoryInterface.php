@@ -25,5 +25,6 @@ interface PublicationRepositoryInterface
      * @param int[] $attachmentIds
      */
     public function deleteAttachmentsByIds(int $publicationId, array $attachmentIds): void;
+    public function findLatest(int $limit): array;
     public function deleteById(int $id): void;
 }
