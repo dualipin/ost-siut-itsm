@@ -23,33 +23,37 @@
                         </div>
                     {/if}
                     
-                    <!-- Caption para Desktop Optimized for 40+ with Gradient -->
-                    <div class="carousel-caption d-none d-md-block text-start start-0 end-0 bottom-0 p-5 pe-none z-1" 
+                    <!-- Caption para Desktop Optimized for 40+ with Centered Layout and Smaller Text -->
+                    <div class="carousel-caption d-none d-md-block text-center start-0 end-0 bottom-0 p-5 pe-none z-1" 
                          style="background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 70%, transparent 100%);">
-                        <h2 class="fw-bold display-5 mb-3 text-white text-shadow">{$publication->title}</h2>
+                        <h3 class="fw-bold mb-3 text-white">{$publication->title}</h3>
                         {if $publication->summary}
-                            <p class="fs-3 mb-4 text-white lh-sm fw-medium">{$publication->summary|truncate:180}</p>
+                            <p class="fs-5 mb-4 text-white lh-sm fw-medium">{$publication->summary|truncate:180}</p>
                         {/if}
-                        <a href="{$typeUrl}?detalle={$publication->id}" 
-                           class="btn btn-lg btn-primary rounded-pill px-5 py-3 fw-bold pe-auto position-relative z-3 shadow-lg" 
-                           onclick="event.stopPropagation()" 
-                           onmousedown="event.stopPropagation()" 
-                           onpointerdown="event.stopPropagation()">
-                           Leer Publicación Completa
-                        </a>
+                        <div class="d-flex justify-content-center pe-auto">
+                            <a href="{$typeUrl}?detalle={$publication->id}" 
+                               class="btn btn-lg btn-primary rounded-pill px-5 py-3 fw-bold position-relative z-3 shadow-lg" 
+                               onclick="event.stopPropagation()" 
+                               onmousedown="event.stopPropagation()" 
+                               onpointerdown="event.stopPropagation()">
+                               Leer Publicación Completa
+                            </a>
+                        </div>
                     </div>
 
-                    <!-- Caption para Móviles Optimized for 40+ with Gradient -->
-                    <div class="d-md-none position-absolute bottom-0 start-0 end-0 p-4 text-white pe-none z-1" 
+                    <!-- Caption para Móviles Optimized for 40+ with Centered Layout -->
+                    <div class="d-md-none position-absolute bottom-0 start-0 end-0 p-4 text-white text-center pe-none z-1" 
                          style="background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 80%, transparent 100%);">
-                        <h4 class="fw-bold mb-3">{$publication->title}</h4>
-                        <a href="{$typeUrl}?detalle={$publication->id}" 
-                           class="btn btn-primary rounded-pill px-4 py-2 fw-bold pe-auto position-relative z-3" 
-                           onclick="event.stopPropagation()" 
-                           onmousedown="event.stopPropagation()" 
-                           onpointerdown="event.stopPropagation()">
-                           Leer más
-                        </a>
+                        <h5 class="fw-bold mb-3">{$publication->title}</h5>
+                        <div class="d-flex justify-content-center pe-auto">
+                            <a href="{$typeUrl}?detalle={$publication->id}" 
+                               class="btn btn-primary rounded-pill px-4 py-2 fw-bold position-relative z-3" 
+                               onclick="event.stopPropagation()" 
+                               onmousedown="event.stopPropagation()" 
+                               onpointerdown="event.stopPropagation()">
+                               Leer más
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
