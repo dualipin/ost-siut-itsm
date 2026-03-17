@@ -26,7 +26,7 @@ final readonly class DeleteTransparencyUseCase
             throw TransparencyNotFoundException::withId($id);
         }
 
-        $this->transactionManager->transactional(function () use ($id) {
+        $this->transactionManager->transactional(function () use ($id, $transparency) {
             $attachments = $this->repository->findAttachmentsByTransparencyId($id);
             
             // Primero se borra de la BD
@@ -34,7 +34,7 @@ final readonly class DeleteTransparencyUseCase
 
             // Luego borramos los archivos físicos sabiendo que ya no pertenecen en SQL
             foreach ($attachments as $attachment) {
-                $this->fileStorage->delete($attachment->filePath);
+                $this->fileStorage->delete($attachment->filePath, $transparency->isPrivate);
             }
         });
     }

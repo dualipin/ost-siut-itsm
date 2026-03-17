@@ -65,7 +65,7 @@ final readonly class CreateTransparencyUseCase
             foreach ($files as $file) {
                 if ($file['error'] !== UPLOAD_ERR_OK) continue;
 
-                $savedPath = $this->fileStorage->store($file['tmp_name'], $file['name']);
+                $savedPath = $this->fileStorage->store($file['tmp_name'], $file['name'], $transparency->isPrivate);
                 
                 $attachment = new TransparencyAttachment(
                     id: null,

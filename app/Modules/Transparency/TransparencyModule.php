@@ -31,7 +31,10 @@ final class TransparencyModule
                 ->constructor(get(PDO::class)),
 
             FileStorageInterface::class => create(LocalAttachmentStorage::class)
-                ->constructor(dirname(__DIR__, 3) . '/public/uploads/transparency'),
+                ->constructor(
+                    dirname(__DIR__, 3) . '/public/uploads/transparency',
+                    dirname(__DIR__, 3) . '/uploads/transparency'
+                ),
 
             CreateTransparencyUseCase::class => create()
                 ->constructor(

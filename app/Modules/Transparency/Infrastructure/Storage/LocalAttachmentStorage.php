@@ -13,15 +13,18 @@ final readonly class LocalAttachmentStorage implements FileStorageInterface
      * Sigue la regla B. Portabilidad de Recursos (Pattern: Path Injection)
      */
     public function __construct(
-        private string $basePath
+        private string $publicBasePath,
+        private string $privateBasePath
     ) {
     }
 
-    public function store(string $sourcePath, string $filename): string
+    public function store(string $sourcePath, string $filename, bool $isPrivate = false): string
     {
-        if (!is_dir($this->basePath)) {
-            if (!mkdir($this->basePath, 0755, true) && !is_dir($this->basePath)) {
-                throw new RuntimeException("No se pudo crear el directorio de destino: {$this->basePath}");
+        $targetBasePath = $isPrivate ? $this->privateBasePath : $this->publicBasePath;
+        
+        if (!is_dir($targetBasePath)) {
+            if (!mkdir($targetBasePath, 0755, true) && !is_dir($targetBasePath)) {
+                throw new RuntimeException("No se pudo crear el directorio de destino: {$targetBasePath}");
             }
         }
         
@@ -29,7 +32,7 @@ final readonly class LocalAttachmentStorage implements FileStorageInterface
         $extension = pathinfo($filename, PATHINFO_EXTENSION);
         $safeFilename = uniqid('transparency_', true) . '.' . $extension;
         
-        $destinationPath = $this->basePath . DIRECTORY_SEPARATOR . $safeFilename;
+        $destinationPath = $targetBasePath . DIRECTORY_SEPARATOR . $safeFilename;
         
         if (!copy($sourcePath, $destinationPath)) {
             throw new RuntimeException("No se pudo mover el archivo a: {$destinationPath}");
@@ -38,9 +41,10 @@ final readonly class LocalAttachmentStorage implements FileStorageInterface
         return $safeFilename;
     }
 
-    public function delete(string $relativePath): void
+    public function delete(string $relativePath, bool $isPrivate = false): void
     {
-        $fullPath = rtrim($this->basePath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . ltrim($relativePath, DIRECTORY_SEPARATOR);
+        $targetBasePath = $isPrivate ? $this->privateBasePath : $this->publicBasePath;
+        $fullPath = rtrim($targetBasePath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . ltrim($relativePath, DIRECTORY_SEPARATOR);
         
         if (file_exists($fullPath) && is_file($fullPath)) {
             unlink($fullPath);

@@ -54,6 +54,7 @@ final readonly class AddAttachmentUseCase
         }
 
         return $this->transactionManager->transactional(function () use (
+            $transparency,
             $transparencyId,
             $sourcePath,
             $originalFilename,
@@ -62,7 +63,7 @@ final readonly class AddAttachmentUseCase
             $description
         ) {
             try {
-                $savedPath = $this->fileStorage->store($sourcePath, $originalFilename);
+                $savedPath = $this->fileStorage->store($sourcePath, $originalFilename, $transparency->isPrivate);
                 
                 $attachment = new TransparencyAttachment(
                     id: null,

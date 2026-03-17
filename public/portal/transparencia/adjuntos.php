@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 foreach ($attachments as $att) {
                     if ($att->id === $attachmentId) {
                         if ($att->attachmentType->value !== 'ENLACE') {
-                            $fileStorage->delete($att->filePath);
+                            $fileStorage->delete($att->filePath, $transparency->isPrivate);
                         }
                         $repository->deleteAttachment($attachmentId);
                         break;
