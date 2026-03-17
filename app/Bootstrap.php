@@ -9,6 +9,7 @@ use App\Modules\Auth\AuthModule;
 use App\Modules\Messaging\MessagingModule;
 use App\Modules\Publication\PublicationModule;
 use App\Modules\Setting\SettingModule;
+use App\Modules\Transparency\TransparencyModule;
 use App\Modules\User\UserModule;
 use DI\ContainerBuilder;
 use Dotenv\Dotenv;
@@ -61,6 +62,7 @@ class Bootstrap
             new MessagingModule(),
             new PublicationModule(),
             new SettingModule(),
+            new TransparencyModule(),
             new UserModule(),
         ];
 

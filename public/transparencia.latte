@@ -1,5 +1,7 @@
 {extends ../templates/@landing.latte}
-
+{varType App\Modules\Transparency\Domain\Entity\Transparency[] $documents}
+{varType array $attachmentsByDoc}
+{varType bool $isAuthenticated}
 {block main}
 <section class="py-5" id="about">
   <div class="container pt-5">
@@ -50,4 +52,77 @@
     </div>
   </div>
 </section>
+
+<!-- Inicio de listado dinámico de documentos -->
+<section class="py-5 bg-light" id="documents">
+  <div class="container pb-5">
+    <div class="row mb-5 text-center">
+      <h2 class="fw-bold" data-aos="fade-up">Documentos de Transparencia</h2>
+      <p class="text-muted" data-aos="fade-up" data-aos-delay="100">Explora nuestro acervo documental y financiero.</p>
+    </div>
+    
+    {if empty($documents)}
+      <div class="text-center py-5">
+        <i class="bi bi-folder2-open fs-1 text-muted d-block mb-3"></i>
+        <p class="text-secondary fs-5">Actualmente no hay documentos publicados.</p>
+      </div>
+    {else}
+      <div class="row row-cols-1 row-cols-md-2 g-4">
+        {foreach $documents as $doc}
+          <div class="col" data-aos="fade-up" data-aos-delay="{$iterator->counter * 100 % 500}">
+            <div class="card h-100 border-0 shadow-sm rounded-4 hover-shadow transition-all">
+              <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                  <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary px-3 py-2 border border-primary border-opacity-25">
+                     {$doc->type->value}
+                  </span>
+                  
+                  {if $doc->isPrivate}
+                    <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-2" title="Este documento es privado">
+                       <i class="bi bi-lock-fill"></i> Privado
+                    </span>
+                  {/if}
+                </div>
+                
+                <h4 class="card-title fw-bold mb-3">{$doc->title}</h4>
+                <p class="card-text text-muted mb-4 flex-grow-1">
+                  {$doc->summary ?: 'Sin descripción detallada.'}
+                </p>
+                
+                <div class="d-flex align-items-center text-secondary small mb-4">
+                  <i class="bi bi-calendar-event me-2"></i> Publicado el {$doc->datePublished->format('d/m/Y')}
+                </div>
+                
+                <div class="mt-auto">
+                  <h6 class="fw-bold fs-6 mb-3">Archivos Adjuntos:</h6>
+                  {var $attachments = $attachmentsByDoc[$doc->id] ?? []}
+                  
+                  {if empty($attachments)}
+                    <span class="text-muted small fst-italic">Sin archivos adjuntos.</span>
+                  {else}
+                    <div class="d-flex flex-wrap gap-2">
+                      {foreach $attachments as $att}
+                        {if $att->attachmentType->value === 'ENLACE'}
+                          <a href="{$att->filePath}" target="_blank" class="btn btn-sm btn-outline-info rounded-pill px-3">
+                            <i class="bi bi-box-arrow-up-right me-1"></i> {$att->description ?: 'Enlace'}
+                          </a>
+                        {else}
+                          <a href="/uploads/transparency/{$att->filePath}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                            <i class="bi bi-download me-1"></i> {$att->description ?: 'Descargar'}
+                          </a>
+                        {/if}
+                      {/foreach}
+                    </div>
+                  {/if}
+                </div>
+                
+              </div>
+            </div>
+          </div>
+        {/foreach}
+      </div>
+    {/if}
+  </div>
+</section>
+<!-- Fin de listado dinámico de documentos -->
 {/block}

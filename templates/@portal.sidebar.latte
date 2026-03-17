@@ -140,6 +140,32 @@
         <li class="nav-item mb-2">
           <span
                   class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
+                  type="button" data-bs-toggle="collapse" data-bs-target="#transparencia-collapse" aria-expanded="false"
+                  aria-controls="transparencia-collapse">
+            Transparencia
+            <i class="bi bi-chevron-down"></i>
+          </span>
+          <div class="collapse ms-3" id="transparencia-collapse">
+            <ul class="nav flex-column pb-1">
+              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                <a href="{url('/portal/transparencia/listado.php')}" class="nav-link text-white px-3 mb-1">
+                  <i class="bi bi-file-lock me-2"></i>
+                  <span>Documentos</span>
+                </a>
+              </li>
+              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                <a href="{url('/portal/transparencia/nuevo.php')}" class="nav-link text-white px-3 mb-1">
+                  <i class="bi bi-file-plus me-2"></i>
+                  <span>Nuevo</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </li>
+
+        <li class="nav-item mb-2">
+          <span
+                  class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
                   type="button" data-bs-toggle="collapse" data-bs-target="#usuarios-collapse" aria-expanded="false"
                   aria-controls="usuarios-collapse">
             Usuarios

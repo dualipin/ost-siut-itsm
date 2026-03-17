@@ -1,0 +1,102 @@
+{extends ../../../templates/@portal.latte}
+{varType App\Modules\Transparency\Domain\Entity\Transparency $transparency}
+{varType App\Modules\User\Application\DTO\UserSummary[] $allUsers}
+{varType array $authorizedUserIds}
+{varType ?string $error}
+
+{block main}
+{include
+  ../../../templates/components/header-page.latte,
+  title=>'Gestión de Permisos',
+  description=>'Autorizar usuarios para ver ' . $transparency->title,
+  icon=>'bi-shield-lock'
+}
+
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-body p-4 p-md-5">
+        <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+          <div class="d-flex align-items-center">
+            <a href="./listado.php" class="btn btn-outline-secondary rounded-4 me-3 border-0">
+              <i class="bi bi-arrow-left"></i> Volver
+            </a>
+            <div>
+              <h2 class="h5 mb-1">Accesos Privados</h2>
+              <p class="text-muted mb-0 small">Documento: <strong>{$transparency->title}</strong></p>
+            </div>
+          </div>
+          <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-2 border border-danger border-opacity-25">
+             <i class="bi bi-lock-fill me-1"></i> Documento Privado
+          </span>
+        </div>
+
+        {if $error}
+          <div class="alert alert-danger rounded-3" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> {$error}
+          </div>
+        {/if}
+
+        <div class="alert alert-info bg-info bg-opacity-10 border-0 rounded-4 mb-4 d-flex align-items-center">
+          <i class="bi bi-info-circle-fill fs-4 text-info me-3"></i>
+          <p class="mb-0 text-dark">
+            Selecciona los usuarios de la lista que tendrán permiso para visualizar este documento y descargar sus archivos adjuntos.
+          </p>
+        </div>
+
+        <form method="post" action="./permisos.php?id={$transparency->id}" x-data="{ search: '' }" @submit="$el.querySelectorAll('button[type=submit]').forEach(b => { b.disabled = true; b.innerHTML = '<span class=\'spinner-border spinner-border-sm\' role=\'status\' aria-hidden=\'true\'></span> Guardando...' })">
+          <input type="hidden" name="id" value="{$transparency->id}">
+
+          <div class="mb-3">
+            <div class="input-group input-group-lg">
+              <span class="input-group-text bg-light border-0 rounded-start-4"><i class="bi bi-search text-muted"></i></span>
+              <input type="text" class="form-control bg-light border-0 rounded-end-4" placeholder="Buscar por nombre o correo..." x-model="search">
+            </div>
+          </div>
+
+          <div class="table-responsive rounded-4 border mb-4" style="max-height: 400px; overflow-y: auto;">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light sticky-top">
+                <tr>
+                  <th class="ps-4" style="width: 50px;">
+                     <!-- Checkbox maestro controlado por Alpine a futuro o simple manual -->
+                  </th>
+                  <th>Usuario</th>
+                  <th>Departamento</th>
+                  <th>Rol</th>
+                </tr>
+              </thead>
+              <tbody>
+                {foreach $allUsers as $user}
+                  <tr x-show="!search || '{$user->fullName()|lower}'.includes(search.toLowerCase()) || '{$user->email|lower}'.includes(search.toLowerCase())">
+                    <td class="ps-4">
+                      <div class="form-check fs-5 m-0 position-relative" style="top: -5px;">
+                        <input class="form-check-input mt-0" type="checkbox" name="users[]" value="{$user->id}" id="user_{$user->id}" {if in_array($user->id, $authorizedUserIds)}checked{/if}>
+                      </div>
+                    </td>
+                    <td>
+                      <label class="d-block cursor-pointer mb-0" for="user_{$user->id}">
+                        <div class="fw-medium">{$user->fullName()}</div>
+                        <div class="text-muted small">{$user->email}</div>
+                      </label>
+                    </td>
+                    <td><span class="badge bg-light text-dark">{$user->department ?? 'N/A'}</span></td>
+                    <td>{$user->role->value}</td>
+                  </tr>
+                {/foreach}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="d-grid d-md-flex justify-content-md-end gap-2 mt-4">
+            <a href="./listado.php" class="btn btn-light btn-lg rounded-4">Cancelar</a>
+            <button type="submit" class="btn btn-primary btn-lg rounded-4 px-5">
+              <i class="bi bi-shield-check me-2"></i> Guardar Permisos
+            </button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>

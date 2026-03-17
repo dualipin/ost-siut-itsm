@@ -1,0 +1,146 @@
+{extends ../../../templates/@portal.latte}
+{varType App\Modules\Transparency\Domain\Entity\Transparency $transparency}
+{varType App\Modules\Transparency\Domain\Entity\TransparencyAttachment[] $attachments}
+{varType ?string $error}
+
+{block main}
+{include
+  ../../../templates/components/header-page.latte,
+  title=>'Archivos Adjuntos',
+  description=>'Gestionar documentos y enlaces en ' . $transparency->title,
+  icon=>'bi-paperclip'
+}
+
+<div class="row">
+  <div class="col-lg-4 mb-4 mb-lg-0">
+    <!-- Formulario Agregar Adjunto -->
+    <div class="card border-0 shadow-sm rounded-4 sticky-top" style="top: 20px;">
+      <div class="card-header bg-white border-bottom-0 py-3 pt-4">
+        <h5 class="mb-0 fw-bold"><i class="bi bi-cloud-arrow-up me-2 text-primary"></i>Añadir Archivo</h5>
+      </div>
+      <div class="card-body">
+        
+        {if $error}
+          <div class="alert alert-danger rounded-3" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> {$error}
+          </div>
+        {/if}
+
+        <form method="post" action="./adjuntos.php" enctype="multipart/form-data" id="formAdjunto" x-data="{ tipo: 'PDF' }" @submit="$el.querySelectorAll('button[type=submit]').forEach(b => { b.disabled = true; b.innerHTML = '<span class=\'spinner-border spinner-border-sm\' role=\'status\' aria-hidden=\'true\'></span> Subiendo...' })">
+          <input type="hidden" name="action" value="add">
+          <input type="hidden" name="id" value="{$transparency->id}">
+
+          <div class="mb-3">
+            <label for="attachment_type" class="form-label fw-medium text-secondary">Tipo de Archivo</label>
+            <select class="form-select bg-light border-0 rounded-3" id="attachment_type" name="attachment_type" x-model="tipo" required>
+              <option value="PDF">Documento PDF</option>
+              <option value="IMAGEN">Imagen (JPG, PNG)</option>
+              <option value="ENLACE">Enlace Externo (URL)</option>
+              <option value="OTRO">Otro Archivo</option>
+            </select>
+          </div>
+
+          <div class="mb-3" x-show="tipo !== 'ENLACE'">
+            <label for="file" class="form-label fw-medium text-secondary">Seleccionar Archivo</label>
+            <input class="form-control bg-light border-0 rounded-3" type="file" id="file" name="file" :required="tipo !== 'ENLACE'">
+          </div>
+
+          <div class="mb-3" x-show="tipo === 'ENLACE'" x-cloak>
+            <label for="url" class="form-label fw-medium text-secondary">URL del Enlace</label>
+            <input type="url" class="form-control bg-light border-0 rounded-3" id="url" name="url" placeholder="https://..." :required="tipo === 'ENLACE'">
+          </div>
+
+          <div class="mb-4">
+            <label for="description" class="form-label fw-medium text-secondary">Descripción (Opcional)</label>
+            <input type="text" class="form-control bg-light border-0 rounded-3" id="description" name="description" placeholder="Ej. Acta de asamblea escaneada">
+          </div>
+
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary rounded-3">
+              <i class="bi bi-upload me-2"></i> Subir Archivo
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="d-flex align-items-center mb-4">
+      <a href="./listado.php" class="btn btn-outline-secondary rounded-4 me-3 border-0">
+        <i class="bi bi-arrow-left"></i> Volver
+      </a>
+      <h2 class="h5 mb-0 text-muted">Archivos de: <strong class="text-dark">{$transparency->title}</strong></h2>
+    </div>
+
+    {if empty($attachments)}
+      <div class="card border-0 shadow-sm rounded-4 text-center py-5">
+        <div class="card-body">
+          <i class="bi bi-folder-x fs-1 text-muted d-block mb-3"></i>
+          <h5 class="text-secondary fw-normal">No hay archivos adjuntos en este documento.</h5>
+          <p class="text-muted mb-0">Usa el panel lateral para subir el primer archivo.</p>
+        </div>
+      </div>
+    {else}
+      <div class="row row-cols-1 row-cols-md-2 g-3">
+        {foreach $attachments as $att}
+          <div class="col">
+            <div class="card h-100 border-0 shadow-sm rounded-4 hover-shadow transition-all">
+              <div class="card-body">
+                <div class="d-flex align-items-start">
+                  <div class="me-3">
+                    {if $att->attachmentType->value === 'PDF'}
+                      <div class="bg-danger bg-opacity-10 p-2 rounded-3 text-danger">
+                        <i class="bi bi-file-earmark-pdf fs-3"></i>
+                      </div>
+                    {elseif $att->attachmentType->value === 'ENLACE'}
+                      <div class="bg-info bg-opacity-10 p-2 rounded-3 text-info">
+                        <i class="bi bi-link-45deg fs-3"></i>
+                      </div>
+                    {elseif $att->attachmentType->value === 'IMAGEN'}
+                      <div class="bg-success bg-opacity-10 p-2 rounded-3 text-success">
+                        <i class="bi bi-file-earmark-image fs-3"></i>
+                      </div>
+                    {else}
+                      <div class="bg-secondary bg-opacity-10 p-2 rounded-3 text-secondary">
+                        <i class="bi bi-file-earmark fs-3"></i>
+                      </div>
+                    {/if}
+                  </div>
+                  <div class="flex-grow-1 min-w-0">
+                    <h6 class="text-truncate mb-1" title="{$att->description ?? 'Sin descripción'}">
+                      {$att->description ?: 'Archivo Adjunto'}
+                    </h6>
+                    <span class="badge bg-light text-dark mb-2">{$att->attachmentType->value}</span>
+                    
+                    <div class="d-flex gap-2 mt-2">
+                       {if $att->attachmentType->value === 'ENLACE'}
+                          <a href="{$att->filePath}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                            <i class="bi bi-box-arrow-up-right"></i> Abrir
+                          </a>
+                       {else}
+                          <a href="/uploads/transparency/{$att->filePath}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                            <i class="bi bi-download"></i> Ver
+                          </a>
+                       {/if}
+                       
+                       <form method="post" action="./adjuntos.php" class="d-inline" x-data @submit.prevent="if(confirm('¿Seguro que deseas eliminar este archivo?')) $el.submit()">
+                         <input type="hidden" name="action" value="delete">
+                         <input type="hidden" name="id" value="{$transparency->id}">
+                         <input type="hidden" name="attachment_id" value="{$att->id}">
+                         <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                           <i class="bi bi-trash"></i>
+                         </button>
+                       </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        {/foreach}
+      </div>
+    {/if}
+
+  </div>
+</div>
