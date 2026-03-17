@@ -36,6 +36,7 @@ final class TransparencyModule
             CreateTransparencyUseCase::class => create()
                 ->constructor(
                     get(TransparencyRepositoryInterface::class),
+                    get(FileStorageInterface::class),
                     get(TransactionManager::class)
                 ),
 
