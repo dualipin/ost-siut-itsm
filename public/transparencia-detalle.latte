@@ -1,0 +1,112 @@
+{extends ../templates/@landing.latte}
+{varType App\Modules\Transparency\Domain\Entity\Transparency $transparency}
+{varType App\Modules\Transparency\Domain\Entity\TransparencyAttachment[] $attachments}
+
+{block main}
+<section class="py-5 mt-5">
+  <div class="container pt-4">
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        <!-- Botón Volver -->
+        <a href="transparencia.php" class="btn btn-outline-secondary rounded-4 border-0 mb-4" data-aos="fade-right">
+          <i class="bi bi-arrow-left me-2"></i> Volver a Transparencia
+        </a>
+
+        <!-- Encabezado del Documento -->
+        <div class="card border-0 shadow-sm rounded-4 mb-5" data-aos="fade-up">
+          <div class="card-body p-4 p-md-5">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+              <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary px-3 py-2 border border-primary border-opacity-25 fs-6">
+                {$transparency->type->value}
+              </span>
+              
+              <div class="text-muted small">
+                 <i class="bi bi-calendar3 me-2"></i> Fecha de Publicación: <strong>{$transparency->datePublished->format('d/m/Y')}</strong>
+              </div>
+            </div>
+
+            <h1 class="fw-bold mb-4 text-dark display-6">{$transparency->title}</h1>
+            
+            {if $transparency->isPrivate}
+              <div class="alert alert-warning border-0 rounded-4 d-flex align-items-center mb-4">
+                <i class="bi bi-lock-fill fs-4 text-warning me-3"></i>
+                <div class="text-dark">
+                  <strong>Documento Privado:</strong> Tienes acceso a este documento porque cuentas con los permisos necesarios.
+                </div>
+              </div>
+            {/if}
+
+            <p class="fs-5 text-secondary lh-lg mb-0">
+              {$transparency->summary ?: 'Este documento no cuenta con una descripción detallada provista por el administrador.'}
+            </p>
+          </div>
+        </div>
+
+        <!-- Archivos Adjuntos -->
+        <h3 class="fw-bold mb-4" data-aos="fade-up">Archivos Adjuntos</h3>
+
+        {if empty($attachments)}
+          <div class="card border-0 shadow-sm rounded-4 text-center py-5" data-aos="fade-up" data-aos-delay="100">
+             <div class="card-body">
+               <i class="bi bi-folder-x fs-1 text-muted d-block mb-3"></i>
+               <h5 class="text-secondary fw-normal">No hay archivos disponibles.</h5>
+             </div>
+          </div>
+        {else}
+          <div class="row row-cols-1 row-cols-md-2 g-4">
+            {foreach $attachments as $att}
+              <div class="col" data-aos="fade-up" data-aos-delay="{$iterator->counter * 100 % 400}">
+                <div class="card h-100 border-0 shadow-sm rounded-4 hover-shadow transition-all">
+                  <div class="card-body p-4">
+                    <div class="d-flex align-items-start">
+                      <div class="me-3">
+                        {if $att->attachmentType->value === 'PDF'}
+                          <div class="bg-danger bg-opacity-10 p-3 rounded-4 text-danger">
+                            <i class="bi bi-file-earmark-pdf fs-2"></i>
+                          </div>
+                        {elseif $att->attachmentType->value === 'ENLACE'}
+                          <div class="bg-info bg-opacity-10 p-3 rounded-4 text-info">
+                            <i class="bi bi-link-45deg fs-2"></i>
+                          </div>
+                        {elseif $att->attachmentType->value === 'IMAGEN'}
+                          <div class="bg-success bg-opacity-10 p-3 rounded-4 text-success">
+                            <i class="bi bi-file-earmark-image fs-2"></i>
+                          </div>
+                        {else}
+                          <div class="bg-secondary bg-opacity-10 p-3 rounded-4 text-secondary">
+                            <i class="bi bi-file-earmark fs-2"></i>
+                          </div>
+                        {/if}
+                      </div>
+                      
+                      <div class="flex-grow-1 min-w-0">
+                        <span class="badge bg-light text-dark mb-2 border">{$att->attachmentType->value}</span>
+                        <h5 class="fw-bold text-truncate mb-2" title="{$att->description ?? 'Documento Adjunto'}">
+                          {$att->description ?: 'Documento Adjunto'}
+                        </h5>
+                        
+                        <div class="mt-3">
+                           {if $att->attachmentType->value === 'ENLACE'}
+                              <a href="{$att->filePath}" target="_blank" class="btn btn-outline-primary rounded-pill px-4">
+                                Abrir Enlace <i class="bi bi-box-arrow-up-right ms-2"></i>
+                              </a>
+                           {else}
+                              <a href="/uploads/transparency/{$att->filePath}" target="_blank" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                                <i class="bi bi-download me-2"></i> Descargar
+                              </a>
+                           {/if}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {/foreach}
+          </div>
+        {/if}
+
+      </div>
+    </div>
+  </div>
+</section>
+{/block}

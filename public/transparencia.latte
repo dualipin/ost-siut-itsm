@@ -93,27 +93,10 @@
                   <i class="bi bi-calendar-event me-2"></i> Publicado el {$doc->datePublished->format('d/m/Y')}
                 </div>
                 
-                <div class="mt-auto">
-                  <h6 class="fw-bold fs-6 mb-3">Archivos Adjuntos:</h6>
-                  {var $attachments = $attachmentsByDoc[$doc->id] ?? []}
-                  
-                  {if empty($attachments)}
-                    <span class="text-muted small fst-italic">Sin archivos adjuntos.</span>
-                  {else}
-                    <div class="d-flex flex-wrap gap-2">
-                      {foreach $attachments as $att}
-                        {if $att->attachmentType->value === 'ENLACE'}
-                          <a href="{$att->filePath}" target="_blank" class="btn btn-sm btn-outline-info rounded-pill px-3">
-                            <i class="bi bi-box-arrow-up-right me-1"></i> {$att->description ?: 'Enlace'}
-                          </a>
-                        {else}
-                          <a href="/uploads/transparency/{$att->filePath}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-                            <i class="bi bi-download me-1"></i> {$att->description ?: 'Descargar'}
-                          </a>
-                        {/if}
-                      {/foreach}
-                    </div>
-                  {/if}
+                <div class="mt-auto d-grid">
+                  <a href="./transparencia-detalle.php?id={$doc->id}" class="btn btn-outline-primary rounded-pill fw-bold">
+                    Ver Detalles <i class="bi bi-arrow-right ms-2"></i>
+                  </a>
                 </div>
                 
               </div>

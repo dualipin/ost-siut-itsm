@@ -25,13 +25,7 @@ if ($userId > 0) {
     $documents = $listUseCase->executePublic();
 }
 
-$attachmentsByDoc = [];
-foreach ($documents as $doc) {
-    $attachmentsByDoc[$doc->id] = $repository->findAttachmentsByTransparencyId($doc->id);
-}
-
 $renderer->render("./transparencia.latte", [
     'documents' => $documents,
-    'attachmentsByDoc' => $attachmentsByDoc,
     'isAuthenticated' => $userId > 0
 ]);
