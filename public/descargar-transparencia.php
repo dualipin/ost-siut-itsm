@@ -4,6 +4,7 @@ use App\Bootstrap;
 use App\Modules\Transparency\Domain\Repository\TransparencyRepositoryInterface;
 use App\Modules\Transparency\Application\UseCase\GetTransparencyUseCase;
 use App\Modules\Transparency\Domain\Exception\TransparencyNotFoundException;
+use App\Shared\Context\UserContextInterface;
 
 require_once __DIR__ . "/../bootstrap.php";
 
@@ -29,7 +30,10 @@ try {
     
     // Verificación de privacidad
     if ($transparency->isPrivate) {
-        $userId = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 0;
+        $userContext = $container->get(UserContextInterface::class);
+        $user = $userContext->get();
+        $userId = $user ? $user->id : 0;
+        
         if ($userId === 0) {
              http_response_code(403);
              die('Acceso denegado. Se requiere iniciar sesión.');
@@ -43,7 +47,7 @@ try {
                 break;
             }
         }
-        $userRole = $_SESSION['user_role'] ?? null;
+        $userRole = $user ? $user->role->value : null;
         if (!$hasPermission && $userRole !== 'ADMIN') {
             http_response_code(403);
             die('Acceso denegado. No posee permisos para este documento.');

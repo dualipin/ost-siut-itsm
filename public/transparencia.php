@@ -4,6 +4,7 @@ use App\Bootstrap;
 use App\Infrastructure\Templating\RendererInterface;
 use App\Modules\Transparency\Application\UseCase\ListTransparenciesUseCase;
 use App\Modules\Transparency\Domain\Repository\TransparencyRepositoryInterface;
+use App\Shared\Context\UserContextInterface;
 
 require_once __DIR__ . "/../bootstrap.php";
 
@@ -17,7 +18,9 @@ session_start([
     'read_and_close' => true,
 ]);
 
-$userId = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 0;
+$userContext = $container->get(UserContextInterface::class);
+$user = $userContext->get();
+$userId = $user ? $user->id : 0;
 
 if ($userId > 0) {
     $documents = $listUseCase->executeForUser($userId);
