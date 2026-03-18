@@ -364,6 +364,61 @@ CREATE TABLE IF NOT EXISTS publication_attachments
     INDEX idx_publication (publication_id)
 );
 
+-- transparencia
+
+CREATE TABLE IF NOT EXISTS transparency
+(
+    transparency_id   INT AUTO_INCREMENT PRIMARY KEY,
+    author_id         INT,
+    title             VARCHAR(255) NOT NULL,
+    summary           VARCHAR(255),
+    transparency_type VARCHAR(100) NOT NULL,
+    created_at        DATETIME DEFAULT CURRENT_TIMESTAMP,
+    date_published    DATE         NOT NULL,
+    is_private        BOOLEAN  DEFAULT FALSE,
+
+    CONSTRAINT fk_transparency_author
+        FOREIGN KEY (author_id) REFERENCES users (user_id)
+            ON DELETE SET NULL,
+    INDEX idx_type_date (transparency_type, date_published),
+    INDEX idx_expiration (date_published)
+);
+
+CREATE TABLE IF NOT EXISTS transparency_attachments
+(
+    attachment_id   INT AUTO_INCREMENT PRIMARY KEY,
+    transparency_id INT          NOT NULL,
+    file_path       VARCHAR(255) NOT NULL,
+    mime_type       VARCHAR(100) NOT NULL,
+    attachment_type VARCHAR(25)  NOT NULL,
+    description     VARCHAR(255),
+    CONSTRAINT fk_attachment_transparency
+        FOREIGN KEY (transparency_id)
+            REFERENCES transparency (transparency_id)
+            ON DELETE CASCADE,
+    INDEX idx_transparency (transparency_id)
+);
+
+CREATE TABLE IF NOT EXISTS transparency_permissions
+(
+    permission_id   INT AUTO_INCREMENT PRIMARY KEY,
+    transparency_id INT NOT NULL,
+    user_id         INT NOT NULL,
+    UNIQUE INDEX uq_transparency_user (transparency_id, user_id),
+    CONSTRAINT fk_permission_transparency
+        FOREIGN KEY (transparency_id)
+            REFERENCES transparency (transparency_id)
+            ON DELETE CASCADE,
+    CONSTRAINT fk_permission_user
+        FOREIGN KEY (user_id)
+            REFERENCES users (user_id)
+            ON DELETE CASCADE,
+    INDEX idx_transparency (transparency_id),
+    INDEX idx_user (user_id)
+);
+
+
+
 # -- Mensajería
 #
 # create table if not exists mensajes
