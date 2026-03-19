@@ -1,6 +1,6 @@
-{layout ../../plantillas/@layout.latte}
+{extends ../../../../templates/@portal.latte}
 
-{block content}
+{block main}
   {if $error}
     <div class="alert alert-danger" role="alert">
       {$error}
@@ -13,86 +13,78 @@
     </div>
   {/if}
 
-  <form id="formAgregarDocumento" action="./actualizar.php" method="POST" enctype="multipart/form-data"
-        class="row g-3 justify-content-center mx-auto">
-    <input type="hidden" name="id_doc" value="{$documento ['id']}">
+{include '../../../../templates/components/header-page.latte', title: 'Editar documento', description: 'Modifica la información y archivos de este registro.', icon: 'bi-pencil-square'}
 
-    <div class="p-4 bg-white rounded shadow-sm w-100">
-      <div class="mb-3 col-12">
-        <label for="tituloDocumento" class="form-label fw-semibold">Título</label>
-        <input type="text" class="form-control form-control-lg" id="tituloDocumento" name="titulo"
-               value="{$documento['titulo']}" required>
+
+  <form id="formActualizarDocumento" action="./actualizar.php" method="POST" enctype="multipart/form-data"
+        class="row g-3 justify-content-center mx-auto"
+        x-data="{ isPrivate: {if $documento->isPrivate}true{else}false{/if} }"
+        @submit="$el.querySelectorAll('button[type=submit]').forEach(b => { b.disabled = true; b.innerHTML = '<span class=\'spinner-border spinner-border-sm\' role=\'status\' aria-hidden=\'true\'></span> Guardando...' })">
+    <input type="hidden" name="id_doc" value="{$documento->id}">
+
+    <div class="p-4 bg-white rounded-4 shadow-sm w-100">
+
+      <div class="mb-4 col-12">
+        <label for="titleDocumento" class="form-label fw-medium text-secondary">Título del Documento <span class="text-danger">*</span></label>
+        <input type="text" class="form-control form-control-lg bg-light border-0 rounded-4" id="titleDocumento" name="title"
+               value="{$documento->title}" required>
       </div>
 
-      <div class="mb-3 col-12">
-        <label for="editorDocumento" class="form-label fw-semibold">Contenido</label>
-        <div id="editorDocumento" style="height: 200px;">
-          {$documento['contenido']|noescape}
+      <div class="mb-4 col-12">
+        <label for="summaryDocumento" class="form-label fw-medium text-secondary">Resumen / Descripción corta</label>
+        <textarea class="form-control bg-light border-0 rounded-4" id="summaryDocumento" name="summary" rows="4"
+                  placeholder="Breve descripción del contenido...">{$documento->summary}</textarea>
+      </div>
+
+      <div class="mb-4 col-12 col-md-6">
+        <label for="dateDocumento" class="form-label fw-medium text-secondary">Fecha del Documento <span class="text-danger">*</span></label>
+        <input type="date" class="form-control form-control-lg bg-light border-0 rounded-4" id="dateDocumento" name="date_published"
+               value="{$documento->datePublished|date:'Y-m-d'}" required>
+      </div>
+
+      <div class="mb-4 col-12">
+        <div class="card bg-light border-0 rounded-4">
+          <div class="card-body p-3">
+            <div class="form-check form-switch d-flex align-items-center p-0">
+              <div class="flex-grow-1">
+                <label class="form-check-label fw-bold d-block mb-1" for="isPrivateDocumento">Privacidad del Documento</label>
+                <small class="text-muted" x-text="isPrivate ? 'Documento privado. Solo usuarios autorizados podrán verlo.' : 'Documento público. Cualquier visitante podrá verlo.'"></small>
+              </div>
+              <input class="form-check-input fs-3 ms-2 mt-0" type="checkbox" role="switch" id="isPrivateDocumento" name="is_private" value="1" x-model="isPrivate">
+            </div>
+          </div>
         </div>
-        <input type="hidden" name="contenido" id="contenidoDocumento">
       </div>
 
-      <div class="mb-3 col-12">
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" name="privado"
-                 value="{$documento['privado']}" {$documento['privado'] == 1?'checked'} id="checkDefault">
-          <label class="form-check-label" for="checkDefault">Privado</label>
-        </div>
+      <div class="mb-4 col-12 col-md-6">
+        <label for="archivoDocumento" class="form-label fw-medium text-secondary">Archivo adjunto (opcional)</label>
+        <input type="file" class="form-control bg-light border-0 rounded-4" id="archivoDocumento" name="archivo">
       </div>
 
-      <div class="mb-3 col-12 col-md-6">
-        <label for="fechaDocumento" class="form-label fw-semibold">Fecha</label>
-        <input type="date" class="form-control" id="fechaDocumento" name="fecha_documento"
-               value="{$documento['fecha_documento']??date('Y-m-d')|date:'Y-m-d'}" required>
-      </div>
-
-      <div class="mb-3 col-12 col-md-6">
-        <label for="archivoDocumento" class="form-label fw-semibold">Archivo adjunto (opcional)</label>
-        <input type="file" class="form-control" id="archivoDocumento" name="archivo">
-      </div>
-      {if $documento['adjunto']}
-        <div class="mb-3 col-12">
-          <label class="form-label fw-bold">Archivo actual:</label>
-          <a href="/privado/archivos/repositorios/tramite-ante-autoridades/{$documento['adjunto']}" target="_blank"
-             class="d-block text-primary text-decoration-underline">Ver archivo adjunto</a>
+      {if $adjuntos}
+        <div class="mb-4 col-12">
+          <label class="form-label fw-bold text-secondary">Archivos actuales:</label>
+          <ul class="list-unstyled">
+          {foreach $adjuntos as $adj}
+            <li class="mb-1">
+              <a href="/{$adj->filePath}" target="_blank" class="text-primary text-decoration-none">
+                <i class="bi bi-paperclip me-1"></i>{$adj->originalFilename|default:'Archivo'}
+              </a>
+            </li>
+          {/foreach}
+          </ul>
         </div>
       {/if}
     </div>
 
-    <div class="gap-2 d-flex justify-content-end bg-light rounded-bottom p-3 w-100">
-      <a href="./detalle.php?id_doc={$documento['id']}" class="btn btn-outline-secondary me-2">
-        <i class="bi bi-arrow-left me-3"></i>
-        Volver
+    <div class="gap-2 d-flex justify-content-end bg-light rounded-4 p-3 w-100">
+      <a href="./detalle.php?id_doc={$documento->id}" class="btn btn-light btn-lg rounded-4">
+        <i class="bi bi-arrow-left me-2"></i>Volver
       </a>
-      <a type="button" class="btn btn-secondary" href="./index.php">Cancelar</a>
-      <button type="submit" class="btn btn-primary" name="guardar" value="guardar">Guardar documento</button>
+      <a type="button" class="btn btn-light btn-lg rounded-4" href="./index.php">Cancelar</a>
+      <button type="submit" class="btn btn-primary btn-lg rounded-4 px-4">
+        <i class="bi bi-save me-2"></i>Guardar cambios
+      </button>
     </div>
   </form>
-{/block}
-
-{block styles}
-  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-{/block}
-{block scripts}
-  <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
-  <script>
-    // Inicializar QuillJS en el formulario
-    const quill = new Quill('#editorDocumento', {
-      theme: 'snow',
-      modules: {
-        toolbar: [
-          [{'header': [1, 2, false]}],
-          ['bold', 'italic', 'underline'],
-          ['link', 'image'],
-          [{'list': 'ordered'}, {'list': 'bullet'}],
-          ['clean']
-        ]
-      }
-    });
-
-    // Al enviar el formulario, obtener el contenido de Quill
-    document.getElementById('formAgregarDocumento').addEventListener('submit', function () {
-      document.getElementById('contenidoDocumento').value = document.querySelector('.ql-editor').innerHTML;
-    });
-  </script>
 {/block}

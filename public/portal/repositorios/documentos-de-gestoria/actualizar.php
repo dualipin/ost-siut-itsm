@@ -1,117 +1,119 @@
 <?php
 
-use App\Configuracion\MysqlConexion;
-use App\Manejadores\SesionProtegida;
-use App\Servicios\ServicioLatte;
+use App\Bootstrap;
+use App\Http\Middleware\MiddlewareFactory;
+use App\Http\Middleware\MiddlewareRunner;
+use App\Infrastructure\Templating\RendererInterface;
+use App\Shared\Context\UserProviderInterface;
+use App\Modules\Transparency\Application\UseCase\GetTransparencyUseCase;
+use App\Modules\Transparency\Application\UseCase\UpdateTransparencyUseCase;
+use App\Modules\Transparency\Application\UseCase\AddAttachmentUseCase;
+use App\Modules\Transparency\Domain\Enum\AttachmentType;
+use App\Modules\Transparency\Domain\Repository\TransparencyRepositoryInterface;
 
-require_once __DIR__ . '/../../../src/configuracion.php';
-require_once __DIR__ . '/buscar.php';
+require_once __DIR__ . '/../../../../bootstrap.php';
 
-SesionProtegida::proteger();
-$conn = MysqlConexion::conexion();
-$error = null;
-$mensaje = null;
+$container = Bootstrap::buildContainer();
+$middleware = $container->get(MiddlewareFactory::class);
+$runner = $container->get(MiddlewareRunner::class);
+
+$runner->runOrRedirect($middleware->auth());
+
+$userProvider = $container->get(UserProviderInterface::class);
+$user = $userProvider->get();
+
+if (!$user || ($user->role->value !== 'administrador' && $user->role->value !== 'lider')) {
+    header('Location: index.php?error=' . urlencode('Permisos insuficientes'));
+    exit;
+}
+
+$getUseCase = $container->get(GetTransparencyUseCase::class);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = (int)$_POST['id_doc'];
-    $titulo = $_POST['titulo'] ?? '';
-    $contenido = $_POST['contenido'] ?? '';
-    $fecha_documento = $_POST['fecha_documento'] ?? null;
-    $privado = isset($_POST['privado']) ? 1 : 0;
+    $titulo = trim((string)($_POST['title'] ?? ''));
+    $contenido = trim((string)($_POST['summary'] ?? ''));
+    $fecha_documento = trim((string)($_POST['date_published'] ?? ''));
+    $privado = isset($_POST['is_private']);
 
-    // Obtener el adjunto actual si no se sube uno nuevo
-    $adjuntoActual = null;
-    $stmtAdjunto = $conn->prepare('SELECT adjunto FROM documentos_gestoria WHERE id = ?');
-    $stmtAdjunto->execute([$id]);
-    $filaAdjunto = $stmtAdjunto->fetch(PDO::FETCH_ASSOC);
-    if ($filaAdjunto) {
-        $adjuntoActual = $filaAdjunto['adjunto'];
+    if ($titulo === '') {
+        header('Location: actualizar.php?id_doc=' . $id . '&error=' . urlencode('El título es obligatorio'));
+        exit;
     }
 
-    $adjunto = $adjuntoActual;
-    if (isset($_FILES['archivo']) && $_FILES['archivo']['error'] === UPLOAD_ERR_OK) {
-        $directorio = __DIR__ . '/../../../privado/archivos/repositorios/';
-        if (!is_dir($directorio) && !mkdir($directorio, 0777, true) && !is_dir($directorio)) {
-            $error = 'No se pudo crear el directorio de subida.';
-        } else {
-            $nombreOriginal = basename($_FILES['archivo']['name']);
-            $extension = strtolower(pathinfo($nombreOriginal, PATHINFO_EXTENSION));
-            $permitidos = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'];
-            $tamanoMax = 5 * 1024 * 1024; // 5MB
-            if (!in_array($extension, $permitidos, true)) {
-                $error = 'Tipo de archivo no permitido.';
-            } elseif ((int)$_FILES['archivo']['size'] > $tamanoMax) {
-                $error = 'El archivo excede el tamaño máximo permitido (5MB).';
-            } else {
-                // Generar nombre único y seguro
-                $nombreArchivo = uniqid('doc_', true) . '.' . $extension;
-                $rutaDestino = $directorio . $nombreArchivo;
-                if (!move_uploaded_file($_FILES['archivo']['tmp_name'], $rutaDestino)) {
-                    $error = 'Error al subir el archivo.';
-                } else {
-                    $adjunto = $nombreArchivo;
-                }
-            }
+    if ($fecha_documento !== '') {
+        $fechaObj = date_create_from_format('Y-m-d', $fecha_documento);
+        if (!$fechaObj) {
+            header('Location: actualizar.php?id_doc=' . $id . '&error=' . urlencode('Fecha inválida'));
+            exit;
         }
-    }
-
-    $sql = "UPDATE `documentos_gestoria` SET `titulo`= ?,`contenido`= ?,`adjunto`= ?,`fecha_documento`= ?,`privado`= ? WHERE id = ?";
-
-    $stmt = $conn->prepare($sql);
-    $stmt->bindParam(1, $titulo);
-    $stmt->bindParam(2, $contenido);
-    $stmt->bindParam(3, $adjunto);
-    $stmt->bindParam(4, $fecha_documento);
-    $stmt->bindParam(5, $privado, PDO::PARAM_INT);
-    $stmt->bindParam(6, $id, PDO::PARAM_INT);
-
-    if ($stmt->execute()) {
-        header('Location: detalle.php?id_doc=' . $id . '&mensaje=' . urlencode('Documento actualizado con éxito.'));
-        exit('Documento actualizado con éxito.');
     } else {
-        // Si la actualización falla y subimos archivo, eliminarlo para no dejar basura
-        if ($adjunto !== $adjuntoActual && $adjunto) {
-            $rutaArchivo = __DIR__ . '/../../../privado/archivos/repositorios/' . $adjunto;
-            if (file_exists($rutaArchivo)) {
-                @unlink($rutaArchivo);
-            }
-        }
+        $fecha_documento = date('Y-m-d');
     }
 
-    header('Location: ?id_doc=' . $id . '&error=' . urlencode('Error al actualizar el documento.'));
-    exit('Funcionalidad de actualización en desarrollo.');
+    try {
+        $transparency = $getUseCase->execute($id);
+        
+        $updateUseCase = $container->get(UpdateTransparencyUseCase::class);
+        $updateUseCase->execute(
+            id: $transparency->id,
+            title: $titulo,
+            summary: $contenido ?: null,
+            typeValue: $transparency->type->value,
+            datePublished: $fecha_documento,
+            isPrivate: $privado
+        );
+
+        if (isset($_FILES['archivo']) && $_FILES['archivo']['error'] === UPLOAD_ERR_OK) {
+            $addAttachmentUseCase = $container->get(AddAttachmentUseCase::class);
+            $mime = mime_content_type($_FILES['archivo']['tmp_name']);
+            if ($mime === false) {
+                $mime = 'application/octet-stream';
+            }
+            $addAttachmentUseCase->execute(
+                transparencyId: $transparency->id,
+                sourcePath: $_FILES['archivo']['tmp_name'],
+                originalFilename: basename($_FILES['archivo']['name']),
+                mimeType: $mime,
+                attachmentTypeValue: AttachmentType::OTRO->value,
+                description: null
+            );
+        }
+
+        header('Location: detalle.php?id_doc=' . $id . '&mensaje=' . urlencode('Documento actualizado con éxito.'));
+        exit;
+    } catch (Exception $e) {
+        header('Location: actualizar.php?id_doc=' . $id . '&error=' . urlencode('Error al actualizar: ' . $e->getMessage()));
+        exit;
+    }
 }
 
-// Validar ID de documento
 if (!isset($_GET['id_doc']) || !is_numeric($_GET['id_doc'])) {
     http_response_code(400);
     header('Location: index.php?error=' . urlencode('ID de documento inválido.'));
-    exit('ID de documento inválido.');
+    exit;
 }
 
+$id = (int)$_GET['id_doc'];
 
-if (isset($_GET['error'])) {
-    $error = $_GET['error'];
-}
-
-if (isset($_GET['mensaje'])) {
-    $mensaje = $_GET['mensaje'];
-}
-
-$documento = buscarDocumento($conn, (int)$_GET['id_doc']);
-
-if (!$documento) {
+try {
+    $documento = $getUseCase->execute($id);
+} catch (Exception $e) {
     http_response_code(404);
-    $error = 'Documento no encontrado.';
-    header('Location: index.php?error=' . urlencode($error));
-    exit('Documento no encontrado.');
+    header('Location: index.php?error=' . urlencode('Documento no encontrado.'));
+    exit;
 }
+
+$repo = $container->get(TransparencyRepositoryInterface::class);
+$adjuntos = $repo->findAttachmentsByTransparencyId($documento->id);
 
 $datos = [
-        'documento' => $documento,
-        'error' => $error,
-        'mensaje' => $mensaje,
+    'documento' => $documento,
+    'adjuntos'  => $adjuntos,
+    'error' => $_GET['error'] ?? null,
+    'mensaje' => $_GET['mensaje'] ?? null,
 ];
 
-ServicioLatte::renderizar(__DIR__ . '/actualizar.latte', $datos);
+$renderer = $container->get(RendererInterface::class);
+$renderer->render(__DIR__ . '/actualizar.latte', $datos);
 

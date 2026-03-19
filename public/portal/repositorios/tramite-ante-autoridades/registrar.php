@@ -1,11 +1,19 @@
 <?php
 
-use App\Configuracion\MysqlConexion;
-use App\Manejadores\SesionProtegida;
+use App\Bootstrap;
+use App\Http\Middleware\MiddlewareFactory;
+use App\Http\Middleware\MiddlewareRunner;
+use App\Shared\Context\UserProviderInterface;
+use App\Modules\Transparency\Application\UseCase\CreateTransparencyUseCase;
+use App\Modules\Transparency\Domain\Enum\TransparencyType;
 
-require_once __DIR__ . '/../../../src/configuracion.php';
+require_once __DIR__ . '/../../../../bootstrap.php';
 
-SesionProtegida::proteger();
+$container = Bootstrap::buildContainer();
+$middleware = $container->get(MiddlewareFactory::class);
+$runner = $container->get(MiddlewareRunner::class);
+
+$runner->runOrRedirect($middleware->auth());
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -13,87 +21,53 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit('Método no permitido');
 }
 
-// Sanitización y validación básica
-$titulo = trim((string)($_POST['titulo'] ?? ''));
-$contenido = trim((string)($_POST['contenido'] ?? ''));
-$fecha_documento = trim((string)($_POST['fecha_documento'] ?? ''));
-$privado = isset($_POST['privado']) ? 1 : 0;
+$userProvider = $container->get(UserProviderInterface::class);
+$user = $userProvider->get();
 
-$nombreArchivo = null;
-$error = null;
-
-if ($titulo === '' || $contenido === '') {
-    $error = 'El título y el contenido son obligatorios.';
+if (!$user || ($user->role->value !== 'administrador' && $user->role->value !== 'lider')) {
+    header('Location: index.php?error=' . urlencode('Permisos insuficientes'));
+    exit;
 }
 
-// Validar y convertir fecha_documento a formato YYYY-MM-DD o null
+$titulo = trim((string)($_POST['title'] ?? ''));
+$contenido = trim((string)($_POST['summary'] ?? ''));
+$fecha_documento = trim((string)($_POST['date_published'] ?? ''));
+$privado = isset($_POST['is_private']);
+
+if ($titulo === '') {
+    header('Location: index.php?error=' . urlencode('El título es obligatorio'));
+    exit;
+}
+
+// Convert YYYY-MM-DD or use fallback. The UseCase expects YYYY-MM-DD.
 if ($fecha_documento !== '') {
     $fechaObj = date_create_from_format('Y-m-d', $fecha_documento);
     if (!$fechaObj) {
-        $error = 'La fecha del documento no es válida.';
-    } else {
-        $fecha_documento = $fechaObj->format('Y-m-d');
+        header('Location: index.php?error=' . urlencode('Fecha inválida'));
+        exit;
     }
 } else {
-    $fecha_documento = null;
+    $fecha_documento = date('Y-m-d');
 }
 
-// Manejo opcional de archivo
-if (!$error && isset($_FILES['archivo']) && $_FILES['archivo']['error'] === UPLOAD_ERR_OK) {
-    $directorio = __DIR__ . '/../../../privado/archivos/repositorios/tramite-ante-autoridades/';
-    if (!is_dir($directorio) && !mkdir($directorio, 0777, true) && !is_dir($directorio)) {
-        $error = 'No se pudo crear el directorio de subida.';
-    } else {
-        $nombreOriginal = basename($_FILES['archivo']['name']);
-        $extension = strtolower(pathinfo($nombreOriginal, PATHINFO_EXTENSION));
-        $permitidos = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'];
-        $tamanoMax = 5 * 1024 * 1024; // 5MB
-
-        if (!in_array($extension, $permitidos, true)) {
-            $error = 'Tipo de archivo no permitido.';
-        } elseif ((int)$_FILES['archivo']['size'] > $tamanoMax) {
-            $error = 'El archivo excede el tamaño máximo permitido (5MB).';
-        } else {
-            // Generar nombre único y seguro
-            $nombreArchivo = uniqid('doc_', true) . '.' . $extension;
-            $rutaDestino = $directorio . $nombreArchivo;
-            if (!move_uploaded_file($_FILES['archivo']['tmp_name'], $rutaDestino)) {
-                $error = 'Error al guardar el archivo.';
-                $nombreArchivo = null;
-            }
-        }
-    }
-}
-
-if ($error !== null) {
-    header('Location: index.php?error=' . urlencode($error));
-    exit();
-}
-
-$conn = MysqlConexion::conexion();
-
-$sql = "INSERT INTO documentos_tramites_ante_autoridades (titulo, contenido, adjunto, fecha_documento, privado) VALUES (?, ?, ?, ?, ?)";
-$params = [
-        $titulo,
-        $contenido,
-        $nombreArchivo,
-        $fecha_documento,
-        $privado
-];
-
-$stmt = $conn->prepare($sql);
-if ($stmt->execute($params)) {
+try {
+    $createUseCase = $container->get(CreateTransparencyUseCase::class);
+    
+    $files = (isset($_FILES['archivo']) && $_FILES['archivo']['error'] !== UPLOAD_ERR_NO_FILE) ? [$_FILES['archivo']] : [];
+    
+    $createUseCase->execute(
+        authorId: $user->id,
+        title: $titulo,
+        summary: $contenido !== '' ? $contenido : null,
+        typeValue: TransparencyType::TRAMITES->value,
+        datePublished: $fecha_documento,
+        isPrivate: $privado,
+        files: $files
+    );
+    
     header('Location: index.php?mensaje=' . urlencode('Documento registrado con éxito'));
-    exit();
-} else {
-    // Si la inserción falla y subimos archivo, eliminarlo para no dejar basura
-    if ($nombreArchivo) {
-        $rutaArchivo = __DIR__ . '/../../privado/archivos/repositorios/tramite-ante-autoridades/' . $nombreArchivo;
-        if (file_exists($rutaArchivo)) {
-            @unlink($rutaArchivo);
-        }
-    }
-    http_response_code(500);
-    header('Location: index.php?error=' . urlencode('Error al registrar el documento'));
-    exit('Error al registrar el documento');
+    exit;
+} catch (Exception $e) {
+    header('Location: index.php?error=' . urlencode('Error al registrar: ' . $e->getMessage()));
+    exit;
 }

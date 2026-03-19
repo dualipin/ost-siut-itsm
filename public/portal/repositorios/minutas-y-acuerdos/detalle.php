@@ -1,13 +1,23 @@
 <?php
 
-use App\Configuracion\MysqlConexion;
-use App\Manejadores\SesionProtegida;
-use App\Servicios\ServicioLatte;
+use App\Bootstrap;
+use App\Http\Middleware\MiddlewareFactory;
+use App\Http\Middleware\MiddlewareRunner;
+use App\Infrastructure\Templating\RendererInterface;
+use App\Shared\Context\UserProviderInterface;
+use App\Modules\Transparency\Application\UseCase\GetTransparencyUseCase;
+use App\Modules\Transparency\Domain\Repository\TransparencyRepositoryInterface;
 
-require_once __DIR__ . '/../../../src/configuracion.php';
-require_once __DIR__ . '/buscar.php';
+require_once __DIR__ . '/../../../../bootstrap.php';
 
-SesionProtegida::proteger();
+$container = Bootstrap::buildContainer();
+$middleware = $container->get(MiddlewareFactory::class);
+$runner = $container->get(MiddlewareRunner::class);
+
+$runner->runOrRedirect($middleware->auth());
+
+$userProvider = $container->get(UserProviderInterface::class);
+$user = $userProvider->get();
 
 if (!isset($_GET['id_doc']) || !is_numeric($_GET['id_doc'])) {
     http_response_code(400);
@@ -15,22 +25,27 @@ if (!isset($_GET['id_doc']) || !is_numeric($_GET['id_doc'])) {
     exit('ID de documento inválido.');
 }
 
-$conn = MysqlConexion::conexion();
+$getUseCase = $container->get(GetTransparencyUseCase::class);
 
-$documento = buscarDocumento($conn, $_GET['id_doc']);
+$documento = $getUseCase->execute((int)$_GET['id_doc']);
 
 if (!$documento) {
     http_response_code(404);
     $error = 'Documento no encontrado.';
     header('Location: index.php?error=' . urlencode($error));
-    exit('Documento no encontrado.');
+    exit;
 }
 
+// In real app, the repo is in container. We might need the repo interface to fetch attachments.
+// Or we could have a `GetAttachmentsUseCase`, but using repo interface is fine here since it's just finding.
+$repo = $container->get(TransparencyRepositoryInterface::class);
+$adjuntos = $repo->findAttachmentsByTransparencyId($documento->id);
 
-$id = (int)$_GET['id_doc'];
 $data = [
-        'documento' => $documento
+    'documento' => $documento,
+    'adjuntos'  => $adjuntos,
+    'miembro'   => $user,
 ];
 
-
-ServicioLatte::renderizar(__DIR__ . '/detalle.latte', $data);
+$renderer = $container->get(RendererInterface::class);
+$renderer->render(__DIR__ . '/detalle.latte', $data);

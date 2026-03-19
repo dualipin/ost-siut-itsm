@@ -1,54 +1,44 @@
 <?php
-require_once __DIR__ . '/../../../src/configuracion.php';
 
-use App\Configuracion\MysqlConexion;
-use App\Manejadores\SesionProtegida;
+use App\Bootstrap;
+use App\Http\Middleware\MiddlewareFactory;
+use App\Http\Middleware\MiddlewareRunner;
+use App\Shared\Context\UserProviderInterface;
+use App\Modules\Transparency\Application\UseCase\DeleteTransparencyUseCase;
 
-SesionProtegida::proteger();
+require_once __DIR__ . '/../../../../bootstrap.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['id_doc'])) {
-        $documentoId = (int)$_POST['id_doc'];
-        $conn = MysqlConexion::conexion();
+$container = Bootstrap::buildContainer();
+$middleware = $container->get(MiddlewareFactory::class);
+$runner = $container->get(MiddlewareRunner::class);
 
-        try {
-            $conn->beginTransaction();
+$runner->runOrRedirect($middleware->auth());
 
-            $adjuntoStmt = $conn->prepare('SELECT adjunto FROM documentos_gremiales WHERE id = ?');
-            $adjuntoStmt->execute([$documentoId]);
-            $resultado = $adjuntoStmt->fetch(PDO::FETCH_ASSOC);
-
-            if ($resultado && !empty($resultado['adjunto'])) {
-                $rutaArchivo = realpath(__DIR__ . '/../../../privado/archivos/repositorios/documentos-gremiales/' . $resultado['adjunto']);
-                if ($rutaArchivo && file_exists($rutaArchivo)) {
-                    unlink($rutaArchivo);
-                }
-            }
-
-            $stmt = $conn->prepare('DELETE FROM documentos_gremiales WHERE id = ?');
-            $res = $stmt->execute([$documentoId]);
-
-            if ($res) {
-                $conn->commit();
-                http_response_code(200);
-                header('Location: index.php?mensaje=' . urlencode('Eliminado con éxito'));
-            } else {
-                $conn->rollBack();
-                http_response_code(500);
-                header('Location: index.php?error=' . urlencode('Error al eliminar'));
-            }
-            exit;
-        } catch (Exception $e) {
-            if ($conn->inTransaction()) {
-                $conn->rollBack();
-            }
-            http_response_code(500);
-            header('Location: index.php?error=' . urlencode('Error interno: ' . $e->getMessage()));
-            exit;
-        }
-    }
-} else {
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     header('Location: index.php');
     exit('Método no permitido');
+}
+
+$userProvider = $container->get(UserProviderInterface::class);
+$user = $userProvider->get();
+
+if (!$user || ($user->role->value !== 'administrador' && $user->role->value !== 'lider')) {
+    header('Location: index.php?error=' . urlencode('Permisos insuficientes'));
+    exit;
+}
+
+if (!isset($_POST['id_doc'])) {
+    header('Location: index.php?error=' . urlencode('ID de documento inválido.'));
+    exit;
+}
+
+try {
+    $deleteUseCase = $container->get(DeleteTransparencyUseCase::class);
+    $deleteUseCase->execute((int)$_POST['id_doc']);
+    header('Location: index.php?mensaje=' . urlencode('Eliminado con éxito'));
+    exit;
+} catch (Exception $e) {
+    header('Location: index.php?error=' . urlencode('Error interno: ' . $e->getMessage()));
+    exit;
 }
