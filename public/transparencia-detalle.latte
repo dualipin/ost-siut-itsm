@@ -8,24 +8,13 @@
     <div class="row justify-content-center">
       <div class="col-lg-10">
         <!-- Botón Volver -->
-        <a href="transparencia.php" class="btn btn-outline-secondary rounded-4 border-0 mb-4" data-aos="fade-right">
+        <a href="transparencia.php" class="btn btn-outline-secondary rounded-4 border-0 mb-4 fs-5" data-aos="fade-right">
           <i class="bi bi-arrow-left me-2"></i> Volver a Transparencia
         </a>
 
         <!-- Encabezado del Documento -->
-        <div class="card border-0 shadow-sm rounded-4 mb-5" data-aos="fade-up">
-          <div class="card-body p-4 p-md-5">
-            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
-              <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary px-3 py-2 border border-primary border-opacity-25 fs-6">
-                {$transparency->type->value}
-              </span>
-              
-              <div class="text-muted small">
-                 <i class="bi bi-calendar3 me-2"></i> Fecha de Publicación: <strong>{$transparency->datePublished->format('d/m/Y')}</strong>
-              </div>
-            </div>
-
-            <h1 class="fw-bold mb-4 text-dark display-6">{$transparency->title}</h1>
+        <div class="mb-5" data-aos="fade-up">
+            <h1 class="fw-bold mb-3 text-dark display-6">{$transparency->title}</h1>
             
             {if $transparency->isPrivate}
               <div class="alert alert-warning border-0 rounded-4 d-flex align-items-center mb-4">
@@ -37,9 +26,8 @@
             {/if}
 
             <p class="fs-5 text-secondary lh-lg mb-0">
-              {$transparency->summary ?: 'Este documento no cuenta con una descripción detallada provista por el administrador.'}
+              {$transparency->summary ?: 'Sin descripción detallada por el momento.'}
             </p>
-          </div>
         </div>
 
         <!-- Archivos Adjuntos -->
