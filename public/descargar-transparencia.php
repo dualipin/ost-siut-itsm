@@ -48,7 +48,7 @@ try {
             }
         }
         $userRole = $user ? $user->role->value : null;
-        if (!$hasPermission && $userRole !== 'ADMIN') {
+        if (!$hasPermission && $userRole !== 'administrador' && $userRole !== 'lider') {
             http_response_code(403);
             die('Acceso denegado. No posee permisos para este documento.');
         }
