@@ -435,6 +435,11 @@ CREATE TABLE IF NOT EXISTS message_threads
     -- Remitente original (puede ser NULL si el mensaje es anónimo/externo)
     sender_id        INT                  DEFAULT NULL,
 
+    -- Datos del remitente externo (solo aplica cuando sender_id IS NULL)
+    external_name    VARCHAR(255)         DEFAULT NULL,
+    external_email   VARCHAR(255)         DEFAULT NULL,
+    external_phone   VARCHAR(50)          DEFAULT NULL,
+
     -- Para 'chat': el otro participante. Para 'qa': el admin asignado.
     -- Para 'contact': no aplica.
     recipient_id     INT                  DEFAULT NULL,
@@ -476,11 +481,6 @@ CREATE TABLE IF NOT EXISTS message_threads
     INDEX idx_mt_recipient (recipient_id)
 );
 
-
--- ============================================================
--- MENSAJES individuales dentro de un hilo
--- ============================================================
-
 CREATE TABLE IF NOT EXISTS messages
 (
     message_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -504,11 +504,6 @@ CREATE TABLE IF NOT EXISTS messages
     INDEX idx_msg_thread (thread_id),
     INDEX idx_msg_sender (sender_id)
 );
-
-
--- ============================================================
--- ADJUNTOS (opcional, para cualquier tipo de mensaje)
--- ============================================================
 
 CREATE TABLE IF NOT EXISTS message_attachments
 (
