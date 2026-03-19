@@ -417,61 +417,115 @@ CREATE TABLE IF NOT EXISTS transparency_permissions
     INDEX idx_user (user_id)
 );
 
+-- ============================================================
+-- SISTEMA DE MENSAJERÍA
+-- Tres tipos de hilo:
+--   contact  → mensaje único de contacto, se atiende externamente
+--   qa       → pregunta pública/privada con respuestas de admin
+--   chat     → intercambio bidireccional libre entre dos usuarios
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS message_threads
+(
+    thread_id        INT AUTO_INCREMENT PRIMARY KEY,
+
+    -- Tipo de hilo (define el comportamiento)
+    thread_type      VARCHAR(20) NOT NULL,
+
+    -- Remitente original (puede ser NULL si el mensaje es anónimo/externo)
+    sender_id        INT                  DEFAULT NULL,
+
+    -- Para 'chat': el otro participante. Para 'qa': el admin asignado.
+    -- Para 'contact': no aplica.
+    recipient_id     INT                  DEFAULT NULL,
+
+    -- Asunto / título del hilo (opcional, útil en qa y contact)
+    subject          VARCHAR(255)         DEFAULT NULL,
+
+    -- Estado del hilo
+    -- contact : pending | attended
+    -- qa      : open | answered | closed
+    -- chat    : active | archived
+    status           VARCHAR(20)
+                                 NOT NULL DEFAULT 'pending',
+
+    -- Solo aplica en 'qa': el admin puede cambiar de private a public
+    visibility       VARCHAR(20) NOT NULL DEFAULT 'private',
+
+    -- Quién gestionó/respondió (admin asignado)
+    assigned_to      INT                  DEFAULT NULL,
+
+    -- Para 'contact': canal por el que fue atendido fuera del sistema
+    external_channel VARCHAR(100)         DEFAULT NULL, -- ej: 'phone', 'whatsapp', 'in_person'
+
+    created_at       DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at       DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at       DATETIME             DEFAULT NULL,
+
+    CONSTRAINT fk_mt_sender
+        FOREIGN KEY (sender_id) REFERENCES users (user_id) ON DELETE SET NULL,
+    CONSTRAINT fk_mt_recipient
+        FOREIGN KEY (recipient_id) REFERENCES users (user_id) ON DELETE SET NULL,
+    CONSTRAINT fk_mt_assigned
+        FOREIGN KEY (assigned_to) REFERENCES users (user_id) ON DELETE SET NULL,
+
+    INDEX idx_mt_type (thread_type),
+    INDEX idx_mt_status (status),
+    INDEX idx_mt_visibility (visibility),
+    INDEX idx_mt_sender (sender_id),
+    INDEX idx_mt_recipient (recipient_id)
+);
 
 
-# -- Mensajería
-#
-# create table if not exists mensajes
-# (
-#     mensaje_id           int auto_increment primary key,
-#     usuario_id           int,
-#     tipo                 varchar(50)  not null,
-#     asunto               varchar(255) not null,
-#     prioridad            varchar(20)  not null default 'media',
-#     estado               varchar(20)  not null default 'no_leido',
-#     -- Datos de contacto externo (si no está logueado)
-#     nombre_externo       VARCHAR(100),
-#     correo_externo       VARCHAR(100),
-#     telefono_externo     VARCHAR(20),
-#
-#     -- Asignación
-#     asignado_a           VARCHAR(36), -- usuario_id del admin/staff
-#
-#     -- Control
-#     fecha_creacion       DATETIME              DEFAULT CURRENT_TIMESTAMP,
-#     fecha_ultimo_mensaje DATETIME,
-#     fecha_cierre         DATETIME,
-#
-#     constraint fk_mensaje_usuario
-#         foreign key (usuario_id) references usuarios (usuario_id) on delete set null,
-#     index idx_tipo_estado (tipo, estado)
-# );
-#
-#
-# create table if not exists mensaje_detalles
-# (
-#     detalle_id         int auto_increment primary key,
-#     mensaje_id         int  not null,
-#     -- Autor (puede ser usuario logueado o externo)
-#     autor_usuario_id   int, -- NULL si es externo
-#     es_respuesta_staff BOOLEAN  DEFAULT FALSE,
-#
-#     mensaje            TEXT NOT NULL,
-#     adjunto_url        VARCHAR(255),
-#
-#     -- Control
-#     fecha_envio        DATETIME DEFAULT CURRENT_TIMESTAMP,
-#     leido              BOOLEAN  DEFAULT FALSE,
-#     fecha_lectura      DATETIME,
-#
-#     constraint fk_detalle_mensaje
-#         foreign key (mensaje_id) references mensajes (mensaje_id) on delete cascade,
-#     constraint fk_detalle_autor_usuario
-#         foreign key (autor_usuario_id) references usuarios (usuario_id) on delete set null,
-#
-#     index idx_mensaje_fecha (mensaje_id, fecha_envio),
-#     index idx_no_leidos (mensaje_id, es_respuesta_staff)
-# );
+-- ============================================================
+-- MENSAJES individuales dentro de un hilo
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS messages
+(
+    message_id INT AUTO_INCREMENT PRIMARY KEY,
+    thread_id  INT      NOT NULL,
+    sender_id  INT               DEFAULT NULL, -- NULL si es mensaje de sistema
+
+    body       TEXT     NOT NULL,
+
+    -- Cuándo se envió y cuándo fue leído por el destinatario
+    sent_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    read_at    DATETIME          DEFAULT NULL,
+
+    -- Mensaje eliminado suavemente (soft delete)
+    deleted_at DATETIME          DEFAULT NULL,
+
+    CONSTRAINT fk_msg_thread
+        FOREIGN KEY (thread_id) REFERENCES message_threads (thread_id) ON DELETE CASCADE,
+    CONSTRAINT fk_msg_sender
+        FOREIGN KEY (sender_id) REFERENCES users (user_id) ON DELETE SET NULL,
+
+    INDEX idx_msg_thread (thread_id),
+    INDEX idx_msg_sender (sender_id)
+);
+
+
+-- ============================================================
+-- ADJUNTOS (opcional, para cualquier tipo de mensaje)
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS message_attachments
+(
+    attachment_id INT AUTO_INCREMENT PRIMARY KEY,
+    message_id    INT          NOT NULL,
+    file_path     VARCHAR(512) NOT NULL,
+    file_name     VARCHAR(255)          DEFAULT NULL,
+    mime_type     VARCHAR(100)          DEFAULT NULL,
+    file_size     INT                   DEFAULT NULL, -- bytes
+    uploaded_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_att_message
+        FOREIGN KEY (message_id) REFERENCES messages (message_id) ON DELETE CASCADE,
+
+    INDEX idx_att_message (message_id)
+);
+
 CREATE TABLE IF NOT EXISTS system_colors
 (
     id                int primary key default 1,
