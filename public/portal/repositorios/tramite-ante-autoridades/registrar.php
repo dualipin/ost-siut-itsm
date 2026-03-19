@@ -29,13 +29,13 @@ if (!$user || ($user->role->value !== 'administrador' && $user->role->value !== 
     exit;
 }
 
-$titulo = trim((string)($_POST['titulo'] ?? ''));
-$contenido = trim((string)($_POST['contenido'] ?? ''));
-$fecha_documento = trim((string)($_POST['fecha_documento'] ?? ''));
-$privado = isset($_POST['privado']);
+$titulo = trim((string)($_POST['title'] ?? ''));
+$contenido = trim((string)($_POST['summary'] ?? ''));
+$fecha_documento = trim((string)($_POST['date_published'] ?? ''));
+$privado = isset($_POST['is_private']);
 
-if ($titulo === '' || $contenido === '') {
-    header('Location: index.php?error=' . urlencode('El título y contenido son obligatorios'));
+if ($titulo === '') {
+    header('Location: index.php?error=' . urlencode('El título es obligatorio'));
     exit;
 }
 
@@ -58,7 +58,7 @@ try {
     $createUseCase->execute(
         authorId: $user->id,
         title: $titulo,
-        summary: $contenido ?: null,
+        summary: $contenido !== '' ? $contenido : null,
         typeValue: TransparencyType::TRAMITES->value,
         datePublished: $fecha_documento,
         isPrivate: $privado,

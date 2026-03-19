@@ -31,13 +31,13 @@ $getUseCase = $container->get(GetTransparencyUseCase::class);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = (int)$_POST['id_doc'];
-    $titulo = trim((string)($_POST['titulo'] ?? ''));
-    $contenido = trim((string)($_POST['contenido'] ?? ''));
-    $fecha_documento = trim((string)($_POST['fecha_documento'] ?? ''));
-    $privado = isset($_POST['privado']);
+    $titulo = trim((string)($_POST['title'] ?? ''));
+    $contenido = trim((string)($_POST['summary'] ?? ''));
+    $fecha_documento = trim((string)($_POST['date_published'] ?? ''));
+    $privado = isset($_POST['is_private']);
 
-    if ($titulo === '' || $contenido === '') {
-        header('Location: actualizar.php?id_doc=' . $id . '&error=' . urlencode('Título y contenido son obligatorios'));
+    if ($titulo === '') {
+        header('Location: actualizar.php?id_doc=' . $id . '&error=' . urlencode('El título es obligatorio'));
         exit;
     }
 
