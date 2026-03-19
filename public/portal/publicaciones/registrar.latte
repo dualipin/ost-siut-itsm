@@ -27,113 +27,109 @@
 				<div class="alert alert-success" role="alert">{$success}</div>
 			{/if}
 
-			<div class="card border-0 shadow-sm rounded-4">
-				<div class="card-body p-4 p-lg-5">
-					<form id="publicationForm" method="post" enctype="multipart/form-data" class="row g-4">
-						<div class="col-12 col-lg-8">
-							<label for="title" class="form-label fw-semibold">Título</label>
-							<input
-								type="text"
-								class="form-control"
-								id="title"
-								name="title"
-								maxlength="100"
-								required
-								value="{$old['title']}"
-							>
-						</div>
+			<form id="publicationForm" method="post" enctype="multipart/form-data" class="row g-4">
+				<div class="col-12 col-lg-8">
+					<label for="title" class="form-label fw-semibold">Título</label>
+					<input
+						type="text"
+						class="form-control"
+						id="title"
+						name="title"
+						maxlength="100"
+						required
+						value="{$old['title']}"
+					>
+				</div>
 
-						<div class="col-12 col-lg-4">
-							<label for="type" class="form-label fw-semibold">Tipo</label>
-							<select class="form-select" id="type" name="type" required>
-								{foreach $types as $type}
-									<option value="{$type->value}" {if $old['type'] === $type->value}selected{/if}>
-										{$type->value|firstUpper}
-									</option>
-								{/foreach}
-							</select>
-						</div>
+				<div class="col-12 col-lg-4">
+					<label for="type" class="form-label fw-semibold">Tipo</label>
+					<select class="form-select" id="type" name="type" required>
+						{foreach $types as $type}
+							<option value="{$type->value}" {if $old['type'] === $type->value}selected{/if}>
+								{$type->value|firstUpper}
+							</option>
+						{/foreach}
+					</select>
+				</div>
 
-						<div class="col-12">
-							<label for="summary" class="form-label fw-semibold">Resumen</label>
-							<textarea
-								class="form-control"
-								id="summary"
-								name="summary"
-								rows="3"
-								maxlength="255"
-							>{$old['summary']}</textarea>
-						</div>
+				<div class="col-12">
+					<label for="summary" class="form-label fw-semibold">Resumen</label>
+					<textarea
+						class="form-control"
+						id="summary"
+						name="summary"
+						rows="3"
+						maxlength="255"
+					>{$old['summary']}</textarea>
+				</div>
 
-						<div class="col-12 col-lg-4">
-							<label for="expiration_date" class="form-label fw-semibold">Expiración (opcional)</label>
-							<input
-								type="date"
-								class="form-control"
-								id="expiration_date"
-								name="expiration_date"
-								value="{$old['expiration_date']}"
-							>
-						</div>
+				<div class="col-12 col-lg-6">
+					<label for="expiration_date" class="form-label fw-semibold">Expiración (opcional)</label>
+					<input
+						type="date"
+						class="form-control"
+						id="expiration_date"
+						name="expiration_date"
+						value="{$old['expiration_date']}"
+					>
+				</div>
 
-						<div class="col-12 col-lg-4">
-							<label for="thumbnail" class="form-label fw-semibold">Miniatura (opcional)</label>
+				<div class="col-12 col-lg-6">
+					<label for="thumbnail" class="form-label fw-semibold">Miniatura (opcional)</label>
+					<input
+						type="file"
+						class="form-control"
+						id="thumbnail"
+						name="thumbnail"
+						accept=".jpg,.jpeg,.png,.gif,.webp"
+					>
+					<div class="form-text">
+						Esta imagen se usará como portada en listados de avisos, noticias, gestiones y contratos.
+					</div>
+				</div>
+
+				<div class="col-12">
+					<div class="d-flex justify-content-between align-items-center mb-2">
+						<label class="form-label fw-semibold mb-0">Adjuntos (opcional)</label>
+						<button type="button" id="addAttachmentInput" class="btn btn-outline-primary">
+							<i class="bi bi-plus-circle me-1"></i>
+							Agregar archivo
+						</button>
+					</div>
+
+					<div id="attachmentInputs" class="d-grid gap-2">
+						<div class="input-group">
 							<input
 								type="file"
 								class="form-control"
-								id="thumbnail"
-								name="thumbnail"
-								accept=".jpg,.jpeg,.png,.gif,.webp"
+								name="attachments[]"
+								accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip"
 							>
-							<div class="form-text">
-								Esta imagen se usará como portada en listados de avisos, noticias, gestiones y contratos.
-							</div>
-						</div>
-
-						<div class="col-12 col-lg-8">
-							<div class="d-flex justify-content-between align-items-center mb-2">
-								<label class="form-label fw-semibold mb-0">Adjuntos (opcional)</label>
-								<button type="button" id="addAttachmentInput" class="btn btn-outline-primary">
-									<i class="bi bi-plus-circle me-1"></i>
-									Agregar archivo
-								</button>
-							</div>
-
-							<div id="attachmentInputs" class="d-grid gap-2">
-								<div class="input-group">
-									<input
-										type="file"
-										class="form-control"
-										name="attachments[]"
-										accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip"
-									>
-									<button type="button" class="btn btn-outline-danger remove-attachment" disabled>
-										<i class="bi bi-x-lg"></i>
-									</button>
-								</div>
-							</div>
-
-							<div class="form-text">
-								Las imágenes adjuntas se mostrarán en el carrusel y los demás archivos en una lista descargable.
-							</div>
-						</div>
-
-						<div class="col-12">
-							<label class="form-label fw-semibold">Contenido</label>
-							<div id="publicationEditor" class="bg-white rounded border"></div>
-							<textarea class="d-none" name="content" id="publicationContent">{$old['content']}</textarea>
-						</div>
-
-						<div class="col-12 d-flex justify-content-end gap-2">
-							<a href="{url('/portal/publicaciones/avisos.php')}" class="btn btn-outline-secondary">Cancelar</a>
-							<button type="submit" class="btn btn-primary">
-								<i class="bi bi-save me-2"></i>
-								Registrar publicación
+							<button type="button" class="btn btn-outline-danger remove-attachment" disabled>
+								<i class="bi bi-x-lg"></i>
 							</button>
 						</div>
-					</form>
+					</div>
+
+					<div class="form-text">
+						Las imágenes adjuntas se mostrarán en el carrusel y los demás archivos en una lista descargable.
+					</div>
 				</div>
-			</div>
+
+				<div class="col-12">
+					<label class="form-label fw-semibold">Contenido</label>
+					<div id="publicationEditor" class="bg-white rounded border"></div>
+					<textarea class="d-none" name="content" id="publicationContent">{$old['content']}</textarea>
+				</div>
+
+				<div class="col-12 d-flex justify-content-end gap-2">
+					<a href="{url('/portal/publicaciones/avisos.php')}" class="btn btn-outline-secondary">Cancelar</a>
+					<button type="submit" class="btn btn-primary">
+						<i class="bi bi-save me-2"></i>
+						Registrar publicación
+					</button>
+				</div>
+			</form>
 		</div>
 	</div>
 {/block}
