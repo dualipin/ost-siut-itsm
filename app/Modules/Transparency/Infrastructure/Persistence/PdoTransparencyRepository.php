@@ -30,6 +30,17 @@ final readonly class PdoTransparencyRepository implements TransparencyRepository
         return array_map([$this, 'hydrateTransparency'], $stmt->fetchAll(PDO::FETCH_ASSOC));
     }
 
+    public function findAllPublicByType(TransparencyType $type): array
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT * FROM transparency 
+            WHERE is_private = 0 AND transparency_type = :type
+            ORDER BY date_published DESC, created_at DESC
+        ');
+        $stmt->execute(['type' => $type->value]);
+        return array_map([$this, 'hydrateTransparency'], $stmt->fetchAll(PDO::FETCH_ASSOC));
+    }
+
     public function findAllPermittedForUser(int $userId): array
     {
         $stmt = $this->pdo->prepare('
@@ -44,9 +55,31 @@ final readonly class PdoTransparencyRepository implements TransparencyRepository
         return array_map([$this, 'hydrateTransparency'], $stmt->fetchAll(PDO::FETCH_ASSOC));
     }
 
+    public function findAllPermittedForUserByType(int $userId, TransparencyType $type): array
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT t.* 
+            FROM transparency t
+            LEFT JOIN transparency_permissions tp ON t.transparency_id = tp.transparency_id
+            WHERE (t.is_private = 0 OR t.author_id = :authorId OR tp.user_id = :userId)
+              AND t.transparency_type = :type
+            GROUP BY t.transparency_id
+            ORDER BY t.date_published DESC, t.created_at DESC
+        ');
+        $stmt->execute(['authorId' => $userId, 'userId' => $userId, 'type' => $type->value]);
+        return array_map([$this, 'hydrateTransparency'], $stmt->fetchAll(PDO::FETCH_ASSOC));
+    }
+
     public function findAll(): array
     {
         $stmt = $this->pdo->query('SELECT * FROM transparency ORDER BY date_published DESC, created_at DESC');
+        return array_map([$this, 'hydrateTransparency'], $stmt->fetchAll(PDO::FETCH_ASSOC));
+    }
+
+    public function findAllByType(TransparencyType $type): array
+    {
+        $stmt = $this->pdo->prepare('SELECT * FROM transparency WHERE transparency_type = :type ORDER BY date_published DESC, created_at DESC');
+        $stmt->execute(['type' => $type->value]);
         return array_map([$this, 'hydrateTransparency'], $stmt->fetchAll(PDO::FETCH_ASSOC));
     }
 

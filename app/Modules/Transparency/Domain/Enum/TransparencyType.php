@@ -10,5 +10,9 @@ enum TransparencyType: string
     case ADMINISTRATIVO = 'ADMINISTRATIVO';
     case LEGAL = 'LEGAL';
     case SINDICAL = 'SINDICAL';
+    case GESTORIA = 'GESTORIA';
+    case GREMIALES = 'GREMIALES';
+    case TRAMITES = 'TRAMITES';
+    case MINUTAS = 'MINUTAS';
     case OTRO = 'OTRO';
 }

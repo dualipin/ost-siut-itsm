@@ -7,6 +7,7 @@ namespace App\Modules\Transparency\Domain\Repository;
 use App\Modules\Transparency\Domain\Entity\Transparency;
 use App\Modules\Transparency\Domain\Entity\TransparencyAttachment;
 use App\Modules\Transparency\Domain\Entity\TransparencyPermission;
+use App\Modules\Transparency\Domain\Enum\TransparencyType;
 
 interface TransparencyRepositoryInterface
 {
@@ -18,12 +19,27 @@ interface TransparencyRepositoryInterface
     /**
      * @return Transparency[]
      */
+    public function findAllPublicByType(TransparencyType $type): array;
+
+    /**
+     * @return Transparency[]
+     */
     public function findAllPermittedForUser(int $userId): array;
 
     /**
      * @return Transparency[]
      */
+    public function findAllPermittedForUserByType(int $userId, TransparencyType $type): array;
+
+    /**
+     * @return Transparency[]
+     */
     public function findAll(): array;
+
+    /**
+     * @return Transparency[]
+     */
+    public function findAllByType(TransparencyType $type): array;
 
     public function findById(int $id): ?Transparency;
 

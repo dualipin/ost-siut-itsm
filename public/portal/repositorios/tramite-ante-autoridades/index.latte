@@ -1,40 +1,46 @@
-{layout ../../plantillas/@layout.latte}
+{extends ../../../../templates/@portal.latte}
 {varType App\Entidades\EntidadMiembro $miembro}
 
 {block styles}
   <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 {/block}
 
-{block content}
+{block main}
+
 
   {if $error}
-    <div class="alert alert-danger" role="alert">
-      {$error}
-    </div>
+    <div class="alert alert-danger" role="alert">{$error}</div>
   {/if}
-
   {if $mensajeExito}
-    <div class="alert alert-success" role="alert">
-      {$mensajeExito}
-    </div>
+    <div class="alert alert-success" role="alert">{$mensajeExito}</div>
   {/if}
 
-  <h1 class="text-uppercase fw-bold mb-4">
-    Tramites ante autoridades
-  </h1>
+{if $miembro->role->value === 'administrador' || $miembro->role->value === 'lider'}
+  {var $desc = 'Consulta y administra los trámite ante autoridades disponibles.'}
+{else}
+  {var $desc = 'Consulta los trámite ante autoridades disponibles.'}
+{/if}
+{include '../../../../templates/components/header-page.latte', title: 'Trámite ante Autoridades', description: $desc, icon: 'bi-folder2-open'}
 
 
-  <!-- Botón para agregar documento (solo para admin/líder) -->
-  {if $miembro->esAdmin() || $miembro->esLider()}
-    <p class="mb-4">   Consulta los documento de tramites ante autoridades disponibles.</p>
+  
+
+  {if $miembro->role->value === 'administrador' || $miembro->role->value === 'lider'}
+    
     <button class="btn btn-success mb-4" data-bs-toggle="modal" data-bs-target="#modalAgregarDocumento">
-      <i class="bi bi-plus-circle me-3"></i> Agregar documento
+      <i class="bi bi-plus-circle me-2"></i>Agregar documento
     </button>
   {else}
-    <p class="mb-4">
-      Consulta los documento de tramites ante autoridades disponibles.
-    </p>
+    
   {/if}
+
+  <!-- Agrupamos por AÑO → MES -->
+{*  {var $agrupado = []}*}
+{*  {foreach $documentos as $d}*}
+{*    {var $anio = $d['fecha_subida']|date:'Y'}*}
+{*    {var $mes  = $d['fecha_subida']|date:'m'}*}
+{*    {var $agrupado[$anio][$mes][] = $d}*}
+{*  {/foreach}*}
 
   {if $agrupado}
     <div class="accordion" id="acordeonAnios">
@@ -62,24 +68,24 @@
                       <div class="accordion-body">
                         <div class="row row-cols-1 row-cols-md-2 g-3">
                           {foreach $docsMes as $doc}
-                            {if !$doc['privado'] || $miembro->esAdmin() || $miembro->esLider()}
+                            {if !$doc->isPrivate || $miembro->role->value === 'administrador' || $miembro->role->value === 'lider'}
                               <div class="col">
                                 <div class="card h-100 shadow-sm border">
                                   <div class="card-body">
                                     <h5 class="card-title">
-                                      {$doc['titulo']}
-                                    {if $doc['privado']}<span class="badge bg-warning text-dark">Privado</span>{/if}
+                                      {$doc->title}
+                                    {if $doc->isPrivate}<span class="badge bg-warning text-dark">Privado</span>{/if}
                                     </h5>
                                     <p class="card-text">
-                                      <small class="text-muted">{$doc['fecha_subida']|date:"d/m/Y"}</small>
+                                      <small class="text-muted">{$doc->datePublished|date:"d/m/Y"}</small>
                                     </p>
                                   </div>
                                   <div class="card-footer d-flex justify-content-between align-items-center">
-                                    <a href="./detalle.php?id_doc={$doc['id']}" class="btn btn-primary btn-sm">Ver documento</a>
-                                    {if $miembro->esAdmin() || $miembro->esLider()}
+                                    <a href="./detalle.php?id_doc={$doc->id}" class="btn btn-primary btn-sm">Ver documento</a>
+                                    {if $miembro->role->value === 'administrador' || $miembro->role->value === 'lider'}
                                       <form method="POST" class="d-inline" action="./eliminar.php"
                                             onsubmit="return confirm('¿Estás seguro?');">
-                                        <input type="hidden" name="id_doc" value="{$doc['id']}">
+                                        <input type="hidden" name="id_doc" value="{$doc->id}">
                                         <button type="submit" name="eliminar" class="btn btn-danger btn-sm">Eliminar</button>
                                       </form>
                                     {/if}
@@ -121,43 +127,6 @@
       </ul>
     </nav>
   {/if}
-
-{*  <!-- Grid de documentos (ejemplo estático, reemplazar por loop real) -->*}
-{*  <div class="row row-cols-1 row-cols-md-3 g-4">*}
-{*    {foreach $documentos as $documento}*}
-{*      {if !$documento['privado'] || $miembro->esAdmin() || $miembro->esLider()}*}
-{*        <div class="col">*}
-{*          <div class="card h-100 shadow-sm border">*}
-{*            <div class="card-body">*}
-{*              <h5 class="card-title">*}
-{*                {$documento['titulo']}*}
-{*            {if $documento['privado']}*}
-{*                  <span class="badge bg-warning text-dark">Privado</span>*}
-{*                {/if}*}
-{*              </h5>*}
-{*              <p class="card-text">{$documento['fecha_subida']}</p>*}
-{*            </div>*}
-{*            <div class="card-footer">*}
-{*              <a href="./detalle.php?id_doc={$documento['id']}"*}
-{*                 class="btn btn-primary">*}
-{*                Ver documento*}
-{*              </a>*}
-{*              {if $miembro->esAdmin() || $miembro->esLider()}*}
-{*                <form method="POST" class="d-inline" action="./eliminar.php">*}
-{*                  <input type="hidden" name="id_doc" value="{$documento['id']}">*}
-{*                  <button type="submit" name="eliminar" value="eliminar" class="btn btn-danger"*}
-{*                          onclick="return confirm('¿Estás seguro de que deseas eliminar este documento?');">*}
-{*                    Eliminar*}
-{*                  </button>*}
-{*                </form>*}
-{*              {/if}*}
-{*            </div>*}
-{*          </div>*}
-{*        </div>*}
-{*      {/if}*}
-{*    {/foreach}*}
-{*    *}{*  <!-- ...aquí iría un {foreach} para más documentos... -->*}
-{*  </div>*}
 
   <!-- Modal para agregar documento -->
   <div class="modal fade" id="modalAgregarDocumento" tabindex="-1" aria-labelledby="modalAgregarDocumentoLabel"

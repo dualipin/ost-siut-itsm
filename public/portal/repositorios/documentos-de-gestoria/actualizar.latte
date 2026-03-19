@@ -1,6 +1,6 @@
-{layout ../../plantillas/@layout.latte}
+{extends ../../../../templates/@portal.latte}
 
-{block content}
+{block main}
   {if $error}
     <div class="alert alert-danger" role="alert">
       {$error}
@@ -13,21 +13,24 @@
     </div>
   {/if}
 
+{include '../../../../templates/components/header-page.latte', title: 'Editar documento', description: 'Modifica la información y archivos de este registro.', icon: 'bi-pencil-square'}
+
+
   <form id="formAgregarDocumento" action="./actualizar.php" method="POST" enctype="multipart/form-data"
         class="row g-3 justify-content-center mx-auto">
-    <input type="hidden" name="id_doc" value="{$documento ['id']}">
+    <input type="hidden" name="id_doc" value="{$documento->id}">
 
     <div class="p-4 bg-white rounded shadow-sm w-100">
       <div class="mb-3 col-12">
         <label for="tituloDocumento" class="form-label fw-semibold">Título</label>
         <input type="text" class="form-control form-control-lg" id="tituloDocumento" name="titulo"
-               value="{$documento['titulo']}" required>
+               value="{$documento->title}" required>
       </div>
 
       <div class="mb-3 col-12">
         <label for="editorDocumento" class="form-label fw-semibold">Contenido</label>
         <div id="editorDocumento" style="height: 200px;">
-          {$documento['contenido']|noescape}
+          {$documento->summary|noescape}
         </div>
         <input type="hidden" name="contenido" id="contenidoDocumento">
       </div>
@@ -35,7 +38,7 @@
       <div class="mb-3 col-12">
         <div class="form-check">
           <input class="form-check-input" type="checkbox" name="privado"
-                 value="{$documento['privado']}" {$documento['privado'] == 1?'checked'} id="checkDefault">
+                 value="1" {if $documento->isPrivate}checked{/if} id="checkDefault">
           <label class="form-check-label" for="checkDefault">Privado</label>
         </div>
       </div>
@@ -43,24 +46,28 @@
       <div class="mb-3 col-12 col-md-6">
         <label for="fechaDocumento" class="form-label fw-semibold">Fecha</label>
         <input type="date" class="form-control" id="fechaDocumento" name="fecha_documento"
-               value="{$documento['fecha_documento']??date('Y-m-d')|date:'Y-m-d'}" required>
+               value="{$documento->datePublished|date:'Y-m-d'}" required>
       </div>
 
       <div class="mb-3 col-12 col-md-6">
         <label for="archivoDocumento" class="form-label fw-semibold">Archivo adjunto (opcional)</label>
         <input type="file" class="form-control" id="archivoDocumento" name="archivo">
       </div>
-      {if $documento['adjunto']}
+      {if $adjuntos}
         <div class="mb-3 col-12">
-          <label class="form-label fw-bold">Archivo actual:</label>
-          <a href="/privado/archivos/repositorios/{$documento['adjunto']}" target="_blank"
-             class="d-block text-primary text-decoration-underline">Ver archivo adjunto</a>
+          <label class="form-label fw-bold">Archivos actuales:</label>
+          <ul class="list-unstyled">
+          {foreach $adjuntos as $adj}
+            <li><a href="/{$adj->filePath}" target="_blank"
+               class="text-primary text-decoration-underline"><i class="bi bi-paperclip"></i> {$adj->originalFilename|default:'Archivo'}</a></li>
+          {/foreach}
+          </ul>
         </div>
       {/if}
     </div>
 
     <div class="gap-2 d-flex justify-content-end bg-light rounded-bottom p-3 w-100">
-      <a href="./detalle.php?id_doc={$documento['id']}" class="btn btn-outline-secondary me-2">
+      <a href="./detalle.php?id_doc={$documento->id}" class="btn btn-outline-secondary me-2">
         <i class="bi bi-arrow-left me-3"></i>
         Volver
       </a>
