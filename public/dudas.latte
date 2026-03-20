@@ -9,6 +9,15 @@
           <p class="lead mb-5">Si tienes alguna duda o consulta relacionada con la transparencia de nuestra organización, no dudes en contactarnos. Estamos aquí para ayudarte y proporcionarte la información que necesitas.</p>
 
           <h2 class="mb-4">Formulario de Contacto</h2>
+
+          <div n:if="$success" class="alert alert-success border-0 shadow-sm rounded-4 mb-4">
+              <i class="bi bi-check-circle-fill me-2"></i> {$success}
+          </div>
+
+          <div n:if="$error" class="alert alert-danger border-0 shadow-sm rounded-4 mb-4">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i> {$error}
+          </div>
+
           <form method="post" class="row g-4">
             <div class="col-12 col-md-6">
               <label for="nombre" class="form-label">Nombre</label>

@@ -17,6 +17,8 @@ use App\Modules\Auth\Infrastructure\Mail\PasswordRecoveryMailer;
 use App\Modules\Auth\Domain\Service\PasswordRecoveryNotifierInterface;
 use App\Modules\Messaging\Domain\Service\ContactMessageNotifierInterface;
 use App\Modules\Messaging\Infrastructure\Mail\ContactMessageMailer;
+use App\Modules\Messaging\Domain\Service\QuestionNotifierInterface;
+use App\Modules\Messaging\Infrastructure\Mail\PhpMailerQuestionNotifier;
 use App\Shared\Context\UserContext;
 use App\Shared\Context\UserContextInterface;
 use App\Shared\Context\UserProviderInterface;
@@ -149,6 +151,21 @@ return function (ContainerBuilder $container) {
         },
 
         ContactMessageNotifierInterface::class => get(ContactMessageMailer::class),
+
+        PhpMailerQuestionNotifier::class => function (
+            MailerInterface $mailer,
+            RendererInterface $renderer,
+            AppConfig $config,
+        ) {
+            return new PhpMailerQuestionNotifier(
+                $mailer,
+                $renderer,
+                $config->mailer->adminNotifications,
+                dirname(__DIR__),
+            );
+        },
+
+        QuestionNotifierInterface::class => get(PhpMailerQuestionNotifier::class),
 
         // shared
         UserContextInterface::class => autowire(UserContext::class),
