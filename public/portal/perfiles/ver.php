@@ -184,6 +184,7 @@ $docs = [
 ];
 
 $storedDocuments = $userRepository->findDocumentsByUserId($ownerId);
+$docStatuses = $userRepository->findDocumentStatusesByUserId($ownerId);
 
 foreach ($storedDocuments as $documentType => $documentPath) {
     $storedDocuments[$documentType] = DocumentHelper::normalizeUploadPath($documentPath);
@@ -209,6 +210,7 @@ $renderer->render(__DIR__ . "/ver.latte", [
 	"authUser" => $user,
 	"perfil" => $perfil,
 	"docs" => $docs,
+    "docStatuses" => $docStatuses,
 	"documentFields" => $documentFields,
 	"hasAnyDocument" => $hasAnyDocument,
 	"mensaje" => $mensaje,

@@ -55,9 +55,26 @@ interface UserRepositoryInterface
      */
     public function findDocumentsByUserId(int $userId): array;
 
+    /**
+     * @return array<string, string>
+     */
+    public function findDocumentStatusesByUserId(int $userId): array;
+
     public function upsertDocument(
         int $userId,
         DocumentTypeEnum $documentType,
         string $filePath,
+    ): bool;
+
+    public function validateLatestDocumentByType(
+        int $userId,
+        DocumentTypeEnum $documentType,
+        int $validatedBy,
+    ): bool;
+
+    public function rejectLatestDocumentByType(
+        int $userId,
+        DocumentTypeEnum $documentType,
+        int $validatedBy,
     ): bool;
 }

@@ -298,6 +298,40 @@ final class PdoUserRepository extends PdoBaseRepository implements
         return $documents;
     }
 
+    /**
+     * @return array<string, string>
+     */
+    public function findDocumentStatusesByUserId(int $userId): array
+    {
+        $stmt = $this->pdo->prepare(
+            "
+            SELECT document_type, status
+            FROM user_documents
+            WHERE user_id = :user_id
+            ORDER BY updated_at DESC
+            ",
+        );
+
+        $stmt->execute(["user_id" => $userId]);
+
+        $statuses = [];
+
+        while ($row = $stmt->fetch()) {
+            $documentType = (string) ($row["document_type"] ?? "");
+            $status = (string) ($row["status"] ?? "");
+
+            if ($documentType === "" || $status === "") {
+                continue;
+            }
+
+            if (!isset($statuses[$documentType])) {
+                $statuses[$documentType] = $status;
+            }
+        }
+
+        return $statuses;
+    }
+
     public function upsertDocument(
         int $userId,
         DocumentTypeEnum $documentType,
@@ -347,6 +381,77 @@ final class PdoUserRepository extends PdoBaseRepository implements
             "document_type" => $documentType->value,
             "file_path" => $filePath,
         ]);
+    }
+
+    public function validateLatestDocumentByType(
+        int $userId,
+        DocumentTypeEnum $documentType,
+        int $validatedBy,
+    ): bool {
+        $stmt = $this->pdo->prepare(
+            "
+            UPDATE user_documents
+            SET
+                status = 'validado',
+                observation = NULL,
+                validated_by = :validated_by
+            WHERE document_id = (
+                SELECT latest.document_id
+                FROM (
+                    SELECT document_id
+                    FROM user_documents
+                    WHERE user_id = :user_id
+                    AND document_type = :document_type
+                    ORDER BY updated_at DESC
+                    LIMIT 1
+                ) latest
+            )
+            LIMIT 1
+            ",
+        );
+
+        $stmt->execute([
+            "validated_by" => $validatedBy,
+            "user_id" => $userId,
+            "document_type" => $documentType->value,
+        ]);
+
+        return $stmt->rowCount() === 1;
+    }
+
+    public function rejectLatestDocumentByType(
+        int $userId,
+        DocumentTypeEnum $documentType,
+        int $validatedBy,
+    ): bool {
+        $stmt = $this->pdo->prepare(
+            "
+            UPDATE user_documents
+            SET
+                status = 'rechazado',
+                validated_by = :validated_by
+            WHERE document_id = (
+                SELECT latest.document_id
+                FROM (
+                    SELECT document_id
+                    FROM user_documents
+                    WHERE user_id = :user_id
+                    AND document_type = :document_type
+                    ORDER BY updated_at DESC
+                    LIMIT 1
+                ) latest
+            )
+            LIMIT 1
+            ",
+        );
+
+        $stmt->execute([
+            "validated_by" => $validatedBy,
+            "user_id" => $userId,
+            "document_type" => $documentType->value,
+        ]);
+
+        return $stmt->rowCount() === 1;
     }
 
     /**

@@ -53,12 +53,20 @@
             {foreach $documentFields as $field}
               {var $docKey = $field['key']}
               {var $docPath = $docs[$docKey] ?? ''}
+              {var $docStatus = $docStatuses[$docKey] ?? 'pendiente'}
               <div class="col-12 col-md-6">
                 <label for="{$docKey}" class="form-label small">{$field['label']}</label>
                 <input class="form-control" type="file" id="{$docKey}" name="{$docKey}" accept=".pdf,.jpg,.jpeg,.png,.webp">
                 <div class="form-text">
                   {if !empty($docPath)}
                     Actual: <a href="/portal/perfiles/documento.php?tipo={$docKey}" target="_blank" class="link-primary">Ver archivo</a>
+                    {if $docStatus === 'validado'}
+                      <span class="badge bg-success-subtle text-success ms-2">Validado</span>
+                    {elseif $docStatus === 'rechazado'}
+                      <span class="badge bg-danger-subtle text-danger ms-2">Rechazado</span>
+                    {else}
+                      <span class="badge bg-warning-subtle text-warning ms-2">Pendiente</span>
+                    {/if}
                   {else}
                     PDF, JPG, PNG o WEBP.
                   {/if}
@@ -204,10 +212,21 @@
               {foreach $documentFields as $field}
                 {var $key = $field['key']}
                 {var $doc = $docs[$key] ?? ''}
+                {var $status = $docStatuses[$key] ?? 'pendiente'}
                 <div class="list-group-item px-0 d-flex align-items-center justify-content-between gap-3 flex-wrap">
                   <div>
                     <h6 class="mb-1">{$field['label']}</h6>
-                    <small class="text-body-secondary">{if $doc}Archivo cargado{else}Documento pendiente{/if}</small>
+                    <small class="text-body-secondary d-block">{if $doc}Archivo cargado{else}Documento pendiente{/if}</small>
+
+                    {if $doc}
+                      {if $status === 'validado'}
+                        <span class="badge bg-success-subtle text-success">Validado</span>
+                      {elseif $status === 'rechazado'}
+                        <span class="badge bg-danger-subtle text-danger">Rechazado</span>
+                      {else}
+                        <span class="badge bg-warning-subtle text-warning">Pendiente de validacion</span>
+                      {/if}
+                    {/if}
                   </div>
 
                   {if $doc}
