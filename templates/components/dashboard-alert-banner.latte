@@ -34,7 +34,7 @@
 
       {if isset($alert->actionUrl)}
         <a href="{$alert->actionUrl}" class="btn btn-sm btn-{$alert->severity->value} mt-2">
-          {$alert->actionLabel|default:'Tomar acción'}
+          {if isset($alert->actionLabel) && $alert->actionLabel !== ''}{$alert->actionLabel}{else}Tomar acción{/if}
         </a>
       {/if}
     </div>
