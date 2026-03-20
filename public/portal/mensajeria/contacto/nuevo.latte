@@ -8,33 +8,52 @@
     icon: 'bi-pencil-square'
   }
 
-  <div class="row justify-content-center">
+  <div class="row justify-content-center" x-data="contactForm">
     <div class="col-lg-8">
-      <div class="card border-0 shadow-sm rounded-4">
-        <div class="card-body p-4 p-lg-5">
-          <form x-data="contactForm" @submit.prevent="submitForm">
+      {* Success State *}
+      <template x-if="submitted">
+        <div class="text-center py-5 animate__animated animate__fadeIn">
+          <div class="mb-4">
+            <div class="rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center shadow-sm" 
+                 style="width: 80px; height: 80px;">
+              <i class="bi bi-check-lg h1 mb-0"></i>
+            </div>
+          </div>
+          <h2 class="fw-bold h3 mb-3">¡Mensaje enviado correctamente!</h2>
+          <p class="text-muted mb-4" x-text="successMessage"></p>
+          <div class="d-flex justify-content-center gap-3">
+            <a href="mis-mensajes.php" class="btn btn-primary rounded-pill px-4">Ir a mis mensajes</a>
+            <button @click="resetForm" class="btn btn-outline-secondary rounded-pill px-4">Enviar otro mensaje</button>
+          </div>
+        </div>
+      </template>
+
+      {* Form State *}
+      <template x-if="!submitted">
+        <div class="animate__animated animate__fadeIn">
+          <form @submit.prevent="submitForm">
             <div class="mb-4">
-              <label for="asunto" class="form-label fw-bold">Asunto</label>
-              <input type="text" id="asunto" class="form-control form-control-lg rounded-3"
+              <label for="asunto" class="form-label fw-bold small text-muted text-uppercase tracking-wider">Asunto</label>
+              <input type="text" id="asunto" class="form-control form-control-lg border-0 shadow-sm rounded-4 px-4 py-3"
                      placeholder="¿De qué trata tu mensaje?" x-model="formData.asunto" required>
             </div>
 
             <div class="mb-4">
-              <label for="mensaje" class="form-label fw-bold">Mensaje</label>
-              <textarea id="mensaje" class="form-control form-control-lg rounded-3" rows="6"
+              <label for="mensaje" class="form-label fw-bold small text-muted text-uppercase tracking-wider">Mensaje</label>
+              <textarea id="mensaje" class="form-control form-control-lg border-0 shadow-sm rounded-4 px-4 py-3" rows="6"
                         placeholder="Escribe aquí tu mensaje detallado..." x-model="formData.mensaje" required></textarea>
             </div>
 
-            <div class="d-grid">
-              <button type="submit" class="btn btn-primary btn-lg rounded-3 py-3 shadow-sm" :disabled="loading">
-                <span x-show="!loading"><i class="bi bi-send me-2"></i>Enviar Mensaje</span>
+            <div class="d-grid pt-3">
+              <button type="submit" class="btn btn-primary btn-lg rounded-pill py-3 shadow-lg" :disabled="loading">
+                <span x-show="!loading"><i class="bi bi-send-fill me-2"></i>Enviar Mensaje Ahora</span>
                 <span x-show="loading" class="spinner-border spinner-border-sm me-2" role="status"></span>
-                <span x-show="loading">Enviando...</span>
+                <span x-show="loading">Enviando mensaje...</span>
               </button>
             </div>
           </form>
         </div>
-      </div>
+      </template>
     </div>
   </div>
 {/block}
@@ -48,6 +67,13 @@ document.addEventListener('alpine:init', () => {
             mensaje: ''
         },
         loading: false,
+        submitted: false,
+        successMessage: '',
+        resetForm() {
+            this.formData.asunto = '';
+            this.formData.mensaje = '';
+            this.submitted = false;
+        },
         async submitForm() {
             this.loading = true;
             try {
@@ -60,11 +86,12 @@ document.addEventListener('alpine:init', () => {
                 const result = await response.json();
 
                 if (response.ok) {
+                    this.successMessage = result.message;
+                    this.submitted = true;
                     Alpine.store('toast').show({
                         type: 'success',
                         message: result.message
                     });
-                    setTimeout(() => window.location.href = 'mis-mensajes.php', 2000);
                 } else {
                     Alpine.store('toast').show({
                         type: 'error',
