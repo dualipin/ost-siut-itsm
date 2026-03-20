@@ -52,9 +52,6 @@ jobs:
             composer.json
             composer.lock
             phpunit.xml
-            compose.yaml
-            Containerfile
-            Dockerfile
             .prettier*
             .vscode/
             .github/

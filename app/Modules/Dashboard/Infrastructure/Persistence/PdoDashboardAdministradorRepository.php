@@ -114,11 +114,22 @@ final class PdoDashboardAdministradorRepository extends PdoBaseRepository implem
                 CONCAT(u.name, ' ', u.surnames) as name,
                 u.email,
                 u.role,
-                u.created_at,
-                DATEDIFF(CURDATE(), DATE(u.created_at)) as days_since_registered
+                COALESCE(al.last_successful_login, u.last_entry) as last_login_at,
+                TIMESTAMPDIFF(HOUR, COALESCE(al.last_successful_login, u.last_entry), NOW()) as hours_since_last_login
             FROM users u
+            LEFT JOIN (
+                SELECT
+                    user_id,
+                    MAX(created_at) as last_successful_login
+                FROM auth_logs
+                WHERE success = 1
+                AND action = 'login_attempt'
+                AND user_id IS NOT NULL
+                GROUP BY user_id
+            ) al ON al.user_id = u.user_id
             WHERE u.delete_at IS NULL
-            ORDER BY u.created_at DESC
+            AND COALESCE(al.last_successful_login, u.last_entry) IS NOT NULL
+            ORDER BY last_login_at DESC
             LIMIT " . $limit
         );
         return $stmt->fetchAll();
@@ -134,6 +145,9 @@ final class PdoDashboardAdministradorRepository extends PdoBaseRepository implem
                 MAX(al.created_at) as last_attempt
             FROM auth_logs al
             WHERE al.success = 0
+            AND al.action = 'login_attempt'
+            AND al.email IS NOT NULL
+            AND al.email <> ''
             AND al.created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
             GROUP BY al.email, al.ip_address
             ORDER BY last_attempt DESC
