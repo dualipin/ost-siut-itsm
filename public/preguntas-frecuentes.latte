@@ -30,21 +30,25 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 }" x-init="$watch('search', () => currentPage = 1)">
-  <div class="container py-lg-5">
-    <div class="row justify-content-center mb-5">
+  <div class="container py-4 py-lg-5">
+    <div class="row justify-content-center mb-4 mb-lg-5">
       <div class="col-lg-8 text-center">
         <h1 class="display-4 fw-bold mb-3">Preguntas Frecuentes</h1>
-        <p class="lead text-muted">
+        <p class="lead text-muted mb-0">
           Encuentra respuestas a las dudas más comunes sobre transparencia y gestiones gremiales.
         </p>
 
-        <!-- Search Bar -->
-        <div class="mt-4 position-relative mx-auto" style="max-width: 600px;">
+      </div>
+    </div>
+
+    <div class="row justify-content-center mb-4 mb-lg-5">
+      <div class="col-12 col-lg-7">
+        <div class="position-relative">
           <input type="text" x-model="search" 
-                 class="form-control form-control-lg rounded-pill border-0 shadow-sm ps-5 py-3" 
+                 class="form-control form-control-lg rounded-pill border-0 shadow-sm ps-5 pe-5 py-3" 
                  placeholder="¿Qué estás buscando?">
           <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-4 text-primary fs-5"></i>
-          <button x-show="search" @click="search = ''" 
+          <button x-show="search" @click="search = ''" type="button"
                   class="btn btn-link position-absolute top-50 end-0 translate-middle-y me-3 text-muted p-0 border-0 shadow-none">
             <i class="bi bi-x-circle-fill"></i>
           </button>
@@ -53,71 +57,67 @@
     </div>
 
     <div class="row justify-content-center">
-      <div class="col-lg-9">
+      <div class="col-12 col-lg-9">
         <template x-if="filteredFaqs.length > 0">
           <div>
-            <div class="accordion accordion-flush shadow-sm rounded-4 overflow-hidden border-0" id="faqAccordion">
-              <template x-for="faq in paginatedFaqs" :key="faq.thread_id">
-                <div class="accordion-item border-bottom">
-                  <h2 class="accordion-header" :id="'heading-' + faq.thread_id">
-                    <button class="accordion-button collapsed py-4 px-4 fs-5 fw-semibold" type="button" 
-                            data-bs-toggle="collapse" :data-bs-target="'#collapse-' + faq.thread_id" 
-                            aria-expanded="false" :aria-controls="'collapse-' + faq.thread_id">
-                      <i class="bi bi-question-circle text-primary me-3"></i>
-                      <span x-text="faq.subject || faq.question"></span>
-                    </button>
-                  </h2>
-                  <div :id="'collapse-' + faq.thread_id" class="accordion-collapse collapse" 
-                       :aria-labelledby="'heading-' + faq.thread_id" data-bs-parent="#faqAccordion">
-                    <div class="accordion-body p-4 p-lg-5 text-muted bg-white border-top">
-                      <div class="mb-4">
-                        <strong class="text-dark d-block mb-2">Pregunta:</strong>
-                        <div class="ps-3 border-start border-3 border-primary-subtle" style="white-space: pre-line;" x-text="faq.question">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+              <div class="accordion accordion-flush" id="faqAccordion">
+                <template x-for="faq in paginatedFaqs" :key="faq.thread_id">
+                  <div class="accordion-item border-bottom">
+                    <h2 class="accordion-header" :id="'heading-' + faq.thread_id">
+                      <button class="accordion-button collapsed py-3 py-lg-4 px-3 px-lg-4 fs-5 fw-semibold" type="button" 
+                              data-bs-toggle="collapse" :data-bs-target="'#collapse-' + faq.thread_id" 
+                              aria-expanded="false" :aria-controls="'collapse-' + faq.thread_id">
+                        <i class="bi bi-question-circle text-primary me-3"></i>
+                        <span x-text="faq.subject || faq.question"></span>
+                      </button>
+                    </h2>
+                    <div :id="'collapse-' + faq.thread_id" class="accordion-collapse collapse" 
+                         :aria-labelledby="'heading-' + faq.thread_id" data-bs-parent="#faqAccordion">
+                      <div class="accordion-body p-3 p-lg-4 text-muted bg-white border-top">
+                        <div class="mb-3 mb-lg-4">
+                          <strong class="text-dark d-block mb-2">Pregunta:</strong>
+                          <div class="ps-3 border-start border-3 border-primary-subtle faq-preline" x-text="faq.question">
+                          </div>
                         </div>
-                      </div>
-                      <div>
-                        <strong class="text-dark d-block mb-2">Respuesta del SIUT:</strong>
-                        <div class="ps-3" style="white-space: pre-line;" x-text="faq.answer">
+                        <div>
+                          <strong class="text-dark d-block mb-2">Respuesta del SIUT:</strong>
+                          <div class="ps-3 faq-preline" x-text="faq.answer">
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </template>
+                </template>
+              </div>
             </div>
 
             <!-- Pagination -->
-            <nav x-show="totalPages > 1" class="mt-5">
-              <ul class="pagination justify-content-center gap-2">
-                <li class="page-item" :class="currentPage === 1 ? 'disabled invisible' : ''">
-                  <button class="btn btn-white shadow-sm rounded-pill px-4 border" @click="updatePage(currentPage - 1)">
+            <nav x-show="totalPages > 1" class="mt-4 mt-lg-5" aria-label="Paginación de preguntas frecuentes">
+              <div class="d-flex flex-column flex-sm-row align-items-center justify-content-center gap-3">
+                <button type="button" class="btn btn-outline-primary rounded-pill px-4" @click="updatePage(currentPage - 1)" :disabled="currentPage === 1">
                     <i class="bi bi-chevron-left me-2"></i>Anterior
-                  </button>
-                </li>
+                </button>
                 
-                <li class="page-item align-self-center mx-3">
-                  <span class="text-muted fw-medium">
-                    Página <span class="text-primary fw-bold" x-text="currentPage"></span> de <span class="fw-bold" x-text="totalPages"></span>
-                  </span>
-                </li>
+                <span class="text-muted fw-medium">
+                  Página <span class="text-primary fw-bold" x-text="currentPage"></span> de <span class="fw-bold" x-text="totalPages"></span>
+                </span>
 
-                <li class="page-item" :class="currentPage === totalPages ? 'disabled invisible' : ''">
-                  <button class="btn btn-white shadow-sm rounded-pill px-4 border" @click="updatePage(currentPage + 1)">
-                    Siguiente<i class="bi bi-chevron-right ms-2"></i>
-                  </button>
-                </li>
-              </ul>
+                <button type="button" class="btn btn-outline-primary rounded-pill px-4" @click="updatePage(currentPage + 1)" :disabled="currentPage === totalPages">
+                  Siguiente<i class="bi bi-chevron-right ms-2"></i>
+                </button>
+              </div>
             </nav>
           </div>
         </template>
 
         <!-- No results -->
         <template x-if="filteredFaqs.length === 0 && faqs.length > 0">
-          <div class="text-center py-5 bg-white rounded-4 shadow-sm border animate__animated animate__fadeIn">
+          <div class="card border-0 shadow-sm rounded-4 text-center px-4 px-lg-5 py-5 animate__animated animate__fadeIn">
             <i class="bi bi-search display-1 text-muted mb-4 opacity-25"></i>
-            <h3 class="h4 text-muted">No se encontraron resultados para "<span x-text="search"></span>"</h3>
-            <p class="text-muted mb-0">Intenta con otros términos o palabras más generales.</p>
-            <button @click="search = ''" class="btn btn-link text-primary mt-3 text-decoration-none">
+            <h3 class="h4 text-muted mb-3">No se encontraron resultados para "<span x-text="search"></span>"</h3>
+            <p class="text-muted text-center mb-0">Intenta con otros términos o palabras más generales.</p>
+            <button @click="search = ''" type="button" class="btn btn-link text-primary mt-3 text-decoration-none">
               Limpiar búsqueda
             </button>
           </div>
@@ -125,21 +125,21 @@
 
         <!-- No FAQs at all -->
         {if count($faqs) === 0}
-          <div class="text-center py-5 bg-white rounded-4 shadow-sm border">
+          <div class="card border-0 shadow-sm rounded-4 text-center px-4 px-lg-5 py-5">
             <i class="bi bi-chat-left-dots display-1 text-muted mb-4 opacity-25"></i>
-            <h3 class="h4 text-muted">Aún no hay preguntas frecuentes publicadas.</h3>
+            <h3 class="h4 text-muted mb-3">Aún no hay preguntas frecuentes publicadas.</h3>
             <p class="text-muted mb-0">Estamos trabajando para brindarte la mejor información.</p>
           </div>
         {/if}
       </div>
     </div>
 
-    <div class="row justify-content-center mt-5 pt-4">
+    <div class="row justify-content-center mt-5">
       <div class="col-lg-8 text-center">
-        <div class="p-4 bg-white rounded-4 shadow-sm border">
+        <div class="card border-0 shadow-sm rounded-4 p-4 p-lg-5">
           <h4 class="h5 mb-3 fw-bold">¿Aún tienes dudas?</h4>
           <p class="text-muted mb-4">Nuestro equipo está listo para ayudarte con cualquier consulta adicional.</p>
-          <a href="dudas.php" class="btn btn-primary rounded-pill px-4">
+          <a href="dudas.php" class="btn btn-primary rounded-pill px-4" role="button">
             <i class="bi bi-pencil-square me-2"></i>Enviar una nueva duda
           </a>
         </div>
@@ -159,6 +159,9 @@
   .accordion-button:focus {
     box-shadow: none;
     border-color: rgba(0,0,0,.125);
+  }
+  .faq-preline {
+    white-space: pre-line;
   }
   .accordion-item:last-of-type .accordion-button.collapsed {
     border-bottom-right-radius: 1rem;
