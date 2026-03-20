@@ -1,0 +1,342 @@
+{layout '@base-dashboard.latte'}
+
+{block dashboard-content}
+{* Check for pending signatures FIRST (critical alert) *}
+{if !empty($pendingSignatures)}
+  <div class="alert alert-warning alert-dismissible fade show border-0 rounded-4 mb-4" role="alert">
+    <div class="d-flex gap-3">
+      <i class="bi bi-exclamation-circle-fill text-warning fs-5 flex-shrink-0 mt-1"></i>
+      <div class="flex-grow-1">
+        <h5 class="alert-heading mb-2 fw-bold">Documento Pendiente de Firma</h5>
+        <p class="mb-2 text-black-50">Tienes {count($pendingSignatures)} documento{count($pendingSignatures) != 1 ? 's' : ''} pendiente{count($pendingSignatures) != 1 ? 's' : ''} de firma: {foreach $pendingSignatures as $sig}<strong>{$sig['document_type']}</strong>{if !$iterator->last}, {/if}{/foreach}</p>
+        <a href="#pendingSignatures" class="btn btn-sm btn-warning">Ir a Firmar</a>
+      </div>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+  </div>
+{/if}
+
+{* Check if has active loan *}
+{if $hasActiveLoan && $activeLoan}
+  <div class="row g-4">
+    {* Loan Summary Card *}
+    <div class="col-12 col-lg-8">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header border-0 bg-light rounded-top-4 p-4">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <h5 class="mb-2 fw-bold text-dark">
+                <i class="bi bi-file-text text-primary me-2"></i>
+                Mi Préstamo
+              </h5>
+              <span class="badge bg-success">Folio: {$activeLoan['folio']}</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body p-4">
+          <div class="row g-3 mb-4">
+            <div class="col-6 col-sm-3">
+              <small class="text-muted d-block mb-1">Monto Original</small>
+              <strong class="text-dark">${number_format($activeLoan['original_amount'], 2, '.', ',')}</strong>
+            </div>
+            <div class="col-6 col-sm-3">
+              <small class="text-muted d-block mb-1">Aprobado</small>
+              <strong class="text-dark">${number_format($activeLoan['approved_amount'], 2, '.', ',')}</strong>
+            </div>
+            <div class="col-6 col-sm-3">
+              <small class="text-muted d-block mb-1">Tasa</small>
+              <strong class="text-dark">{$activeLoan['interest_rate']}%</strong>
+            </div>
+            <div class="col-6 col-sm-3">
+              <small class="text-muted d-block mb-1">Plazo</small>
+              <strong class="text-dark">{$activeLoan['term_fortnights']} quincenas</strong>
+            </div>
+          </div>
+
+          {* Progress Bar *}
+          <div class="mb-4">
+            <div class="d-flex justify-content-between mb-2">
+              <strong class="text-dark">Progreso de Liquidación</strong>
+              <small class="text-muted">{round(((count($amortizationTable) - count(array_filter($amortizationTable, fn($p) => $p['status'] === 'pagado'))) / count($amortizationTable)) * 100, 0)}%</small>
+            </div>
+            <div class="progress rounded-pill" style="height: 8px;">
+              {set $paidCount = count(array_filter($amortizationTable, fn($p) => $p['status'] === 'pagado'))}
+              {set $totalCount = count($amortizationTable)}
+              <div class="progress-bar bg-success rounded-pill" role="progressbar" style="width: {($paidCount / $totalCount) * 100}%" aria-valuenow="{$paidCount}" aria-valuemin="0" aria-valuemax="{$totalCount}"></div>
+            </div>
+          </div>
+
+          {* Key Info *}
+          <div class="row g-3 border-top pt-4">
+            <div class="col-6 col-sm-4">
+              <small class="text-muted d-block mb-1">Saldo Pendiente</small>
+              <strong class="h5 text-danger mb-0">${number_format($activeLoan['outstanding_balance'], 2, '.', ',')}</strong>
+            </div>
+            <div class="col-6 col-sm-4">
+              <small class="text-muted d-block mb-1">Próximo Pago</small>
+              {set $nextPayment = array_values(array_filter($amortizationTable, fn($p) => $p['status'] === 'pendiente'))[0] ?? null}
+              {if $nextPayment}
+                <strong class="h5 mb-0">${number_format($nextPayment['total'], 2, '.', ',')}</strong>
+                <small class="d-block text-muted">{$nextPayment['scheduled_date']|dateFormat:'d/m/Y'}</small>
+              {else}
+                <strong class="h5 text-success mb-0">Liquidado</strong>
+              {/if}
+            </div>
+            <div class="col-6 col-sm-4">
+              <small class="text-muted d-block mb-1">Cuotas Pagadas</small>
+              <strong class="h5 mb-0">{$paidCount} de {$totalCount}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {* Quick Actions Sidebar *}
+    <div class="col-12 col-lg-4">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header border-0 bg-light rounded-top-4 p-4">
+          <h5 class="mb-0 fw-bold text-dark">
+            <i class="bi bi-lightning text-primary me-2"></i>
+            Acciones Rápidas
+          </h5>
+        </div>
+        <div class="card-body p-4 d-flex flex-column gap-2">
+          <a href="#amortizationFull" class="btn btn-outline-primary rounded-3 fw-medium">
+            <i class="bi bi-table me-2"></i>Ver Tabla Completa
+          </a>
+          <a href="#supportButton" class="btn btn-outline-secondary rounded-3 fw-medium" data-bs-toggle="modal" data-bs-target="#modalContactSupport">
+            <i class="bi bi-chat-dots me-2"></i>Contactar Apoyo
+          </a>
+          <a href="/portal/mi-perfil" class="btn btn-outline-secondary rounded-3 fw-medium">
+            <i class="bi bi-person me-2"></i>Mi Perfil
+          </a>
+        </div>
+      </div>
+    </div>
+
+    {* Amortization Table (Summary) *}
+    <div class="col-12">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header border-0 bg-light rounded-top-4 p-4">
+          <h5 class="mb-0 fw-bold text-dark">
+            <i class="bi bi-table text-primary me-2"></i>
+            Calendario de Pagos (Resumen)
+          </h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0">
+              <thead class="table-light border-top">
+                <tr>
+                  <th class="px-4 py-3">#</th>
+                  <th class="px-4 py-3">Fecha</th>
+                  <th class="px-4 py-3">Capital</th>
+                  <th class="px-4 py-3">Interés</th>
+                  <th class="px-4 py-3">Total</th>
+                  <th class="px-4 py-3">Saldo</th>
+                  <th class="px-4 py-3">Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {foreach $amortizationTable as $payment}
+                  {if $iterator->position <= 2 || $payment['status'] === 'pendiente' || $iterator->position > count($amortizationTable) - 3}
+                    <tr class="{if $payment['status'] === 'pagado'}table-success-subtle{elseif $payment['days_overdue'] > 0}table-danger-subtle{elseif $payment['status'] === 'pendiente'}table-warning-subtle{/if}">
+                      <td class="px-4 py-3 fw-bold">#{$payment['payment_number']}</td>
+                      <td class="px-4 py-3">{$payment['scheduled_date']|dateFormat:'d/m/Y'}</td>
+                      <td class="px-4 py-3 text-end">${number_format($payment['principal'], 2, '.', ',')}</td>
+                      <td class="px-4 py-3 text-end">${number_format($payment['interest'], 2, '.', ',')}</td>
+                      <td class="px-4 py-3 text-end fw-bold">${number_format($payment['total'], 2, '.', ',')}</td>
+                      <td class="px-4 py-3 text-end">${number_format($payment['balance'], 2, '.', ',')}</td>
+                      <td class="px-4 py-3">
+                        {if $payment['status'] === 'pagado'}
+                          <i class="bi bi-check-circle-fill text-success"></i>
+                        {elseif $payment['days_overdue'] > 0}
+                          <span class="badge bg-danger">{$payment['days_overdue']}d mora</span>
+                        {else}
+                          <span class="badge bg-warning">Próximo</span>
+                        {/if}
+                      </td>
+                    </tr>
+                    {if $iterator->position == 2 && count($amortizationTable) > 8}
+                      <tr>
+                        <td colspan="7" class="px-4 py-3 text-center text-muted">
+                          ... {count($amortizationTable) - 6} pagos intermedios ...
+                        </td>
+                      </tr>
+                    {/if}
+                  {/if}
+                {/foreach}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card-footer border-top bg-light p-4 rounded-bottom-4">
+          <a href="#" id="amortizationFull" class="btn btn-sm btn-outline-primary rounded-pill">
+            <i class="bi bi-arrow-up-right me-1"></i>Ver Tabla Completa
+          </a>
+        </div>
+      </div>
+    </div>
+
+    {* My Documents *}
+    <div class="col-12 col-lg-6">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header border-0 bg-light rounded-top-4 p-4">
+          <h5 class="mb-0 fw-bold text-dark">
+            <i class="bi bi-file-earmark-check text-primary me-2"></i>
+            Mis Documentos
+          </h5>
+        </div>
+        <div class="card-body p-0">
+          {if empty($userDocuments)}
+            <div class="p-4 text-center text-muted">
+              <i class="bi bi-folder display-1 opacity-25 d-block mb-2"></i>
+              <p class="mb-0">No hay documentos registrados</p>
+            </div>
+          {else}
+            <div class="table-responsive">
+              <table class="table table-sm mb-0">
+                <thead class="table-light border-top">
+                  <tr>
+                    <th class="px-4 py-3">Tipo</th>
+                    <th class="px-4 py-3">Estado</th>
+                    <th class="px-4 py-3">Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {foreach $userDocuments as $doc}
+                    <tr>
+                      <td class="px-4 py-3 text-capitalize"><small>{$doc['document_type']}</small></td>
+                      <td class="px-4 py-3">
+                        {if $doc['status'] === 'validado'}
+                          <span class="badge bg-success">Validado</span>
+                        {elseif $doc['status'] === 'rechazado'}
+                          <span class="badge bg-danger">Rechazado</span>
+                        {else}
+                          <span class="badge bg-warning">Pendiente</span>
+                        {/if}
+                      </td>
+                      <td class="px-4 py-3">
+                        {if $doc['status'] === 'rechazado'}
+                          <button class="btn btn-sm btn-warning rounded-pill" type="button">Resubir</button>
+                        {else}
+                          <i class="bi bi-check-circle-fill text-success"></i>
+                        {/if}
+                      </td>
+                    </tr>
+                  {/foreach}
+                </tbody>
+              </table>
+            </div>
+          {/if}
+        </div>
+      </div>
+    </div>
+
+    {* Recent Publications *}
+    <div class="col-12 col-lg-6">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header border-0 bg-light rounded-top-4 p-4">
+          <h5 class="mb-0 fw-bold text-dark">
+            <i class="bi bi-newspaper text-primary me-2"></i>
+            Publicaciones del Sindicato
+          </h5>
+        </div>
+        <div class="card-body p-4">
+          {if empty($recentPublications)}
+            <p class="text-muted mb-0">No hay publicaciones disponibles</p>
+          {else}
+            <div class="d-flex flex-column gap-3">
+              {foreach $recentPublications as $pub}
+                <div class="border-bottom pb-3">
+                  <h6 class="fw-bold mb-1">{$pub['title']|truncate:50}</h6>
+                  <small class="text-muted"><i class="bi bi-calendar me-1"></i>{$pub['created_at']|dateFormat:'d/m/Y'}</small>
+                  <small class="badge bg-info-subtle text-info ms-2">{$pub['publication_type']}</small>
+                </div>
+              {/foreach}
+            </div>
+          {/if}
+        </div>
+      </div>
+    </div>
+  </div>
+{else}
+  {* Empty State: No Active Loan *}
+  <div class="row g-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm rounded-4 text-center p-5">
+        <i class="bi bi-inbox display-1 text-muted opacity-50 mb-4"></i>
+        <h3 class="h4 fw-bold text-dark mb-2">Aún no tienes préstamos activos</h3>
+        <p class="text-muted mb-4">
+          Los agremiados del sildicato tienen acceso a préstamos de bajo interés con plazos flexibles.
+        </p>
+        <a href="/portal/prestamos/solicitar" class="btn btn-primary rounded-pill px-5">
+          <i class="bi bi-plus-circle me-2"></i>Solicitar un Préstamo
+        </a>
+      </div>
+    </div>
+
+    {* Public content when no loan *}
+    <div class="col-12">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header border-0 bg-light rounded-top-4 p-4">
+          <h5 class="mb-0 fw-bold text-dark">
+            <i class="bi bi-newspaper text-primary me-2"></i>
+            Últimas Publicaciones
+          </h5>
+        </div>
+        <div class="card-body p-4">
+          {if empty($recentPublications)}
+            <p class="text-muted mb-0">No hay publicaciones disponibles</p>
+          {else}
+            <div class="d-flex flex-column gap-3">
+              {foreach $recentPublications as $pub}
+                <div class="border-bottom pb-3">
+                  <h6 class="fw-bold mb-1">{$pub['title']|truncate:50}</h6>
+                  <small class="text-muted"><i class="bi bi-calendar me-1"></i>{$pub['created_at']|dateFormat:'d/m/Y'}</small>
+                  <small class="badge bg-info-subtle text-info ms-2">{$pub['publication_type']}</small>
+                </div>
+              {/foreach}
+            </div>
+          {/if}
+        </div>
+      </div>
+    </div>
+  </div>
+{/if}
+
+{* Modal: Contact Support *}
+<div class="modal fade" id="modalContactSupport" tabindex="-1" aria-labelledby="supportLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 rounded-4">
+      <div class="modal-header border-0 bg-light rounded-top-4">
+        <h5 class="modal-title fw-bold" id="supportLabel">
+          <i class="bi bi-chat-dots me-2 text-primary"></i>
+          Contactar Apoyo
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <form method="POST" action="/portal/mensajes/crear">
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label class="form-label fw-medium">Asunto</label>
+            <input type="text" class="form-control rounded-3 border-primary" name="subject" placeholder="Ej: Consulta sobre mi préstamo" required>
+          </div>
+          <div class="mb-0">
+            <label class="form-label fw-medium">Mensaje</label>
+            <textarea class="form-control rounded-3 border-primary" name="body" rows="4" placeholder="Cuéntanos tu consulta..." required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer border-0 bg-light rounded-bottom-4">
+          <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary rounded-pill"><i class="bi bi-send me-2"></i>Enviar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{block scripts}
+  {include parent}
+{/block}
+{/block}

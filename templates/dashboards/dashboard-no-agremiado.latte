@@ -1,0 +1,242 @@
+{layout '@base-dashboard.latte'}
+
+{block dashboard-content}
+<div class="row g-4">
+  {* Welcome Section *}
+  <div class="col-12">
+    <div class="card border-0 shadow-sm rounded-4 bg-primary-subtle">
+      <div class="card-body p-5 text-center">
+        <h3 class="h4 fw-bold text-primary mb-2">
+          <i class="bi bi-hand-thumbs-up me-2"></i>
+          Bienvenido, {$authUser->name|escape}
+        </h3>
+        <p class="mb-0 text-muted">
+          Estás navegando como usuario registrado. Aquí encontrarás información sobre el sindicato, publicaciones y recursos públicos.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  {* Public Publications *}
+  <div class="col-12">
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-header border-0 bg-light rounded-top-4 p-4">
+        <h5 class="mb-0 fw-bold text-dark">
+          <i class="bi bi-newspaper text-primary me-2"></i>
+          Noticias y Avisos
+        </h5>
+      </div>
+      <div class="card-body p-0">
+        {if empty($publicPublications)}
+          <div class="p-4 text-center text-muted">
+            <i class="bi bi-inbox display-1 opacity-25 d-block mb-2"></i>
+            <p class="mb-0">No hay publicaciones disponibles</p>
+          </div>
+        {else}
+          <div class="row g-3 p-4">
+            {foreach $publicPublications as $pub}
+              <div class="col-12 col-md-6">
+                <article class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden cursor-pointer" style="cursor:pointer;">
+                  {if !empty($pub['thumbnail_url'])}
+                    <img src="{$pub['thumbnail_url']|escape}" class="card-img-top" alt="{$pub['title']|escape}" style="height: 200px; object-fit: cover;">
+                  {/if}
+                  <div class="card-body d-flex flex-column">
+                    <small class="badge bg-info-subtle text-info w-fit mb-2" style="width: fit-content;">
+                      {$pub['publication_type']}
+                    </small>
+                    <h5 class="card-title fw-bold mb-2">{$pub['title']|truncate:50}</h5>
+                    <p class="card-text text-muted flex-grow-1">{$pub['summary']|truncate:100}</p>
+                    <small class="text-muted">
+                      <i class="bi bi-calendar me-1"></i>
+                      {$pub['created_at']|dateFormat:'d \d\e M \d\e Y'}
+                    </small>
+                  </div>
+                </article>
+              </div>
+            {/foreach}
+          </div>
+        {/if}
+      </div>
+    </div>
+  </div>
+
+  {* Contact Form *}
+  <div class="col-12 col-lg-6">
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-header border-0 bg-light rounded-top-4 p-4">
+        <h5 class="mb-0 fw-bold text-dark">
+          <i class="bi bi-chat-left-text text-primary me-2"></i>
+          ¿Tienes una Pregunta?
+        </h5>
+      </div>
+      <form method="POST" action="/portal/contacto/crear" class="card-body p-4 d-flex flex-column gap-3">
+        <input type="hidden" name="type" value="contact">
+
+        <div>
+          <label class="form-label fw-medium">Asunto</label>
+          <input type="text" class="form-control rounded-3 border-primary" name="subject" placeholder="Ej: Consulta sobre afiliación" required>
+        </div>
+
+        <div>
+          <label class="form-label fw-medium">Mensaje</label>
+          <textarea class="form-control rounded-3 border-primary" name="body" rows="4" placeholder="Cuéntanos tu consulta o comentario..." required></textarea>
+        </div>
+
+        <div class="pt-2">
+          <button type="submit" class="btn btn-primary rounded-pill w-100">
+            <i class="bi bi-send me-2"></i>Enviar Mensaje
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {* Public FAQs *}
+  <div class="col-12 col-lg-6">
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-header border-0 bg-light rounded-top-4 p-4">
+        <h5 class="mb-0 fw-bold text-dark">
+          <i class="bi bi-question-circle text-primary me-2"></i>
+          Preguntas Frecuentes
+        </h5>
+      </div>
+      <div class="card-body p-0">
+        {if empty($publicFaqs)}
+          <div class="p-4 text-center text-muted">
+            <p class="mb-0">No hay preguntas publicadas aún</p>
+          </div>
+        {else}
+          <div class="accordion accordion-flush" id="faqAccordion">
+            {foreach $publicFaqs|slice:0:5 as $faq}
+              <div class="accordion-item border-bottom">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed py-3 px-4 fw-medium" type="button" data-bs-toggle="collapse" data-bs-target="#faq-{$faq['thread_id']}" aria-expanded="false">
+                    <i class="bi bi-question-circle-fill text-primary me-2"></i>
+                    {$faq['subject']|truncate:40}
+                  </button>
+                </h2>
+                <div id="faq-{$faq['thread_id']}" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                  <div class="accordion-body px-4 py-3 bg-light border-top text-muted">
+                    <strong class="d-block mb-2 text-dark">Respuesta:</strong>
+                    {$faq['answer']|truncate:200}
+                  </div>
+                </div>
+              </div>
+            {/foreach}
+          </div>
+        {/if}
+        {if !empty($publicFaqs)}
+          <div class="p-4 text-center border-top">
+            <a href="/preguntas-frecuentes" class="btn btn-outline-primary btn-sm rounded-pill">
+              Ver Más Preguntas
+            </a>
+          </div>
+        {/if}
+      </div>
+    </div>
+  </div>
+
+  {* Affiliation Soft CTA *}
+  <div class="col-12">
+    <div class="card border-0 shadow-sm rounded-4 border-secondary-subtle">
+      <div class="card-body p-5 text-center">
+        <i class="bi bi-hand-index text-secondary mb-4" style="font-size: 3rem;"></i>
+        <h4 class="fw-bold text-dark mb-3">¿Sabías que Puedes Afiliarte al Sindicato?</h4>
+        <p class="text-muted mb-4 lead">
+          Los trabajadores afiliados del SIUT-ITSM tienen acceso a:
+        </p>
+        <ul class="list-unstyled d-flex justify-content-center gap-4 flex-wrap mb-4">
+          <li class="d-flex flex-column align-items-center gap-2">
+            <i class="bi bi-percent text-info" style="font-size: 2rem;"></i>
+            <small class="text-dark fw-medium">Préstamos con<br>bajo interés</small>
+          </li>
+          <li class="d-flex flex-column align-items-center gap-2">
+            <i class="bi bi-shield-check text-success" style="font-size: 2rem;"></i>
+            <small class="text-dark fw-medium">Prestaciones<br>y beneficios</small>
+          </li>
+          <li class="d-flex flex-column align-items-center gap-2">
+            <i class="bi bi-chat-dots text-warning" style="font-size: 2rem;"></i>
+            <small class="text-dark fw-medium">Asesoría y<br>apoyo legal</small>
+          </li>
+        </ul>
+        <p class="text-muted small mb-4">
+          Si te interesa conocer más, puedes contactarnos sin compromiso. Responderemos a tu consulta en la menor brevedad posible.
+        </p>
+        <button class="btn btn-secondary rounded-pill px-4" type="button" data-bs-toggle="collapse" data-bs-target="#affiliationForm">
+          <i class="bi bi-arrow-right me-2"></i>Quiero Saber Más
+        </button>
+
+        {* Hidden Form *}
+        <div class="collapse mt-4" id="affiliationForm">
+          <form method="POST" action="/portal/contacto/crear" class="p-4 bg-light rounded-4">
+            <input type="hidden" name="subject" value="Consulta de Afiliación">
+            <input type="hidden" name="type" value="contact">
+
+            <h6 class="fw-bold mb-3 text-start">Cuéntanos Más sobre Ti</h6>
+
+            <div class="mb-3">
+              <input type="text" class="form-control rounded-3 border-primary" name="name" placeholder="Tu nombre completo" required>
+            </div>
+
+            <div class="mb-3">
+              <input type="email" class="form-control rounded-3 border-primary" name="email" placeholder="Tu correo electrónico" required>
+            </div>
+
+            <div class="mb-3">
+              <textarea class="form-control rounded-3 border-primary" name="body" rows="3" placeholder="¿Qué te gustaría saber? (opcional)" required></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-secondary w-100 rounded-3">
+              <i class="bi bi-send me-2"></i>Enviar Consulta
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {* Public Transparency Documents *}
+  {if !empty($publicTransparency)}
+    <div class="col-12">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header border-0 bg-light rounded-top-4 p-4">
+          <h5 class="mb-0 fw-bold text-dark">
+            <i class="bi bi-file-earmark-pdf text-primary me-2"></i>
+            Documentos de Transparencia
+          </h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light border-top">
+                <tr>
+                  <th class="px-4 py-3">Documento</th>
+                  <th class="px-4 py-3">Tipo</th>
+                  <th class="px-4 py-3">Fecha</th>
+                  <th class="px-4 py-3">Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                {foreach $publicTransparency as $doc}
+                  <tr>
+                    <td class="px-4 py-3 fw-medium">{$doc['title']|truncate:40}</td>
+                    <td class="px-4 py-3 text-capitalize"><small>{$doc['transparency_type']}</small></td>
+                    <td class="px-4 py-3"><small>{$doc['date_published']|dateFormat:'d/m/Y'}</small></td>
+                    <td class="px-4 py-3">
+                      <a href="#" class="btn btn-sm btn-outline-secondary rounded-pill">Descargar</a>
+                    </td>
+                  </tr>
+                {/foreach}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  {/if}
+</div>
+
+{block scripts}
+  {include parent}
+{/block}
+{/block}
