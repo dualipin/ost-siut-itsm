@@ -232,39 +232,28 @@ final class PdoMessageThreadRepository extends PdoBaseRepository implements Mess
                 mt.thread_id,
                 mt.subject,
                 mt.created_at,
-                question.body AS question,
-                answer.body   AS answer
+                (
+                    SELECT m1.body 
+                    FROM messages m1 
+                    WHERE m1.thread_id = mt.thread_id 
+                      AND m1.deleted_at IS NULL 
+                    ORDER BY m1.sent_at ASC 
+                    LIMIT 1
+                ) AS question,
+                (
+                    SELECT GROUP_CONCAT(m2.body ORDER BY m2.sent_at ASC SEPARATOR '\\n\\n')
+                    FROM messages m2
+                    WHERE m2.thread_id = mt.thread_id
+                      AND m2.deleted_at IS NULL
+                      AND m2.sender_id IS NOT NULL
+                      AND m2.message_id > (
+                          SELECT MIN(m3.message_id)
+                          FROM messages m3
+                          WHERE m3.thread_id = mt.thread_id
+                            AND m3.deleted_at IS NULL
+                      )
+                ) AS answer
             FROM message_threads mt
-            LEFT JOIN (
-                SELECT m1.thread_id, m1.body
-                FROM messages m1
-                WHERE m1.deleted_at IS NULL
-                  AND m1.message_id = (
-                      SELECT MIN(m2.message_id)
-                      FROM messages m2
-                      WHERE m2.thread_id = m1.thread_id
-                        AND m2.deleted_at IS NULL
-                  )
-            ) question ON question.thread_id = mt.thread_id
-            LEFT JOIN (
-                SELECT m3.thread_id, m3.body
-                FROM messages m3
-                WHERE m3.deleted_at IS NULL
-                  AND m3.sender_id IS NOT NULL
-                  AND m3.message_id = (
-                      SELECT MIN(m4.message_id)
-                      FROM messages m4
-                      WHERE m4.thread_id = m3.thread_id
-                        AND m4.deleted_at IS NULL
-                        AND m4.sender_id IS NOT NULL
-                        AND m4.message_id > (
-                            SELECT MIN(m5.message_id)
-                            FROM messages m5
-                            WHERE m5.thread_id = m3.thread_id
-                              AND m5.deleted_at IS NULL
-                        )
-                  )
-            ) answer ON answer.thread_id = mt.thread_id
             WHERE mt.thread_type = :thread_type
               AND mt.visibility  = :visibility
               AND mt.status     IN (:status_answered, :status_closed)

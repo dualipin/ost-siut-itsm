@@ -44,6 +44,12 @@
                         placeholder="Escribe aquí tu mensaje detallado..." x-model="formData.mensaje" required></textarea>
             </div>
 
+            <div class="mb-4">
+              <label for="adjuntos" class="form-label fw-bold small text-muted text-uppercase tracking-wider">Adjuntos (Opcional)</label>
+              <input type="file" id="adjuntos" class="form-control border-0 shadow-sm rounded-4 px-4 py-2" multiple @change="handleFiles">
+              <div class="form-text mt-1 px-2">Puedes añadir imágenes o documentos.</div>
+            </div>
+
             <div class="d-grid pt-3">
               <button type="submit" class="btn btn-primary btn-lg rounded-pill py-3 shadow-lg" :disabled="loading">
                 <span x-show="!loading"><i class="bi bi-send-fill me-2"></i>Enviar Mensaje Ahora</span>
@@ -66,21 +72,33 @@ document.addEventListener('alpine:init', () => {
             asunto: '',
             mensaje: ''
         },
+        files: [],
         loading: false,
         submitted: false,
         successMessage: '',
         resetForm() {
             this.formData.asunto = '';
             this.formData.mensaje = '';
+            this.files = [];
             this.submitted = false;
+        },
+        handleFiles(e) {
+            this.files = e.target.files;
         },
         async submitForm() {
             this.loading = true;
+
+            const formData = new FormData();
+            formData.append('asunto', this.formData.asunto);
+            formData.append('mensaje', this.formData.mensaje);
+            for (let i = 0; i < this.files.length; i++) {
+                formData.append('adjuntos[]', this.files[i]);
+            }
+
             try {
                 const response = await fetch('nuevo.php', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams(this.formData)
+                    body: formData
                 });
 
                 const result = await response.json();

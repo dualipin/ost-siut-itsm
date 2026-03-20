@@ -30,6 +30,22 @@ if ($request->isSubmitted()) {
     $asunto = $request->input("asunto");
     $mensaje = $request->input("mensaje");
 
+    $attachments = [];
+    if (isset($_FILES['adjuntos'])) {
+        $files = $_FILES['adjuntos'];
+        for ($i = 0; $i < count($files['name']); $i++) {
+            if ($files['name'][$i]) {
+                $attachments[] = [
+                    'name' => $files['name'][$i],
+                    'type' => $files['type'][$i],
+                    'tmp_name' => $files['tmp_name'][$i],
+                    'error' => $files['error'][$i],
+                    'size' => $files['size'][$i],
+                ];
+            }
+        }
+    }
+
     try {
         $useCase->execute(
             name: $user->name,
@@ -37,6 +53,7 @@ if ($request->isSubmitted()) {
             phone: null,
             subject: is_string($asunto) ? $asunto : null,
             message: is_string($mensaje) ? $mensaje : "",
+            attachments: $attachments,
             senderId: $user->id,
         );
 

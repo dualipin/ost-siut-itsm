@@ -7,13 +7,16 @@ namespace App\Modules\Messaging\Application\UseCase;
 use App\Infrastructure\Persistence\TransactionManager;
 use App\Modules\Messaging\Domain\Entity\Message;
 use App\Modules\Messaging\Domain\Entity\MessageThread;
+use App\Modules\Messaging\Domain\Entity\MessageAttachment;
 use App\Modules\Messaging\Domain\Enum\ThreadStatus;
 use App\Modules\Messaging\Domain\Enum\ThreadType;
 use App\Modules\Messaging\Domain\Enum\ThreadVisibility;
 use App\Modules\Messaging\Domain\Exception\ContactMessageValidationException;
+use App\Modules\Messaging\Domain\Repository\MessageAttachmentRepositoryInterface;
 use App\Modules\Messaging\Domain\Repository\MessageRepositoryInterface;
 use App\Modules\Messaging\Domain\Repository\MessageThreadRepositoryInterface;
 use App\Modules\Messaging\Domain\Service\ContactMessageNotifierInterface;
+use App\Modules\Messaging\Infrastructure\Upload\MessageAttachmentUploader;
 
 use function filter_var;
 use function preg_match;
@@ -26,6 +29,8 @@ final readonly class CreateContactMessageUseCase
     public function __construct(
         private MessageThreadRepositoryInterface $threadRepository,
         private MessageRepositoryInterface $messageRepository,
+        private MessageAttachmentRepositoryInterface $attachmentRepository,
+        private MessageAttachmentUploader $attachmentUploader,
         private ContactMessageNotifierInterface $notifier,
         private TransactionManager $transactionManager,
     ) {}
@@ -36,6 +41,7 @@ final readonly class CreateContactMessageUseCase
         ?string $phone,
         ?string $subject,
         string $message,
+        array $attachments = [],
         ?int $senderId = null,
     ): int {
         $cleanName = trim($name);
@@ -65,6 +71,7 @@ final readonly class CreateContactMessageUseCase
             $finalPhone,
             $finalSubject,
             $cleanMessage,
+            $attachments,
             $senderId,
         ): int {
             $thread = new MessageThread(
@@ -87,7 +94,7 @@ final readonly class CreateContactMessageUseCase
 
             $threadId = $this->threadRepository->create($thread);
 
-            $this->messageRepository->create(
+            $messageId = $this->messageRepository->create(
                 new Message(
                     id: null,
                     threadId: $threadId,
@@ -98,6 +105,30 @@ final readonly class CreateContactMessageUseCase
                     deletedAt: null,
                 ),
             );
+
+            // Procesar adjuntos
+            foreach ($attachments as $fileData) {
+                if (!isset($fileData['tmp_name']) || $fileData['tmp_name'] === '') {
+                    continue;
+                }
+
+                $uploaded = $this->attachmentUploader->upload(
+                    $fileData['tmp_name'],
+                    $fileData['name'],
+                    (int) $fileData['size'],
+                );
+
+                $fullAttachment = new MessageAttachment(
+                    id: null,
+                    messageId: $messageId,
+                    filePath: $uploaded->filePath,
+                    fileName: $uploaded->fileName,
+                    mimeType: $uploaded->mimeType,
+                    fileSize: $uploaded->fileSize,
+                );
+
+                $this->attachmentRepository->create($fullAttachment);
+            }
 
             $this->notifier->notifyAdminOfNewContact(
                 threadId: $threadId,

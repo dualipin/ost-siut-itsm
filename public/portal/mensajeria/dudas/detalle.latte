@@ -79,7 +79,7 @@
             <i class="bi bi-chat-dots me-2 text-primary"></i>Conversación
           </h2>
 
-          <div class="d-flex flex-column gap-3">
+          <div class="d-flex flex-column gap-3" x-data="threadDetail">
             {foreach $messages as $mData}
               {var $msg = $mData['message']}
               {var $msgAttachments = $mData['attachments']}
@@ -98,7 +98,7 @@
                     </div>
                   </div>
                   <div class="flex-grow-1">
-                    <div class="bg-light rounded-4 p-3 border">
+                    <div class="bg-light rounded-4 p-3 border position-relative group">
                       <div class="fw-semibold small mb-1">
                         {if $isThreadOwner && $authUser->id === $thread->senderId}Mi mensaje{else}{$thread->externalName ?: 'Remitente'}{/if}
                       </div>
@@ -118,6 +118,16 @@
                           </div>
                         </div>
                       {/if}
+
+                      {* Delete button *}
+                      {var $canDelete = $msg->senderId === $authUser->id && (time() - $msg->sentAt->getTimestamp()) < 900}
+                      {if $canDelete}
+                        <button class="btn btn-link text-danger p-0 position-absolute top-0 end-0 mt-2 me-2 opacity-0 group-hover-opacity-100 transition-all"
+                                title="Eliminar mensaje (disponible por 15 min)"
+                                @click="deleteMessage({$msg->id})">
+                          <i class="bi bi-trash small"></i>
+                        </button>
+                      {/if}
                     </div>
                     <small class="text-muted ms-2">
                       {$msg->sentAt?->format('d/m/Y H:i') ?: ''}
@@ -134,7 +144,7 @@
                     </div>
                   </div>
                   <div class="flex-grow-1 text-end">
-                    <div class="bg-primary rounded-4 p-3 text-start text-white shadow-sm">
+                    <div class="bg-primary rounded-4 p-3 text-start text-white shadow-sm position-relative group">
                       <div class="fw-semibold small mb-1 text-white text-opacity-75">Sindicato (Respuesta)</div>
                       <p class="mb-0">{$msg->body|breakLines}</p>
                       
@@ -151,6 +161,16 @@
                             {/foreach}
                           </div>
                         </div>
+                      {/if}
+
+                      {* Delete button for staff *}
+                      {var $canDelete = $msg->senderId === $authUser->id && (time() - $msg->sentAt->getTimestamp()) < 900}
+                      {if $canDelete}
+                        <button class="btn btn-link text-white p-0 position-absolute top-0 end-0 mt-2 me-2 opacity-0 group-hover-opacity-100 transition-all"
+                                title="Eliminar respuesta (disponible por 15 min)"
+                                @click="deleteMessage({$msg->id})">
+                          <i class="bi bi-trash small"></i>
+                        </button>
                       {/if}
                     </div>
                     <small class="text-muted me-2">
@@ -195,4 +215,50 @@
       </div>
     </div>
   </div>
+{/block}
+
+{block scripts}
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('threadDetail', () => ({
+        async deleteMessage(messageId) {
+            if (!confirm('¿Estás seguro de que deseas eliminar este mensaje? Esta acción no se puede deshacer.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('../eliminar-mensaje.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ message_id: messageId })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    Alpine.store('toast').show({
+                        type: 'success',
+                        message: result.message
+                    });
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    Alpine.store('toast').show({
+                        type: 'error',
+                        message: result.message || 'Error al eliminar el mensaje.'
+                    });
+                }
+            } catch (error) {
+                Alpine.store('toast').show({
+                    type: 'error',
+                    message: 'Error de conexión.'
+                });
+            }
+        }
+    }));
+});
+</script>
+<style>
+  .group:hover .group-hover-opacity-100 { opacity: 1 !important; }
+  .transition-all { transition: all 0.2s ease-in-out; }
+</style>
 {/block}

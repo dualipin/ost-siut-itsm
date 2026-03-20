@@ -6,12 +6,15 @@ namespace App\Modules\Messaging\Application\UseCase;
 
 use App\Infrastructure\Persistence\TransactionManager;
 use App\Modules\Messaging\Domain\Entity\Message;
+use App\Modules\Messaging\Domain\Entity\MessageAttachment;
 use App\Modules\Messaging\Domain\Enum\ThreadStatus;
 use App\Modules\Messaging\Domain\Enum\ThreadType;
 use App\Modules\Messaging\Domain\Exception\ReplyValidationException;
+use App\Modules\Messaging\Domain\Repository\MessageAttachmentRepositoryInterface;
 use App\Modules\Messaging\Domain\Repository\MessageRepositoryInterface;
 use App\Modules\Messaging\Domain\Repository\MessageThreadRepositoryInterface;
 use App\Modules\Messaging\Domain\Service\ReplyNotifierInterface;
+use App\Modules\Messaging\Infrastructure\Upload\MessageAttachmentUploader;
 
 use function trim;
 
@@ -20,6 +23,8 @@ final readonly class ReplyToContactUseCase
     public function __construct(
         private MessageThreadRepositoryInterface $threadRepository,
         private MessageRepositoryInterface $messageRepository,
+        private MessageAttachmentRepositoryInterface $attachmentRepository,
+        private MessageAttachmentUploader $attachmentUploader,
         private ReplyNotifierInterface $replyNotifier,
         private TransactionManager $transactionManager,
     ) {}
@@ -31,6 +36,7 @@ final readonly class ReplyToContactUseCase
         int $threadId,
         int $adminUserId,
         string $replyBody,
+        array $attachments = [],
     ): void {
         $cleanBody = trim($replyBody);
 
@@ -62,8 +68,9 @@ final readonly class ReplyToContactUseCase
             $adminUserId,
             $cleanBody,
             $isMemberReply,
+            $attachments,
         ): void {
-            $this->messageRepository->create(
+            $messageId = $this->messageRepository->create(
                 new Message(
                     id: null,
                     threadId: $threadId,
@@ -71,6 +78,30 @@ final readonly class ReplyToContactUseCase
                     senderId: $adminUserId,
                 ),
             );
+
+            // Procesar adjuntos
+            foreach ($attachments as $fileData) {
+                if (!isset($fileData['tmp_name']) || $fileData['tmp_name'] === '') {
+                    continue;
+                }
+
+                $uploaded = $this->attachmentUploader->upload(
+                    $fileData['tmp_name'],
+                    $fileData['name'],
+                    (int) $fileData['size'],
+                );
+
+                $fullAttachment = new MessageAttachment(
+                    id: null,
+                    messageId: $messageId,
+                    filePath: $uploaded->filePath,
+                    fileName: $uploaded->fileName,
+                    mimeType: $uploaded->mimeType,
+                    fileSize: $uploaded->fileSize,
+                );
+
+                $this->attachmentRepository->create($fullAttachment);
+            }
 
             $newStatus = $isMemberReply ? ThreadStatus::Pending : ThreadStatus::Attended;
             
