@@ -36,6 +36,37 @@ if ($user && ($user->role->value === 'administrador' || $user->role->value === '
     $todosDocumentos = $listUseCase->executePublicByType(TransparencyType::GESTORIA);
 }
 
+$filtros = [
+    'nombre' => trim((string)($_GET['nombre'] ?? '')),
+    'fecha_desde' => trim((string)($_GET['fecha_desde'] ?? '')),
+    'fecha_hasta' => trim((string)($_GET['fecha_hasta'] ?? '')),
+];
+
+$todosDocumentos = array_values(array_filter(
+    $todosDocumentos,
+    static function ($documento) use ($filtros): bool {
+        if ($filtros['nombre'] !== '' && stripos($documento->title, $filtros['nombre']) === false) {
+            return false;
+        }
+
+        $fechaPublicacion = $documento->datePublished->format('Y-m-d');
+        if ($filtros['fecha_desde'] !== '' && $fechaPublicacion < $filtros['fecha_desde']) {
+            return false;
+        }
+
+        if ($filtros['fecha_hasta'] !== '' && $fechaPublicacion > $filtros['fecha_hasta']) {
+            return false;
+        }
+
+        return true;
+    }
+));
+
+$queryFiltros = http_build_query(array_filter(
+    $filtros,
+    static fn(string $value): bool => $value !== ''
+));
+
 $totalDocumentos = count($todosDocumentos);
 
 $porPagina = 6;
@@ -60,8 +91,10 @@ $data = [
     'error' => $error,
     'mensajeExito' => $exito,
     'miembro' => $user,
+    'filtros' => $filtros,
+    'queryFiltros' => $queryFiltros,
 ];
 
 // As old code relies on ServicioLatte to inject variables, the modern renderer does it cleanly.
 $renderer = $container->get(RendererInterface::class);
-$renderer->render(__DIR__ . '/index.latte', $data);
+$renderer->render(__DIR__ . '/index.latte', $data);
