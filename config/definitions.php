@@ -19,6 +19,8 @@ use App\Modules\Messaging\Domain\Service\ContactMessageNotifierInterface;
 use App\Modules\Messaging\Infrastructure\Mail\ContactMessageMailer;
 use App\Modules\Messaging\Domain\Service\QuestionNotifierInterface;
 use App\Modules\Messaging\Infrastructure\Mail\PhpMailerQuestionNotifier;
+use App\Modules\Messaging\Domain\Service\ReplyNotifierInterface;
+use App\Modules\Messaging\Infrastructure\Mail\ReplyMailer;
 use App\Shared\Context\UserContext;
 use App\Shared\Context\UserContextInterface;
 use App\Shared\Context\UserProviderInterface;
@@ -167,8 +169,22 @@ return function (ContainerBuilder $container) {
 
         QuestionNotifierInterface::class => get(PhpMailerQuestionNotifier::class),
 
+        ReplyMailer::class => function (
+            MailerInterface $mailer,
+            RendererInterface $renderer,
+        ) {
+            return new ReplyMailer(
+                $mailer,
+                $renderer,
+                dirname(__DIR__),
+            );
+        },
+
+        ReplyNotifierInterface::class => get(ReplyMailer::class),
+
         // shared
         UserContextInterface::class => autowire(UserContext::class),
         UserProviderInterface::class => get(UserContextInterface::class),
     ]);
 };
+

@@ -204,6 +204,58 @@
         <li class="nav-item mb-2">
           <span
                   class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
+                  type="button" data-bs-toggle="collapse" data-bs-target="#mensajeria-collapse" aria-expanded="false"
+                  aria-controls="mensajeria-collapse">
+            Mensajería
+            <i class="bi bi-chevron-down"></i>
+          </span>
+          <div class="collapse ms-3" id="mensajeria-collapse">
+            <ul class="nav flex-column pb-1">
+              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                <a href="{url('/portal/mensajeria/contacto/index.php')}" class="nav-link text-white px-3 mb-1">
+                  <i class="bi bi-envelope me-2"></i>
+                  <span>Contacto</span>
+                </a>
+              </li>
+              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                <a href="{url('/portal/mensajeria/dudas/index.php')}" class="nav-link text-white px-3 mb-1">
+                  <i class="bi bi-question-circle me-2"></i>
+                  <span>Dudas</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </li>
+
+        <li class="nav-item mb-2">
+          <span
+                  class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
+                  type="button" data-bs-toggle="collapse" data-bs-target="#recursos-collapse" aria-expanded="false"
+                  aria-controls="recursos-collapse">
+            Recursos
+            <i class="bi bi-chevron-down"></i>
+          </span>
+          <div class="collapse ms-3" id="recursos-collapse">
+            <ul class="nav flex-column pb-1">
+              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                <a href="{url('/portal/publicaciones/formatos.php')}" class="nav-link text-white px-3 mb-1">
+                  <i class="bi bi-file-earmark-ruled me-2"></i>
+                  <span>Formatos</span>
+                </a>
+              </li>
+              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                <a href="{url('/portal/publicaciones/acervos.php')}" class="nav-link text-white px-3 mb-1">
+                  <i class="bi bi-book me-2"></i>
+                  <span>Acervo Bibliográfico</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </li>
+
+        <li class="nav-item mb-2">
+          <span
+                  class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
                   type="button" data-bs-toggle="collapse" data-bs-target="#usuarios-collapse" aria-expanded="false"
                   aria-controls="usuarios-collapse">
             Usuarios

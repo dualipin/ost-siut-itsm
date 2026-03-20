@@ -9,4 +9,7 @@ use App\Modules\Messaging\Domain\Entity\Message;
 interface MessageRepositoryInterface
 {
     public function create(Message $message): int;
+
+    /** @return Message[] */
+    public function findByThreadId(int $threadId): array;
 }

@@ -1,0 +1,130 @@
+{layout '../../../../templates/@portal.latte'}
+{block title}Detalle de Duda #{$thread->id}{/block}
+
+{block main}
+  {* Action bar *}
+  <div class="d-flex align-items-center mb-4 gap-2">
+    <a href="index.php" class="btn btn-outline-primary btn-sm rounded-pill">
+      <i class="bi bi-arrow-left me-1"></i>Volver al listado
+    </a>
+    <div class="ms-auto">
+      {if $thread->status->value === 'pending' || $thread->status->value === 'open'}
+        <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-2">
+          <i class="bi bi-clock me-1"></i>Pendiente
+        </span>
+      {elseif $thread->status->value === 'answered'}
+        <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3 py-2">
+          <i class="bi bi-chat-dots me-1"></i>Respondida
+        </span>
+      {else}
+        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2">
+          <i class="bi bi-check-circle me-1"></i>Cerrada
+        </span>
+      {/if}
+    </div>
+  </div>
+
+  {include '../../../../templates/components/header-page.latte',
+    title: 'Duda de Transparencia',
+    description: 'Consulta recibida el ' . $thread->createdAt->format('d/m/Y H:i'),
+    icon: 'bi-question-circle'
+  }
+
+  <div class="row g-4">
+    {* Sender info *}
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4">
+          <h2 class="h5 fw-bold mb-3">
+            <i class="bi bi-person me-2 text-primary"></i>Datos del remitente
+          </h2>
+          <dl class="mb-0">
+            <dt class="text-muted small">Nombre</dt>
+            <dd class="mb-3">{$thread->externalName ?: '—'}</dd>
+            <dt class="text-muted small">Correo electrónico</dt>
+            <dd class="mb-0">
+              <a href="mailto:{$thread->externalEmail}" class="text-decoration-none">
+                {$thread->externalEmail ?: '—'}
+              </a>
+            </dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    {* Messages timeline *}
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4">
+          <h2 class="h5 fw-bold mb-4">
+            <i class="bi bi-chat-dots me-2 text-primary"></i>Conversación
+          </h2>
+
+          <div class="d-flex flex-column gap-3">
+            {foreach $messages as $msg}
+              {if $msg->isSystemMessage() || $msg->senderId === null}
+                {* External sender message (the question) *}
+                <div class="d-flex gap-3">
+                  <div class="flex-shrink-0">
+                    <div class="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center"
+                         style="width: 36px; height: 36px;">
+                      <i class="bi bi-person text-secondary"></i>
+                    </div>
+                  </div>
+                  <div class="flex-grow-1">
+                    <div class="bg-light rounded-4 p-3">
+                      <div class="fw-semibold small mb-1">{$thread->externalName ?: 'Remitente'}</div>
+                      <p class="mb-0">{$msg->body|breakLines}</p>
+                    </div>
+                    <small class="text-muted ms-2">
+                      {$msg->sentAt?->format('d/m/Y H:i') ?: ''}
+                    </small>
+                  </div>
+                </div>
+              {else}
+                {* Admin reply *}
+                <div class="d-flex gap-3 flex-row-reverse">
+                  <div class="flex-shrink-0">
+                    <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center"
+                         style="width: 36px; height: 36px;">
+                      <i class="bi bi-shield-check text-primary"></i>
+                    </div>
+                  </div>
+                  <div class="flex-grow-1 text-end">
+                    <div class="bg-primary bg-opacity-10 rounded-4 p-3 text-start">
+                      <div class="fw-semibold small mb-1 text-primary">Administrador</div>
+                      <p class="mb-0">{$msg->body|breakLines}</p>
+                    </div>
+                    <small class="text-muted me-2">
+                      {$msg->sentAt?->format('d/m/Y H:i') ?: ''}
+                    </small>
+                  </div>
+                </div>
+              {/if}
+            {/foreach}
+          </div>
+
+          {* Reply form *}
+          <hr class="my-4">
+          <h3 class="h6 fw-bold mb-3">
+            <i class="bi bi-reply me-2"></i>Escribir respuesta
+          </h3>
+          <form method="post" action="detalle.php?id={$thread->id}" x-data="{ submitting: false }" x-on:submit="submitting = true">
+            <div class="mb-3">
+              <textarea name="reply_body" class="form-control rounded-3" rows="4"
+                        placeholder="Escribe tu respuesta a esta duda..." required></textarea>
+            </div>
+            <div class="d-flex justify-content-end">
+              <button type="submit" class="btn btn-primary rounded-pill px-4"
+                      x-bind:disabled="submitting">
+                <i class="bi bi-send me-2"></i>
+                <span x-show="!submitting">Enviar respuesta</span>
+                <span x-show="submitting" x-cloak>Enviando...</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+{/block}
