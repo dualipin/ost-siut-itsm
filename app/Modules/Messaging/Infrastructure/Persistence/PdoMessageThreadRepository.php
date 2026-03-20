@@ -76,6 +76,7 @@ final class PdoMessageThreadRepository extends PdoBaseRepository implements Mess
                 mt.external_name,
                 mt.external_email,
                 mt.external_phone,
+                mt.visibility,
                 mt.created_at,
                 mt.updated_at,
                 m.body AS first_message
@@ -151,6 +152,18 @@ final class PdoMessageThreadRepository extends PdoBaseRepository implements Mess
         ]);
     }
 
+    public function updateVisibility(int $id, ThreadVisibility $visibility): void
+    {
+        $stmt = $this->pdo->prepare(
+            "UPDATE message_threads SET visibility = :visibility WHERE thread_id = :id",
+        );
+
+        $stmt->execute([
+            ':visibility' => $visibility->value,
+            ':id' => $id,
+        ]);
+    }
+
     public function updateAssignedTo(int $id, int $userId): void
     {
         $stmt = $this->pdo->prepare(
@@ -161,6 +174,66 @@ final class PdoMessageThreadRepository extends PdoBaseRepository implements Mess
             ':user_id' => $userId,
             ':id' => $id,
         ]);
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    public function findPublicAnsweredByType(ThreadType $type): array
+    {
+        $stmt = $this->pdo->prepare(
+            "
+            SELECT
+                mt.thread_id,
+                mt.subject,
+                mt.created_at,
+                question.body AS question,
+                answer.body   AS answer
+            FROM message_threads mt
+            LEFT JOIN (
+                SELECT m1.thread_id, m1.body
+                FROM messages m1
+                WHERE m1.deleted_at IS NULL
+                  AND m1.message_id = (
+                      SELECT MIN(m2.message_id)
+                      FROM messages m2
+                      WHERE m2.thread_id = m1.thread_id
+                        AND m2.deleted_at IS NULL
+                  )
+            ) question ON question.thread_id = mt.thread_id
+            LEFT JOIN (
+                SELECT m3.thread_id, m3.body
+                FROM messages m3
+                WHERE m3.deleted_at IS NULL
+                  AND m3.sender_id IS NOT NULL
+                  AND m3.message_id = (
+                      SELECT MIN(m4.message_id)
+                      FROM messages m4
+                      WHERE m4.thread_id = m3.thread_id
+                        AND m4.deleted_at IS NULL
+                        AND m4.sender_id IS NOT NULL
+                        AND m4.message_id > (
+                            SELECT MIN(m5.message_id)
+                            FROM messages m5
+                            WHERE m5.thread_id = m3.thread_id
+                              AND m5.deleted_at IS NULL
+                        )
+                  )
+            ) answer ON answer.thread_id = mt.thread_id
+            WHERE mt.thread_type = :thread_type
+              AND mt.visibility  = :visibility
+              AND mt.status     IN (:status_answered, :status_closed)
+              AND mt.deleted_at IS NULL
+            ORDER BY mt.created_at DESC
+            ",
+        );
+
+        $stmt->execute([
+            ':thread_type' => $type->value,
+            ':visibility'  => ThreadVisibility::Public->value,
+            ':status_answered' => ThreadStatus::Answered->value,
+            ':status_closed'   => ThreadStatus::Closed->value,
+        ]);
+
+        return $stmt->fetchAll();
     }
 }
 

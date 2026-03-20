@@ -6,14 +6,17 @@ namespace App\Modules\Messaging\Application\UseCase;
 
 use App\Infrastructure\Persistence\TransactionManager;
 use App\Modules\Messaging\Domain\Entity\Message;
+use App\Modules\Messaging\Domain\Entity\MessageAttachment;
 use App\Modules\Messaging\Domain\Entity\MessageThread;
 use App\Modules\Messaging\Domain\Enum\ThreadStatus;
 use App\Modules\Messaging\Domain\Enum\ThreadType;
 use App\Modules\Messaging\Domain\Enum\ThreadVisibility;
 use App\Modules\Messaging\Domain\Exception\QuestionValidationException;
+use App\Modules\Messaging\Domain\Repository\MessageAttachmentRepositoryInterface;
 use App\Modules\Messaging\Domain\Repository\MessageRepositoryInterface;
 use App\Modules\Messaging\Domain\Repository\MessageThreadRepositoryInterface;
 use App\Modules\Messaging\Domain\Service\QuestionNotifierInterface;
+use App\Modules\Messaging\Infrastructure\Upload\MessageAttachmentUploader;
 
 use function filter_var;
 use function trim;
@@ -25,17 +28,21 @@ final readonly class CreateQuestionUseCase
     public function __construct(
         private MessageThreadRepositoryInterface $threadRepository,
         private MessageRepositoryInterface $messageRepository,
+        private MessageAttachmentRepositoryInterface $attachmentRepository,
+        private MessageAttachmentUploader $attachmentUploader,
         private QuestionNotifierInterface $notifier,
         private TransactionManager $transactionManager,
     ) {}
 
     /**
+     * @param array<int, array{tmp_name: string, name: string, size: int}> $attachments
      * @throws QuestionValidationException
      */
     public function execute(
         string $name,
         string $email,
         string $question,
+        array $attachments = [],
     ): int {
         $cleanName = trim($name);
         $cleanEmail = trim($email);
@@ -53,6 +60,7 @@ final readonly class CreateQuestionUseCase
             $cleanName,
             $cleanEmail,
             $cleanQuestion,
+            $attachments,
         ): int {
             $thread = new MessageThread(
                 id: null,
@@ -74,7 +82,7 @@ final readonly class CreateQuestionUseCase
 
             $threadId = $this->threadRepository->create($thread);
 
-            $this->messageRepository->create(
+            $messageId = $this->messageRepository->create(
                 new Message(
                     id: null,
                     threadId: $threadId,
@@ -85,6 +93,30 @@ final readonly class CreateQuestionUseCase
                     deletedAt: null,
                 ),
             );
+
+            // Procesar adjuntos
+            foreach ($attachments as $fileData) {
+                if (!isset($fileData['tmp_name']) || $fileData['tmp_name'] === '') {
+                    continue;
+                }
+
+                $attachment = $this->attachmentUploader->upload(
+                    $fileData['tmp_name'],
+                    $fileData['name'],
+                    (int) $fileData['size'],
+                );
+
+                $fullAttachment = new MessageAttachment(
+                    id: null,
+                    messageId: $messageId,
+                    filePath: $attachment->filePath,
+                    fileName: $attachment->fileName,
+                    mimeType: $attachment->mimeType,
+                    fileSize: $attachment->fileSize,
+                );
+
+                $this->attachmentRepository->create($fullAttachment);
+            }
 
             $this->notifier->notifyAdminOfNewQuestion(
                 threadId: $threadId,

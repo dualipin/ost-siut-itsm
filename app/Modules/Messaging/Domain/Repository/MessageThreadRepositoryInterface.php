@@ -7,6 +7,7 @@ namespace App\Modules\Messaging\Domain\Repository;
 use App\Modules\Messaging\Domain\Entity\MessageThread;
 use App\Modules\Messaging\Domain\Enum\ThreadStatus;
 use App\Modules\Messaging\Domain\Enum\ThreadType;
+use App\Modules\Messaging\Domain\Enum\ThreadVisibility;
 
 interface MessageThreadRepositoryInterface
 {
@@ -19,5 +20,10 @@ interface MessageThreadRepositoryInterface
 
     public function updateStatus(int $id, ThreadStatus $status): void;
 
+    public function updateVisibility(int $id, ThreadVisibility $visibility): void;
+
     public function updateAssignedTo(int $id, int $userId): void;
+
+    /** @return array<int, array<string, mixed>> */
+    public function findPublicAnsweredByType(ThreadType $type): array;
 }

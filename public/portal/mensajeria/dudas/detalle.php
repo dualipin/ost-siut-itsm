@@ -39,12 +39,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $adminUserId = $authenticatedUser->id;
 
+    $action = $_POST['action'] ?? 'reply';
+
     try {
-        $replyUseCase->execute($threadId, $adminUserId, $replyBody);
-        $session->set('toast', [
-            'type' => 'success',
-            'message' => 'Respuesta enviada correctamente. El correo fue enviado al remitente.',
-        ]);
+        if ($action === 'toggle_visibility') {
+            $visibility = $_POST['visibility'] ?? 'private';
+            $toggleUseCase = $container->get(\App\Modules\Messaging\Application\UseCase\ToggleThreadVisibilityUseCase::class);
+            $toggleUseCase->execute($threadId, $visibility);
+            
+            $session->set('toast', [
+                'type' => 'success',
+                'message' => 'Visibilidad actualizada correctamente.',
+            ]);
+        } else {
+            $attachments = [];
+            if (!empty($_FILES['adjuntos']['name'][0])) {
+                foreach ($_FILES['adjuntos']['name'] as $i => $name) {
+                    $attachments[] = [
+                        'name'     => $name,
+                        'tmp_name' => $_FILES['adjuntos']['tmp_name'][$i],
+                        'size'     => $_FILES['adjuntos']['size'][$i],
+                        'type'     => $_FILES['adjuntos']['type'][$i],
+                        'error'    => $_FILES['adjuntos']['error'][$i],
+                    ];
+                }
+            }
+
+            $replyUseCase->execute($threadId, $adminUserId, $replyBody, $attachments);
+            $session->set('toast', [
+                'type' => 'success',
+                'message' => 'Respuesta enviada correctamente. El correo fue enviado al remitente.',
+            ]);
+        }
     } catch (ReplyValidationException $e) {
         $session->set('toast', [
             'type' => 'danger',
