@@ -15,6 +15,8 @@ use App\Infrastructure\Templating\Latte\LatteRenderer;
 use App\Infrastructure\Templating\RendererInterface;
 use App\Modules\Auth\Infrastructure\Mail\PasswordRecoveryMailer;
 use App\Modules\Auth\Domain\Service\PasswordRecoveryNotifierInterface;
+use App\Modules\Messaging\Domain\Service\ContactMessageNotifierInterface;
+use App\Modules\Messaging\Infrastructure\Mail\ContactMessageMailer;
 use App\Shared\Context\UserContext;
 use App\Shared\Context\UserContextInterface;
 use App\Shared\Context\UserProviderInterface;
@@ -132,6 +134,21 @@ return function (ContainerBuilder $container) {
 
         // Use the same factory-defined instance when the notifier interface is requested
         PasswordRecoveryNotifierInterface::class => get(PasswordRecoveryMailer::class),
+
+        ContactMessageMailer::class => function (
+            MailerInterface $mailer,
+            RendererInterface $renderer,
+            AppConfig $config,
+        ) {
+            return new ContactMessageMailer(
+                $mailer,
+                $renderer,
+                $config->mailer->adminNotifications,
+                dirname(__DIR__),
+            );
+        },
+
+        ContactMessageNotifierInterface::class => get(ContactMessageMailer::class),
 
         // shared
         UserContextInterface::class => autowire(UserContext::class),

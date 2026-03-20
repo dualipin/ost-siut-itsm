@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nuevo mensaje de contacto</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f9f9f9; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f9f9f9;">
+  <tr>
+    <td align="center" style="padding: 40px 0;">
+      <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border: 1px solid #e0e0e0;">
+        <tr>
+          <td style="padding: 40px 36px;">
+            <h1 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: #000000; text-align: center;">
+              Nuevo mensaje de contacto
+            </h1>
+
+            <p style="margin: 0 0 18px 0; font-size: 14px; line-height: 1.6; color: #333333;">
+              Se recibio una nueva solicitud de contacto en el sitio web.
+            </p>
+
+            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse; margin-top: 16px;">
+              <tr>
+                <td style="padding: 8px 0; font-size: 13px; color: #111111;"><strong>Hilo:</strong> #{$threadId}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; font-size: 13px; color: #111111;"><strong>Nombre:</strong> {$name}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; font-size: 13px; color: #111111;"><strong>Correo:</strong> {$email}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; font-size: 13px; color: #111111;"><strong>Telefono:</strong> {$phone ?: 'No proporcionado'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; font-size: 13px; color: #111111;"><strong>Asunto:</strong> {$subject}</td>
+              </tr>
+            </table>
+
+            <div style="margin-top: 24px; padding: 16px; border: 1px solid #e8e8e8; background-color: #fafafa;">
+              <p style="margin: 0 0 10px 0; font-size: 13px; font-weight: 700; color: #222222; text-transform: uppercase; letter-spacing: 0.4px;">
+                Mensaje
+              </p>
+              <p style="margin: 0; white-space: pre-wrap; font-size: 14px; line-height: 1.6; color: #444444;">{$message}</p>
+            </div>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding: 24px 36px; background-color: #000000; text-align: center;">
+            <p style="margin: 0; font-size: 11px; letter-spacing: 1px; color: #ffffff; text-transform: uppercase;">
+              © {$year} SIUT ITSM. Todos los derechos reservados.
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>
