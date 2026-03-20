@@ -7,25 +7,29 @@
     <a href="index.php" class="btn btn-outline-primary btn-sm rounded-pill">
       <i class="bi bi-arrow-left me-1"></i>Volver al listado
     </a>
-    <a href="pdf.php?id={$thread->id}" class="btn btn-outline-danger btn-sm rounded-pill" target="_blank">
-      <i class="bi bi-file-earmark-pdf me-1"></i>Exportar a PDF
-    </a>
+    {if $canManageVisibilityAndPdf}
+      <a href="pdf.php?id={$thread->id}" class="btn btn-outline-danger btn-sm rounded-pill" target="_blank">
+        <i class="bi bi-file-earmark-pdf me-1"></i>Exportar a PDF
+      </a>
+    {/if}
     <div class="ms-auto d-flex align-items-center gap-2">
       {* Visibility Badge/Toggle *}
-      <form method="post" action="detalle.php?id={$thread->id}" class="m-0">
-        <input type="hidden" name="action" value="toggle_visibility">
-        {if $thread->visibility->value === 'private'}
-          <input type="hidden" name="visibility" value="public">
-          <button type="submit" class="btn btn-outline-secondary btn-sm rounded-pill">
-            <i class="bi bi-eye-slash-fill me-1"></i>Privado
-          </button>
-        {else}
-          <input type="hidden" name="visibility" value="private">
-          <button type="submit" class="btn btn-success btn-sm rounded-pill">
-            <i class="bi bi-eye-fill me-1"></i>Público (FAQ)
-          </button>
-        {/if}
-      </form>
+      {if $canManageVisibilityAndPdf}
+        <form method="post" action="detalle.php?id={$thread->id}" class="m-0">
+          <input type="hidden" name="action" value="toggle_visibility">
+          {if $thread->visibility->value === 'private'}
+            <input type="hidden" name="visibility" value="public">
+            <button type="submit" class="btn btn-outline-secondary btn-sm rounded-pill">
+              <i class="bi bi-eye-slash-fill me-1"></i>Privado
+            </button>
+          {else}
+            <input type="hidden" name="visibility" value="private">
+            <button type="submit" class="btn btn-success btn-sm rounded-pill">
+              <i class="bi bi-eye-fill me-1"></i>Público (FAQ)
+            </button>
+          {/if}
+        </form>
+      {/if}
 
       {if $thread->status->value === 'pending' || $thread->status->value === 'open'}
         <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-2">

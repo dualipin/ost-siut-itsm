@@ -29,7 +29,17 @@ interface TransparencyRepositoryInterface
     /**
      * @return Transparency[]
      */
+    public function findAllPublicOrPermittedForUser(int $userId): array;
+
+    /**
+     * @return Transparency[]
+     */
     public function findAllPermittedForUserByType(int $userId, TransparencyType $type): array;
+
+    /**
+     * @return Transparency[]
+     */
+    public function findAllPublicOrPermittedForUserByType(int $userId, TransparencyType $type): array;
 
     /**
      * @return Transparency[]

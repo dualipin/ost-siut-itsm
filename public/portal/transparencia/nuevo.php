@@ -3,12 +3,27 @@
 use App\Bootstrap;
 use App\Infrastructure\Templating\RendererInterface;
 use App\Modules\Transparency\Application\UseCase\CreateTransparencyUseCase;
+use App\Shared\Context\UserContextInterface;
+use App\Shared\Domain\Enum\RoleEnum;
 
 require_once __DIR__ . "/../../../bootstrap.php";
 
 $container = Bootstrap::buildContainer();
 
 $renderer = $container->get(RendererInterface::class);
+$userContext = $container->get(UserContextInterface::class);
+
+$authenticatedUser = $userContext->get();
+if ($authenticatedUser === null) {
+    header('Location: /portal/cuentas/login.php');
+    exit;
+}
+
+$isPrivileged = in_array($authenticatedUser->role, [RoleEnum::Admin, RoleEnum::Lider], true);
+if (!$isPrivileged) {
+    header('Location: ./listado.php?error=unauthorized');
+    exit;
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $useCase = $container->get(CreateTransparencyUseCase::class);
@@ -43,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $transparency = $useCase->execute(
-            authorId: (int) ($_SESSION['user_id'] ?? 1), // Asumiendo que el ID de sesión está en user_id, se debe adaptar a SessionInterface después
+            authorId: $authenticatedUser->id,
             title: $_POST['title'] ?? '',
             summary: $_POST['summary'] ?? null,
             typeValue: $_POST['type'] ?? '',

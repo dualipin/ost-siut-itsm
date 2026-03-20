@@ -41,9 +41,25 @@ final readonly class ListTransparenciesUseCase
     /**
      * @return \App\Modules\Transparency\Domain\Entity\Transparency[]
      */
+    public function executePublicOrPermittedForUser(int $userId): array
+    {
+        return $this->repository->findAllPublicOrPermittedForUser($userId);
+    }
+
+    /**
+     * @return \App\Modules\Transparency\Domain\Entity\Transparency[]
+     */
     public function executeForUserByType(int $userId, TransparencyType $type): array
     {
         return $this->repository->findAllPermittedForUserByType($userId, $type);
+    }
+
+    /**
+     * @return \App\Modules\Transparency\Domain\Entity\Transparency[]
+     */
+    public function executePublicOrPermittedForUserByType(int $userId, TransparencyType $type): array
+    {
+        return $this->repository->findAllPublicOrPermittedForUserByType($userId, $type);
     }
     
     /**
