@@ -31,7 +31,7 @@ final readonly class AdminPendingDocumentsAlertEvaluator implements AlertEvaluat
                 description: count($pendingDocs) . " documento(s) esperando validación. $criticalCount llevan más de 48 horas.",
                 severity: $criticalCount > 0 ? AlertSeverityEnum::Critical : AlertSeverityEnum::Warning,
                 actionLabel: 'Ver Cola',
-                actionUrl: '/portal/admin/documentos?status=pendiente',
+                actionUrl: '/portal/usuarios/listado',
                 affectedCount: count($pendingDocs),
             );
         }

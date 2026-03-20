@@ -28,7 +28,7 @@ final readonly class LiderOverdueLoansAlertEvaluator implements AlertEvaluatorIn
                 description: "Hay $overdueCount préstamo(s) con más de 30 días de mora. Se requiere revisión inmediata.",
                 severity: AlertSeverityEnum::Critical,
                 actionLabel: 'Ver Detalles',
-                actionUrl: '/portal/prestamos?filter=overdue',
+                actionUrl: '/portal/prestamos/activos',
                 affectedCount: $overdueCount,
             );
         }

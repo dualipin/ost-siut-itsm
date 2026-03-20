@@ -13,15 +13,6 @@
 
 {block main}
 <div class="container-fluid py-4 py-lg-5">
-  {* Alert Banner (if any) *}
-  {if isset($alerts) && !empty($alerts->alerts)}
-    <div class="mb-5">
-      {foreach $alerts->alerts as $alert}
-        {include '../components/dashboard-alert-banner.latte', alert: $alert}
-      {/foreach}
-    </div>
-  {/if}
-
   {* Dashboard Header *}
   {include '../components/header-page.latte', title: $dashboardTitle, description: $dashboardDescription}
 

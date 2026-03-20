@@ -113,11 +113,11 @@
                 <h6 class="fw-bold mb-2">{$pub['title']}</h6>
                 <small class="text-muted">
                   <i class="bi bi-calendar me-1"></i>
-                  {$pub['created_at']|dateFormat:'d \d\e M \d\e Y'}
+                  {$pub['created_at']|date:'d \d\e M \d\e Y'}
                 </small>
                 {if !empty($pub['expiration_date'])}
                   <small class="badge bg-warning-subtle text-warning ms-2">
-                    Vence: {$pub['expiration_date']|dateFormat:'d/m/Y'}
+                    Vence: {$pub['expiration_date']|date:'d/m/Y'}
                   </small>
                 {/if}
               </div>

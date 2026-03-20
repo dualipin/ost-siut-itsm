@@ -57,8 +57,8 @@
         </tr>
       </thead>
       <tbody>
-        {set $numero = 1}
-        {set $bg_color = '#ffffff'}
+        {var $numero = 1}
+        {var $bg_color = '#ffffff'}
         {foreach $corrida as $fila}
           <tr style="background-color: {$bg_color}; border: 1px solid #ccc;">
             <td style="padding: 5px; border: 1px solid #ccc; text-align: center;">{$numero}</td>
@@ -68,8 +68,8 @@
             <td style="padding: 5px; border: 1px solid #ccc; text-align: right; font-weight: bold;">${number_format($fila->valor, 2, ',', '.')}</td>
             <td style="padding: 5px; border: 1px solid #ccc; text-align: right;">${number_format($fila->saldo, 2, ',', '.')}</td>
           </tr>
-          {set $bg_color = $bg_color === '#ffffff' ? '#f5f5f5' : '#ffffff'}
-          {set $numero = $numero + 1}
+          {var $bg_color = $bg_color === '#ffffff' ? '#f5f5f5' : '#ffffff'}
+          {var $numero = $numero + 1}
         {/foreach}
       </tbody>
       <tfoot>

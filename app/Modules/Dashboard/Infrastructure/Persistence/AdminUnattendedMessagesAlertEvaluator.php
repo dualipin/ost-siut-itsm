@@ -31,7 +31,7 @@ final readonly class AdminUnattendedMessagesAlertEvaluator implements AlertEvalu
                 description: count($openMessages) . " hilo(s) de mensajes sin atender. $criticalCount llevan más de 24 horas.",
                 severity: $criticalCount > 0 ? AlertSeverityEnum::Critical : AlertSeverityEnum::Warning,
                 actionLabel: 'Bandeja de Entrada',
-                actionUrl: '/portal/admin/mensajes',
+                actionUrl: '/portal/mensajeria/contacto/index',
                 affectedCount: count($openMessages),
             );
         }

@@ -34,7 +34,7 @@ final readonly class AgremiadoPendingSignaturesAlertEvaluator implements AlertEv
                 description: "Tienes " . count($pendingSigs) . " documento(s) que requieren tu firma para continuar con el proceso del préstamo.",
                 severity: AlertSeverityEnum::Critical,
                 actionLabel: 'Ir a Firmar',
-                actionUrl: '/portal/mis-documentos?action=sign',
+                actionUrl: '/portal/index#pendingSignatures',
                 affectedCount: count($pendingSigs),
             );
         }

@@ -27,8 +27,6 @@ final readonly class AdminFailedMailQueueAlertEvaluator implements AlertEvaluato
                 title: 'Correos Fallidos en Cola',
                 description: "$failedMailCount correo(s) fallaron en envío. Revise la configuración o reintentos.",
                 severity: AlertSeverityEnum::Warning,
-                actionLabel: 'Ver Cola de Correos',
-                actionUrl: '/portal/admin/mail-queue?status=failed',
                 affectedCount: $failedMailCount,
             );
         }

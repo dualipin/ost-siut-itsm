@@ -79,7 +79,7 @@ final class PdoFinanzasRepository extends PdoBaseRepository implements FinanzasR
             WHERE DATE(la.scheduled_date) BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 15 DAY)
             AND la.active = 1
             GROUP BY DATE(la.scheduled_date)
-            ORDER BY la.scheduled_date ASC"
+            ORDER BY date ASC"
         );
         return $stmt->fetchAll();
     }
@@ -98,7 +98,7 @@ final class PdoFinanzasRepository extends PdoBaseRepository implements FinanzasR
             JOIN users u ON l.user_id = u.user_id
             WHERE la.days_overdue > 0
             AND la.active = 1
-            GROUP BY l.loan_id
+            GROUP BY l.loan_id, l.folio, user_name
             ORDER BY oldest_overdue_days DESC"
         );
         return $stmt->fetchAll();

@@ -76,7 +76,7 @@
   {* Overdue Payments (Alert) *}
   {if !empty($overduePayments)}
     <div class="col-12">
-      <div class="card border-0 shadow-sm rounded-4 border-danger-subtle bg-danger-subtle">
+      <div class="card border-0 shadow-sm rounded-4 border-danger-subtle bg-danger-subtle" id="overduePayments">
         <div class="card-header border-0 bg-danger rounded-top-4 p-4">
           <h5 class="mb-0 fw-bold text-white">
             <i class="bi bi-exclamation-circle-fill me-2"></i>
@@ -97,7 +97,7 @@
                 </tr>
               </thead>
               <tbody>
-                {foreach $overduePayments|slice:0:10 as $payment}
+                {foreach array_slice($overduePayments, 0, 10) as $payment}
                   <tr>
                     <td class="px-4 py-3 fw-bold">{$payment['folio']}</td>
                     <td class="px-4 py-3">{$payment['user_name']|truncate:25}</td>
@@ -134,7 +134,7 @@
             {foreach $paymentsFortnight as $forecast}
               <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded-3">
                 <div>
-                  <strong class="d-block text-dark">{$forecast['date']|dateFormat:'d \d\e M'}</strong>
+                  <strong class="d-block text-dark">{$forecast['date']|date:'d \d\e M'}</strong>
                   <small class="text-muted">{$forecast['count']} pago{$forecast['count'] != 1 ? 's' : ''}</small>
                 </div>
                 <div class="text-end">
@@ -149,7 +149,7 @@
   </div>
 
   {* Pending Legal Documents *}
-  <div class="col-12 col-lg-6">
+  <div class="col-12 col-lg-6" id="pendingLegalDocuments">
     <div class="card border-0 shadow-sm rounded-4">
       <div class="card-header border-0 bg-light rounded-top-4 p-4">
         <h5 class="mb-0 fw-bold text-dark">

@@ -31,7 +31,7 @@ final readonly class FinanzasOverduePaymentsAlertEvaluator implements AlertEvalu
                 description: count($overduePayments) . " pago(s) vencido(s). $criticalCount llevan más de 5 días.",
                 severity: $criticalCount > 0 ? AlertSeverityEnum::Critical : AlertSeverityEnum::Warning,
                 actionLabel: 'Ver Pendientes',
-                actionUrl: '/portal/finanzas/pagos?filter=overdue',
+                actionUrl: '/portal/index#overduePayments',
                 affectedCount: count($overduePayments),
             );
         }

@@ -60,8 +60,8 @@
               <small class="text-muted">{round(((count($amortizationTable) - count(array_filter($amortizationTable, fn($p) => $p['status'] === 'pagado'))) / count($amortizationTable)) * 100, 0)}%</small>
             </div>
             <div class="progress rounded-pill" style="height: 8px;">
-              {set $paidCount = count(array_filter($amortizationTable, fn($p) => $p['status'] === 'pagado'))}
-              {set $totalCount = count($amortizationTable)}
+              {var $paidCount = count(array_filter($amortizationTable, fn($p) => $p['status'] === 'pagado'))}
+              {var $totalCount = count($amortizationTable)}
               <div class="progress-bar bg-success rounded-pill" role="progressbar" style="width: {($paidCount / $totalCount) * 100}%" aria-valuenow="{$paidCount}" aria-valuemin="0" aria-valuemax="{$totalCount}"></div>
             </div>
           </div>
@@ -74,10 +74,10 @@
             </div>
             <div class="col-6 col-sm-4">
               <small class="text-muted d-block mb-1">Próximo Pago</small>
-              {set $nextPayment = array_values(array_filter($amortizationTable, fn($p) => $p['status'] === 'pendiente'))[0] ?? null}
+              {var $nextPayment = array_values(array_filter($amortizationTable, fn($p) => $p['status'] === 'pendiente'))[0] ?? null}
               {if $nextPayment}
                 <strong class="h5 mb-0">${number_format($nextPayment['total'], 2, '.', ',')}</strong>
-                <small class="d-block text-muted">{$nextPayment['scheduled_date']|dateFormat:'d/m/Y'}</small>
+                <small class="d-block text-muted">{$nextPayment['scheduled_date']|date:'d/m/Y'}</small>
               {else}
                 <strong class="h5 text-success mb-0">Liquidado</strong>
               {/if}
@@ -104,10 +104,10 @@
           <a href="#amortizationFull" class="btn btn-outline-primary rounded-3 fw-medium">
             <i class="bi bi-table me-2"></i>Ver Tabla Completa
           </a>
-          <a href="#supportButton" class="btn btn-outline-secondary rounded-3 fw-medium" data-bs-toggle="modal" data-bs-target="#modalContactSupport">
+          <a href="#modalContactSupport" class="btn btn-outline-secondary rounded-3 fw-medium" data-bs-toggle="modal" data-bs-target="#modalContactSupport">
             <i class="bi bi-chat-dots me-2"></i>Contactar Apoyo
           </a>
-          <a href="/portal/mi-perfil" class="btn btn-outline-secondary rounded-3 fw-medium">
+          <a href="/portal/perfiles/ver" class="btn btn-outline-secondary rounded-3 fw-medium">
             <i class="bi bi-person me-2"></i>Mi Perfil
           </a>
         </div>
@@ -142,7 +142,7 @@
                   {if $iterator->position <= 2 || $payment['status'] === 'pendiente' || $iterator->position > count($amortizationTable) - 3}
                     <tr class="{if $payment['status'] === 'pagado'}table-success-subtle{elseif $payment['days_overdue'] > 0}table-danger-subtle{elseif $payment['status'] === 'pendiente'}table-warning-subtle{/if}">
                       <td class="px-4 py-3 fw-bold">#{$payment['payment_number']}</td>
-                      <td class="px-4 py-3">{$payment['scheduled_date']|dateFormat:'d/m/Y'}</td>
+                      <td class="px-4 py-3">{$payment['scheduled_date']|date:'d/m/Y'}</td>
                       <td class="px-4 py-3 text-end">${number_format($payment['principal'], 2, '.', ',')}</td>
                       <td class="px-4 py-3 text-end">${number_format($payment['interest'], 2, '.', ',')}</td>
                       <td class="px-4 py-3 text-end fw-bold">${number_format($payment['total'], 2, '.', ',')}</td>
@@ -179,7 +179,7 @@
     </div>
 
     {* My Documents *}
-    <div class="col-12 col-lg-6">
+    <div class="col-12 col-lg-6" id="pendingSignatures">
       <div class="card border-0 shadow-sm rounded-4">
         <div class="card-header border-0 bg-light rounded-top-4 p-4">
           <h5 class="mb-0 fw-bold text-dark">
@@ -250,7 +250,7 @@
               {foreach $recentPublications as $pub}
                 <div class="border-bottom pb-3">
                   <h6 class="fw-bold mb-1">{$pub['title']|truncate:50}</h6>
-                  <small class="text-muted"><i class="bi bi-calendar me-1"></i>{$pub['created_at']|dateFormat:'d/m/Y'}</small>
+                  <small class="text-muted"><i class="bi bi-calendar me-1"></i>{$pub['created_at']|date:'d/m/Y'}</small>
                   <small class="badge bg-info-subtle text-info ms-2">{$pub['publication_type']}</small>
                 </div>
               {/foreach}
@@ -293,7 +293,7 @@
               {foreach $recentPublications as $pub}
                 <div class="border-bottom pb-3">
                   <h6 class="fw-bold mb-1">{$pub['title']|truncate:50}</h6>
-                  <small class="text-muted"><i class="bi bi-calendar me-1"></i>{$pub['created_at']|dateFormat:'d/m/Y'}</small>
+                  <small class="text-muted"><i class="bi bi-calendar me-1"></i>{$pub['created_at']|date:'d/m/Y'}</small>
                   <small class="badge bg-info-subtle text-info ms-2">{$pub['publication_type']}</small>
                 </div>
               {/foreach}

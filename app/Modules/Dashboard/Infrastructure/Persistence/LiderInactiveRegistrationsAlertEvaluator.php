@@ -29,7 +29,7 @@ final readonly class LiderInactiveRegistrationsAlertEvaluator implements AlertEv
                 description: 'No se han registrado nuevos usuarios en los últimos 60 días. Considere implementar estrategias de difusión.',
                 severity: AlertSeverityEnum::Warning,
                 actionLabel: 'Ver Estrategia',
-                actionUrl: '/portal/admin/planning',
+                actionUrl: '/portal/publicaciones/gestiones',
             );
         }
 

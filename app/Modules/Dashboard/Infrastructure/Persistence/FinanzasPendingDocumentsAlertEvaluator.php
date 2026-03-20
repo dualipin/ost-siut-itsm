@@ -31,7 +31,7 @@ final readonly class FinanzasPendingDocumentsAlertEvaluator implements AlertEval
                 description: count($pendingDocs) . " documento(s) legal(es) esperando validación. $criticalCount llevan más de 48 horas.",
                 severity: $criticalCount > 0 ? AlertSeverityEnum::Critical : AlertSeverityEnum::Warning,
                 actionLabel: 'Ver Documentos',
-                actionUrl: '/portal/finanzas/documentos?status=pending',
+                actionUrl: '/portal/index#pendingLegalDocuments',
                 affectedCount: count($pendingDocs),
             );
         }

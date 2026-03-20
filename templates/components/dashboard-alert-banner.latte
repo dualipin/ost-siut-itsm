@@ -11,7 +11,8 @@
  *     * affectedCount: int (optional, for context)
  *   - dismissible: bool (default true)
  *}
-<div class="alert alert-{$alert->severity->value} alert-dismissible fade show border-0 rounded-4 mb-4" role="alert">
+{var $severityClass = $alert->severity->value === 'critical' ? 'danger' : $alert->severity->value}
+<div class="alert alert-{$severityClass} alert-dismissible fade show border-0 rounded-4 mb-4" role="alert">
   <div class="d-flex gap-3 align-items-start">
     <!-- Icon -->
     <div class="flex-shrink-0 mt-1">
@@ -23,17 +24,17 @@
       <h5 class="alert-heading mb-2 fw-bold">
         {$alert->title}
       </h5>
-      <p class="mb-2 text-black-50">
+      <p class="mb-2 text-body">
         {$alert->description}
         {if $alert->affectedCount > 0}
-          <span class="badge bg-{$alert->severity->value} float-end">
+          <span class="badge bg-{$severityClass} float-end">
             {$alert->affectedCount} {if $alert->affectedCount == 1}afectado{else}afectados{/if}
           </span>
         {/if}
       </p>
 
       {if isset($alert->actionUrl)}
-        <a href="{$alert->actionUrl}" class="btn btn-sm btn-{$alert->severity->value} mt-2">
+        <a href="{$alert->actionUrl}" class="btn btn-sm btn-{$severityClass} mt-2">
           {if isset($alert->actionLabel) && $alert->actionLabel !== ''}{$alert->actionLabel}{else}Tomar acción{/if}
         </a>
       {/if}
