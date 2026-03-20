@@ -14,8 +14,8 @@ final readonly class ListThreadsByTypeUseCase
     ) {}
 
     /** @return array<int, array<string, mixed>> */
-    public function execute(ThreadType $type): array
+    public function execute(ThreadType $type, ?int $month = null, ?int $year = null): array
     {
-        return $this->threadRepository->findByType($type);
+        return $this->threadRepository->findByType($type, $month, $year);
     }
 }

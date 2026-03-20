@@ -2,17 +2,18 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../bootstrap.php';
 
-use App\Infrastructure\DependencyInjection\ContainerFactory;
+use App\Bootstrap;
+use App\Infrastructure\Templating\RendererInterface;
 use App\Modules\Messaging\Application\UseCase\ListPublicFAQUseCase;
 
-$container = ContainerFactory::create();
+$container = Bootstrap::buildContainer();
 $useCase = $container->get(ListPublicFAQUseCase::class);
+$renderer = $container->get(RendererInterface::class);
 
 $faqs = $useCase->execute();
 
-$servicioLatte = $container->get(\App\Infrastructure\Latte\ServicioLatte::class);
-$servicioLatte->render(__DIR__ . '/preguntas-frecuentes.latte', [
+$renderer->render("./preguntas-frecuentes.latte", [
     'faqs' => $faqs,
 ]);

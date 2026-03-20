@@ -5,6 +5,7 @@ namespace App\Modules\Messaging;
 use App\Modules\AbstractModule;
 use App\Modules\Messaging\Application\UseCase\CreateContactMessageUseCase;
 use App\Modules\Messaging\Application\UseCase\CreateQuestionUseCase;
+use App\Modules\Messaging\Application\UseCase\GenerateThreadPdfUseCase;
 use App\Modules\Messaging\Application\UseCase\GetThreadDetailUseCase;
 use App\Modules\Messaging\Application\UseCase\ListPublicFAQUseCase;
 use App\Modules\Messaging\Application\UseCase\ListThreadsByTypeUseCase;
@@ -40,6 +41,7 @@ final class MessagingModule extends AbstractModule
 		ReplyToQuestionUseCase::class,
 		ToggleThreadVisibilityUseCase::class,
 		ListPublicFAQUseCase::class,
+		GenerateThreadPdfUseCase::class,
 	];
 }
 

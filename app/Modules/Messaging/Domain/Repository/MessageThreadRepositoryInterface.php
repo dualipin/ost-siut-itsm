@@ -14,7 +14,7 @@ interface MessageThreadRepositoryInterface
     public function create(MessageThread $thread): int;
 
     /** @return array<int, array<string, mixed>> */
-    public function findByType(ThreadType $type): array;
+    public function findByType(ThreadType $type, ?int $month = null, ?int $year = null): array;
 
     public function findById(int $id): ?MessageThread;
 

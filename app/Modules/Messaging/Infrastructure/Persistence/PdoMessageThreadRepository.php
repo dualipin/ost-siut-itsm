@@ -65,10 +65,9 @@ final class PdoMessageThreadRepository extends PdoBaseRepository implements Mess
     }
 
     /** @return array<int, array<string, mixed>> */
-    public function findByType(ThreadType $type): array
+    public function findByType(ThreadType $type, ?int $month = null, ?int $year = null): array
     {
-        $stmt = $this->pdo->prepare(
-            "
+        $sql = "
             SELECT
                 mt.thread_id,
                 mt.subject,
@@ -90,11 +89,24 @@ final class PdoMessageThreadRepository extends PdoBaseRepository implements Mess
             ) m ON m.thread_id = mt.thread_id
             WHERE mt.thread_type = :thread_type
               AND mt.deleted_at IS NULL
-            ORDER BY mt.created_at DESC
-            ",
-        );
+        ";
 
-        $stmt->execute([':thread_type' => $type->value]);
+        $params = [':thread_type' => $type->value];
+
+        if ($month !== null) {
+            $sql .= " AND MONTH(mt.created_at) = :month";
+            $params[':month'] = $month;
+        }
+
+        if ($year !== null) {
+            $sql .= " AND YEAR(mt.created_at) = :year";
+            $params[':year'] = $year;
+        }
+
+        $sql .= " ORDER BY mt.created_at DESC";
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
 
         return $stmt->fetchAll();
     }

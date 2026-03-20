@@ -7,6 +7,9 @@
     <a href="index.php" class="btn btn-outline-primary btn-sm rounded-pill">
       <i class="bi bi-arrow-left me-1"></i>Volver al listado
     </a>
+    <a href="pdf.php?id={$thread->id}" class="btn btn-outline-danger btn-sm rounded-pill" target="_blank">
+      <i class="bi bi-file-earmark-pdf me-1"></i>Exportar a PDF
+    </a>
     <div class="ms-auto d-flex align-items-center gap-2">
       {* Visibility Badge/Toggle *}
       <form method="post" action="detalle.php?id={$thread->id}" class="m-0">

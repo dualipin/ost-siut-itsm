@@ -1,0 +1,68 @@
+{layout '../../../../../templates/@document.latte'}
+
+{block title}Reporte de Transparencia - Duda #{$thread->id}{/block}
+
+{block content}
+    <style>
+        .info-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .info-table td { padding: 5px; border-bottom: 1px dotted #ccc; }
+        .label { font-weight: bold; width: 30%; color: #444; }
+        .message-box { margin-bottom: 15px; padding: 12px; border-radius: 4px; border: 1px solid #ddd; }
+        .external { background-color: #fcfcfc; border-left: 4px solid #999; }
+        .admin { background-color: #f0f7ff; border-left: 4px solid var(--bs-primary, #004a99); }
+        .meta { font-size: 9px; color: #777; margin-bottom: 4px; }
+        .sender { font-weight: bold; margin-bottom: 3px; }
+        .section-title { color: var(--bs-primary, #004a99); border-bottom: 1px solid var(--bs-primary, #004a99); padding-bottom: 3px; margin-top: 20px; margin-bottom: 15px; font-size: 14px; }
+    </style>
+
+    <div style="text-align: right; margin-bottom: 20px; font-size: 10px; color: #666;">
+        Generado el {date('d/m/Y H:i')}
+    </div>
+
+    <h3 class="section-title">Información del Registro</h3>
+    <table class="info-table">
+        <tr>
+            <td class="label">ID de Duda:</td>
+            <td>#{$thread->id}</td>
+        </tr>
+        <tr>
+            <td class="label">Remitente:</td>
+            <td>{$thread->externalName ?: 'Anónimo'}</td>
+        </tr>
+        <tr>
+            <td class="label">Correo:</td>
+            <td>{$thread->externalEmail}</td>
+        </tr>
+        <tr>
+            <td class="label">Asunto:</td>
+            <td>{$thread->subject}</td>
+        </tr>
+        <tr>
+            <td class="label">Fecha de creación:</td>
+            <td>{$thread->createdAt->format('d/m/Y H:i')}</td>
+        </tr>
+        <tr>
+            <td class="label">Estado actual:</td>
+            <td style="text-transform: uppercase; font-weight: bold;">{$thread->status->value}</td>
+        </tr>
+    </table>
+
+    <h3 class="section-title">Historial de Mensajes</h3>
+
+    {foreach $messages as $mData}
+        {var $msg = $mData['message']}
+        <div class="message-box {$msg->senderId === null ? 'external' : 'admin'}">
+            <div class="meta">
+                {$msg->sentAt?->format('d/m/Y H:i')} — 
+                {if $msg->senderId === null}
+                    Remitente Externo ({$thread->externalName ?: 'Usuario'})
+                {else}
+                    Administrador (Soporte SIUT)
+                {/if}
+            </div>
+            <div class="body">
+                {$msg->body|breakLines}
+            </div>
+        </div>
+    {/foreach}
+{/block}

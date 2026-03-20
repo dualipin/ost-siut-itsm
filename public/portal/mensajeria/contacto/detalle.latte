@@ -59,8 +59,9 @@
           </h2>
 
           <div class="d-flex flex-column gap-3">
-            {foreach $messages as $msg}
-              {if $msg->isSystemMessage() || $msg->senderId === null}
+            {foreach $messages as $msgData}
+              {var $msg = $msgData['message']}
+              {if $msg->isSystemMessage()}
                 {* External sender message *}
                 <div class="d-flex gap-3">
                   <div class="flex-shrink-0">
