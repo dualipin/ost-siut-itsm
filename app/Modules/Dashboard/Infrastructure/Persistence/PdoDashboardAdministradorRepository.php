@@ -136,7 +136,7 @@ final class PdoDashboardAdministradorRepository extends PdoBaseRepository implem
             WHERE al.success = 0
             AND al.created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
             GROUP BY al.email, al.ip_address
-            ORDER BY al.created_at DESC
+            ORDER BY last_attempt DESC
             LIMIT 10"
         );
         return $stmt->fetchAll();
