@@ -25,6 +25,37 @@ $transparencies = $isPrivileged
     ? $useCase->executeAll()
     : $useCase->executePublicOrPermittedForUser($authenticatedUser->id);
 
+$filters = [
+    'name' => trim((string) ($_GET['name'] ?? '')),
+    'category' => trim((string) ($_GET['category'] ?? '')),
+    'date_published' => trim((string) ($_GET['date_published'] ?? '')),
+];
+
+$availableCategories = array_values(array_unique(array_map(
+    static fn($doc): string => $doc->type->value,
+    $transparencies
+)));
+sort($availableCategories, SORT_NATURAL | SORT_FLAG_CASE);
+
+$transparencies = array_values(array_filter(
+    $transparencies,
+    static function ($doc) use ($filters): bool {
+        if ($filters['name'] !== '' && stripos($doc->title, $filters['name']) === false) {
+            return false;
+        }
+
+        if ($filters['category'] !== '' && $doc->type->value !== $filters['category']) {
+            return false;
+        }
+
+        if ($filters['date_published'] !== '' && $doc->datePublished->format('Y-m-d') !== $filters['date_published']) {
+            return false;
+        }
+
+        return true;
+    }
+));
+
 $groupedTransparencies = [];
 if (!$isPrivileged) {
     $monthNames = [
@@ -67,4 +98,6 @@ $renderer->render("./listado.latte", [
     'transparencies' => $transparencies,
     'groupedTransparencies' => $groupedTransparencies,
     'isPrivileged' => $isPrivileged,
+    'filters' => $filters,
+    'availableCategories' => $availableCategories,
 ]);

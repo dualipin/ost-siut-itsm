@@ -2,6 +2,8 @@
 {varType App\Modules\Transparency\Domain\Entity\Transparency[] $transparencies}
 {varType array $groupedTransparencies}
 {varType bool $isPrivileged}
+{varType array $filters}
+{varType string[] $availableCategories}
 
 {block main}
 {include
@@ -17,13 +19,53 @@
   </div>
   <div class="col-md-6 text-md-end mt-2 mt-md-0 d-flex gap-2 justify-content-md-end align-items-center flex-wrap">
     {if $isPrivileged}
-      <input type="text" id="filtroTransparencia" class="form-control d-inline-block w-auto border-0 shadow-sm rounded-4" placeholder="Buscar documento...">
       <a href="./nuevo.php" class="btn btn-primary rounded-4 shadow-sm">
         <i class="bi bi-plus-lg"></i> Nuevo Documento
       </a>
     {/if}
   </div>
 </div>
+
+<form method="get" class="card border-0 shadow-sm rounded-4 mb-4">
+  <div class="card-body">
+    <div class="row g-3 align-items-end">
+      <div class="col-12 col-md-4">
+        <label for="filtroTransparencia" class="form-label mb-1">Nombre</label>
+        <input
+          type="text"
+          id="filtroTransparencia"
+          name="name"
+          class="form-control rounded-4"
+          placeholder="Buscar por nombre"
+          value="{$filters['name']}"
+        >
+      </div>
+      <div class="col-12 col-md-3">
+        <label for="filtroCategoria" class="form-label mb-1">Categoría</label>
+        <select id="filtroCategoria" name="category" class="form-select rounded-4">
+          <option value="">Todas</option>
+          {foreach $availableCategories as $category}
+            <option value="{$category}" {if $filters['category'] === $category}selected{/if}>{$category}</option>
+          {/foreach}
+        </select>
+      </div>
+      <div class="col-12 col-md-3">
+        <label for="filtroFecha" class="form-label mb-1">Fecha de publicación</label>
+        <input
+          type="date"
+          id="filtroFecha"
+          name="date_published"
+          class="form-control rounded-4"
+          value="{$filters['date_published']}"
+        >
+      </div>
+      <div class="col-12 col-md-2 d-grid d-md-flex justify-content-md-end gap-2">
+        <button type="submit" class="btn btn-primary rounded-4">Buscar</button>
+        <a href="./listado.php" class="btn btn-outline-secondary rounded-4">Limpiar</a>
+      </div>
+    </div>
+  </div>
+</form>
 
 {if $isPrivileged}
   <tabla-gestionada rows-per-page="10" search-input="filtroTransparencia">
