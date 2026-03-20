@@ -8,4 +8,6 @@ enum PublicationTypeEnum: string
     case News = "noticia";
     case Management = "gestion";
     case Contracts = "contratos";
+    case Format = "formato";
+    case Library = "acervo";
 }

@@ -43,7 +43,7 @@ $gestiones = array_map(
     static fn(Publication $publication) => [
         "id" => $publication->id,
         "titulo" => $publication->title,
-        "resumen" => $publication->summary !== null && trim($publication->summary) !== ""
+        "contenido" => $publication->summary !== null && trim($publication->summary) !== ""
             ? $publication->summary
             : trim(strip_tags($publication->content)),
         "fecha_publicacion" => $publication->createdAt,

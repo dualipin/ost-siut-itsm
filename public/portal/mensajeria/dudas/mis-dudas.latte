@@ -1,0 +1,78 @@
+{layout '../../../../templates/@portal.latte'}
+{block title}Mis Dudas de Transparencia{/block}
+
+{block main}
+  {include '../../../../templates/components/header-page.latte',
+    title: 'Mis Dudas de Transparencia',
+    description: 'Consulta el estado y las respuestas de tus dudas sobre transparencia.',
+    icon: 'bi-question-circle'
+  }
+
+  <div class="mb-4">
+    <a href="nueva.php" class="btn btn-primary rounded-pill px-4">
+      <i class="bi bi-plus-lg me-2"></i>Nueva Duda
+    </a>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-4">Asunto</th>
+              <th>Resumen</th>
+              <th>Fecha</th>
+              <th class="text-center">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {foreach $threads as $thread}
+              <tr role="button" class="cursor-pointer"
+                  onclick="window.location.href='detalle.php?id={$thread['thread_id']}'">
+                <td class="ps-4 fw-semibold">
+                  {$thread['subject'] ?: 'Duda sobre Transparencia'}
+                </td>
+                <td class="text-muted text-truncate" style="max-width: 300px;">
+                    {$thread['first_message'] ?: 'Ver duda...'}
+                </td>
+                <td class="text-muted small">
+                  {$thread['created_at']|date:'d/m/Y H:i'}
+                </td>
+                <td class="text-center">
+                  {if $thread['status'] === 'pending'}
+                    <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3">
+                      <i class="bi bi-clock me-1"></i>En revisión
+                    </span>
+                  {elseif $thread['status'] === 'answered'}
+                    <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3">
+                      <i class="bi bi-chat-dots me-1"></i>Respondida
+                    </span>
+                  {else}
+                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3">
+                      <i class="bi bi-check-circle me-1"></i>Resuelta
+                    </span>
+                  {/if}
+                </td>
+              </tr>
+            {else}
+              <tr>
+                <td colspan="4" class="text-center text-muted py-5">
+                  <i class="bi bi-question-lg display-4 d-block mb-3 opacity-25"></i>
+                  No has registrado dudas todavía.
+                </td>
+              </tr>
+            {/foreach}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{/block}
+
+{block scripts}
+<style>
+  .cursor-pointer { cursor: pointer; }
+  .cursor-pointer:hover { background-color: rgba(0,0,0,.02); }
+</style>
+{/block}

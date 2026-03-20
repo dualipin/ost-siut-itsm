@@ -75,12 +75,14 @@
                 </a>
               </li>
 
-              <li class="nav-item">
-                <a href="{url('/portal/publicaciones/registrar.php')}" class="nav-link text-white px-3 mb-1">
-                  <i class="bi bi-plus-circle me-2"></i>
-                  <span>Registrar</span>
-                </a>
-              </li>
+              {if $authUser->role->value === 'administrador' || $authUser->role->value === 'lider'}
+                <li class="nav-item">
+                  <a href="{url('/portal/publicaciones/registrar.php')}" class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-plus-circle me-2"></i>
+                    <span>Registrar</span>
+                  </a>
+                </li>
+              {/if}
             </ul>
           </div>
         </li>
@@ -153,12 +155,27 @@
                   <span>Documentos</span>
                 </a>
               </li>
-              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
-                <a href="{url('/portal/transparencia/nuevo.php')}" class="nav-link text-white px-3 mb-1">
-                  <i class="bi bi-file-plus me-2"></i>
-                  <span>Nuevo</span>
-                </a>
-              </li>
+              {if $authUser->role->value === 'administrador' || $authUser->role->value === 'lider'}
+                <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                  <a href="{url('/portal/transparencia/nuevo.php')}" class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-file-plus me-2"></i>
+                    <span>Nuevo</span>
+                  </a>
+                </li>
+              {else}
+                <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                  <a href="{url('/portal/mensajeria/dudas/mis-dudas.php')}" class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-question-circle me-2"></i>
+                    <span>Mis Dudas</span>
+                  </a>
+                </li>
+                <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                  <a href="{url('/portal/mensajeria/dudas/nueva.php')}" class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-patch-question me-2"></i>
+                    <span>Nueva Duda</span>
+                  </a>
+                </li>
+              {/if}
             </ul>
           </div>
         </li>
@@ -204,26 +221,40 @@
         <li class="nav-item mb-2">
           <span
                   class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
-                  type="button" data-bs-toggle="collapse" data-bs-target="#usuarios-collapse" aria-expanded="false"
-                  aria-controls="usuarios-collapse">
-            Usuarios
+                  type="button" data-bs-toggle="collapse" data-bs-target="#mensajeria-collapse" aria-expanded="false"
+                  aria-controls="mensajeria-collapse">
+            Mensajería
             <i class="bi bi-chevron-down"></i>
           </span>
-          <div class="collapse ms-3" id="usuarios-collapse">
+          <div class="collapse ms-3" id="mensajeria-collapse">
             <ul class="nav flex-column pb-1">
-              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
-                <a href="{url('/portal/usuarios/listado.php')}" class="nav-link text-white px-3 mb-1">
-                  <i class="bi bi-people me-2"></i>
-                  <span>Listado</span>
-                </a>
-              </li>
-
-              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
-                <a href="{url('/portal/usuarios/registrar.php')}" class="nav-link text-white px-3 mb-1">
-                  <i class="bi bi-person-add me-2"></i>
-                  <span>Registrar</span>
-                </a>
-              </li>
+              {if $authUser->role->value === 'administrador' || $authUser->role->value === 'lider'}
+                <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                  <a href="{url('/portal/mensajeria/contacto/index.php')}" class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-envelope me-2"></i>
+                    <span>Contacto</span>
+                  </a>
+                </li>
+                <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                  <a href="{url('/portal/mensajeria/dudas/index.php')}" class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-question-circle me-2"></i>
+                    <span>Dudas</span>
+                  </a>
+                </li>
+              {else}
+                <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                  <a href="{url('/portal/mensajeria/contacto/mis-mensajes.php')}" class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-chat-left-text me-2"></i>
+                    <span>Mis Mensajes</span>
+                  </a>
+                </li>
+                <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                  <a href="{url('/portal/mensajeria/contacto/nuevo.php')}" class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-pencil-square me-2"></i>
+                    <span>Enviar Mensaje</span>
+                  </a>
+                </li>
+              {/if}
             </ul>
           </div>
         </li>
@@ -231,22 +262,79 @@
         <li class="nav-item mb-2">
           <span
                   class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
-                  type="button" data-bs-toggle="collapse" data-bs-target="#configuracion-collapse" aria-expanded="false"
-                  aria-controls="configuracion-collapse">
-            Configuración
+                  type="button" data-bs-toggle="collapse" data-bs-target="#recursos-collapse" aria-expanded="false"
+                  aria-controls="recursos-collapse">
+            Recursos
             <i class="bi bi-chevron-down"></i>
           </span>
-          <div class="collapse ms-3" id="configuracion-collapse">
+          <div class="collapse ms-3" id="recursos-collapse">
             <ul class="nav flex-column pb-1">
               <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
-                <a href="{url('/portal/configuracion/colores.php')}" class="nav-link text-white px-3 mb-1">
-                  <i class="bi bi-palette  me-2"></i>
-                  <span>Colores</span>
+                <a href="{url('/portal/publicaciones/formatos.php')}" class="nav-link text-white px-3 mb-1">
+                  <i class="bi bi-file-earmark-ruled me-2"></i>
+                  <span>Formatos</span>
+                </a>
+              </li>
+              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                <a href="{url('/portal/publicaciones/acervos.php')}" class="nav-link text-white px-3 mb-1">
+                  <i class="bi bi-book me-2"></i>
+                  <span>Acervo Bibliográfico</span>
                 </a>
               </li>
             </ul>
           </div>
         </li>
+
+        {if $authUser->role->value === 'administrador' || $authUser->role->value === 'lider'}
+          <li class="nav-item mb-2">
+            <span
+                    class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#usuarios-collapse" aria-expanded="false"
+                    aria-controls="usuarios-collapse">
+              Usuarios
+              <i class="bi bi-chevron-down"></i>
+            </span>
+            <div class="collapse ms-3" id="usuarios-collapse">
+              <ul class="nav flex-column pb-1">
+                <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                  <a href="{url('/portal/usuarios/listado.php')}" class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-people me-2"></i>
+                    <span>Listado</span>
+                  </a>
+                </li>
+
+                <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                  <a href="{url('/portal/usuarios/registrar.php')}" class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-person-add me-2"></i>
+                    <span>Registrar</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </li>
+        {/if}
+
+        {if $authUser->role->value === 'administrador' || $authUser->role->value === 'lider'}
+          <li class="nav-item mb-2">
+            <span
+                    class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#configuracion-collapse" aria-expanded="false"
+                    aria-controls="configuracion-collapse">
+              Configuración
+              <i class="bi bi-chevron-down"></i>
+            </span>
+            <div class="collapse ms-3" id="configuracion-collapse">
+              <ul class="nav flex-column pb-1">
+                <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                  <a href="{url('/portal/configuracion/colores.php')}" class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-palette  me-2"></i>
+                    <span>Colores</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </li>
+        {/if}
       </ul>
     </nav>
   </div>

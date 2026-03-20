@@ -1,0 +1,68 @@
+{layout '../../../../templates/@portal.latte'}
+{block title}Mensajes de Contacto{/block}
+
+{block main}
+  {include '../../../../templates/components/header-page.latte',
+    title: 'Mensajes de Contacto',
+    description: 'Administra los mensajes recibidos desde el formulario de contacto general.',
+    icon: 'bi-envelope-open'
+  }
+
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" id="contactTable">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-4">Asunto</th>
+              <th>Remitente</th>
+              <th>Correo</th>
+              <th>Fecha</th>
+              <th class="text-center">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {foreach $threads as $thread}
+              <tr role="button" class="cursor-pointer"
+                  onclick="window.location.href='detalle.php?id={$thread['thread_id']}'">
+                <td class="ps-4 fw-semibold">
+                  {$thread['subject'] ?: 'Sin asunto'}
+                </td>
+                <td>{$thread['external_name'] ?: '—'}</td>
+                <td class="text-muted">{$thread['external_email'] ?: '—'}</td>
+                <td class="text-muted">
+                  {$thread['created_at']|date:'d/m/Y H:i'}
+                </td>
+                <td class="text-center">
+                  {if $thread['status'] === 'pending'}
+                    <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3">
+                      <i class="bi bi-clock me-1"></i>Pendiente
+                    </span>
+                  {else}
+                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3">
+                      <i class="bi bi-check-circle me-1"></i>Atendido
+                    </span>
+                  {/if}
+                </td>
+              </tr>
+            {else}
+              <tr>
+                <td colspan="5" class="text-center text-muted py-5">
+                  <i class="bi bi-inbox display-4 d-block mb-3 opacity-25"></i>
+                  No hay mensajes de contacto registrados.
+                </td>
+              </tr>
+            {/foreach}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{/block}
+
+{block scripts}
+<style>
+  .cursor-pointer { cursor: pointer; }
+  .cursor-pointer:hover { background-color: rgba(0,0,0,.02); }
+</style>
+{/block}

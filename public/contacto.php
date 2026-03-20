@@ -3,17 +3,15 @@
 use App\Bootstrap;
 use App\Http\Request\FormRequest;
 use App\Http\Response\JsonResponse;
-use App\Module\Mensajeria\DTO\CrearMensajeExternoDTO;
-use App\Module\Mensajeria\Enum\MessagePriorityEnum;
-use App\Module\Mensajeria\Enum\MessageTypeEnum;
-use App\Module\Mensajeria\Repository\MensajeRepository;
-use App\Module\Mensajeria\Service\ContactoGeneralService;
+use App\Modules\Messaging\Application\UseCase\CreateContactMessageUseCase;
+use App\Modules\Messaging\Domain\Exception\ContactMessageValidationException;
 
 require_once __DIR__ . "/../bootstrap.php";
 
 $container = Bootstrap::buildContainer();
 
-$service = $container->get(ContactoGeneralService::class);
+/** @var CreateContactMessageUseCase $createContactMessageUseCase */
+$createContactMessageUseCase = $container->get(CreateContactMessageUseCase::class);
 
 $request = new FormRequest();
 
@@ -24,39 +22,25 @@ $telefono = $request->input("telefono");
 $nombre = $request->input("nombre");
 
 try {
-    $service->enviarMensaje(
-        new CrearMensajeExternoDTO(
-            asunto: $asunto,
-            nombreCompleto: $nombre,
-            correo: $correo,
-            telefono: $telefono,
-            mensaje: $mensaje,
-            tipo: MessageTypeEnum::ContactoGeneral,
-            prioridad: MessagePriorityEnum::Media,
-        ),
+    $createContactMessageUseCase->execute(
+        name: is_string($nombre) ? $nombre : "",
+        email: is_string($correo) ? $correo : "",
+        phone: is_string($telefono) ? $telefono : null,
+        subject: is_string($asunto) ? $asunto : null,
+        message: is_string($mensaje) ? $mensaje : "",
     );
 
     $response = JsonResponse::created([
-        "tipo" => "exito",
+        "tipo" => true,
         "message" =>
             "Mensaje recibido con éxito, nos pondremos en contacto contigo pronto.",
     ]);
 
     $response->send();
-} catch (\InvalidArgumentException $e) {
-    // Error de validación (400 Bad Request)
-    $response = JsonResponse::badRequest($e->getMessage());
-    $response->send();
-} catch (\PDOException $e) {
-    // Error de base de datos (500 Internal Server Error)
-    $response = JsonResponse::serverError(
-        "Ocurrió un error al procesar tu mensaje. Por favor intenta nuevamente más tarde.",
-    );
-    $response->send();
+} catch (ContactMessageValidationException $exception) {
+    JsonResponse::badRequest($exception->getMessage())->send();
 } catch (\Throwable $th) {
-    // Cualquier otro error inesperado (500)
-    $response = JsonResponse::serverError(
+    JsonResponse::serverError(
         "Ocurrió un error inesperado. Por favor intenta nuevamente más tarde.",
-    );
-    $response->send();
+    )->send();
 }

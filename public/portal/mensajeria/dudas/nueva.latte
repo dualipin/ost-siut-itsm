@@ -1,0 +1,125 @@
+{layout '../../../../templates/@portal.latte'}
+{block title}Nueva Duda de Transparencia{/block}
+
+{block main}
+  {include '../../../../templates/components/header-page.latte',
+    title: 'Nueva Duda de Transparencia',
+    description: 'Envía tus dudas o solicitudes de información sobre la transparencia del sindicato.',
+    icon: 'bi-question-circle-fill'
+  }
+
+  <div class="row justify-content-center" x-data="questionForm">
+    <div class="col-lg-8">
+      {* Success State *}
+      <template x-if="submitted">
+        <div class="text-center py-5 animate__animated animate__fadeIn">
+          <div class="mb-4">
+            <div class="rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center shadow-sm" 
+                 style="width: 80px; height: 80px;">
+              <i class="bi bi-check2-all h1 mb-0"></i>
+            </div>
+          </div>
+          <h2 class="fw-bold h3 mb-3">¡Duda recibida correctamente!</h2>
+          <p class="text-muted mb-4" x-text="successMessage"></p>
+          <div class="d-flex justify-content-center gap-3">
+            <a href="mis-dudas.php" class="btn btn-primary rounded-pill px-4">Ver mis dudas</a>
+            <button @click="resetForm" class="btn btn-outline-secondary rounded-pill px-4">Nueva duda</button>
+          </div>
+        </div>
+      </template>
+
+      {* Form State *}
+      <template x-if="!submitted">
+        <div class="animate__animated animate__fadeIn">
+          <form @submit.prevent="submitForm" enctype="multipart/form-data">
+            <div class="mb-4">
+              <label for="mensaje" class="form-label fw-bold small text-muted text-uppercase tracking-wider">Describe tu duda</label>
+              <textarea id="mensaje" class="form-control form-control-lg border-0 shadow-sm rounded-4 px-4 py-3" rows="6"
+                        placeholder="Escribe aquí tu duda detallada..." x-model="formData.mensaje" required></textarea>
+              <div class="form-text mt-2 text-muted px-2">
+                Sé lo más específico posible para darte una mejor respuesta.
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label for="adjuntos" class="form-label fw-bold small text-muted text-uppercase tracking-wider">Adjuntos (Opcional)</label>
+              <input type="file" id="adjuntos" class="form-control border-0 shadow-sm rounded-4 px-4 py-2" multiple @change="handleFiles">
+              <div class="form-text mt-1 px-2">Puedes subir imágenes o documentos que respalden tu duda.</div>
+            </div>
+
+            <div class="d-grid pt-3">
+              <button type="submit" class="btn btn-primary btn-lg rounded-pill py-3 shadow-lg" :disabled="loading">
+                <span x-show="!loading"><i class="bi bi-send-fill me-2"></i>Enviar para Revisión</span>
+                <span x-show="loading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                <span x-show="loading">Enviando duda...</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </template>
+    </div>
+  </div>
+{/block}
+
+{block scripts}
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('questionForm', () => ({
+        formData: {
+            mensaje: ''
+        },
+        files: [],
+        loading: false,
+        submitted: false,
+        successMessage: '',
+        resetForm() {
+            this.formData.mensaje = '';
+            this.files = [];
+            this.submitted = false;
+        },
+        handleFiles(e) {
+            this.files = e.target.files;
+        },
+        async submitForm() {
+            this.loading = true;
+            
+            const formData = new FormData();
+            formData.append('mensaje', this.formData.mensaje);
+            for (let i = 0; i < this.files.length; i++) {
+                formData.append('adjuntos[]', this.files[i]);
+            }
+
+            try {
+                const response = await fetch('nueva.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    this.successMessage = result.message;
+                    this.submitted = true;
+                    Alpine.store('toast').show({
+                        type: 'success',
+                        message: result.message
+                    });
+                } else {
+                    Alpine.store('toast').show({
+                        type: 'error',
+                        message: result.error || 'Ocurrió un error al enviar la duda.'
+                    });
+                }
+            } catch (error) {
+                Alpine.store('toast').show({
+                    type: 'error',
+                    message: 'Error de conexión. Inténtalo de nuevo.'
+                });
+            } finally {
+                this.loading = false;
+            }
+        }
+    }));
+});
+</script>
+{/block}
