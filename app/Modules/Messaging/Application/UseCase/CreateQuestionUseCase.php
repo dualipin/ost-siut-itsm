@@ -43,6 +43,7 @@ final readonly class CreateQuestionUseCase
         string $email,
         string $question,
         array $attachments = [],
+        ?int $senderId = null,
     ): int {
         $cleanName = trim($name);
         $cleanEmail = trim($email);
@@ -61,13 +62,14 @@ final readonly class CreateQuestionUseCase
             $cleanEmail,
             $cleanQuestion,
             $attachments,
+            $senderId,
         ): int {
             $thread = new MessageThread(
                 id: null,
                 threadType: ThreadType::QA,
                 status: ThreadStatus::Pending,
                 visibility: ThreadVisibility::Private,
-                senderId: null,
+                senderId: $senderId,
                 externalName: $cleanName,
                 externalEmail: $cleanEmail,
                 externalPhone: null,
@@ -87,7 +89,7 @@ final readonly class CreateQuestionUseCase
                     id: null,
                     threadId: $threadId,
                     body: $cleanQuestion,
-                    senderId: null,
+                    senderId: $senderId,
                     sentAt: null,
                     readAt: null,
                     deletedAt: null,

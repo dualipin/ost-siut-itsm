@@ -84,8 +84,12 @@
               {var $msg = $mData['message']}
               {var $msgAttachments = $mData['attachments']}
               
-              {if $msg->isSystemMessage() || $msg->senderId === null}
-                {* External sender message (the question) *}
+              {var $isThreadOwner = $thread->senderId !== null && $msg->senderId === $thread->senderId}
+              {var $isGuestSender = $thread->senderId === null && $msg->senderId === null}
+              {var $fromSender = $isThreadOwner || $isGuestSender}
+
+              {if $fromSender}
+                {* Sender message (Member or Guest) *}
                 <div class="d-flex gap-3">
                   <div class="flex-shrink-0">
                     <div class="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center"
@@ -95,7 +99,9 @@
                   </div>
                   <div class="flex-grow-1">
                     <div class="bg-light rounded-4 p-3 border">
-                      <div class="fw-semibold small mb-1">{$thread->externalName ?: 'Remitente'}</div>
+                      <div class="fw-semibold small mb-1">
+                        {if $isThreadOwner && $authUser->id === $thread->senderId}Mi mensaje{else}{$thread->externalName ?: 'Remitente'}{/if}
+                      </div>
                       <p class="mb-0">{$msg->body|breakLines}</p>
                       
                       {if count($msgAttachments) > 0}
@@ -119,7 +125,7 @@
                   </div>
                 </div>
               {else}
-                {* Admin reply *}
+                {* Staff reply (Admin/Leader) *}
                 <div class="d-flex gap-3 flex-row-reverse">
                   <div class="flex-shrink-0">
                     <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center"
@@ -129,9 +135,9 @@
                   </div>
                   <div class="flex-grow-1 text-end">
                     <div class="bg-primary rounded-4 p-3 text-start text-white shadow-sm">
-                      <div class="fw-semibold small mb-1 text-white text-opacity-75">Soporte SIUT</div>
+                      <div class="fw-semibold small mb-1 text-white text-opacity-75">Sindicato (Respuesta)</div>
                       <p class="mb-0">{$msg->body|breakLines}</p>
-
+                      
                       {if count($msgAttachments) > 0}
                         <div class="mt-3 pt-2 border-top border-white border-opacity-25">
                           <div class="text-white text-opacity-75 small mb-2"><i class="bi bi-paperclip me-1"></i>Adjuntos:</div>

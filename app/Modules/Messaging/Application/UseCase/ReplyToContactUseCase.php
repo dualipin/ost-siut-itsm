@@ -55,10 +55,13 @@ final readonly class ReplyToContactUseCase
             throw ReplyValidationException::missingExternalEmail($threadId);
         }
 
+        $isMemberReply = $thread->senderId === $adminUserId;
+
         $this->transactionManager->transactional(function () use (
             $threadId,
             $adminUserId,
             $cleanBody,
+            $isMemberReply,
         ): void {
             $this->messageRepository->create(
                 new Message(
@@ -69,15 +72,22 @@ final readonly class ReplyToContactUseCase
                 ),
             );
 
-            $this->threadRepository->updateStatus($threadId, ThreadStatus::Attended);
-            $this->threadRepository->updateAssignedTo($threadId, $adminUserId);
+            $newStatus = $isMemberReply ? ThreadStatus::Pending : ThreadStatus::Attended;
+            
+            $this->threadRepository->updateStatus($threadId, $newStatus);
+            
+            if (!$isMemberReply) {
+                $this->threadRepository->updateAssignedTo($threadId, $adminUserId);
+            }
         });
 
-        $this->replyNotifier->notifyContactReply(
-            toEmail: $thread->externalEmail,
-            toName: $thread->externalName ?? 'Usuario',
-            subject: $thread->subject ?? 'Contacto',
-            replyBody: $cleanBody,
-        );
+        if (!$isMemberReply && $thread->externalEmail !== null && trim($thread->externalEmail) !== '') {
+            $this->replyNotifier->notifyContactReply(
+                toEmail: $thread->externalEmail,
+                toName: $thread->externalName ?? 'Usuario',
+                subject: $thread->subject ?? 'Contacto',
+                replyBody: $cleanBody,
+            );
+        }
     }
 }

@@ -25,5 +25,8 @@ interface MessageThreadRepositoryInterface
     public function updateAssignedTo(int $id, int $userId): void;
 
     /** @return array<int, array<string, mixed>> */
+    public function findBySenderId(int $senderId, ThreadType $type): array;
+
+    /** @return array<int, array<string, mixed>> */
     public function findPublicAnsweredByType(ThreadType $type): array;
 }

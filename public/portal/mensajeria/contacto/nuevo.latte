@@ -1,0 +1,86 @@
+{layout '../../../../templates/@portal.latte'}
+{block title}Nuevo Mensaje{/block}
+
+{block main}
+  {include '../../../../templates/components/header-page.latte',
+    title: 'Nuevo Mensaje',
+    description: 'Envía una consulta o mensaje directo a los líderes del sindicato.',
+    icon: 'bi-pencil-square'
+  }
+
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4 p-lg-5">
+          <form x-data="contactForm" @submit.prevent="submitForm">
+            <div class="mb-4">
+              <label for="asunto" class="form-label fw-bold">Asunto</label>
+              <input type="text" id="asunto" class="form-control form-control-lg rounded-3"
+                     placeholder="¿De qué trata tu mensaje?" x-model="formData.asunto" required>
+            </div>
+
+            <div class="mb-4">
+              <label for="mensaje" class="form-label fw-bold">Mensaje</label>
+              <textarea id="mensaje" class="form-control form-control-lg rounded-3" rows="6"
+                        placeholder="Escribe aquí tu mensaje detallado..." x-model="formData.mensaje" required></textarea>
+            </div>
+
+            <div class="d-grid">
+              <button type="submit" class="btn btn-primary btn-lg rounded-3 py-3 shadow-sm" :disabled="loading">
+                <span x-show="!loading"><i class="bi bi-send me-2"></i>Enviar Mensaje</span>
+                <span x-show="loading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                <span x-show="loading">Enviando...</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+{/block}
+
+{block scripts}
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('contactForm', () => ({
+        formData: {
+            asunto: '',
+            mensaje: ''
+        },
+        loading: false,
+        async submitForm() {
+            this.loading = true;
+            try {
+                const response = await fetch('nuevo.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams(this.formData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    Alpine.store('toast').show({
+                        type: 'success',
+                        message: result.message
+                    });
+                    setTimeout(() => window.location.href = 'mis-mensajes.php', 2000);
+                } else {
+                    Alpine.store('toast').show({
+                        type: 'error',
+                        message: result.error || 'Ocurrió un error al enviar el mensaje.'
+                    });
+                }
+            } catch (error) {
+                Alpine.store('toast').show({
+                    type: 'error',
+                    message: 'Error de conexión. Inténtalo de nuevo.'
+                });
+            } finally {
+                this.loading = false;
+            }
+        }
+    }));
+});
+</script>
+{/block}

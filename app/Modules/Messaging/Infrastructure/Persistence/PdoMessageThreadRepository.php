@@ -189,6 +189,41 @@ final class PdoMessageThreadRepository extends PdoBaseRepository implements Mess
     }
 
     /** @return array<int, array<string, mixed>> */
+    public function findBySenderId(int $senderId, ThreadType $type): array
+    {
+        $stmt = $this->pdo->prepare(
+            "
+            SELECT
+                mt.thread_id,
+                mt.subject,
+                mt.status,
+                mt.created_at,
+                mt.updated_at,
+                m.body AS first_message
+            FROM message_threads mt
+            LEFT JOIN (
+                SELECT thread_id, body
+                FROM messages
+                WHERE deleted_at IS NULL
+                ORDER BY sent_at ASC
+                LIMIT 1
+            ) m ON m.thread_id = mt.thread_id
+            WHERE mt.sender_id = :sender_id
+              AND mt.thread_type = :thread_type
+              AND mt.deleted_at IS NULL
+            ORDER BY mt.created_at DESC
+            ",
+        );
+
+        $stmt->execute([
+            ':sender_id' => $senderId,
+            ':thread_type' => $type->value,
+        ]);
+
+        return $stmt->fetchAll();
+    }
+
+    /** @return array<int, array<string, mixed>> */
     public function findPublicAnsweredByType(ThreadType $type): array
     {
         $stmt = $this->pdo->prepare(

@@ -66,11 +66,14 @@ final readonly class ReplyToQuestionUseCase
         $messages = $this->messageRepository->findByThreadId($threadId);
         $originalQuestion = $messages !== [] ? $messages[0]->body : '(Sin pregunta registrada)';
 
+        $isMemberReply = $thread->senderId === $adminUserId;
+
         $this->transactionManager->transactional(function () use (
             $threadId,
             $adminUserId,
             $cleanBody,
             $attachments,
+            $isMemberReply,
         ): void {
             $messageId = $this->messageRepository->create(
                 new Message(
@@ -105,15 +108,21 @@ final readonly class ReplyToQuestionUseCase
                 $this->attachmentRepository->create($fullAttachment);
             }
 
-            $this->threadRepository->updateStatus($threadId, ThreadStatus::Answered);
-            $this->threadRepository->updateAssignedTo($threadId, $adminUserId);
+            $newStatus = $isMemberReply ? ThreadStatus::Pending : ThreadStatus::Answered;
+            $this->threadRepository->updateStatus($threadId, $newStatus);
+            
+            if (!$isMemberReply) {
+                $this->threadRepository->updateAssignedTo($threadId, $adminUserId);
+            }
         });
 
-        $this->replyNotifier->notifyQuestionReply(
-            toEmail: $thread->externalEmail,
-            toName: $thread->externalName ?? 'Usuario',
-            question: $originalQuestion,
-            replyBody: $cleanBody,
-        );
+        if (!$isMemberReply && $thread->externalEmail !== null && trim($thread->externalEmail) !== '') {
+            $this->replyNotifier->notifyQuestionReply(
+                toEmail: $thread->externalEmail,
+                toName: $thread->externalName ?? 'Usuario',
+                question: $originalQuestion,
+                replyBody: $cleanBody,
+            );
+        }
     }
 }

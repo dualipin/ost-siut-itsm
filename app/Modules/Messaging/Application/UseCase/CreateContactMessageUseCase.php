@@ -36,6 +36,7 @@ final readonly class CreateContactMessageUseCase
         ?string $phone,
         ?string $subject,
         string $message,
+        ?int $senderId = null,
     ): int {
         $cleanName = trim($name);
         $cleanEmail = trim($email);
@@ -64,13 +65,14 @@ final readonly class CreateContactMessageUseCase
             $finalPhone,
             $finalSubject,
             $cleanMessage,
+            $senderId,
         ): int {
             $thread = new MessageThread(
                 id: null,
                 threadType: ThreadType::Contact,
                 status: ThreadStatus::Pending,
                 visibility: ThreadVisibility::Private,
-                senderId: null,
+                senderId: $senderId,
                 externalName: $cleanName,
                 externalEmail: $cleanEmail,
                 externalPhone: $finalPhone,
@@ -90,7 +92,7 @@ final readonly class CreateContactMessageUseCase
                     id: null,
                     threadId: $threadId,
                     body: $cleanMessage,
-                    senderId: null,
+                    senderId: $senderId,
                     sentAt: null,
                     readAt: null,
                     deletedAt: null,

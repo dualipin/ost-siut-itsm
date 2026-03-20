@@ -1,0 +1,98 @@
+{layout '../../../../templates/@portal.latte'}
+{block title}Nueva Duda de Transparencia{/block}
+
+{block main}
+  {include '../../../../templates/components/header-page.latte',
+    title: 'Nueva Duda de Transparencia',
+    description: 'Envía tus dudas o solicitudes de información sobre la transparencia del sindicato.',
+    icon: 'bi-question-circle-fill'
+  }
+
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4 p-lg-5">
+          <form x-data="questionForm" @submit.prevent="submitForm">
+            <div class="mb-4">
+              <label for="mensaje" class="form-label fw-bold">Describe tu duda</label>
+              <textarea id="mensaje" class="form-control form-control-lg rounded-3" rows="6"
+                        placeholder="Escribe aquí tu duda detallada..." x-model="formData.mensaje" required></textarea>
+              <div class="form-text mt-2 text-muted">
+                Sé lo más específico posible para darte una mejor respuesta.
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label for="adjuntos" class="form-label fw-bold">Adjuntos (Opcional)</label>
+              <input type="file" id="adjuntos" class="form-control rounded-3" multiple @change="handleFiles">
+              <div class="form-text mt-1">Puedes subir imágenes o documentos que respalden tu duda.</div>
+            </div>
+
+            <div class="d-grid">
+              <button type="submit" class="btn btn-primary btn-lg rounded-3 py-3 shadow-sm" :disabled="loading">
+                <span x-show="!loading"><i class="bi bi-send-fill me-2"></i>Enviar Duda</span>
+                <span x-show="loading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                <span x-show="loading">Enviando...</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+{/block}
+
+{block scripts}
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('questionForm', () => ({
+        formData: {
+            mensaje: ''
+        },
+        files: [],
+        loading: false,
+        handleFiles(e) {
+            this.files = e.target.files;
+        },
+        async submitForm() {
+            this.loading = true;
+            
+            const formData = new FormData();
+            formData.append('mensaje', this.formData.mensaje);
+            for (let i = 0; i < this.files.length; i++) {
+                formData.append('adjuntos[]', this.files[i]);
+            }
+
+            try {
+                const response = await fetch('nueva.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    Alpine.store('toast').show({
+                        type: 'success',
+                        message: result.message
+                    });
+                    setTimeout(() => window.location.href = 'mis-dudas.php', 2000);
+                } else {
+                    Alpine.store('toast').show({
+                        type: 'error',
+                        message: result.error || 'Ocurrió un error al enviar la duda.'
+                    });
+                }
+            } catch (error) {
+                Alpine.store('toast').show({
+                    type: 'error',
+                    message: 'Error de conexión. Inténtalo de nuevo.'
+                });
+            } finally {
+                this.loading = false;
+            }
+        }
+    }));
+});
+</script>
+{/block}
