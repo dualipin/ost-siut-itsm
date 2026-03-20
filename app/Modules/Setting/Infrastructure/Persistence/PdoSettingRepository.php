@@ -72,4 +72,30 @@ final class PdoSettingRepository extends PdoBaseRepository implements
             ":body_background" => $colors->bodyBackground,
         ]);
     }
+
+    public function resetColors(): void
+    {
+        $stmt = $this->pdo->prepare("
+            INSERT INTO system_colors (
+                id, c_primary, c_secondary, c_success, c_info, c_warning, c_danger,
+                c_light, c_dark, c_white, c_body, c_body_background
+            ) VALUES (
+                1, '#611232', '#a57f2c', '#38b44a', '#17a2b8', '#efb73e', '#df382c',
+                '#e9ecef', '#002f2a', '#ffffff', '#212529', '#f8f9fa'
+            )
+            ON DUPLICATE KEY UPDATE
+                c_primary = '#611232',
+                c_secondary = '#a57f2c',
+                c_success = '#38b44a',
+                c_info = '#17a2b8',
+                c_warning = '#efb73e',
+                c_danger = '#df382c',
+                c_light = '#e9ecef',
+                c_dark = '#002f2a',
+                c_white = '#ffffff',
+                c_body = '#212529',
+                c_body_background = '#f8f9fa'
+        ");
+        $stmt->execute();
+    }
 }
