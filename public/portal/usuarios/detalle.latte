@@ -102,6 +102,18 @@
           <small class="text-body-secondary">Estado de carga de documentos obligatorios.</small>
         </div>
         <div class="card-body px-4 pb-4">
+          {if $documentValidated}
+            <div class="alert alert-success border-0 rounded-4 mb-3" role="alert">
+              <i class="bi bi-check-circle me-2"></i>Documento validado correctamente.
+            </div>
+          {/if}
+
+          {if $documentValidationError}
+            <div class="alert alert-danger border-0 rounded-4 mb-3" role="alert">
+              <i class="bi bi-x-circle me-2"></i>No se pudo validar el documento seleccionado.
+            </div>
+          {/if}
+
           {if !$hasAnyDocument}
             <div class="alert alert-warning border-0 rounded-4 mb-0" role="alert">
               <i class="bi bi-exclamation-circle me-2"></i>No se han subido documentos aun.
@@ -111,14 +123,36 @@
               {foreach $documentFields as $field}
                 {var $key = $field['key']}
                 {var $doc = $docs[$key] ?? ''}
+                {var $status = $docStatuses[$key] ?? 'pendiente'}
                 <div class="list-group-item px-0 d-flex align-items-center justify-content-between gap-3 flex-wrap">
                   <div>
                     <h6 class="mb-1">{$field['label']}</h6>
-                    <small class="text-body-secondary">{if $doc}Archivo cargado{else}Documento pendiente{/if}</small>
+                    <small class="text-body-secondary d-block">{if $doc}Archivo cargado{else}Documento pendiente{/if}</small>
+                    {if $doc}
+                      {if $status === 'validado'}
+                        <span class="badge bg-success-subtle text-success mt-1">Validado</span>
+                      {elseif $status === 'rechazado'}
+                        <span class="badge bg-danger-subtle text-danger mt-1">Rechazado</span>
+                      {else}
+                        <span class="badge bg-warning-subtle text-warning mt-1">Pendiente</span>
+                      {/if}
+                    {/if}
                   </div>
 
                   {if $doc}
-                    <a href="/portal/perfiles/documento.php?tipo={$key}&uid={$user->id}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3">Ver archivo</a>
+                    <div class="d-flex align-items-center gap-2">
+                      <a href="/portal/perfiles/documento.php?tipo={$key}&uid={$user->id}" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm rounded-3 px-3">Ver archivo</a>
+
+                      {if $status !== 'validado'}
+                        <form method="POST" action="./detalle.php?id={$user->id}" class="m-0">
+                          <input type="hidden" name="action" value="validate_document">
+                          <input type="hidden" name="document_type" value="{$key}">
+                          <button type="submit" class="btn btn-primary btn-sm rounded-3 px-3">
+                            <i class="bi bi-check2-circle me-1"></i>Validar
+                          </button>
+                        </form>
+                      {/if}
+                    </div>
                   {else}
                     <span class="badge text-bg-warning rounded-pill px-3 py-2">Pendiente</span>
                   {/if}
