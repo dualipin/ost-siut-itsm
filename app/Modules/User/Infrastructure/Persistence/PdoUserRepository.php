@@ -419,6 +419,41 @@ final class PdoUserRepository extends PdoBaseRepository implements
         return $stmt->rowCount() === 1;
     }
 
+    public function rejectLatestDocumentByType(
+        int $userId,
+        DocumentTypeEnum $documentType,
+        int $validatedBy,
+    ): bool {
+        $stmt = $this->pdo->prepare(
+            "
+            UPDATE user_documents
+            SET
+                status = 'rechazado',
+                validated_by = :validated_by
+            WHERE document_id = (
+                SELECT latest.document_id
+                FROM (
+                    SELECT document_id
+                    FROM user_documents
+                    WHERE user_id = :user_id
+                    AND document_type = :document_type
+                    ORDER BY updated_at DESC
+                    LIMIT 1
+                ) latest
+            )
+            LIMIT 1
+            ",
+        );
+
+        $stmt->execute([
+            "validated_by" => $validatedBy,
+            "user_id" => $userId,
+            "document_type" => $documentType->value,
+        ]);
+
+        return $stmt->rowCount() === 1;
+    }
+
     /**
      * @param array<string, mixed> $row
      */

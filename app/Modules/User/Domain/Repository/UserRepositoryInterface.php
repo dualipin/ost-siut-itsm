@@ -71,4 +71,10 @@ interface UserRepositoryInterface
         DocumentTypeEnum $documentType,
         int $validatedBy,
     ): bool;
+
+    public function rejectLatestDocumentByType(
+        int $userId,
+        DocumentTypeEnum $documentType,
+        int $validatedBy,
+    ): bool;
 }

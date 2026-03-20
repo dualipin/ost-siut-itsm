@@ -38,7 +38,7 @@ if ($user === null) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = (string) ($_POST['action'] ?? '');
 
-    if ($action === 'validate_document' && $authUser !== null) {
+    if (($action === 'validate_document' || $action === 'reject_document') && $authUser !== null) {
         $documentTypeValue = trim((string) ($_POST['document_type'] ?? ''));
         $documentType = DocumentTypeEnum::tryFrom($documentTypeValue);
 
@@ -47,18 +47,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        $validated = $userRepository->validateLatestDocumentByType(
+        if ($action === 'validate_document') {
+            $updated = $userRepository->validateLatestDocumentByType(
+                userId: $id,
+                documentType: $documentType,
+                validatedBy: $authUser->id,
+            );
+
+            if (!$updated) {
+                header('Location: ./detalle.php?id=' . $id . '&doc_error=1');
+                exit;
+            }
+
+            header('Location: ./detalle.php?id=' . $id . '&doc_validated=1');
+            exit;
+        }
+
+        $updated = $userRepository->rejectLatestDocumentByType(
             userId: $id,
             documentType: $documentType,
             validatedBy: $authUser->id,
         );
 
-        if (!$validated) {
+        if (!$updated) {
             header('Location: ./detalle.php?id=' . $id . '&doc_error=1');
             exit;
         }
 
-        header('Location: ./detalle.php?id=' . $id . '&doc_validated=1');
+        header('Location: ./detalle.php?id=' . $id . '&doc_rejected=1');
         exit;
     }
 }
@@ -96,6 +112,7 @@ $container->get(RendererInterface::class)->render('./detalle.latte', [
     'documentFields' => $documentFields,
     'hasAnyDocument' => $hasAnyDocument,
     'documentValidated' => (($_GET['doc_validated'] ?? '') === '1'),
+    'documentRejected' => (($_GET['doc_rejected'] ?? '') === '1'),
     'documentValidationError' => (($_GET['doc_error'] ?? '') === '1'),
 ]);
 
