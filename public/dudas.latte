@@ -1,27 +1,33 @@
 {extends ../templates/@landing.latte}
 
 {block main}
-  <section class="section">
-    <div class="container pt-5">
-      <h1 class="mb-4">Dudas sobre Transparencia</h1>
-      <p>Si tienes alguna duda o consulta relacionada con la transparencia de nuestra organización, no dudes en
-        contactarnos. Estamos aquí para ayudarte y proporcionarte la información que necesitas.</p>
-      <h2 class="mt-5">Formulario de Contacto</h2>
-      <form method="post" class="mt-3">
-        <div class="mb-3">
-          <label for="nombre" class="form-label">Nombre:</label>
-          <input type="text" class="form-control" id="nombre" name="nombre" required>
+  <section class="section py-5">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+          <h1 class="mb-4">Dudas sobre Transparencia</h1>
+          <p class="lead mb-5">Si tienes alguna duda o consulta relacionada con la transparencia de nuestra organización, no dudes en contactarnos. Estamos aquí para ayudarte y proporcionarte la información que necesitas.</p>
+
+          <h2 class="mb-4">Formulario de Contacto</h2>
+          <form method="post" class="row g-4">
+            <div class="col-12 col-md-6">
+              <label for="nombre" class="form-label">Nombre</label>
+              <input type="text" class="form-control" id="nombre" name="nombre" required>
+            </div>
+            <div class="col-12 col-md-6">
+              <label for="email" class="form-label">Correo Electrónico</label>
+              <input type="email" class="form-control" id="email" name="correo" required>
+            </div>
+            <div class="col-12">
+              <label for="mensaje" class="form-label">Tu Duda o Consulta</label>
+              <textarea class="form-control" id="mensaje" name="mensaje" rows="7" required></textarea>
+            </div>
+            <div class="col-12">
+              <button type="submit" class="btn btn-primary px-4">Enviar</button>
+            </div>
+          </form>
         </div>
-        <div class="mb-3">
-          <label for="email" class="form-label">Correo Electrónico:</label>
-          <input type="email" class="form-control" id="email" name="correo" required>
-        </div>
-        <div class="mb-3">
-          <label for="mensaje" class="form-label">Tu Duda o Consulta:</label>
-          <textarea class="form-control" id="mensaje" name="mensaje" rows="5" required></textarea>
-        </div>
-        <button type="submit" class="btn btn-primary">Enviar</button>
-      </form>
+      </div>
     </div>
   </section>
 {/block}
