@@ -89,7 +89,7 @@
                 </tr>
               </thead>
               <tbody>
-                {foreach $pendingDocuments|slice:0:5 as $doc}
+                {foreach array_slice($pendingDocuments, 0, 5) as $doc}
                   <tr>
                     <td class="px-4 py-3 fw-medium">{$doc['user_name']|truncate:20}</td>
                     <td class="px-4 py-3 text-capitalize"><small>{$doc['document_type']}</small></td>
@@ -134,7 +134,7 @@
                 </tr>
               </thead>
               <tbody>
-                {foreach $openMessages|slice:0:5 as $msg}
+                {foreach array_slice($openMessages, 0, 5) as $msg}
                   <tr>
                     <td class="px-4 py-3"><small>{$msg['sender_name']|truncate:15}</small></td>
                     <td class="px-4 py-3 fw-medium text-capitalize">{$msg['subject']|truncate:20}</td>

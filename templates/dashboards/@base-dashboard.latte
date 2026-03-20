@@ -17,19 +17,19 @@
   {if isset($alerts) && !empty($alerts->alerts)}
     <div class="mb-5">
       {foreach $alerts->alerts as $alert}
-        {include 'components/dashboard-alert-banner.latte', alert: $alert}
+        {include '../components/dashboard-alert-banner.latte', alert: $alert}
       {/foreach}
     </div>
   {/if}
 
   {* Dashboard Header *}
-  {include 'components/header-page.latte', title: $dashboardTitle, description: $dashboardDescription}
+  {include '../components/header-page.latte', title: $dashboardTitle, description: $dashboardDescription}
 
   {* KPI Header (if provided) *}
   {if isset($kpis) && !empty($kpis)}
     <div class="row g-3 mb-5">
       {foreach $kpis as $kpi}
-        {include 'components/dashboard-kpi-card.latte', $kpi}
+        {include '../components/dashboard-kpi-card.latte', $kpi}
       {/foreach}
     </div>
   {/if}
