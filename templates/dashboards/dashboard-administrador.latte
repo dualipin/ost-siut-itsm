@@ -94,8 +94,15 @@
                     <td class="px-4 py-3 fw-medium">{$doc['user_name']|truncate:20}</td>
                     <td class="px-4 py-3 text-capitalize"><small>{$doc['document_type']}</small></td>
                     <td class="px-4 py-3"><small class="badge bg-warning-subtle text-warning">{$doc['days_waiting']}d</small></td>
-                    <td class="px-4 py-3">
-                      <button class="btn btn-sm btn-outline-primary rounded-pill" type="button">Validar</button>
+                    <td class="px-4 py-3 text-nowrap">
+                      <div class="d-flex align-items-center gap-2">
+                        <a href="/portal/usuarios/detalle.php?id={$doc['user_id']}" class="btn btn-primary btn-sm rounded-3 px-3">
+                          <i class="bi bi-check2-circle me-1"></i>Validar
+                        </a>
+                        <a href="/portal/perfiles/documento.php?tipo={$doc['document_type']}&uid={$doc['user_id']}" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm rounded-3 px-3">
+                          <i class="bi bi-eye me-1"></i>Ver archivo
+                        </a>
+                      </div>
                     </td>
                   </tr>
                 {/foreach}
