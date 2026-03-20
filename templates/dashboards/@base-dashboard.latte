@@ -29,7 +29,14 @@
   {if isset($kpis) && !empty($kpis)}
     <div class="row g-3 mb-5">
       {foreach $kpis as $kpi}
-        {include '../components/dashboard-kpi-card.latte', $kpi}
+        {include '../components/dashboard-kpi-card.latte',
+          label: $kpi['label'],
+          value: $kpi['value'],
+          icon: $kpi['icon'],
+          trend: isset($kpi['trend']) ? $kpi['trend'] : null,
+          color: isset($kpi['color']) ? $kpi['color'] : null,
+          actionUrl: isset($kpi['actionUrl']) ? $kpi['actionUrl'] : null
+        }
       {/foreach}
     </div>
   {/if}
