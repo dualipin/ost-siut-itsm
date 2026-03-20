@@ -39,8 +39,8 @@ interface DashboardAdministradorRepositoryInterface
     public function getLoanKanbanData(): array;
 
     /**
-     * Recent user registrations (last 10).
-     * Returns array of {user_id: int, name: string, email: string, role: string, created_at: string, days_since_registered: int}.
+     * Recent users by successful login (fallback to users.last_entry).
+     * Returns array of {user_id: int, name: string, email: string, role: string, last_login_at: string, hours_since_last_login: int}.
      */
     public function getRecentUsers(int $limit = 10): array;
 

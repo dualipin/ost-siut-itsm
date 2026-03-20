@@ -175,7 +175,7 @@
               <tr>
                 <th class="px-4 py-3">Nombre</th>
                 <th class="px-4 py-3">Rol</th>
-                <th class="px-4 py-3">Registrado</th>
+                <th class="px-4 py-3">Último inicio</th>
               </tr>
             </thead>
             <tbody>
@@ -183,7 +183,7 @@
                 <tr>
                   <td class="px-4 py-3 fw-medium">{$user['name']|truncate:20}</td>
                   <td class="px-4 py-3"><span class="badge bg-info-subtle text-info text-capitalize">{$user['role']}</span></td>
-                  <td class="px-4 py-3"><small>{$user['days_since_registered']}d</small></td>
+                  <td class="px-4 py-3"><small>{$user['last_login_at']|date:'d/m/Y H:i'}</small></td>
                 </tr>
               {/foreach}
             </tbody>

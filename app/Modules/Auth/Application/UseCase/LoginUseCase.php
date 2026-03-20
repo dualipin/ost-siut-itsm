@@ -29,7 +29,18 @@ final readonly class LoginUseCase
         string $ipAddress,
         string $userAgent,
     ): bool {
-        $this->loginAttemptPolicy->ensureNotLocked($email);
+        try {
+            $this->loginAttemptPolicy->ensureNotLocked($email);
+        } catch (TooManyAttemptsException $exception) {
+            $this->authEventLogger->failedLoginAttempt(
+                email: $email,
+                ipAddress: $ipAddress,
+                userAgent: $userAgent,
+                errorMessage: $exception->getMessage(),
+            );
+
+            throw $exception;
+        }
 
         $credential = $this->credentialRepository->findByEmail($email);
 
