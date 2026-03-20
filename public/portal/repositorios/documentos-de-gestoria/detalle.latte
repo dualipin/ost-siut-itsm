@@ -2,56 +2,74 @@
 {varType App\Entidades\EntidadMiembro $miembro}
 
 {block main}
-  <div class="container my-5">
-    <div class="row justify-content-center">
-      <div class="">
-        <article class="bg-white p-4 p-md-5 rounded-4 shadow-sm border border-light-subtle">
-          {var $fechaDoc = $documento->datePublished ? $documento->datePublished|date:'d/m/Y' : 'Sin fecha'}
-{var $desc = 'Publicado el ' . $fechaDoc . ' | Subido el ' . ($documento->createdAt|date:'d/m/Y H:i')}
-{include '../../../../templates/components/header-page.latte', title: $documento->title, description: $desc, icon: 'bi-file-earmark-text'}
+  {var $fechaDoc = $documento->datePublished ? $documento->datePublished->format('d/m/Y') : 'Sin fecha'}
+  {var $desc = 'Publicado el ' . $fechaDoc . ' | Subido el ' . ($documento->createdAt ? $documento->createdAt->format('d/m/Y H:i') : '')}
+  
+  {include '../../../../templates/components/header-page.latte', 
+    title: $documento->title, 
+    description: $desc, 
+    icon: 'bi-file-earmark-text'
+  }
 
-<div class="mb-4 pb-3 border-bottom d-flex gap-3">
-  <span>
-    {if $documento->isPrivate}
-      <span class="badge bg-danger"><i class="bi bi-lock-fill"></i> Privado</span>
-    {else}
-      <span class="badge bg-success"><i class="bi bi-globe"></i> Público</span>
+  <div class="d-flex justify-content-end gap-2 mb-4">
+    <a href="index.php" class="btn btn-outline-primary rounded-pill px-4">
+      <i class="bi bi-arrow-left me-1"></i> Volver
+    </a>
+    {if $miembro->role->value === 'administrador' || $miembro->role->value === 'lider'}
+      <a href="./actualizar.php?id_doc={$documento->id}" class="btn btn-outline-warning rounded-pill px-4">
+        <i class="bi bi-pencil me-1"></i> Editar
+      </a>
     {/if}
-  </span>
-  <span class="text-muted small ms-auto">ID: {$documento->id}</span>
-</div>
-          <section class="mt-4">
-            <div class="fs-5 lh-lg" style="min-height:120px;">
-              {$documento->summary|noescape}
-            </div>
-          </section>
-          <section class="mt-4 text-center">
-            {if $adjuntos}
-              {foreach $adjuntos as $adjunto}
-                <a href="/{$adjunto->filePath}" target="_blank"
-                   class="btn btn-info btn-lg rounded-pill px-4 py-2 d-inline-flex align-items-center gap-2 shadow me-2 mb-2">
-                  <i class="bi bi-paperclip"></i>
-                  <span>Ver adjunto</span>
-                </a>
-              {/foreach}
-            {else}
-              <span class="text-muted d-block"><i class="bi bi-paperclip"></i> Sin adjunto</span>
-            {/if}
-          </section>
-        </article>
-      </div>
-    </div>
-    <div class="row justify-content-center mt-4">
-      <div class="d-flex flex-row flex-wrap justify-content-center align-items-stretch gap-2 w-100 flex-md-row flex-sm-column">
-        <a href="index.php" class="btn btn-primary rounded-pill w-100 w-md-auto">
-          <i class="bi bi-arrow-left-circle me-2"></i> Volver al listado de documentos
-        </a>
-        {if $miembro->role->value === 'administrador' || $miembro->role->value === 'lider'}
-          <a href="./actualizar.php?id_doc={$documento->id}" class="btn btn-warning rounded-pill w-100 w-md-auto">
-            <i class="bi bi-pencil-square me-2"></i> Editar documento
-          </a>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-12">
+      <div class="mb-4 pb-3 border-bottom d-flex align-items-center gap-3">
+        {if $documento->isPrivate}
+          <span class="badge rounded-pill bg-danger bg-opacity-75 px-3 py-2"><i class="bi bi-lock-fill me-1"></i> Privado</span>
+        {else}
+          <span class="badge rounded-pill bg-success bg-opacity-75 px-3 py-2"><i class="bi bi-globe me-1"></i> Público</span>
         {/if}
+        <span class="text-muted small ms-auto">ID: {$documento->id}</span>
       </div>
+
+      <section class="mb-5 animate__animated animate__fadeIn">
+        <div class="fs-5 lh-lg text-secondary" style="min-height:120px;">
+          {$documento->summary|noescape}
+        </div>
+      </section>
+
+      <section class="mt-5 pt-4 border-top animate__animated animate__fadeInUp">
+        <h5 class="fw-bold mb-4 d-flex align-items-center">
+          <i class="bi bi-paperclip me-2 text-primary"></i>Archivos Adjuntos
+        </h5>
+        
+        {if $adjuntos}
+          <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+            {foreach $adjuntos as $adjunto}
+              <div class="col">
+                <a href="/{$adjunto->filePath}" target="_blank"
+                   class="card border-0 shadow-sm rounded-4 p-3 h-100 text-decoration-none transition-all hover-shadow">
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="bg-primary bg-opacity-10 p-3 rounded-4">
+                      <i class="bi bi-file-earmark-pdf fs-3 text-primary"></i>
+                    </div>
+                    <div>
+                      <div class="fw-bold text-dark">Documento Adjunto</div>
+                      <div class="text-muted small">Ver archivo PDF</div>
+                    </div>
+                    <i class="bi bi-chevron-right ms-auto text-muted"></i>
+                  </div>
+                </a>
+              </div>
+            {/foreach}
+          </div>
+        {else}
+          <div class="alert alert-light border-0 rounded-4 shadow-sm px-4 py-3 lead text-muted">
+             <i class="bi bi-info-circle me-2 text-primary"></i> No hay archivos adjuntos disponibles.
+          </div>
+        {/if}
+      </section>
     </div>
   </div>
 {/block}
