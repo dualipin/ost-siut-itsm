@@ -1,0 +1,39 @@
+{**
+ * Reusable KPI Card Component
+ * Parameters:
+ *   - label: string (metric name)
+ *   - value: string|int|float (metric value)
+ *   - icon: string (Bootstrap Icon name, e.g., "people-fill")
+ *   - trend: ?string (optional: "+5.2%" or "-3.1%")
+ *   - color: ?string (optional: "primary", "success", "warning", "danger"; default "primary")
+ *   - actionUrl: ?string (optional: URL to click)
+ *}
+<div class="col-12 col-sm-6 col-lg-3">
+  {var $resolvedColor = (isset($color) && $color !== '') ? $color : 'primary'}
+  {var $isNegativeTrend = isset($trend) && strncmp((string) $trend, '-', 1) === 0}
+  <div class="card border-0 shadow-sm rounded-4 h-100 {if isset($actionUrl)}cursor-pointer{/if}" {if isset($actionUrl)}style="cursor:pointer" onclick="window.location='{$actionUrl}'"{/if}>
+    <div class="card-body d-flex flex-column gap-3 p-4">
+      <!-- Icon -->
+      <div class="d-flex justify-content-between align-items-start">
+        <div class="bg-{$resolvedColor}-subtle rounded-3 p-3" style="width: fit-content;">
+          <i class="bi bi-{$icon} text-{$resolvedColor} fs-5"></i>
+        </div>
+        {if isset($trend)}
+          <small class="badge bg-{if $isNegativeTrend}danger-subtle text-danger{else}success-subtle text-success{/if}">
+            <i class="bi bi-{if $isNegativeTrend}arrow-down{else}arrow-up{/if}"></i> {$trend}
+          </small>
+        {/if}
+      </div>
+
+      <!-- Value -->
+      <div>
+        <h3 class="h2 fw-bold text-dark mb-1">
+          {$value}
+        </h3>
+        <p class="text-muted small mb-0">
+          {$label}
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

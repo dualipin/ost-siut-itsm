@@ -6,6 +6,7 @@ use App\Infrastructure\Config\AppConfig;
 use App\Infrastructure\Env\Environment;
 use App\Infrastructure\Env\EnvironmentInterface;
 use App\Modules\Auth\AuthModule;
+use App\Modules\Dashboard\DashboardModule;
 use App\Modules\Messaging\MessagingModule;
 use App\Modules\Publication\PublicationModule;
 use App\Modules\Setting\SettingModule;
@@ -59,6 +60,7 @@ class Bootstrap
 
         $modules = [
             new AuthModule(),
+            new DashboardModule(),
             new MessagingModule(),
             new PublicationModule(),
             new SettingModule(),

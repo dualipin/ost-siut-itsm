@@ -1,0 +1,38 @@
+{layout '../@portal.latte'}
+
+{**
+ * Base Dashboard Layout
+ * Provides common structure for all role-specific dashboards
+ * 
+ * Parameters:
+ *   - dashboardTitle: string
+ *   - dashboardDescription: string
+ *   - alerts: AlertCollection (optional)
+ *   - kpis: array (optional, for header KPI cards)
+ *}
+
+{block main}
+<div class="container-fluid py-4 py-lg-5">
+  {* Dashboard Header *}
+  {include '../components/header-page.latte', title: $dashboardTitle, description: $dashboardDescription}
+
+  {* KPI Header (if provided) *}
+  {if isset($kpis) && !empty($kpis)}
+    <div class="row g-3 mb-5">
+      {foreach $kpis as $kpi}
+        {include '../components/dashboard-kpi-card.latte',
+          label: $kpi['label'],
+          value: $kpi['value'],
+          icon: $kpi['icon'],
+          trend: isset($kpi['trend']) ? $kpi['trend'] : null,
+          color: isset($kpi['color']) ? $kpi['color'] : null,
+          actionUrl: isset($kpi['actionUrl']) ? $kpi['actionUrl'] : null
+        }
+      {/foreach}
+    </div>
+  {/if}
+
+  {* Main Content Block (implemented by child templates) *}
+  {block dashboard-content}{/block}
+</div>
+{/block}

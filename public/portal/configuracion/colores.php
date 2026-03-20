@@ -5,6 +5,7 @@ use App\Http\Response\Redirector;
 use App\Infrastructure\Templating\RendererInterface;
 use App\Modules\Setting\Application\Command\UpdateColorCommand;
 use App\Modules\Setting\Application\UseCase\GetColorUseCase;
+use App\Modules\Setting\Application\UseCase\ResetColorUseCase;
 use App\Modules\Setting\Application\UseCase\UpdateColorUseCase;
 
 require_once __DIR__ . "/../../../bootstrap.php";
@@ -13,6 +14,7 @@ $container = Bootstrap::buildContainer();
 
 $getColorUseCase = $container->get(GetColorUseCase::class);
 $updateColorUseCase = $container->get(UpdateColorUseCase::class);
+$resetColorUseCase = $container->get(ResetColorUseCase::class);
 
 $colores = $getColorUseCase->execute();
 $path = $_SERVER["REQUEST_URI"];
@@ -22,6 +24,16 @@ $renderer = $container->get(RendererInterface::class);
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     try {
+        if (isset($_POST["reset"]) && $_POST["reset"] === "1") {
+            $resetColorUseCase->execute();
+            $redirector
+                ->to($path, [
+                    "mensaje" => "Colores reestablecidos a los valores por defecto.",
+                ])
+                ->send();
+            exit;
+        }
+
         $command = UpdateColorCommand::fromRequestPayload($_POST);
         $updateColorUseCase->execute($command);
     } catch (Throwable $e) {

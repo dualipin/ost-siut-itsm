@@ -14,14 +14,17 @@ final readonly class GetColorUseCase
     public function execute(): Color
     {
         return $this->repository->getColors() ?? new Color(
-            primary: "#0d6efd",
-            secondary: "#6c757d",
-            success: "#198754",
-            info: "#0dcaf0",
-            warning: "#ffc107",
-            danger: "#dc3545",
-            light: "#f8f9fa",
-            dark: "#212529",
+            primary: "#611232",
+            secondary: "#a57f2c",
+            success: "#38b44a",
+            info: "#17a2b8",
+            warning: "#efb73e",
+            danger: "#df382c",
+            light: "#e9ecef",
+            dark: "#002f2a",
+            white: "#ffffff",
+            body: "#212529",
+            bodyBackground: "#f8f9fa",
         );
     }
 }

@@ -15,6 +15,20 @@ use App\Infrastructure\Templating\Latte\LatteRenderer;
 use App\Infrastructure\Templating\RendererInterface;
 use App\Modules\Auth\Infrastructure\Mail\PasswordRecoveryMailer;
 use App\Modules\Auth\Domain\Service\PasswordRecoveryNotifierInterface;
+use App\Modules\Dashboard\Application\Service\AlertEvaluationService;
+use App\Modules\Dashboard\Application\UseCase\GetAdministradorDashboardDataUseCase;
+use App\Modules\Dashboard\Application\UseCase\GetAgremiadoDashboardDataUseCase;
+use App\Modules\Dashboard\Application\UseCase\GetFinanzasDashboardDataUseCase;
+use App\Modules\Dashboard\Application\UseCase\GetLiderDashboardDataUseCase;
+use App\Modules\Dashboard\Application\UseCase\GetPublicDashboardDataUseCase;
+use App\Modules\Dashboard\Infrastructure\Persistence\AdminFailedMailQueueAlertEvaluator;
+use App\Modules\Dashboard\Infrastructure\Persistence\AdminPendingDocumentsAlertEvaluator;
+use App\Modules\Dashboard\Infrastructure\Persistence\AdminUnattendedMessagesAlertEvaluator;
+use App\Modules\Dashboard\Infrastructure\Persistence\AgremiadoPendingSignaturesAlertEvaluator;
+use App\Modules\Dashboard\Infrastructure\Persistence\FinanzasOverduePaymentsAlertEvaluator;
+use App\Modules\Dashboard\Infrastructure\Persistence\FinanzasPendingDocumentsAlertEvaluator;
+use App\Modules\Dashboard\Infrastructure\Persistence\LiderInactiveRegistrationsAlertEvaluator;
+use App\Modules\Dashboard\Infrastructure\Persistence\LiderOverdueLoansAlertEvaluator;
 use App\Modules\Messaging\Domain\Service\ContactMessageNotifierInterface;
 use App\Modules\Messaging\Infrastructure\Mail\ContactMessageMailer;
 use App\Modules\Messaging\Domain\Service\QuestionNotifierInterface;
@@ -32,6 +46,7 @@ use Monolog\Level;
 use Monolog\Logger;
 use PHPMailer\PHPMailer\PHPMailer;
 use Psr\Log\LoggerInterface;
+use Psr\Container\ContainerInterface;
 
 use function DI\autowire;
 use function DI\get;
@@ -182,9 +197,25 @@ return function (ContainerBuilder $container) {
 
         ReplyNotifierInterface::class => get(ReplyMailer::class),
 
+        // Dashboard module - AlertEvaluationService factory
+        AlertEvaluationService::class => function (ContainerInterface $container) {
+            $evaluators = [
+                $container->get(LiderOverdueLoansAlertEvaluator::class),
+                $container->get(LiderInactiveRegistrationsAlertEvaluator::class),
+                $container->get(AdminPendingDocumentsAlertEvaluator::class),
+                $container->get(AdminUnattendedMessagesAlertEvaluator::class),
+                $container->get(AdminFailedMailQueueAlertEvaluator::class),
+                $container->get(FinanzasOverduePaymentsAlertEvaluator::class),
+                $container->get(FinanzasPendingDocumentsAlertEvaluator::class),
+                $container->get(AgremiadoPendingSignaturesAlertEvaluator::class),
+            ];
+            return new AlertEvaluationService($evaluators);
+        },
+
         // shared
         UserContextInterface::class => autowire(UserContext::class),
         UserProviderInterface::class => get(UserContextInterface::class),
     ]);
 };
+
 

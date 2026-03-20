@@ -136,7 +136,7 @@
                           </tr>
                         </thead>
                         <tbody>
-                          {set $numero = 1}
+                          {var $numero = 1}
                           {foreach $resultado['corrida'] as $pago}
                             <tr>
                               <td>{$numero}</td>
@@ -146,7 +146,7 @@
                               <td class="text-end fw-bold">${number_format($pago->valor, 2, ',', '.')}</td>
                               <td class="text-end">${number_format($pago->saldo, 2, ',', '.')}</td>
                             </tr>
-                            {set $numero = $numero + 1}
+                            {var $numero = $numero + 1}
                           {/foreach}
                         </tbody>
                         <tfoot>

@@ -8,4 +8,5 @@ interface SettingRepositoryInterface
 {
     public function getColors(): ?Color;
     public function updateColors(Color $colors): void;
+    public function resetColors(): void;
 }

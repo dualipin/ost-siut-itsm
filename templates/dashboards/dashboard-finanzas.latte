@@ -1,0 +1,300 @@
+{layout '@base-dashboard.latte'}
+
+{block dashboard-content}
+<div class="row g-4">
+  {* Today's Payments (Main Table) *}
+  <div class="col-12">
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-header border-0 bg-light rounded-top-4 p-4">
+        <h5 class="mb-0 fw-bold text-dark">
+          <i class="bi bi-calendar-check text-primary me-2"></i>
+          Pagos Programados Hoy ({date('d/m/Y')})
+        </h5>
+      </div>
+      <div class="card-body p-0">
+        {if empty($scheduledPaymentsToday)}
+          <div class="p-4 text-center text-muted">
+            <i class="bi bi-inbox display-1 opacity-25 d-block mb-2"></i>
+            <p class="mb-0">No hay pagos programados para hoy</p>
+          </div>
+        {else}
+          <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0">
+              <thead class="table-light border-top">
+                <tr>
+                  <th class="px-4 py-3">Folio</th>
+                  <th class="px-4 py-3">Agremiado</th>
+                  <th class="px-4 py-3">Cuota</th>
+                  <th class="px-4 py-3">Capital</th>
+                  <th class="px-4 py-3">Interés</th>
+                  <th class="px-4 py-3">Total</th>
+                  <th class="px-4 py-3">Estado</th>
+                  <th class="px-4 py-3">Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                {foreach $scheduledPaymentsToday as $payment}
+                  <tr class="{if $payment['status'] === 'pagado'}table-success-subtle{elseif $payment['status'] === 'pendiente'}table-warning-subtle{/if}">
+                    <td class="px-4 py-3"><span class="badge bg-primary">{$payment['folio']}</span></td>
+                    <td class="px-4 py-3 fw-medium">{$payment['user_name']|truncate:25}</td>
+                    <td class="px-4 py-3">#{$payment['payment_number']}</td>
+                    <td class="px-4 py-3 text-end">${number_format($payment['principal'], 2, '.', ',')}</td>
+                    <td class="px-4 py-3 text-end">${number_format($payment['interest'], 2, '.', ',')}</td>
+                    <td class="px-4 py-3 text-end fw-bold">${number_format($payment['total'], 2, '.', ',')}</td>
+                    <td class="px-4 py-3">
+                      {if $payment['status'] === 'pagado'}
+                        <span class="badge bg-success">Pagado</span>
+                      {else}
+                        <span class="badge bg-warning">Pendiente</span>
+                      {/if}
+                    </td>
+                    <td class="px-4 py-3">
+                      {if $payment['status'] !== 'pagado'}
+                        <button class="btn btn-sm btn-primary rounded-pill" type="button" data-bs-toggle="modal" data-bs-target="#modalRegisterPayment" data-amortization="{$payment['amortization_id']}">
+                          Registrar
+                        </button>
+                      {else}
+                        <i class="bi bi-check-circle-fill text-success"></i>
+                      {/if}
+                    </td>
+                  </tr>
+                {/foreach}
+              </tbody>
+            </table>
+          </div>
+        {/if}
+      </div>
+      <div class="card-footer border-top bg-light rounded-bottom-4 p-4">
+        <div class="d-flex justify-content-between align-items-center">
+          <strong class="text-dark">Total por cobrar hoy:</strong>
+          <h5 class="mb-0 text-primary fw-bold">${number_format($totalScheduledToday ?? 0, 2, '.', ',')}</h5>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {* Overdue Payments (Alert) *}
+  {if !empty($overduePayments)}
+    <div class="col-12">
+      <div class="card border-0 shadow-sm rounded-4 border-danger-subtle bg-danger-subtle" id="overduePayments">
+        <div class="card-header border-0 bg-danger rounded-top-4 p-4">
+          <h5 class="mb-0 fw-bold text-white">
+            <i class="bi bi-exclamation-circle-fill me-2"></i>
+            Pagos Vencidos ({count($overduePayments)})
+          </h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-danger border-top">
+                <tr>
+                  <th class="px-4 py-3">Folio</th>
+                  <th class="px-4 py-3">Agremiado</th>
+                  <th class="px-4 py-3">Cuota</th>
+                  <th class="px-4 py-3">Días Vencido</th>
+                  <th class="px-4 py-3">Interés Moratorio</th>
+                  <th class="px-4 py-3">Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                {foreach array_slice($overduePayments, 0, 10) as $payment}
+                  <tr>
+                    <td class="px-4 py-3 fw-bold">{$payment['folio']}</td>
+                    <td class="px-4 py-3">{$payment['user_name']|truncate:25}</td>
+                    <td class="px-4 py-3">#{$payment['payment_number']}</td>
+                    <td class="px-4 py-3"><span class="badge bg-danger">{$payment['days_overdue']}d</span></td>
+                    <td class="px-4 py-3 text-end text-danger fw-bold">${number_format($payment['generated_default_interest'], 2, '.', ',')}</td>
+                    <td class="px-4 py-3">
+                      <button class="btn btn-sm btn-danger rounded-pill" type="button">Gestionar</button>
+                    </td>
+                  </tr>
+                {/foreach}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  {/if}
+
+  {* 15-Day Forecast *}
+  <div class="col-12 col-lg-6">
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-header border-0 bg-light rounded-top-4 p-4">
+        <h5 class="mb-0 fw-bold text-dark">
+          <i class="bi bi-calendar-range text-primary me-2"></i>
+          Resumen de Quincena
+        </h5>
+      </div>
+      <div class="card-body p-4">
+        {if empty($paymentsFortnight)}
+          <p class="text-muted mb-0">No hay pagos programados</p>
+        {else}
+          <div class="d-flex flex-column gap-3">
+            {foreach $paymentsFortnight as $forecast}
+              <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded-3">
+                <div>
+                  <strong class="d-block text-dark">{$forecast['date']|date:'d \d\e M'}</strong>
+                  <small class="text-muted">{$forecast['count']} pago{$forecast['count'] != 1 ? 's' : ''}</small>
+                </div>
+                <div class="text-end">
+                  <strong class="d-block text-primary">${number_format($forecast['total'], 2, '.', ',')}</strong>
+                </div>
+              </div>
+            {/foreach}
+          </div>
+        {/if}
+      </div>
+    </div>
+  </div>
+
+  {* Pending Legal Documents *}
+  <div class="col-12 col-lg-6" id="pendingLegalDocuments">
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-header border-0 bg-light rounded-top-4 p-4">
+        <h5 class="mb-0 fw-bold text-dark">
+          <i class="bi bi-file-earmark-pdf text-primary me-2"></i>
+          Documentos Legales Pendientes
+        </h5>
+      </div>
+      <div class="card-body p-0">
+        {if empty($pendingLegalDocs) && empty($pendingSignatures)}
+          <div class="p-4 text-center text-muted">
+            <i class="bi bi-check-circle display-1 opacity-25 d-block mb-2"></i>
+            <p class="mb-0">Todo al día</p>
+          </div>
+        {else}
+          <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0">
+              <thead class="table-light border-top">
+                <tr>
+                  <th class="px-4 py-3">Folio</th>
+                  <th class="px-4 py-3">Tipo</th>
+                  <th class="px-4 py-3">Antigüedad</th>
+                  <th class="px-4 py-3">Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                {foreach $pendingLegalDocs as $doc}
+                  <tr>
+                    <td class="px-4 py-3"><strong>{$doc['folio']}</strong></td>
+                    <td class="px-4 py-3 text-capitalize"><small>{$doc['document_type']}</small></td>
+                    <td class="px-4 py-3"><span class="badge bg-warning-subtle text-warning">{$doc['days_waiting']}d</span></td>
+                    <td class="px-4 py-3">
+                      <button class="btn btn-sm btn-outline-primary rounded-pill" type="button">Validar</button>
+                    </td>
+                  </tr>
+                {/foreach}
+                {foreach $pendingSignatures as $doc}
+                  <tr>
+                    <td class="px-4 py-3"><strong>{$doc['folio']}</strong></td>
+                    <td class="px-4 py-3 text-capitalize"><small>{$doc['document_type']} (Firma)</small></td>
+                    <td class="px-4 py-3"><span class="badge bg-info-subtle text-info">{$doc['days_waiting']}d</span></td>
+                    <td class="px-4 py-3">
+                      <button class="btn btn-sm btn-outline-secondary rounded-pill" type="button">Recordar</button>
+                    </td>
+                  </tr>
+                {/foreach}
+              </tbody>
+            </table>
+          </div>
+        {/if}
+      </div>
+    </div>
+  </div>
+
+  {* Active Restructurings *}
+  {if !empty($activeRestructurings)}
+    <div class="col-12">
+      <div class="card border-0 shadow-sm rounded-4 border-info-subtle">
+        <div class="card-header border-0 bg-info rounded-top-4 p-4">
+          <h5 class="mb-0 fw-bold text-white">
+            <i class="bi bi-arrow-repeat me-2"></i>
+            Reestructuraciones Activas ({count($activeRestructurings)})
+          </h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-info border-top">
+                <tr>
+                  <th class="px-4 py-3">Original</th>
+                  <th class="px-4 py-3">Nuevo Folio</th>
+                  <th class="px-4 py-3">Nuevo Monto</th>
+                  <th class="px-4 py-3">Tasa Aplicada</th>
+                  <th class="px-4 py-3">Quincenas</th>
+                </tr>
+              </thead>
+              <tbody>
+                {foreach $activeRestructurings as $restr}
+                  <tr>
+                    <td class="px-4 py-3 fw-bold">{$restr['original_folio']}</td>
+                    <td class="px-4 py-3"><span class="badge bg-info-subtle text-info">{$restr['new_folio']}</span></td>
+                    <td class="px-4 py-3">${number_format($restr['new_total_amount'], 2)}</td>
+                    <td class="px-4 py-3">{$restr['new_interest_rate']}%</td>
+                    <td class="px-4 py-3">{$restr['new_term_fortnights']}</td>
+                  </tr>
+                {/foreach}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  {/if}
+</div>
+
+{* Modal: Register Payment *}
+<div class="modal fade" id="modalRegisterPayment" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 rounded-4">
+      <div class="modal-header border-0 bg-light rounded-top-4">
+        <h5 class="modal-title fw-bold" id="modalLabel">
+          <i class="bi bi-credit-card me-2 text-primary"></i>
+          Registrar Pago
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <form method="POST" action="/portal/finanzas/register-payment">
+        <div class="modal-body p-4">
+          <input type="hidden" name="amortization_id" id="amortizationId" value="">
+
+          <div class="mb-3">
+            <label class="form-label fw-medium">Monto Pagado ($)</label>
+            <input type="number" class="form-control rounded-3 border-primary" name="actual_paid_amount" step="0.01" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-medium">Fecha de Pago</label>
+            <input type="date" class="form-control rounded-3 border-primary" name="actual_payment_date" value="{date('Y-m-d')}" required>
+          </div>
+
+          <div class="mb-0">
+            <label class="form-label fw-medium">Comprobante (opcional)</label>
+            <input type="file" class="form-control rounded-3 border-primary" name="payment_receipt" accept=".pdf,.jpg,.png">
+          </div>
+        </div>
+        <div class="modal-footer border-0 bg-light rounded-bottom-4">
+          <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary rounded-pill"><i class="bi bi-check-lg me-2"></i>Registrar Pago</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{block scripts}
+  {include parent}
+  <script>
+    // Populate modal with amortization data
+    const newPaymentModal = document.getElementById('modalRegisterPayment');
+    if (newPaymentModal) {
+      newPaymentModal.addEventListener('show.bs.modal', (event) => {
+        const button = event.relatedTarget;
+        const amortizationId = button.getAttribute('data-amortization');
+        document.getElementById('amortizationId').value = amortizationId;
+      });
+    }
+  </script>
+{/block}
+{/block}
