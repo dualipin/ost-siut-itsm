@@ -6,6 +6,7 @@ use App\Bootstrap;
 use App\Http\Request\FormRequest;
 use App\Infrastructure\Mail\MailerInterface;
 use App\Infrastructure\Templating\RendererInterface;
+use App\Modules\Setting\Application\UseCase\GetColorUseCase;
 use App\Modules\User\Application\DTO\CreateUser;
 use App\Modules\User\Application\UseCase\CreateUserUseCase;
 use App\Modules\User\Domain\Repository\UserRepositoryInterface;
@@ -288,9 +289,34 @@ function streamRegistrationCertificate(ContainerInterface $container, array $for
 	/** @var Dompdf $pdf */
 	$pdf = $container->get(Dompdf::class);
 
+	$logoPath = __DIR__ . "/../assets/images/logo.webp";
+	$logoSrc = null;
+
+	if (is_file($logoPath)) {
+		$logoData = file_get_contents($logoPath);
+
+		if (is_string($logoData) && $logoData !== "") {
+			$logoSrc = "data:image/webp;base64," . base64_encode($logoData);
+		}
+	}
+
+	$primaryColor = "#611232";
+
+	try {
+		$colorConfig = $container->get(GetColorUseCase::class)->execute();
+
+		if ($colorConfig !== null && $colorConfig->primary !== "") {
+			$primaryColor = $colorConfig->primary;
+		}
+	} catch (\Throwable) {
+		// Mantener color institucional por defecto si no se pudo resolver configuración.
+	}
+
 	$html = $renderer->renderToString(__DIR__ . "/../../templates/documents/agremiado-registration-certificate.latte", [
 		"user" => $formData,
 		"issuedAt" => (new \DateTimeImmutable())->format("d/m/Y H:i"),
+		"logoSrc" => $logoSrc,
+		"primaryColor" => $primaryColor,
 	]);
 
 	$pdf->loadHtml($html);
