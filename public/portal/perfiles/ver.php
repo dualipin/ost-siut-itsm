@@ -308,16 +308,7 @@ function streamProfileRegistrationCertificate($container, $profileUser): never
     /** @var Dompdf $pdf */
     $pdf = $container->get(Dompdf::class);
 
-    $logoPath = __DIR__ . "/../../assets/images/logo.webp";
-    $logoSrc = null;
-
-    if (is_file($logoPath)) {
-        $logoData = file_get_contents($logoPath);
-
-        if (is_string($logoData) && $logoData !== "") {
-            $logoSrc = "data:image/webp;base64," . base64_encode($logoData);
-        }
-    }
+    $logoSrc = resolvePdfLogoDataUri(__DIR__ . "/../../assets/images");
 
     $primaryColor = "#611232";
 
@@ -356,6 +347,12 @@ function streamProfileRegistrationCertificate($container, $profileUser): never
         ],
     );
 
+    // Dompdf en este proyecto se inicializa con recursos remotos deshabilitados;
+    // habilitamos aquí para asegurar render correcto de data URI en el logo.
+    $options = $pdf->getOptions();
+    $options->setIsRemoteEnabled(true);
+    $pdf->setOptions($options);
+
     $pdf->loadHtml($html);
     $pdf->render();
 
@@ -367,4 +364,32 @@ function streamProfileRegistrationCertificate($container, $profileUser): never
     $pdf->stream($filename, ["Attachment" => true]);
 
     exit;
+}
+
+function resolvePdfLogoDataUri(string $imagesDir): ?string
+{
+    $candidates = [
+        ["file" => "logo.jpg", "mime" => "image/jpeg"],
+        ["file" => "logo.jpeg", "mime" => "image/jpeg"],
+        ["file" => "logo.png", "mime" => "image/png"],
+        ["file" => "logo.webp", "mime" => "image/webp"],
+    ];
+
+    foreach ($candidates as $candidate) {
+        $path = rtrim($imagesDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $candidate["file"];
+
+        if (!is_file($path)) {
+            continue;
+        }
+
+        $data = file_get_contents($path);
+
+        if (!is_string($data) || $data === "") {
+            continue;
+        }
+
+        return "data:" . $candidate["mime"] . ";base64," . base64_encode($data);
+    }
+
+    return null;
 }
