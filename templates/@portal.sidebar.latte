@@ -285,14 +285,16 @@
           </div>
         </li>
 
-        <li class="nav-item mb-2">
-          <button
-                  class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between w-100 border-0 bg-transparent"
-                  type="button" data-bs-toggle="modal" data-bs-target="#qrShareModal">
-            Compartir QR
-            <i class="bi bi-qr-code"></i>
-          </button>
-        </li>
+        {if $authUser->role->value === 'administrador' || $authUser->role->value === 'lider'}
+          <li class="nav-item mb-2">
+            <button
+                    class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between w-100 border-0 bg-transparent"
+                    type="button" data-bs-toggle="modal" data-bs-target="#qrShareModal">
+              Compartir QR
+              <i class="bi bi-qr-code"></i>
+            </button>
+          </li>
+        {/if}
 
         {if $authUser->role->value === 'administrador' || $authUser->role->value === 'lider'}
           <li class="nav-item mb-2">
@@ -349,79 +351,81 @@
   </div>
 </div>
 
-<div class="modal fade" id="qrShareModal" tabindex="-1" aria-labelledby="qrShareModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-    <div class="modal-content border-0 shadow-sm rounded-4">
-      <div class="modal-header">
-        <h5 class="modal-title" id="qrShareModalLabel">
-          <i class="bi bi-qr-code me-2"></i>
-          Compartir Enlaces con QR
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <div class="row g-4">
-          <div class="col-12 col-lg-7">
-            <h6 class="text-uppercase text-muted mb-3">Enlaces rápidos</h6>
-            <div class="d-grid gap-2 mb-3">
-              <button type="button" class="btn btn-outline-primary text-start" data-qr-preset data-qr-label="Portal"
-                      data-qr-url="{url('/portal/index.php')}">
-                <i class="bi bi-house me-2"></i>
-                Inicio del Portal
-              </button>
-              <button type="button" class="btn btn-outline-primary text-start" data-qr-preset
-                      data-qr-label="Publicaciones" data-qr-url="{url('/portal/publicaciones/noticias.php')}">
-                <i class="bi bi-newspaper me-2"></i>
-                Publicaciones
-              </button>
-              <button type="button" class="btn btn-outline-primary text-start" data-qr-preset
-                      data-qr-label="Transparencia" data-qr-url="{url('/portal/transparencia/listado.php')}">
-                <i class="bi bi-file-lock me-2"></i>
-                Documentos de Transparencia
-              </button>
-              <button type="button" class="btn btn-outline-primary text-start" data-qr-preset
-                      data-qr-label="Repositorios"
-                      data-qr-url="{url('/portal/repositorios/documentos-de-gestoria/index.php')}">
-                <i class="bi bi-folder2-open me-2"></i>
-                Repositorios
-              </button>
-              <button type="button" class="btn btn-outline-secondary text-start" id="qrUseCurrentPage">
-                <i class="bi bi-link-45deg me-2"></i>
-                Usar página actual
-              </button>
+{if $authUser->role->value === 'administrador' || $authUser->role->value === 'lider'}
+  <div class="modal fade" id="qrShareModal" tabindex="-1" aria-labelledby="qrShareModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content border-0 shadow-sm rounded-4">
+        <div class="modal-header">
+          <h5 class="modal-title" id="qrShareModalLabel">
+            <i class="bi bi-qr-code me-2"></i>
+            Compartir Enlaces con QR
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-4">
+            <div class="col-12 col-lg-7">
+              <h6 class="text-uppercase text-muted mb-3">Enlaces rápidos</h6>
+              <div class="d-grid gap-2 mb-3">
+                <button type="button" class="btn btn-outline-primary text-start" data-qr-preset data-qr-label="Portal"
+                        data-qr-url="{url('/portal/index.php')}">
+                  <i class="bi bi-house me-2"></i>
+                  Inicio del Portal
+                </button>
+                <button type="button" class="btn btn-outline-primary text-start" data-qr-preset
+                        data-qr-label="Publicaciones" data-qr-url="{url('/portal/publicaciones/noticias.php')}">
+                  <i class="bi bi-newspaper me-2"></i>
+                  Publicaciones
+                </button>
+                <button type="button" class="btn btn-outline-primary text-start" data-qr-preset
+                        data-qr-label="Transparencia" data-qr-url="{url('/portal/transparencia/listado.php')}">
+                  <i class="bi bi-file-lock me-2"></i>
+                  Documentos de Transparencia
+                </button>
+                <button type="button" class="btn btn-outline-primary text-start" data-qr-preset
+                        data-qr-label="Repositorios"
+                        data-qr-url="{url('/portal/repositorios/documentos-de-gestoria/index.php')}">
+                  <i class="bi bi-folder2-open me-2"></i>
+                  Repositorios
+                </button>
+                <button type="button" class="btn btn-outline-secondary text-start" id="qrUseCurrentPage">
+                  <i class="bi bi-link-45deg me-2"></i>
+                  Usar página actual
+                </button>
+              </div>
+
+              <label for="qrShareUrl" class="form-label">URL para generar QR</label>
+              <div class="input-group mb-3">
+                <input type="url" id="qrShareUrl" class="form-control" placeholder="https://www.siutitsm.com.mx/..."
+                       autocomplete="off">
+                <button type="button" class="btn btn-primary" id="qrGenerateButton">
+                  Generar
+                </button>
+              </div>
+
+              <div class="d-flex flex-wrap gap-2">
+                <button type="button" class="btn btn-outline-primary" id="qrCopyLinkButton">
+                  <i class="bi bi-clipboard me-2"></i>
+                  Copiar enlace
+                </button>
+                <a href="#" target="_blank" rel="noopener" class="btn btn-outline-secondary" id="qrOpenLinkButton">
+                  <i class="bi bi-box-arrow-up-right me-2"></i>
+                  Abrir enlace
+                </a>
+                <button type="button" class="btn btn-success" id="qrDownloadButton">
+                  <i class="bi bi-download me-2"></i>
+                  Descargar imagen QR
+                </button>
+              </div>
             </div>
 
-            <label for="qrShareUrl" class="form-label">URL para generar QR</label>
-            <div class="input-group mb-3">
-              <input type="url" id="qrShareUrl" class="form-control" placeholder="https://www.siutitsm.com.mx/..."
-                     autocomplete="off">
-              <button type="button" class="btn btn-primary" id="qrGenerateButton">
-                Generar
-              </button>
-            </div>
-
-            <div class="d-flex flex-wrap gap-2">
-              <button type="button" class="btn btn-outline-primary" id="qrCopyLinkButton">
-                <i class="bi bi-clipboard me-2"></i>
-                Copiar enlace
-              </button>
-              <a href="#" target="_blank" rel="noopener" class="btn btn-outline-secondary" id="qrOpenLinkButton">
-                <i class="bi bi-box-arrow-up-right me-2"></i>
-                Abrir enlace
-              </a>
-              <button type="button" class="btn btn-success" id="qrDownloadButton">
-                <i class="bi bi-download me-2"></i>
-                Descargar imagen QR
-              </button>
-            </div>
-          </div>
-
-          <div class="col-12 col-lg-5">
-            <h6 class="text-uppercase text-muted mb-3">Vista previa</h6>
-            <div class="card border-0 shadow-sm rounded-4">
-              <div class="card-body text-center">
-                <canvas id="qrShareCanvas" class="img-fluid rounded-3 border"></canvas>
-                <p class="small text-muted mb-0 mt-3" id="qrPreviewLegend">SIUT ITSM</p>
+            <div class="col-12 col-lg-5">
+              <h6 class="text-uppercase text-muted mb-3">Vista previa</h6>
+              <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body text-center">
+                  <canvas id="qrShareCanvas" class="img-fluid rounded-3 border"></canvas>
+                  <p class="small text-muted mb-0 mt-3" id="qrPreviewLegend">SIUT ITSM</p>
+                </div>
               </div>
             </div>
           </div>
@@ -429,7 +433,7 @@
       </div>
     </div>
   </div>
-</div>
+{/if}
 
 <style>
   /* Fixed sidebar on desktop - required for layout */
