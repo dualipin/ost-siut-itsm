@@ -16,6 +16,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const brandLogoUrl = "/assets/images/logo.webp";
   const brandFooterText = "SIUT ITSM";
+  const qrLibraryFallbacks = [
+    "https://cdn.jsdelivr.net/npm/qr-code-styling@1.9.2/lib/qr-code-styling.js",
+    "https://unpkg.com/qr-code-styling@1.9.2/lib/qr-code-styling.js",
+  ];
 
   const composition = {
     width: 900,
@@ -81,9 +85,67 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const existing = document.querySelector(`script[src="${src}"]`);
+      if (existing) {
+        if (window.QRCodeStyling) {
+          resolve();
+          return;
+        }
+
+        existing.addEventListener("load", () => resolve(), { once: true });
+        existing.addEventListener("error", () => reject(new Error("No se pudo cargar script")), { once: true });
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.src = src;
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error("No se pudo cargar script"));
+      document.head.appendChild(script);
+    });
+  }
+
+  async function ensureQrStylingLoaded() {
+    if (window.QRCodeStyling) {
+      return;
+    }
+
+    for (const source of qrLibraryFallbacks) {
+      try {
+        await loadScript(source);
+        if (window.QRCodeStyling) {
+          return;
+        }
+      } catch (error) {
+      }
+    }
+
+    throw new Error("No se pudo cargar la libreria qr-code-styling");
+  }
+
+  function loadImageFromBlob(blob) {
+    return new Promise((resolve, reject) => {
+      const objectUrl = URL.createObjectURL(blob);
+      const image = new Image();
+      image.onload = () => {
+        URL.revokeObjectURL(objectUrl);
+        resolve(image);
+      };
+      image.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error("No se pudo procesar la imagen QR"));
+      };
+      image.src = objectUrl;
+    });
+  }
+
   async function buildQrCanvas(url) {
-    if (!window.QRCode || typeof window.QRCode.toCanvas !== "function") {
-      throw new Error("No se pudo cargar la libreria de QR");
+    await ensureQrStylingLoaded();
+    if (!window.QRCodeStyling) {
+      throw new Error("No se pudo cargar la libreria qr-code-styling");
     }
 
     const primaryColor = getCssVar("--bs-primary", "#611232");
@@ -103,16 +165,42 @@ document.addEventListener("DOMContentLoaded", () => {
     context.fillStyle = bodyBg;
     context.fillRect(0, 0, composition.width, composition.height);
 
-    const qrCanvas = document.createElement("canvas");
-    await window.QRCode.toCanvas(qrCanvas, url, {
+    const qrGenerator = new window.QRCodeStyling({
       width: composition.qrSize,
-      margin: 1,
-      errorCorrectionLevel: "H",
-      color: {
-        dark: primaryColor,
-        light: "#ffffff",
+      height: composition.qrSize,
+      type: "canvas",
+      data: url,
+      image: new URL(brandLogoUrl, window.location.origin).toString(),
+      qrOptions: {
+        errorCorrectionLevel: "H",
+      },
+      imageOptions: {
+        crossOrigin: "anonymous",
+        margin: 6,
+        imageSize: 0.24,
+      },
+      dotsOptions: {
+        color: primaryColor,
+        type: "rounded",
+      },
+      cornersSquareOptions: {
+        color: primaryColor,
+        type: "extra-rounded",
+      },
+      cornersDotOptions: {
+        color: primaryColor,
+        type: "dot",
+      },
+      backgroundOptions: {
+        color: "#ffffff",
       },
     });
+
+    const qrBlob = await qrGenerator.getRawData("png");
+    if (!qrBlob) {
+      throw new Error("No se pudo generar la imagen QR");
+    }
+    const qrImage = await loadImageFromBlob(qrBlob);
 
     const qrX = (composition.width - composition.qrSize) / 2;
     context.fillStyle = "#ffffff";
@@ -122,19 +210,7 @@ document.addEventListener("DOMContentLoaded", () => {
     context.lineWidth = 2;
     context.strokeRect(qrX - 12, composition.qrY - 12, composition.qrSize + 24, composition.qrSize + 24);
 
-    context.drawImage(qrCanvas, qrX, composition.qrY, composition.qrSize, composition.qrSize);
-
-    const logo = await loadImage(brandLogoUrl);
-    const logoSize = Math.round(composition.qrSize * 0.22);
-    const logoX = (composition.width - logoSize) / 2;
-    const logoY = composition.qrY + (composition.qrSize - logoSize) / 2;
-
-    context.beginPath();
-    context.arc(composition.width / 2, logoY + logoSize / 2, logoSize * 0.6, 0, 2 * Math.PI);
-    context.fillStyle = "#ffffff";
-    context.fill();
-
-    context.drawImage(logo, logoX, logoY, logoSize, logoSize);
+    context.drawImage(qrImage, qrX, composition.qrY, composition.qrSize, composition.qrSize);
 
     const footerY = composition.height - composition.footerHeight;
     context.fillStyle = primaryColor;
