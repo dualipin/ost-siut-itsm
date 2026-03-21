@@ -10,6 +10,7 @@ use App\Modules\Transparency\Application\UseCase\UpdateTransparencyUseCase;
 use App\Modules\Transparency\Application\UseCase\AddAttachmentUseCase;
 use App\Modules\Transparency\Domain\Enum\AttachmentType;
 use App\Modules\Transparency\Domain\Repository\TransparencyRepositoryInterface;
+use App\Modules\Transparency\Domain\Repository\FileStorageInterface;
 
 require_once __DIR__ . '/../../../../bootstrap.php';
 
@@ -53,6 +54,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         $transparency = $getUseCase->execute($id);
+        $repo = $container->get(TransparencyRepositoryInterface::class);
+        $fileStorage = $container->get(FileStorageInterface::class);
         
         $updateUseCase = $container->get(UpdateTransparencyUseCase::class);
         $updateUseCase->execute(
@@ -64,12 +67,85 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             isPrivate: $privado
         );
 
+        $adjuntosActuales = $repo->findAttachmentsByTransparencyId($transparency->id);
+
+        $removeAttachmentIds = [];
+        if (isset($_POST['remove_attachment_ids']) && is_array($_POST['remove_attachment_ids'])) {
+            foreach ($_POST['remove_attachment_ids'] as $rawAttachmentId) {
+                $attachmentId = (int)$rawAttachmentId;
+                if ($attachmentId > 0) {
+                    $removeAttachmentIds[$attachmentId] = true;
+                }
+            }
+        }
+
+        if ($removeAttachmentIds !== []) {
+            foreach ($adjuntosActuales as $adjuntoActual) {
+                if (!isset($removeAttachmentIds[$adjuntoActual->id])) {
+                    continue;
+                }
+
+                if ($adjuntoActual->attachmentType->value !== AttachmentType::ENLACE->value) {
+                    $fileStorage->delete($adjuntoActual->filePath, $transparency->isPrivate);
+                }
+
+                $repo->deleteAttachment($adjuntoActual->id);
+            }
+        }
+
+        $addAttachmentUseCase = $container->get(AddAttachmentUseCase::class);
+
+        if (isset($_POST['attachments']) && is_array($_POST['attachments'])) {
+            foreach ($_POST['attachments'] as $index => $attPost) {
+                $type = isset($attPost['type']) ? (string)$attPost['type'] : '';
+                $descriptionRaw = isset($attPost['description']) ? trim((string)$attPost['description']) : '';
+                $description = $descriptionRaw !== '' ? $descriptionRaw : null;
+
+                if ($type === AttachmentType::ENLACE->value) {
+                    $url = trim((string)($attPost['url'] ?? ''));
+                    if ($url === '' || !filter_var($url, FILTER_VALIDATE_URL)) {
+                        continue;
+                    }
+
+                    $addAttachmentUseCase->execute(
+                        transparencyId: $transparency->id,
+                        sourcePath: $url,
+                        originalFilename: $url,
+                        mimeType: 'text/uri-list',
+                        attachmentTypeValue: AttachmentType::ENLACE->value,
+                        description: $description
+                    );
+                    continue;
+                }
+
+                if (!isset($_FILES['attachments_files']['error'][$index]) || $_FILES['attachments_files']['error'][$index] !== UPLOAD_ERR_OK) {
+                    continue;
+                }
+
+                $tmpName = (string)$_FILES['attachments_files']['tmp_name'][$index];
+                $mime = mime_content_type($tmpName);
+                if ($mime === false) {
+                    $mime = 'application/octet-stream';
+                }
+
+                $addAttachmentUseCase->execute(
+                    transparencyId: $transparency->id,
+                    sourcePath: $tmpName,
+                    originalFilename: basename((string)$_FILES['attachments_files']['name'][$index]),
+                    mimeType: $mime,
+                    attachmentTypeValue: $type !== '' ? $type : AttachmentType::OTRO->value,
+                    description: $description
+                );
+            }
+        }
+
+        // Compatibilidad con el campo anterior de archivo único.
         if (isset($_FILES['archivo']) && $_FILES['archivo']['error'] === UPLOAD_ERR_OK) {
-            $addAttachmentUseCase = $container->get(AddAttachmentUseCase::class);
             $mime = mime_content_type($_FILES['archivo']['tmp_name']);
             if ($mime === false) {
                 $mime = 'application/octet-stream';
             }
+
             $addAttachmentUseCase->execute(
                 transparencyId: $transparency->id,
                 sourcePath: $_FILES['archivo']['tmp_name'],
