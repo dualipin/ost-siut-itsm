@@ -1,22 +1,119 @@
 {extends ../../templates/@auth.latte}
+{varType string[] $errors}
+{varType array $old}
+{varType App\Shared\Domain\Enum\RoleEnum[] $roles}
 
 {block main}
-<div class="">
-    <h1 class="text-2xl font-bold mb-4">Registro</h1>
-    <form method="post" class="space-y-4">
-        <div>
-            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-            <input type="email" name="email" id="email" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+    <div class="position-relative d-flex justify-content-center align-items-center mb-4">
+        <img src="/assets/images/logo.webp" class="img-fluid rounded-circle" alt="Logo OST" style="height: 96px;">
+    </div>
+
+    <section class="d-flex align-items-center flex-grow-1">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-10">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
+                        <div class="text-center mb-4">
+                            <h1 class="fw-bold mb-2">Registro de Agremiados</h1>
+                            <p class="text-muted mb-0">Completa los datos para crear tu cuenta y descargar tu constancia.</p>
+                        </div>
+
+                        {if !empty($errors)}
+                            <div class="alert alert-danger rounded-4" role="alert">
+                                <ul class="mb-0 ps-3">
+                                    {foreach $errors as $error}
+                                        <li>{$error}</li>
+                                    {/foreach}
+                                </ul>
+                            </div>
+                        {/if}
+
+                        <form method="post" action="./registro.php" class="row g-3" autocomplete="off">
+                            <div class="col-md-6">
+                                <label class="form-label" for="name">Nombre</label>
+                                <input class="form-control" id="name" name="name" type="text" value="{$old['name'] ?? ''}" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label" for="surnames">Apellidos</label>
+                                <input class="form-control" id="surnames" name="surnames" type="text" value="{$old['surnames'] ?? ''}" required>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label" for="address">Dirección</label>
+                                <textarea class="form-control" id="address" name="address" rows="2" required>{$old['address'] ?? ''}</textarea>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label" for="phone">Teléfono</label>
+                                <input class="form-control" id="phone" name="phone" type="tel" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" value="{$old['phone'] ?? ''}" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label" for="email">Email</label>
+                                <input class="form-control" id="email" name="email" type="email" value="{$old['email'] ?? ''}" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label" for="category">Categoría</label>
+                                <input class="form-control" id="category" name="category" type="text" value="{$old['category'] ?? ''}" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label" for="department">Departamento</label>
+                                <input class="form-control" id="department" name="department" type="text" value="{$old['department'] ?? ''}" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label" for="nss">NSS</label>
+                                <input class="form-control" id="nss" name="nss" type="text" inputmode="numeric" maxlength="11" pattern="[0-9]{11}" value="{$old['nss'] ?? ''}" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label" for="curp">CURP</label>
+                                <input class="form-control text-uppercase" id="curp" name="curp" type="text" maxlength="18" value="{$old['curp'] ?? ''}" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label" for="birthdate">Fecha de nacimiento</label>
+                                <input class="form-control" id="birthdate" name="birthdate" type="date" value="{$old['birthdate'] ?? ''}" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label" for="work_start_date">Fecha de ingreso</label>
+                                <input class="form-control" id="work_start_date" name="work_start_date" type="date" value="{$old['work_start_date'] ?? ''}" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label" for="role">Rol</label>
+                                <select class="form-select" id="role" name="role" required>
+                                    {foreach $roles as $role}
+                                        <option value="{$role->value}" {if ($old['role'] ?? '') === $role->value || (($old['role'] ?? '') === '' && $role->value === 'agremiado')}selected{/if}>{$role->value}</option>
+                                    {/foreach}
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label" for="password">Contraseña</label>
+                                <input class="form-control" id="password" name="password" type="password" minlength="6" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label" for="password_confirm">Confirmar contraseña</label>
+                                <input class="form-control" id="password_confirm" name="password_confirm" type="password" minlength="6" required>
+                            </div>
+
+                            <div class="col-12 d-flex flex-column flex-sm-row gap-2 mt-3">
+                                <button type="submit" class="btn btn-primary px-4">
+                                    <i class="bi bi-person-check me-2"></i>Registrar y Descargar Constancia
+                                </button>
+                                <a class="btn btn-outline-secondary px-4" href="/cuentas/login.php">Ya tengo cuenta</a>
+                                <a class="btn btn-link text-decoration-none" href="/">Volver al sitio</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div>
-            <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
-            <input type="password" name="password" id="password" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-        </div>
-        <div>
-            <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                Registrarse
-            </button>
-        </div>
-    </form>
-</div>
+    </section>
 {/block}
