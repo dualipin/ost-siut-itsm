@@ -168,9 +168,10 @@
         <form id="formAgregarDocumento" action="registrar.php" method="POST" enctype="multipart/form-data"
               x-data="{
                 isPrivate: false,
+                nextAttachmentId: 0,
                 attachments: [],
                 addAttachment(type) {
-                    this.attachments.push({ id: Date.now(), type: type, description: '' });
+                    this.attachments.push({ id: ++this.nextAttachmentId, type: type, description: '' });
                 },
                 removeAttachment(id) {
                     this.attachments = this.attachments.filter(a => a.id !== id);
