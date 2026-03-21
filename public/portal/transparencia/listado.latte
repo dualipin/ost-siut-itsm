@@ -97,6 +97,9 @@
             <td>{$doc->datePublished->format('d/m/Y')}</td>
             <td>
               <div class="d-flex gap-2 justify-content-center">
+                <a href="./detalle.php?id={$doc->id}" class="btn btn-sm btn-outline-secondary rounded-3" title="Ver Detalle">
+                  <i class="bi bi-eye"></i>
+                </a>
                 <a href="./adjuntos.php?id={$doc->id}" class="btn btn-sm btn-outline-info rounded-3" title="Archivos Adjuntos">
                   <i class="bi bi-paperclip"></i>
                 </a>
@@ -210,8 +213,8 @@
                                 </td>
                                 <td>{$doc->datePublished->format('d/m/Y')}</td>
                                 <td class="text-center">
-                                  <a href="./adjuntos.php?id={$doc->id}" class="btn btn-sm btn-outline-info rounded-3" title="Archivos Adjuntos">
-                                    <i class="bi bi-paperclip"></i>
+                                  <a href="./detalle.php?id={$doc->id}" class="btn btn-sm btn-outline-secondary rounded-3" title="Ver Detalle">
+                                    <i class="bi bi-eye"></i>
                                   </a>
                                 </td>
                               </tr>

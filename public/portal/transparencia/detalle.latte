@@ -1,0 +1,116 @@
+{extends ../../../templates/@portal.latte}
+{varType App\Modules\Transparency\Domain\Entity\Transparency $transparency}
+{varType App\Modules\Transparency\Domain\Entity\TransparencyAttachment[] $attachments}
+{varType bool $isPrivileged}
+
+{block main}
+{include
+  ../../../templates/components/header-page.latte,
+  title=>'Detalle de Documento',
+  description=>'Información y adjuntos del documento de transparencia',
+  icon=>'bi-file-earmark-text'
+}
+
+<div class="row g-4">
+  <div class="col-12 col-lg-5">
+    <div class="card border-0 shadow-sm rounded-4 h-100">
+      <div class="card-body p-4">
+        <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
+          <h2 class="h5 mb-0">{$transparency->title}</h2>
+          {if $transparency->isPrivate}
+            <span class="badge rounded-pill bg-danger bg-opacity-75"><i class="bi bi-lock-fill"></i> Privado</span>
+          {else}
+            <span class="badge rounded-pill bg-success bg-opacity-75"><i class="bi bi-globe"></i> Público</span>
+          {/if}
+        </div>
+
+        <div class="mb-3">
+          <span class="badge rounded-pill bg-info text-dark bg-opacity-25">{$transparency->type->value}</span>
+        </div>
+
+        <dl class="row mb-0">
+          <dt class="col-sm-5 text-muted">Fecha de publicación</dt>
+          <dd class="col-sm-7">{$transparency->datePublished->format('d/m/Y')}</dd>
+
+          <dt class="col-sm-5 text-muted">Fecha de registro</dt>
+          <dd class="col-sm-7">{$transparency->createdAt->format('d/m/Y H:i')}</dd>
+
+          <dt class="col-sm-5 text-muted">Descripción</dt>
+          <dd class="col-sm-7 mb-0">
+            {if $transparency->summary}
+              {$transparency->summary}
+            {else}
+              <span class="text-muted">Sin descripción.</span>
+            {/if}
+          </dd>
+        </dl>
+
+        <div class="d-flex flex-wrap gap-2 mt-4">
+          <a href="./listado.php" class="btn btn-outline-secondary rounded-4">
+            <i class="bi bi-arrow-left"></i> Volver
+          </a>
+          {if $isPrivileged}
+            <a href="./editar.php?id={$transparency->id}" class="btn btn-outline-primary rounded-4">
+              <i class="bi bi-pencil"></i> Editar
+            </a>
+            <a href="./adjuntos.php?id={$transparency->id}" class="btn btn-primary rounded-4">
+              <i class="bi bi-paperclip"></i> Gestionar Adjuntos
+            </a>
+            {if $transparency->isPrivate}
+              <a href="./permisos.php?id={$transparency->id}" class="btn btn-outline-warning rounded-4">
+                <i class="bi bi-shield-lock"></i> Permisos
+              </a>
+            {/if}
+          {/if}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-7">
+    <div class="card border-0 shadow-sm rounded-4 h-100">
+      <div class="card-body p-4">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <h3 class="h5 mb-0">Adjuntos</h3>
+          <span class="badge rounded-pill bg-light text-dark">{count($attachments)} archivo(s)</span>
+        </div>
+
+        {if empty($attachments)}
+          <div class="border rounded-4 p-4 text-center text-muted bg-light bg-opacity-50">
+            <i class="bi bi-folder-x fs-2 d-block mb-2"></i>
+            Este documento no tiene adjuntos registrados.
+          </div>
+        {else}
+          <div class="list-group list-group-flush">
+            {foreach $attachments as $att}
+              <div class="list-group-item px-0 py-3 border-top-0">
+                <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
+                  <div>
+                    <div class="fw-medium">{$att->description ?: 'Archivo adjunto'}</div>
+                    <div class="small text-muted d-flex align-items-center gap-2 mt-1">
+                      <span class="badge rounded-pill bg-light text-dark">{$att->attachmentType->value}</span>
+                      <span>{$att->mimeType}</span>
+                    </div>
+                  </div>
+
+                  <div class="d-flex align-items-center gap-2">
+                    {if $att->attachmentType->value === 'ENLACE'}
+                      <a href="{$att->filePath}" target="_blank" class="btn btn-sm btn-outline-primary rounded-4">
+                        <i class="bi bi-box-arrow-up-right"></i> Abrir Enlace
+                      </a>
+                    {else}
+                      <a href="/descargar-transparencia.php?tid={$transparency->id}&aid={$att->id}" target="_blank" class="btn btn-sm btn-outline-primary rounded-4">
+                        <i class="bi bi-download"></i> Ver Archivo
+                      </a>
+                    {/if}
+                  </div>
+                </div>
+              </div>
+            {/foreach}
+          </div>
+        {/if}
+      </div>
+    </div>
+  </div>
+</div>
+{/block}
