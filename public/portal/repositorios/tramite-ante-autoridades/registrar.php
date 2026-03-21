@@ -52,8 +52,35 @@ if ($fecha_documento !== '') {
 
 try {
     $createUseCase = $container->get(CreateTransparencyUseCase::class);
-    
-    $files = (isset($_FILES['archivo']) && $_FILES['archivo']['error'] !== UPLOAD_ERR_NO_FILE) ? [$_FILES['archivo']] : [];
+
+    $files = [];
+    $links = [];
+
+    if (isset($_POST['attachments']) && is_array($_POST['attachments'])) {
+        foreach ($_POST['attachments'] as $index => $attPost) {
+            $type = $attPost['type'] ?? '';
+            $description = $attPost['description'] ?? null;
+
+            if ($type === 'ENLACE') {
+                $links[] = [
+                    'url' => $attPost['url'] ?? '',
+                    'description' => $description,
+                ];
+                continue;
+            }
+
+            if (isset($_FILES['attachments_files']['error'][$index]) && $_FILES['attachments_files']['error'][$index] === UPLOAD_ERR_OK) {
+                $files[] = [
+                    'name' => $_FILES['attachments_files']['name'][$index],
+                    'type' => $_FILES['attachments_files']['type'][$index],
+                    'tmp_name' => $_FILES['attachments_files']['tmp_name'][$index],
+                    'error' => $_FILES['attachments_files']['error'][$index],
+                    'attachment_type' => $type,
+                    'description' => $description,
+                ];
+            }
+        }
+    }
     
     $createUseCase->execute(
         authorId: $user->id,
@@ -62,7 +89,8 @@ try {
         typeValue: TransparencyType::TRAMITES->value,
         datePublished: $fecha_documento,
         isPrivate: $privado,
-        files: $files
+        files: $files,
+        links: $links
     );
     
     header('Location: index.php?mensaje=' . urlencode('Documento registrado con éxito'));

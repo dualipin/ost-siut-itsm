@@ -55,6 +55,20 @@ final readonly class PdoTransparencyRepository implements TransparencyRepository
         return array_map([$this, 'hydrateTransparency'], $stmt->fetchAll(PDO::FETCH_ASSOC));
     }
 
+    public function findAllPublicOrPermittedForUser(int $userId): array
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT t.* 
+            FROM transparency t
+            LEFT JOIN transparency_permissions tp ON t.transparency_id = tp.transparency_id
+            WHERE t.is_private = 0 OR tp.user_id = :userId
+            GROUP BY t.transparency_id
+            ORDER BY t.date_published DESC, t.created_at DESC
+        ');
+        $stmt->execute(['userId' => $userId]);
+        return array_map([$this, 'hydrateTransparency'], $stmt->fetchAll(PDO::FETCH_ASSOC));
+    }
+
     public function findAllPermittedForUserByType(int $userId, TransparencyType $type): array
     {
         $stmt = $this->pdo->prepare('
@@ -67,6 +81,21 @@ final readonly class PdoTransparencyRepository implements TransparencyRepository
             ORDER BY t.date_published DESC, t.created_at DESC
         ');
         $stmt->execute(['authorId' => $userId, 'userId' => $userId, 'type' => $type->value]);
+        return array_map([$this, 'hydrateTransparency'], $stmt->fetchAll(PDO::FETCH_ASSOC));
+    }
+
+    public function findAllPublicOrPermittedForUserByType(int $userId, TransparencyType $type): array
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT t.* 
+            FROM transparency t
+            LEFT JOIN transparency_permissions tp ON t.transparency_id = tp.transparency_id
+            WHERE (t.is_private = 0 OR tp.user_id = :userId)
+              AND t.transparency_type = :type
+            GROUP BY t.transparency_id
+            ORDER BY t.date_published DESC, t.created_at DESC
+        ');
+        $stmt->execute(['userId' => $userId, 'type' => $type->value]);
         return array_map([$this, 'hydrateTransparency'], $stmt->fetchAll(PDO::FETCH_ASSOC));
     }
 

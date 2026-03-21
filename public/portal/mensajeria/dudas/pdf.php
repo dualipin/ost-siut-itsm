@@ -13,7 +13,7 @@ $session = $container->get(\App\Infrastructure\Session\SessionInterface::class);
 $authUser = $container->get(\App\Shared\Context\UserProviderInterface::class)->get();
 
 // Solo admin o lider pueden exportar a PDF
-if ($authUser === null || !in_array($authUser->role, [RoleEnum::Admin, RoleEnum::Lider])) {
+if ($authUser === null || !in_array($authUser->role, [RoleEnum::Admin, RoleEnum::Lider], true)) {
     http_response_code(403);
     die('Acceso denegado');
 }

@@ -9,6 +9,7 @@ use App\Modules\Messaging\Application\UseCase\GetThreadDetailUseCase;
 use App\Modules\Messaging\Application\UseCase\ReplyToQuestionUseCase;
 use App\Modules\Messaging\Domain\Exception\ReplyValidationException;
 use App\Shared\Context\UserContextInterface;
+use App\Shared\Domain\Enum\RoleEnum;
 
 require_once __DIR__ . '/../../../../bootstrap.php';
 
@@ -38,11 +39,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $adminUserId = $authenticatedUser->id;
+    $canManageVisibilityAndPdf = in_array($authenticatedUser->role, [RoleEnum::Admin, RoleEnum::Lider], true);
 
     $action = $_POST['action'] ?? 'reply';
 
     try {
         if ($action === 'toggle_visibility') {
+            if (!$canManageVisibilityAndPdf) {
+                http_response_code(403);
+                $session->set('toast', [
+                    'type' => 'danger',
+                    'message' => 'No tienes permisos para cambiar la visibilidad.',
+                ]);
+                header("Location: detalle.php?id={$threadId}");
+                exit;
+            }
+
             $visibility = $_POST['visibility'] ?? 'private';
             $toggleUseCase = $container->get(\App\Modules\Messaging\Application\UseCase\ToggleThreadVisibilityUseCase::class);
             $toggleUseCase->execute($threadId, $visibility);
@@ -82,6 +94,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
+$authenticatedUser = $userContext->get();
+$canManageVisibilityAndPdf = $authenticatedUser !== null
+    && in_array($authenticatedUser->role, [RoleEnum::Admin, RoleEnum::Lider], true);
+
 // GET: show detail
 try {
     $detail = $getDetailUseCase->execute($threadId);
@@ -93,4 +109,5 @@ try {
 $renderer->render(__DIR__ . '/detalle.latte', [
     'thread' => $detail['thread'],
     'messages' => $detail['messages'],
+    'canManageVisibilityAndPdf' => $canManageVisibilityAndPdf,
 ]);

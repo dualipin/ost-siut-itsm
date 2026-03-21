@@ -32,6 +32,31 @@
     
   {/if}
 
+  <form method="get" class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body">
+      <div class="row g-3 align-items-end">
+        <div class="col-12 col-md-5">
+          <label for="filtroNombre" class="form-label mb-1">Nombre</label>
+          <input type="text" id="filtroNombre" name="nombre" class="form-control rounded-4" placeholder="Buscar por nombre" value="{$filtros['nombre'] ?? ''}">
+        </div>
+        <div class="col-12 col-md-3">
+          <label for="filtroFechaDesde" class="form-label mb-1">Fecha desde</label>
+          <input type="date" id="filtroFechaDesde" name="fecha_desde" class="form-control rounded-4" value="{$filtros['fecha_desde'] ?? ''}">
+        </div>
+        <div class="col-12 col-md-3">
+          <label for="filtroFechaHasta" class="form-label mb-1">Fecha hasta</label>
+          <input type="date" id="filtroFechaHasta" name="fecha_hasta" class="form-control rounded-4" value="{$filtros['fecha_hasta'] ?? ''}">
+        </div>
+        <div class="col-12 col-md-1 d-grid gap-2">
+          <button type="submit" class="btn btn-primary rounded-4">Filtrar</button>
+        </div>
+      </div>
+      <div class="mt-2">
+        <a href="./index.php" class="btn btn-link text-decoration-none p-0">Limpiar filtros</a>
+      </div>
+    </div>
+  </form>
+
   <!-- Agrupamos por AÑO → MES -->
 {*  {var $agrupado = []}*}
 {*  {foreach $documentos as $d}*}
@@ -41,6 +66,7 @@
 {*  {/foreach}*}
 
   {if $agrupado}
+      {var $nombreMeses = [1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril', 5 => 'Mayo', 6 => 'Junio', 7 => 'Julio', 8 => 'Agosto', 9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre']}
     <div class="accordion" id="acordeonAnios">
       {foreach $agrupado as $anio => $meses}
         <div class="accordion-item">
@@ -54,7 +80,7 @@
             <div class="accordion-body">
               <div class="accordion" id="accordionMes{$anio}">
                 {foreach $meses as $mesNum => $docsMes}
-                  {var $nombreMes = date('F', mktime(0,0,0,(int)$mesNum,1))}
+                    {var $nombreMes = $nombreMeses[(int) $mesNum] ?? $mesNum}
                   <div class="accordion-item">
                     <h2 class="accordion-header">
                       <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
@@ -112,15 +138,15 @@
     <nav aria-label="Paginación" class="mt-4">
       <ul class="pagination justify-content-center">
         <li class="page-item {if $paginaActual === 1}disabled{/if}">
-          <a class="page-link" href="?pagina={$paginaActual - 1}">Anterior</a>
+          <a class="page-link" href="?{if $queryFiltros !== ''}{$queryFiltros|noescape}&{/if}pagina={$paginaActual - 1}">Anterior</a>
         </li>
         {for $i = 1; $i <= $totalPaginas; $i++}
           <li class="page-item {if $i === $paginaActual}active{/if}">
-            <a class="page-link" href="?pagina={$i}">{$i}</a>
+            <a class="page-link" href="?{if $queryFiltros !== ''}{$queryFiltros|noescape}&{/if}pagina={$i}">{$i}</a>
           </li>
         {/for}
         <li class="page-item {if $paginaActual === $totalPaginas}disabled{/if}">
-          <a class="page-link" href="?pagina={$paginaActual + 1}">Siguiente</a>
+          <a class="page-link" href="?{if $queryFiltros !== ''}{$queryFiltros|noescape}&{/if}pagina={$paginaActual + 1}">Siguiente</a>
         </li>
       </ul>
     </nav>
@@ -142,9 +168,10 @@
         <form id="formAgregarDocumento" action="registrar.php" method="POST" enctype="multipart/form-data"
               x-data="{
                 isPrivate: false,
+                nextAttachmentId: 0,
                 attachments: [],
                 addAttachment(type) {
-                    this.attachments.push({ id: Date.now(), type: type, description: '' });
+                    this.attachments.push({ id: ++this.nextAttachmentId, type: type, description: '' });
                 },
                 removeAttachment(id) {
                     this.attachments = this.attachments.filter(a => a.id !== id);

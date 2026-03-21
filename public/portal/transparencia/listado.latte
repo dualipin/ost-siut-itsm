@@ -1,5 +1,9 @@
 {extends ../../../templates/@portal.latte}
 {varType App\Modules\Transparency\Domain\Entity\Transparency[] $transparencies}
+{varType array $groupedTransparencies}
+{varType bool $isPrivileged}
+{varType array $filters}
+{varType string[] $availableCategories}
 
 {block main}
 {include
@@ -14,84 +18,225 @@
     <h1 class="h3">Documentos</h1>
   </div>
   <div class="col-md-6 text-md-end mt-2 mt-md-0 d-flex gap-2 justify-content-md-end align-items-center flex-wrap">
-    <input type="text" id="filtroTransparencia" class="form-control d-inline-block w-auto border-0 shadow-sm rounded-4" placeholder="Buscar documento...">
-    <a href="./nuevo.php" class="btn btn-primary rounded-4 shadow-sm">
-      <i class="bi bi-plus-lg"></i> Nuevo Documento
-    </a>
+    {if $isPrivileged}
+      <a href="./nuevo.php" class="btn btn-primary rounded-4 shadow-sm">
+        <i class="bi bi-plus-lg"></i> Nuevo Documento
+      </a>
+    {/if}
   </div>
 </div>
 
-<tabla-gestionada rows-per-page="10" search-input="filtroTransparencia">
-  <div class="table-responsive rounded-4 shadow-sm bg-white p-3 mb-4">
-    <table class="table table-hover align-middle mb-0">
-      <thead class="table-light">
-      <tr>
-        <th class="border-0">Título</th>
-        <th class="border-0">Tipo</th>
-        <th class="border-0">Privacidad</th>
-        <th class="border-0">Fecha de Publicación</th>
-        <th class="border-0 text-center">Acciones</th>
-      </tr>
-      </thead>
-      <tbody>
-      {foreach $transparencies as $doc}
-        <tr class="transition-all hover-shadow">
-          <td class="fw-medium">{$doc->title}</td>
-          <td>
-            <span class="badge rounded-pill bg-info text-dark bg-opacity-25">{$doc->type->value}</span>
-          </td>
-          <td>
-            {if $doc->isPrivate}
-              <span class="badge rounded-pill bg-danger bg-opacity-75"><i class="bi bi-lock-fill"></i> Privado</span>
-            {else}
-              <span class="badge rounded-pill bg-success bg-opacity-75"><i class="bi bi-globe"></i> Público</span>
-            {/if}
-          </td>
-          <td>{$doc->datePublished->format('d/m/Y')}</td>
-          <td>
-            <div class="d-flex gap-2 justify-content-center">
-              <a href="./adjuntos.php?id={$doc->id}" class="btn btn-sm btn-outline-info rounded-3" title="Archivos Adjuntos">
-                <i class="bi bi-paperclip"></i>
-              </a>
-              {if $doc->isPrivate}
-                <a href="./permisos.php?id={$doc->id}" class="btn btn-sm btn-outline-warning rounded-3" title="Permisos">
-                  <i class="bi bi-shield-lock"></i>
-                </a>
-              {/if}
-              <a href="./editar.php?id={$doc->id}" class="btn btn-sm btn-outline-primary rounded-3" title="Editar">
-                <i class="bi bi-pencil"></i>
-              </a>
-              <form method="post" action="./eliminar.php"
-                    class="d-inline"
-                    x-data
-                    @submit.prevent="if (confirm('¿Eliminar el documento {$doc->title} y todos sus adjuntos permanentemente?')) $el.submit()">
-                <input type="hidden" name="id" value="{$doc->id}">
-                <button type="submit" class="btn btn-sm btn-outline-danger rounded-3" title="Eliminar">
-                  <i class="bi bi-trash"></i>
-                </button>
-              </form>
-            </div>
-          </td>
-        </tr>
-      {/foreach}
-      {if empty($transparencies)}
-        <tr>
-          <td colspan="5" class="text-center py-4 text-muted">
-            <i class="bi bi-inbox fs-2 d-block mb-2"></i>
-            No hay documentos de transparencia registrados.
-          </td>
-        </tr>
-      {/if}
-      </tbody>
-    </table>
+<form method="get" class="card border-0 shadow-sm rounded-4 mb-4">
+  <div class="card-body">
+    <div class="row g-3 align-items-end">
+      <div class="col-12 col-md-4">
+        <label for="filtroTransparencia" class="form-label mb-1">Nombre</label>
+        <input
+          type="text"
+          id="filtroTransparencia"
+          name="name"
+          class="form-control rounded-4"
+          placeholder="Buscar por nombre"
+          value="{$filters['name']}"
+        >
+      </div>
+      <div class="col-12 col-md-3">
+        <label for="filtroCategoria" class="form-label mb-1">Categoría</label>
+        <select id="filtroCategoria" name="category" class="form-select rounded-4">
+          <option value="">Todas</option>
+          {foreach $availableCategories as $category}
+            <option value="{$category}" {if $filters['category'] === $category}selected{/if}>{$category}</option>
+          {/foreach}
+        </select>
+      </div>
+      <div class="col-12 col-md-3">
+        <label for="filtroFecha" class="form-label mb-1">Fecha de publicación</label>
+        <input
+          type="date"
+          id="filtroFecha"
+          name="date_published"
+          class="form-control rounded-4"
+          value="{$filters['date_published']}"
+        >
+      </div>
+      <div class="col-12 col-md-2 d-grid d-md-flex justify-content-md-end gap-2">
+        <button type="submit" class="btn btn-primary rounded-4">Buscar</button>
+        <a href="./listado.php" class="btn btn-outline-secondary rounded-4">Limpiar</a>
+      </div>
+    </div>
   </div>
+</form>
 
-  <nav aria-label="Page navigation">
-    <ul class="pagination justify-content-center">
-    </ul>
-  </nav>
-</tabla-gestionada>
+{if $isPrivileged}
+  <tabla-gestionada rows-per-page="10" search-input="filtroTransparencia">
+    <div class="table-responsive rounded-4 shadow-sm bg-white p-3 mb-4">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+        <tr>
+          <th class="border-0">Título</th>
+          <th class="border-0">Tipo</th>
+          <th class="border-0">Privacidad</th>
+          <th class="border-0">Fecha de Publicación</th>
+          <th class="border-0 text-center">Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+        {foreach $transparencies as $doc}
+          <tr class="transition-all hover-shadow">
+            <td class="fw-medium">{$doc->title}</td>
+            <td>
+              <span class="badge rounded-pill bg-info text-dark bg-opacity-25">{$doc->type->value}</span>
+            </td>
+            <td>
+              {if $doc->isPrivate}
+                <span class="badge rounded-pill bg-danger bg-opacity-75"><i class="bi bi-lock-fill"></i> Privado</span>
+              {else}
+                <span class="badge rounded-pill bg-success bg-opacity-75"><i class="bi bi-globe"></i> Público</span>
+              {/if}
+            </td>
+            <td>{$doc->datePublished->format('d/m/Y')}</td>
+            <td>
+              <div class="d-flex gap-2 justify-content-center">
+                <a href="./detalle.php?id={$doc->id}" class="btn btn-sm btn-outline-secondary rounded-3" title="Ver Detalle">
+                  <i class="bi bi-eye"></i>
+                </a>
+                <a href="./adjuntos.php?id={$doc->id}" class="btn btn-sm btn-outline-info rounded-3" title="Archivos Adjuntos">
+                  <i class="bi bi-paperclip"></i>
+                </a>
+                {if $doc->isPrivate}
+                  <a href="./permisos.php?id={$doc->id}" class="btn btn-sm btn-outline-warning rounded-3" title="Permisos">
+                    <i class="bi bi-shield-lock"></i>
+                  </a>
+                {/if}
+                <a href="./editar.php?id={$doc->id}" class="btn btn-sm btn-outline-primary rounded-3" title="Editar">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <form method="post" action="./eliminar.php"
+                      class="d-inline"
+                      x-data
+                      @submit.prevent="if (confirm('¿Eliminar el documento {$doc->title} y todos sus adjuntos permanentemente?')) $el.submit()">
+                  <input type="hidden" name="id" value="{$doc->id}">
+                  <button type="submit" class="btn btn-sm btn-outline-danger rounded-3" title="Eliminar">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        {/foreach}
+        {if empty($transparencies)}
+          <tr>
+            <td colspan="5" class="text-center py-4 text-muted">
+              <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+              No hay documentos de transparencia registrados.
+            </td>
+          </tr>
+        {/if}
+        </tbody>
+      </table>
+    </div>
+
+    <nav aria-label="Page navigation">
+      <ul class="pagination justify-content-center">
+      </ul>
+    </nav>
+  </tabla-gestionada>
+{else}
+  {if empty($groupedTransparencies)}
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-body py-5 text-center text-muted">
+        <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+        No hay documentos de transparencia disponibles.
+      </div>
+    </div>
+  {else}
+    <div class="accordion" id="accordionYears">
+      {foreach $groupedTransparencies as $year => $months}
+        <div class="accordion-item border-0 shadow-sm rounded-4 mb-3 overflow-hidden">
+          <h2 class="accordion-header" id="headingYear{$year}">
+            <button class="accordion-button {if !$iterator->first}collapsed{/if}"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#collapseYear{$year}"
+                    aria-expanded="{if $iterator->first}true{else}false{/if}"
+                    aria-controls="collapseYear{$year}">
+              {$year}
+            </button>
+          </h2>
+          <div id="collapseYear{$year}"
+               class="accordion-collapse collapse {if $iterator->first}show{/if}"
+               aria-labelledby="headingYear{$year}"
+               data-bs-parent="#accordionYears">
+            <div class="accordion-body bg-light bg-opacity-25">
+              <div class="accordion" id="accordionMonths{$year}">
+                {foreach $months as $month => $monthData}
+                  <div class="accordion-item border-0 shadow-sm rounded-4 mb-2 overflow-hidden">
+                    <h3 class="accordion-header" id="headingMonth{$year}{$month}">
+                      <button class="accordion-button collapsed"
+                              type="button"
+                              data-bs-toggle="collapse"
+                              data-bs-target="#collapseMonth{$year}{$month}"
+                              aria-expanded="false"
+                              aria-controls="collapseMonth{$year}{$month}">
+                        {$monthData['name']}
+                      </button>
+                    </h3>
+                    <div id="collapseMonth{$year}{$month}"
+                         class="accordion-collapse collapse"
+                         aria-labelledby="headingMonth{$year}{$month}"
+                         data-bs-parent="#accordionMonths{$year}">
+                      <div class="accordion-body bg-white">
+                        <div class="table-responsive">
+                          <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                            <tr>
+                              <th class="border-0">Título</th>
+                              <th class="border-0">Tipo</th>
+                              <th class="border-0">Privacidad</th>
+                              <th class="border-0">Fecha de Publicación</th>
+                              <th class="border-0 text-center">Acciones</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {foreach $monthData['documents'] as $doc}
+                              <tr>
+                                <td class="fw-medium">{$doc->title}</td>
+                                <td>
+                                  <span class="badge rounded-pill bg-info text-dark bg-opacity-25">{$doc->type->value}</span>
+                                </td>
+                                <td>
+                                  {if $doc->isPrivate}
+                                    <span class="badge rounded-pill bg-danger bg-opacity-75"><i class="bi bi-lock-fill"></i> Privado</span>
+                                  {else}
+                                    <span class="badge rounded-pill bg-success bg-opacity-75"><i class="bi bi-globe"></i> Público</span>
+                                  {/if}
+                                </td>
+                                <td>{$doc->datePublished->format('d/m/Y')}</td>
+                                <td class="text-center">
+                                  <a href="./detalle.php?id={$doc->id}" class="btn btn-sm btn-outline-secondary rounded-3" title="Ver Detalle">
+                                    <i class="bi bi-eye"></i>
+                                  </a>
+                                </td>
+                              </tr>
+                            {/foreach}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                {/foreach}
+              </div>
+            </div>
+          </div>
+        </div>
+      {/foreach}
+    </div>
+  {/if}
+{/if}
 
 {block scripts}
-  <script src="/assets/js/components/tabla-gestionada.js" type="module"></script>
+  {if $isPrivileged}
+    <script src="/assets/js/components/tabla-gestionada.js" type="module"></script>
+  {/if}
 {/block}
