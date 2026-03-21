@@ -142,10 +142,15 @@
 
         {if $authUser->id === $perfil['id']}
         <div class="col-12 col-lg-auto text-lg-end text-center">
-          <button type="button" class="btn btn-primary px-4" data-bs-toggle="modal"
-                  data-bs-target="#datosPersonalesModal">
-            <i class="bi bi-pencil-square me-2"></i>Editar perfil
-          </button>
+          <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center justify-content-lg-end">
+            <a href="/portal/perfiles/ver.php?uid={$perfil['id']}&constancia=1" class="btn btn-outline-primary px-4">
+              <i class="bi bi-file-earmark-pdf me-2"></i>Generar constancia
+            </a>
+            <button type="button" class="btn btn-primary px-4" data-bs-toggle="modal"
+                    data-bs-target="#datosPersonalesModal">
+              <i class="bi bi-pencil-square me-2"></i>Editar perfil
+            </button>
+          </div>
         </div>
         {/if}
       </div>

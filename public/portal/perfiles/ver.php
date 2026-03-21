@@ -6,10 +6,12 @@ use App\Http\Middleware\MiddlewareRunner;
 use App\Http\Response\Redirector;
 use App\Infrastructure\Config\AppConfig;
 use App\Infrastructure\Templating\RendererInterface;
+use App\Modules\Setting\Application\UseCase\GetColorUseCase;
 use App\Modules\User\Domain\Enum\DocumentTypeEnum;
 use App\Modules\User\Domain\Repository\UserRepositoryInterface;
 use App\Shared\Context\UserProviderInterface;
 use App\Shared\Utils\DocumentHelper;
+use Dompdf\Dompdf;
 
 require_once __DIR__ . "/../../../bootstrap.php";
 
@@ -158,6 +160,10 @@ if ($profileUser === null) {
     exit;
 }
 
+if (isset($_GET['constancia']) && $_GET['constancia'] === '1') {
+    streamProfileRegistrationCertificate($container, $profileUser);
+}
+
 $perfil = [
     "id" => $profileUser->id,
     "nombre" => $profileUser?->personalInfo->name ?? $user->name,
@@ -293,4 +299,97 @@ function uploadProfileFile(
 	}
 
 	return trim($relativeDir, "/\\") . "/" . $fileName;
+}
+
+function streamProfileRegistrationCertificate($container, $profileUser): never
+{
+    /** @var RendererInterface $renderer */
+    $renderer = $container->get(RendererInterface::class);
+    /** @var Dompdf $pdf */
+    $pdf = $container->get(Dompdf::class);
+
+    $logoSrc = resolvePdfLogoDataUri(__DIR__ . "/../../assets/images");
+
+    $primaryColor = "#611232";
+
+    try {
+        $colorConfig = $container->get(GetColorUseCase::class)->execute();
+
+        if ($colorConfig !== null && $colorConfig->primary !== "") {
+            $primaryColor = $colorConfig->primary;
+        }
+    } catch (Throwable) {
+        // Mantener color institucional por defecto si falla la carga de configuración.
+    }
+
+    $userData = [
+        "name" => $profileUser->personalInfo->name,
+        "surnames" => $profileUser->personalInfo->surnames,
+        "address" => $profileUser->personalInfo->address ?? "No disponible",
+        "phone" => $profileUser->personalInfo->phone ?? "No disponible",
+        "email" => $profileUser->email,
+        "category" => $profileUser->workData->category ?? "No disponible",
+        "department" => $profileUser->workData->department ?? "No disponible",
+        "nss" => $profileUser->workData->nss ?? "No disponible",
+        "curp" => $profileUser->personalInfo->curp ?? "No disponible",
+        "birthdate" => $profileUser->personalInfo->birthdate?->format("Y-m-d") ?? "No disponible",
+        "work_start_date" => $profileUser->workData->workStartDate?->format("Y-m-d") ?? "No disponible",
+        "role" => $profileUser->role->value,
+    ];
+
+    $html = $renderer->renderToString(
+        __DIR__ . "/../../../templates/documents/agremiado-registration-certificate.latte",
+        [
+            "user" => $userData,
+            "issuedAt" => (new DateTimeImmutable())->format("d/m/Y H:i"),
+            "logoSrc" => $logoSrc,
+            "primaryColor" => $primaryColor,
+        ],
+    );
+
+    // Dompdf en este proyecto se inicializa con recursos remotos deshabilitados;
+    // habilitamos aquí para asegurar render correcto de data URI en el logo.
+    $options = $pdf->getOptions();
+    $options->setIsRemoteEnabled(true);
+    $pdf->setOptions($options);
+
+    $pdf->loadHtml($html);
+    $pdf->render();
+
+    $safeName = preg_replace('/[^a-z0-9]+/i', '-', trim($profileUser->personalInfo->name . ' ' . $profileUser->personalInfo->surnames));
+    $safeName = $safeName !== null && $safeName !== '' ? trim($safeName, '-') : 'agremiado';
+
+    $filename = "constancia-" . strtolower($safeName) . "-" . date("YmdHis") . ".pdf";
+
+    $pdf->stream($filename, ["Attachment" => true]);
+
+    exit;
+}
+
+function resolvePdfLogoDataUri(string $imagesDir): ?string
+{
+    $candidates = [
+        ["file" => "logo.jpg", "mime" => "image/jpeg"],
+        ["file" => "logo.jpeg", "mime" => "image/jpeg"],
+        ["file" => "logo.png", "mime" => "image/png"],
+        ["file" => "logo.webp", "mime" => "image/webp"],
+    ];
+
+    foreach ($candidates as $candidate) {
+        $path = rtrim($imagesDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $candidate["file"];
+
+        if (!is_file($path)) {
+            continue;
+        }
+
+        $data = file_get_contents($path);
+
+        if (!is_string($data) || $data === "") {
+            continue;
+        }
+
+        return "data:" . $candidate["mime"] . ";base64," . base64_encode($data);
+    }
+
+    return null;
 }

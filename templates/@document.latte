@@ -4,6 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <title>{block title}OST-SIUT-ITSM{/block}</title>
+  {var $institutionalColor = isset($primaryColor) && is_string($primaryColor) && $primaryColor !== '' ? $primaryColor : '#611232'}
+  {var $documentLogo = isset($logoSrc) && is_string($logoSrc) && $logoSrc !== '' ? $logoSrc : url('assets/images/logo.webp')}
   <link href="{url('assets/css/colors.php')}" rel="stylesheet">
 
   <style>
@@ -27,11 +29,11 @@
       left: 0;
       right: 0;
       position: fixed;
-      color: var(--bs-primary);
+      color: {$institutionalColor};
       padding-top: .27in;
       padding-bottom: 5px;
       margin: .2in .5in .2in;
-      border-bottom: 3px solid var(--bs-primary);
+      border-bottom: 3px solid {$institutionalColor};
     }
 
     header .logo {
@@ -69,11 +71,11 @@
       /* Alineado con el padding */
       left: .5in;
       right: .5in;
-      border-top: 5px solid var(--bs-primary);
+      border-top: 5px solid {$institutionalColor};
       padding-top: 5px;
       font-size: 0.75em;
       text-align: center;
-      color: var(--bs-primary);
+      color: {$institutionalColor};
     }
 
     .page_number:before {
@@ -96,9 +98,9 @@
 </head>
 
 <body>
-<img src="{url('assets/images/logo.webp')}" class="watermark" alt="watermark">
+<img src="{$documentLogo|noescape}" class="watermark" alt="watermark">
 <header>
-  <img src="{url('assets/images/logo.webp')}" class="logo" alt="Logo">
+  <img src="{$documentLogo|noescape}" class="logo" alt="Logo">
   <div class="header-title">
     <h1>SINDICATO ÚNICO DE TRABAJADORES</h1>
     <h2>del Instituto Tecnológico Superior de Macuspana OST-SIUT-ITSM</h2>
