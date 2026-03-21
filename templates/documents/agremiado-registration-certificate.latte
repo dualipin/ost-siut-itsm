@@ -1,0 +1,74 @@
+{extends ../@document.latte}
+{varType array $user}
+{varType string $issuedAt}
+
+{block title}Constancia de Registro de Agremiado{/block}
+
+{block content}
+  <h2 style="font-size: 18px; margin-bottom: 8px; color: #611232;">Constancia de Registro</h2>
+  <p style="margin-bottom: 14px; font-size: 12px;">
+    Por medio del presente se hace constar que la persona abajo indicada completó exitosamente su registro en el sistema de agremiados de OST-SIUT-ITSM.
+  </p>
+
+  <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 14px;">
+    <tbody>
+      <tr>
+        <td style="border: 1px solid #d1d5db; padding: 6px; width: 36%;"><strong>Nombre</strong></td>
+        <td style="border: 1px solid #d1d5db; padding: 6px;">{$user['name']} {$user['surnames']}</td>
+      </tr>
+      <tr>
+        <td style="border: 1px solid #d1d5db; padding: 6px;"><strong>Dirección</strong></td>
+        <td style="border: 1px solid #d1d5db; padding: 6px;">{$user['address']}</td>
+      </tr>
+      <tr>
+        <td style="border: 1px solid #d1d5db; padding: 6px;"><strong>Teléfono</strong></td>
+        <td style="border: 1px solid #d1d5db; padding: 6px;">{$user['phone']}</td>
+      </tr>
+      <tr>
+        <td style="border: 1px solid #d1d5db; padding: 6px;"><strong>Email</strong></td>
+        <td style="border: 1px solid #d1d5db; padding: 6px;">{$user['email']}</td>
+      </tr>
+      <tr>
+        <td style="border: 1px solid #d1d5db; padding: 6px;"><strong>Categoría</strong></td>
+        <td style="border: 1px solid #d1d5db; padding: 6px;">{$user['category']}</td>
+      </tr>
+      <tr>
+        <td style="border: 1px solid #d1d5db; padding: 6px;"><strong>Departamento</strong></td>
+        <td style="border: 1px solid #d1d5db; padding: 6px;">{$user['department']}</td>
+      </tr>
+      <tr>
+        <td style="border: 1px solid #d1d5db; padding: 6px;"><strong>NSS</strong></td>
+        <td style="border: 1px solid #d1d5db; padding: 6px;">{$user['nss']}</td>
+      </tr>
+      <tr>
+        <td style="border: 1px solid #d1d5db; padding: 6px;"><strong>CURP</strong></td>
+        <td style="border: 1px solid #d1d5db; padding: 6px;">{$user['curp']}</td>
+      </tr>
+      <tr>
+        <td style="border: 1px solid #d1d5db; padding: 6px;"><strong>Fecha de nacimiento</strong></td>
+        <td style="border: 1px solid #d1d5db; padding: 6px;">{$user['birthdate']}</td>
+      </tr>
+      <tr>
+        <td style="border: 1px solid #d1d5db; padding: 6px;"><strong>Fecha de ingreso</strong></td>
+        <td style="border: 1px solid #d1d5db; padding: 6px;">{$user['work_start_date']}</td>
+      </tr>
+      <tr>
+        <td style="border: 1px solid #d1d5db; padding: 6px;"><strong>Rol</strong></td>
+        <td style="border: 1px solid #d1d5db; padding: 6px;">{$user['role']}</td>
+      </tr>
+      <tr>
+        <td style="border: 1px solid #d1d5db; padding: 6px;"><strong>Fecha y hora de emisión</strong></td>
+        <td style="border: 1px solid #d1d5db; padding: 6px;">{$issuedAt}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p style="margin-top: 28px; font-size: 11px;">
+    Se extiende la presente para los fines administrativos correspondientes.
+  </p>
+
+  <div style="margin-top: 42px; text-align: center;">
+    <p style="margin: 0 0 34px;">___________________________________________</p>
+    <p style="margin: 0; font-weight: bold;">Secretaría General OST-SIUT-ITSM</p>
+  </div>
+{/block}
