@@ -87,7 +87,7 @@
             {foreach $adjuntos as $adj}
               <div class="alert alert-info border-0 rounded-4 px-3 py-2 d-flex align-items-center gap-2 mb-0 shadow-sm">
                 <i class="bi bi-file-earmark-check fs-5"></i>
-                <span class="small fw-medium">{$adj->originalFilename|default:'Archivo'}</span>
+                <span class="small fw-medium">{if !empty($adj->description)}{$adj->description}{else}{basename($adj->filePath)}{/if}</span>
                 <a href="/{$adj->filePath}" target="_blank" class="btn btn-sm btn-link text-info p-0 ms-2" title="Ver archivo">
                   <i class="bi bi-eye-fill"></i>
                 </a>
