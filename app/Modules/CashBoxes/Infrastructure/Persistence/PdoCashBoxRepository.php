@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\CashBoxes\Infrastructure\Persistence;
 
-use App\Modules\CashBoxes\Domain\DTO\CashBoxFilterCriteria;
 use App\Modules\CashBoxes\Domain\Entity\CashBox;
 use App\Modules\CashBoxes\Domain\Enum\BoxStatusEnum;
 use App\Modules\CashBoxes\Domain\Exception\CashBoxNotFoundException;
@@ -73,44 +72,44 @@ final readonly class PdoCashBoxRepository implements CashBoxRepositoryInterface
         return array_map(fn($row) => $this->hydrate($row), $rows);
     }
 
-    public function findWithFilters(CashBoxFilterCriteria $criteria): array
+    public function findFiltered(?string $name = null, ?BoxStatusEnum $status = null, ?float $minInitialBalance = null, ?float $maxInitialBalance = null, ?float $minCurrentBalance = null, ?float $maxCurrentBalance = null, string $sortBy = 'created_at', string $sortOrder = 'DESC'): array
     {
         $where = ['deleted_at IS NULL'];
         $params = [];
 
-        if ($criteria->name !== null) {
+        if ($name !== null && $name !== '') {
             $where[] = 'name LIKE :name';
-            $params['name'] = '%' . $criteria->name . '%';
+            $params['name'] = '%' . $name . '%';
         }
 
-        if ($criteria->status !== null) {
+        if ($status !== null) {
             $where[] = 'status = :status';
-            $params['status'] = $criteria->status->value;
+            $params['status'] = $status->value;
         }
 
-        if ($criteria->minInitialBalance !== null) {
+        if ($minInitialBalance !== null) {
             $where[] = 'initial_balance >= :min_initial';
-            $params['min_initial'] = $criteria->minInitialBalance;
+            $params['min_initial'] = $minInitialBalance;
         }
 
-        if ($criteria->maxInitialBalance !== null) {
+        if ($maxInitialBalance !== null) {
             $where[] = 'initial_balance <= :max_initial';
-            $params['max_initial'] = $criteria->maxInitialBalance;
+            $params['max_initial'] = $maxInitialBalance;
         }
 
-        if ($criteria->minCurrentBalance !== null) {
+        if ($minCurrentBalance !== null) {
             $where[] = 'current_balance >= :min_current';
-            $params['min_current'] = $criteria->minCurrentBalance;
+            $params['min_current'] = $minCurrentBalance;
         }
 
-        if ($criteria->maxCurrentBalance !== null) {
+        if ($maxCurrentBalance !== null) {
             $where[] = 'current_balance <= :max_current';
-            $params['max_current'] = $criteria->maxCurrentBalance;
+            $params['max_current'] = $maxCurrentBalance;
         }
 
         $validSortFields = ['name', 'status', 'initial_balance', 'current_balance', 'created_at', 'updated_at'];
-        $sortBy = in_array($criteria->sortBy, $validSortFields) ? $criteria->sortBy : 'created_at';
-        $sortOrder = strtoupper($criteria->sortOrder) === 'ASC' ? 'ASC' : 'DESC';
+        $sortBy = in_array($sortBy, $validSortFields) ? $sortBy : 'created_at';
+        $sortOrder = strtoupper($sortOrder) === 'ASC' ? 'ASC' : 'DESC';
 
         $sql = 'SELECT * FROM cash_boxes WHERE ' . implode(' AND ', $where) . ' ORDER BY ' . $sortBy . ' ' . $sortOrder;
 

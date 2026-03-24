@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\CashBoxes\Application\UseCase;
 
-use App\Modules\CashBoxes\Domain\DTO\CashBoxFilterCriteria;
 use App\Modules\CashBoxes\Domain\Repository\CashBoxRepositoryInterface;
-use App\Shared\Context\UserProviderInterface;
+use App\Modules\CashBoxes\Domain\Enum\BoxStatusEnum;
 
 final readonly class GetCashBoxesListUseCase
 {
@@ -15,12 +14,26 @@ final readonly class GetCashBoxesListUseCase
     ) {
     }
 
-    public function execute(?CashBoxFilterCriteria $criteria = null): array
+    public function execute(?string $name = null, ?string $status = null, ?float $minInitialBalance = null, ?float $maxInitialBalance = null, ?float $minCurrentBalance = null, ?float $maxCurrentBalance = null, string $sortBy = 'created_at', string $sortOrder = 'DESC'): array
     {
-        $criteria ??= new CashBoxFilterCriteria();
-        
+        $statusEnum = match($status) {
+            'open' => BoxStatusEnum::OPEN,
+            'closed' => BoxStatusEnum::CLOSED,
+            default => null,
+        };
+
         return [
-            'boxes' => $this->cashBoxRepository->findWithFilters($criteria)
+            'boxes' => $this->cashBoxRepository->findFiltered($name, $statusEnum, $minInitialBalance, $maxInitialBalance, $minCurrentBalance, $maxCurrentBalance, $sortBy, $sortOrder),
+            'filters' => [
+                'name' => $name,
+                'status' => $status,
+                'min_initial' => $minInitialBalance,
+                'max_initial' => $maxInitialBalance,
+                'min_current' => $minCurrentBalance,
+                'max_current' => $maxCurrentBalance,
+                'sort_by' => $sortBy,
+                'sort_order' => $sortOrder,
+            ]
         ];
     }
 }

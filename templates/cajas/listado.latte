@@ -9,130 +9,47 @@
         icon: 'bi-cash-stack'
     }
 
-    <div class="d-flex justify-content-end mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div style="flex: 1;"></div>
         <button class="btn btn-primary rounded-pill px-4 shadow-sm" @click="$dispatch('open-modal-new-box')">
             <i class="bi bi-plus-lg me-2"></i>Nueva Caja
         </button>
     </div>
 
-    {* Filters Panel *}
-    <div class="row g-4 mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm rounded-4">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center mb-3">
-                        <h5 class="mb-0">
-                            <i class="bi bi-funnel me-2"></i>Filtros
-                        </h5>
-                        {if $filters['name'] || $filters['status'] || $filters['min_initial'] || $filters['max_initial'] || $filters['min_current'] || $filters['max_current']}
-                            <a href="./listado.php" class="ms-auto btn btn-sm btn-outline-secondary rounded-pill">
-                                <i class="bi bi-x-circle me-1"></i>Limpiar Filtros
-                            </a>
-                        {/if}
-                    </div>
-
-                    <form method="get" class="row g-3 align-items-end">
-                        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
-                            <label for="name" class="form-label small fw-bold text-muted text-uppercase">Nombre</label>
-                            <input 
-                                type="text" 
-                                id="name"
-                                name="name" 
-                                class="form-control form-control-sm rounded-3"
-                                placeholder="Buscar por nombre"
-                                value="{$filters['name']|escape}"
-                            >
-                        </div>
-
-                        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
-                            <label for="status" class="form-label small fw-bold text-muted text-uppercase">Estado</label>
-                            <select id="status" name="status" class="form-select form-select-sm rounded-3">
-                                <option value="">Todos</option>
-                                <option value="open" {if $filters['status'] === 'open'}selected{/if}>Abierta</option>
-                                <option value="closed" {if $filters['status'] === 'closed'}selected{/if}>Cerrada</option>
-                            </select>
-                        </div>
-
-                        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
-                            <label for="min_initial" class="form-label small fw-bold text-muted text-uppercase">Saldo Inicial Desde</label>
-                            <input 
-                                type="number" 
-                                id="min_initial"
-                                name="min_initial" 
-                                class="form-control form-control-sm rounded-3"
-                                placeholder="Mín."
-                                step="0.01"
-                                value="{$filters['min_initial']|escape}"
-                            >
-                        </div>
-
-                        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
-                            <label for="max_initial" class="form-label small fw-bold text-muted text-uppercase">Saldo Inicial Hasta</label>
-                            <input 
-                                type="number" 
-                                id="max_initial"
-                                name="max_initial" 
-                                class="form-control form-control-sm rounded-3"
-                                placeholder="Máx."
-                                step="0.01"
-                                value="{$filters['max_initial']|escape}"
-                            >
-                        </div>
-
-                        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
-                            <label for="min_current" class="form-label small fw-bold text-muted text-uppercase">Saldo Actual Desde</label>
-                            <input 
-                                type="number" 
-                                id="min_current"
-                                name="min_current" 
-                                class="form-control form-control-sm rounded-3"
-                                placeholder="Mín."
-                                step="0.01"
-                                value="{$filters['min_current']|escape}"
-                            >
-                        </div>
-
-                        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
-                            <label for="max_current" class="form-label small fw-bold text-muted text-uppercase">Saldo Actual Hasta</label>
-                            <input 
-                                type="number" 
-                                id="max_current"
-                                name="max_current" 
-                                class="form-control form-control-sm rounded-3"
-                                placeholder="Máx."
-                                step="0.01"
-                                value="{$filters['max_current']|escape}"
-                            >
-                        </div>
-
-                        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
-                            <label for="sort_by" class="form-label small fw-bold text-muted text-uppercase">Ordenar Por</label>
-                            <select id="sort_by" name="sort_by" class="form-select form-select-sm rounded-3">
-                                <option value="created_at" {if $filters['sort_by'] === 'created_at'}selected{/if}>Fecha Creación</option>
-                                <option value="name" {if $filters['sort_by'] === 'name'}selected{/if}>Nombre</option>
-                                <option value="status" {if $filters['sort_by'] === 'status'}selected{/if}>Estado</option>
-                                <option value="initial_balance" {if $filters['sort_by'] === 'initial_balance'}selected{/if}>Saldo Inicial</option>
-                                <option value="current_balance" {if $filters['sort_by'] === 'current_balance'}selected{/if}>Saldo Actual</option>
-                            </select>
-                        </div>
-
-                        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
-                            <label for="sort_order" class="form-label small fw-bold text-muted text-uppercase">Orden</label>
-                            <select id="sort_order" name="sort_order" class="form-select form-select-sm rounded-3">
-                                <option value="DESC" {if $filters['sort_order'] === 'DESC'}selected{/if}>Descendente</option>
-                                <option value="ASC" {if $filters['sort_order'] === 'ASC'}selected{/if}>Ascendente</option>
-                            </select>
-                        </div>
-
-                        <div class="col-12 col-lg-2 d-flex gap-2">
-                            <button type="submit" class="btn btn-primary rounded-3 w-100">
-                                <i class="bi bi-search me-1"></i>Buscar
-                            </button>
-                        </div>
-                    </form>
+    <!-- Filtros -->
+    <div class="row g-3 mb-4">
+        <form method="GET" class="w-100">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <input type="text" name="name" class="form-control rounded-3" placeholder="Buscar por nombre..." value="{$filters['name']}">
+                </div>
+                <div class="col-md-2">
+                    <select name="status" class="form-select rounded-3">
+                        <option value="">Todos los estados</option>
+                        <option value="open" {if $filters['status'] === 'open'}selected{/if}>Abierta</option>
+                        <option value="closed" {if $filters['status'] === 'closed'}selected{/if}>Cerrada</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <input type="number" name="min_initial" class="form-control rounded-3" placeholder="Sal. Inicial Min." step="0.01" value="{$filters['min_initial']}">
+                </div>
+                <div class="col-md-2">
+                    <input type="number" name="max_initial" class="form-control rounded-3" placeholder="Sal. Inicial Max." step="0.01" value="{$filters['max_initial']}">
+                </div>
+                <div class="col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-outline-primary rounded-3 w-100">
+                        <i class="bi bi-funnel me-1"></i>Filtrar
+                    </button>
+                    <a href="{url('/portal/cajas/listado.php')}" class="btn btn-outline-secondary rounded-3 p-0 px-2 d-flex align-items-center justify-content-center">
+                        <i class="bi bi-x fs-4"></i>
+                    </a>
                 </div>
             </div>
-        </div>
+            <input type="hidden" name="min_current" value="{$filters['min_current']}">
+            <input type="hidden" name="max_current" value="{$filters['max_current']}">
+            <input type="hidden" name="sort_by" value="{$filters['sort_by']}">
+            <input type="hidden" name="sort_order" value="{$filters['sort_order']}">
+        </form>
     </div>
 
     <div class="row g-4">
@@ -143,10 +60,78 @@
                         <table class="table table-hover align-middle mb-0">
                             <thead class="bg-light text-muted small text-uppercase">
                                 <tr>
-                                    <th class="px-4 py-3 border-0">Nombre</th>
-                                    <th class="py-3 border-0">Estado</th>
-                                    <th class="py-3 border-0">Saldo Inicial</th>
-                                    <th class="py-3 border-0">Saldo Actual</th>
+                                    <th class="px-4 py-3 border-0 cursor-pointer">
+                                        <form method="GET" style="display: inline;">
+                                            <input type="hidden" name="name" value="{$filters['name']}">
+                                            <input type="hidden" name="status" value="{$filters['status']}">
+                                            <input type="hidden" name="min_initial" value="{$filters['min_initial']}">
+                                            <input type="hidden" name="max_initial" value="{$filters['max_initial']}">
+                                            <input type="hidden" name="min_current" value="{$filters['min_current']}">
+                                            <input type="hidden" name="max_current" value="{$filters['max_current']}">
+                                            <input type="hidden" name="sort_by" value="name">
+                                            <input type="hidden" name="sort_order" value="{$filters['sort_by'] === 'name' && $filters['sort_order'] === 'ASC' ? 'DESC' : 'ASC'}">
+                                            <button type="submit" class="btn btn-link text-muted text-decoration-none p-0">
+                                                Nombre
+                                                {if $filters['sort_by'] === 'name'}
+                                                    <i class="bi bi-arrow-{$filters['sort_order'] === 'ASC' ? 'up' : 'down'} ms-1"></i>
+                                                {/if}
+                                            </button>
+                                        </form>
+                                    </th>
+                                    <th class="py-3 border-0 cursor-pointer">
+                                        <form method="GET" style="display: inline;">
+                                            <input type="hidden" name="name" value="{$filters['name']}">
+                                            <input type="hidden" name="status" value="{$filters['status']}">
+                                            <input type="hidden" name="min_initial" value="{$filters['min_initial']}">
+                                            <input type="hidden" name="max_initial" value="{$filters['max_initial']}">
+                                            <input type="hidden" name="min_current" value="{$filters['min_current']}">
+                                            <input type="hidden" name="max_current" value="{$filters['max_current']}">
+                                            <input type="hidden" name="sort_by" value="status">
+                                            <input type="hidden" name="sort_order" value="{$filters['sort_by'] === 'status' && $filters['sort_order'] === 'ASC' ? 'DESC' : 'ASC'}">
+                                            <button type="submit" class="btn btn-link text-muted text-decoration-none p-0">
+                                                Estado
+                                                {if $filters['sort_by'] === 'status'}
+                                                    <i class="bi bi-arrow-{$filters['sort_order'] === 'ASC' ? 'up' : 'down'} ms-1"></i>
+                                                {/if}
+                                            </button>
+                                        </form>
+                                    </th>
+                                    <th class="py-3 border-0 cursor-pointer">
+                                        <form method="GET" style="display: inline;">
+                                            <input type="hidden" name="name" value="{$filters['name']}">
+                                            <input type="hidden" name="status" value="{$filters['status']}">
+                                            <input type="hidden" name="min_initial" value="{$filters['min_initial']}">
+                                            <input type="hidden" name="max_initial" value="{$filters['max_initial']}">
+                                            <input type="hidden" name="min_current" value="{$filters['min_current']}">
+                                            <input type="hidden" name="max_current" value="{$filters['max_current']}">
+                                            <input type="hidden" name="sort_by" value="initial_balance">
+                                            <input type="hidden" name="sort_order" value="{$filters['sort_by'] === 'initial_balance' && $filters['sort_order'] === 'ASC' ? 'DESC' : 'ASC'}">
+                                            <button type="submit" class="btn btn-link text-muted text-decoration-none p-0">
+                                                Saldo Inicial
+                                                {if $filters['sort_by'] === 'initial_balance'}
+                                                    <i class="bi bi-arrow-{$filters['sort_order'] === 'ASC' ? 'up' : 'down'} ms-1"></i>
+                                                {/if}
+                                            </button>
+                                        </form>
+                                    </th>
+                                    <th class="py-3 border-0 cursor-pointer">
+                                        <form method="GET" style="display: inline;">
+                                            <input type="hidden" name="name" value="{$filters['name']}">
+                                            <input type="hidden" name="status" value="{$filters['status']}">
+                                            <input type="hidden" name="min_initial" value="{$filters['min_initial']}">
+                                            <input type="hidden" name="max_initial" value="{$filters['max_initial']}">
+                                            <input type="hidden" name="min_current" value="{$filters['min_current']}">
+                                            <input type="hidden" name="max_current" value="{$filters['max_current']}">
+                                            <input type="hidden" name="sort_by" value="current_balance">
+                                            <input type="hidden" name="sort_order" value="{$filters['sort_by'] === 'current_balance' && $filters['sort_order'] === 'ASC' ? 'DESC' : 'ASC'}">
+                                            <button type="submit" class="btn btn-link text-muted text-decoration-none p-0">
+                                                Saldo Actual
+                                                {if $filters['sort_by'] === 'current_balance'}
+                                                    <i class="bi bi-arrow-{$filters['sort_order'] === 'ASC' ? 'up' : 'down'} ms-1"></i>
+                                                {/if}
+                                            </button>
+                                        </form>
+                                    </th>
                                     <th class="py-3 border-0">Moneda</th>
                                     <th class="px-4 py-3 border-0 text-end">Acciones</th>
                                 </tr>
@@ -192,7 +177,7 @@
                                 {/foreach}
                                 {if count($boxes) === 0}
                                 <tr>
-                                    <td colspan="6" class="text-center py-5 text-muted">
+                                    <td colspan="7" class="text-center py-5 text-muted">
                                         <i class="bi bi-inbox fs-1 d-block mb-3 opacity-25"></i>
                                         No hay cajas registradas.
                                     </td>

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\CashBoxes\Domain\Repository;
 
-use App\Modules\CashBoxes\Domain\DTO\CashBoxFilterCriteria;
 use App\Modules\CashBoxes\Domain\Entity\CashBox;
 use App\Modules\CashBoxes\Domain\Exception\CashBoxNotFoundException;
+use App\Modules\CashBoxes\Domain\Enum\BoxStatusEnum;
 
 interface CashBoxRepositoryInterface
 {
@@ -25,7 +25,7 @@ interface CashBoxRepositoryInterface
     /**
      * @return CashBox[]
      */
-    public function findWithFilters(CashBoxFilterCriteria $criteria): array;
+    public function findFiltered(?string $name = null, ?BoxStatusEnum $status = null, ?float $minInitialBalance = null, ?float $maxInitialBalance = null, ?float $minCurrentBalance = null, ?float $maxCurrentBalance = null, string $sortBy = 'created_at', string $sortOrder = 'DESC'): array;
 
     public function nextId(): int;
 }
