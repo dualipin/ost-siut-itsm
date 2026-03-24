@@ -10,7 +10,7 @@
     }
 
     <div class="d-flex justify-content-end align-items-center mb-4 gap-2">
-        <button class="btn btn-outline-primary rounded-pill px-4 shadow-sm" @click="$dispatch('open-modal-edit-box', { id: {$box->boxId}, name: {=json_encode($box->name)}, description: {=json_encode($box->description)} })">
+        <button class="btn btn-outline-primary rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#editBoxModal">
             <i class="bi bi-pencil me-2"></i>Editar
         </button>
         <a href="{url('/portal/cajas/movimientos/nuevo.php')}?box_id={$box->boxId}" class="btn btn-primary rounded-pill px-4 shadow-sm">

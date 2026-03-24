@@ -1,15 +1,8 @@
 <div class="modal fade" id="editBoxModal" tabindex="-1" aria-hidden="true" x-data="{
-    boxId: 0,
-    boxName: '',
-    boxDesc: '',
-    openModal(event) {
-        this.boxId = event.detail.id;
-        this.boxName = event.detail.name;
-        this.boxDesc = event.detail.description || '';
-        const modal = new bootstrap.Modal(document.getElementById('editBoxModal'));
-        modal.show();
-    }
-}" @open-modal-edit-box.window="openModal($event)">
+    boxId: {$box->boxId},
+    boxName: {=json_encode($box->name)},
+    boxDesc: {=json_encode($box->description)} ?? ''
+}">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow rounded-4">
             <form action="{url('/portal/cajas/update.php')}" method="POST">

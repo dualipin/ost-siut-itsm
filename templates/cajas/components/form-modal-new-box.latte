@@ -1,6 +1,6 @@
 <div class="modal fade" id="newBoxModal" tabindex="-1" aria-hidden="true" x-data="{
     openModal() {
-        const modal = new bootstrap.Modal(document.getElementById('newBoxModal'));
+        const modal = bootstrap.Modal.getOrCreateInstance($el);
         modal.show();
     }
 }" @open-modal-new-box.window="openModal()">
