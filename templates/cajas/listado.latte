@@ -1,0 +1,96 @@
+{layout '../@portal.latte'}
+
+{block main}
+<div class="container-fluid py-4" x-data="{ search: '' }">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{url('/portal/index.php')}">Inicio</a></li>
+                    <li class="breadcrumb-item active">Cajas</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-0 text-gray-800">Listado de Cajas</h1>
+        </div>
+        <div>
+            <button class="btn btn-primary rounded-pill px-4 shadow-sm" @click="$dispatch('open-modal-new-box')">
+                <i class="bi bi-plus-lg me-2"></i>Nueva Caja
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light text-muted small text-uppercase">
+                                <tr>
+                                    <th class="px-4 py-3 border-0">Nombre</th>
+                                    <th class="py-3 border-0">Estado</th>
+                                    <th class="py-3 border-0">Saldo Inicial</th>
+                                    <th class="py-3 border-0">Saldo Actual</th>
+                                    <th class="py-3 border-0">Moneda</th>
+                                    <th class="px-4 py-3 border-0 text-end">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {foreach $boxes as $box}
+                                <tr class="transition-all">
+                                    <td class="px-4 py-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar avatar-sm bg-primary-subtle text-primary rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                <i class="bi bi-cash-coin fs-5"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold text-dark">{$box->name}</div>
+                                                <div class="small text-muted">{$box->description|truncate:50}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge rounded-pill {if $box->isOpen()}bg-success-subtle text-success{else}bg-secondary-subtle text-secondary{/if} px-3">
+                                            {if $box->isOpen()}Abierta{else}Cerrada{/if}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted">{$box->initialBalance|number:2, '.', ','}</span>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold {if $box->currentBalance >= 0}text-primary{else}text-danger{/if}">
+                                            ${$box->currentBalance|number:2, '.', ','}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border">{$box->currency}</span>
+                                    </td>
+                                    <td class="px-4 text-end">
+                                        <div class="btn-group shadow-sm rounded-3">
+                                            <a href="{url('/portal/cajas/detalle.php?id=' . $box->boxId)}" class="btn btn-sm btn-white border-end" title="Ver detalle">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-white" title="Nueva transacción" @click="$dispatch('open-modal-transaction', { boxId: {$box->boxId} })">
+                                                <i class="bi bi-plus-circle text-primary"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {/foreach}
+                                {if count($boxes) === 0}
+                                <tr>
+                                    <td colspan="6" class="text-center py-5 text-muted">
+                                        <i class="bi bi-inbox fs-1 d-block mb-3 opacity-25"></i>
+                                        No hay cajas registradas.
+                                    </td>
+                                </tr>
+                                {/if}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}

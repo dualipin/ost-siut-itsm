@@ -12,6 +12,7 @@ use App\Modules\Publication\PublicationModule;
 use App\Modules\Setting\SettingModule;
 use App\Modules\Transparency\TransparencyModule;
 use App\Modules\User\UserModule;
+use App\Modules\CashBoxes\CashBoxesModule;
 use DI\ContainerBuilder;
 use Dotenv\Dotenv;
 use Psr\Container\ContainerInterface;
@@ -66,6 +67,7 @@ class Bootstrap
             new SettingModule(),
             new TransparencyModule(),
             new UserModule(),
+            new CashBoxesModule(),
         ];
 
         foreach ($modules as $module) {
