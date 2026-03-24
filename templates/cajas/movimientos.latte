@@ -2,27 +2,22 @@
 
 {block main}
 <div class="container-fluid py-4" x-data="{ selectedBox: {$selectedBoxId} }">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-1">
-                    <li class="breadcrumb-item"><a href="{url('/portal/index.php')}">Inicio</a></li>
-                    <li class="breadcrumb-item"><a href="{url('/portal/cajas/listado.php')}">Cajas</a></li>
-                    <li class="breadcrumb-item active">Movimientos</li>
-                </ol>
-            </nav>
-            <h1 class="h3 mb-0 text-gray-800">Movimientos de Caja</h1>
-        </div>
-        <div class="d-flex gap-2">
-            <select class="form-select border-0 shadow-sm rounded-pill" style="min-width: 200px;" x-model="selectedBox" @change="window.location.href = '{url('/portal/cajas/movimientos.php')}?box_id=' + selectedBox">
-                {foreach $boxes as $box}
-                    <option value="{$box->boxId}" {if $box->boxId === $selectedBoxId}selected{/if}>{$box->name} ({$box->currency})</option>
-                {/foreach}
-            </select>
-            <button class="btn btn-primary rounded-pill px-4 shadow-sm" @click="$dispatch('open-modal-transaction', { boxId: selectedBox })">
-                <i class="bi bi-plus-lg me-2"></i>Nueva Transacción
-            </button>
-        </div>
+
+    {include '../components/header-page.latte',
+        title: 'Movimientos de Caja',
+        description: 'Consulta el historial de ingresos, egresos y transferencias.',
+        icon: 'bi-arrow-left-right'
+    }
+
+    <div class="d-flex justify-content-end align-items-center mb-4 gap-2">
+        <select class="form-select border-0 shadow-sm rounded-pill" style="min-width: 200px;" x-model="selectedBox" @change="window.location.href = '{url('/portal/cajas/movimientos.php')}?box_id=' + selectedBox">
+            {foreach $boxes as $box}
+                <option value="{$box->boxId}" {if $box->boxId === $selectedBoxId}selected{/if}>{$box->name} ({$box->currency})</option>
+            {/foreach}
+        </select>
+        <button class="btn btn-primary rounded-pill px-4 shadow-sm" @click="$dispatch('open-modal-transaction', { boxId: selectedBox })">
+            <i class="bi bi-plus-lg me-2"></i>Nueva Transacción
+        </button>
     </div>
 
     <div class="row g-4">

@@ -13,6 +13,7 @@ use App\Modules\CashBoxes\Application\UseCase\GetCategoriesListUseCase;
 use App\Modules\CashBoxes\Application\UseCase\GetTransactionsViewDataUseCase;
 use App\Modules\CashBoxes\Application\UseCase\RecordTransactionUseCase;
 use App\Modules\CashBoxes\Application\UseCase\TransferFundsUseCase;
+use App\Modules\CashBoxes\Application\UseCase\UpdateCategoryUseCase;
 use App\Modules\CashBoxes\Domain\Repository\CashBoxRepositoryInterface;
 use App\Modules\CashBoxes\Domain\Repository\CategoryRepositoryInterface;
 use App\Modules\CashBoxes\Domain\Repository\TransactionRepositoryInterface;
@@ -37,5 +38,6 @@ final class CashBoxesModule extends AbstractModule
         GetTransactionsViewDataUseCase::class,
         RecordTransactionUseCase::class,
         TransferFundsUseCase::class,
+        UpdateCategoryUseCase::class,
     ];
 }

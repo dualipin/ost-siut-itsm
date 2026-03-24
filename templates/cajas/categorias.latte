@@ -1,23 +1,27 @@
 {layout '../@portal.latte'}
 
 {block main}
-<div class="container-fluid py-4" x-data="{ search: '' }">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-1">
-                    <li class="breadcrumb-item"><a href="{url('/portal/index.php')}">Inicio</a></li>
-                    <li class="breadcrumb-item"><a href="{url('/portal/cajas/listado.php')}">Cajas</a></li>
-                    <li class="breadcrumb-item active">Categorías</li>
-                </ol>
-            </nav>
-            <h1 class="h3 mb-0 text-gray-800">Categorías de Transacción</h1>
-        </div>
-        <div>
-            <button class="btn btn-primary rounded-pill px-4 shadow-sm" @click="$dispatch('open-modal-new-category')">
-                <i class="bi bi-tag me-2"></i>Nueva Categoría
-            </button>
-        </div>
+<div class="container-fluid py-4" 
+     x-data="{ 
+        search: '',
+        editingCategory: { id: 0, name: '', description: '', type: 'expense', active: true },
+        openEditModal(cat) {
+            this.editingCategory = { ...cat };
+            const modal = new bootstrap.Modal(document.getElementById('editCategoryModal'));
+            modal.show();
+        }
+     }">
+
+    {include '../components/header-page.latte',
+        title: 'Categorías',
+        description: 'Gestiona los tipos de transacciones de entrada y salida.',
+        icon: 'bi-tags'
+    }
+
+    <div class="d-flex justify-content-end mb-4">
+        <button class="btn btn-primary rounded-pill px-4 shadow-sm" @click="$dispatch('open-modal-new-category')">
+            <i class="bi bi-tag me-2"></i>Nueva Categoría
+        </button>
     </div>
 
     <div class="row g-4">
@@ -57,7 +61,14 @@
                                         {/if}
                                     </td>
                                     <td class="px-4 text-end">
-                                        <button class="btn btn-sm btn-light border" @click="$dispatch('open-modal-edit-category', { id: {$cat->categoryId} })">
+                                        <button class="btn btn-sm btn-light border" 
+                                                @click='openEditModal({ 
+                                                    id: {$cat->categoryId}, 
+                                                    name: {json_encode($cat->name)|noescape}, 
+                                                    description: {json_encode($cat->description)|noescape}, 
+                                                    type: {json_encode($cat->type->value)|noescape}, 
+                                                    active: {$cat->active ? "true" : "false"|noescape} 
+                                                })'>
                                             <i class="bi bi-pencil"></i>
                                         </button>
                                     </td>
@@ -72,6 +83,50 @@
                         </table>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Category Modal -->
+    <div class="modal fade" id="editCategoryModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow rounded-4">
+                <form action="{url('/portal/cajas/categorias/update.php')}" method="POST">
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title fw-bold">Editar Categoría</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="category_id" :value="editingCategory.id">
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Nombre</label>
+                            <input type="text" name="name" class="form-control rounded-3" :value="editingCategory.name" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Tipo</label>
+                            <select name="type" class="form-select rounded-3" :value="editingCategory.type">
+                                <option value="income">Ingreso</option>
+                                <option value="expense">Egreso</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Descripción</label>
+                            <textarea name="description" class="form-control rounded-3" rows="2" x-text="editingCategory.description"></textarea>
+                        </div>
+
+                        <div class="form-check form-switch mt-3">
+                            <input class="form-check-input" type="checkbox" name="active" value="1" id="activeSwitch" :checked="editingCategory.active">
+                            <label class="form-check-label small fw-bold" for="activeSwitch">Categoría Activa</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">Guardar Cambios</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

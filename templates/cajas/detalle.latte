@@ -2,25 +2,20 @@
 
 {block main}
 <div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-1">
-                    <li class="breadcrumb-item"><a href="{url('/portal/index.php')}">Inicio</a></li>
-                    <li class="breadcrumb-item"><a href="{url('/portal/cajas/listado.php')}">Cajas</a></li>
-                    <li class="breadcrumb-item active">Detalle</li>
-                </ol>
-            </nav>
-            <h1 class="h3 mb-0 text-gray-800">{$box->name}</h1>
-        </div>
-        <div class="d-flex gap-2">
-            <button class="btn btn-outline-primary rounded-pill px-4 shadow-sm" @click="$dispatch('open-modal-edit-box', { id: {$box->boxId} })">
-                <i class="bi bi-pencil me-2"></i>Editar
-            </button>
-            <button class="btn btn-primary rounded-pill px-4 shadow-sm" @click="$dispatch('open-modal-transaction', { boxId: {$box->boxId} })">
-                <i class="bi bi-plus-lg me-2"></i>Nueva Transacción
-            </button>
-        </div>
+
+    {include '../components/header-page.latte',
+        title: $box->name,
+        description: 'Consulta el estado actual y la actividad reciente de esta caja.',
+        icon: 'bi-cash-coin'
+    }
+
+    <div class="d-flex justify-content-end align-items-center mb-4 gap-2">
+        <button class="btn btn-outline-primary rounded-pill px-4 shadow-sm" @click="$dispatch('open-modal-edit-box', { id: {$box->boxId} })">
+            <i class="bi bi-pencil me-2"></i>Editar
+        </button>
+        <button class="btn btn-primary rounded-pill px-4 shadow-sm" @click="$dispatch('open-modal-transaction', { boxId: {$box->boxId} })">
+            <i class="bi bi-plus-lg me-2"></i>Nueva Transacción
+        </button>
     </div>
 
     <div class="row g-4">
