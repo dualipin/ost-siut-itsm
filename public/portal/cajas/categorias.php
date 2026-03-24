@@ -19,6 +19,12 @@ $runner->runOrRedirect($middleware->auth([RoleEnum::Admin, RoleEnum::Lider, Role
 $renderer = $container->get(RendererInterface::class);
 $useCase = $container->get(GetCategoriesListUseCase::class);
 
-$data = $useCase->execute();
+$name = $_GET['name'] ?? null;
+$type = $_GET['type'] ?? null;
+$status = $_GET['status'] ?? null;
+$sortBy = $_GET['sortBy'] ?? 'name';
+$sortOrder = $_GET['sortOrder'] ?? 'ASC';
+
+$data = $useCase->execute($name, $type, $status, $sortBy, $sortOrder);
 
 $renderer->render(__DIR__ . "/../../../templates/cajas/categorias.latte", $data);

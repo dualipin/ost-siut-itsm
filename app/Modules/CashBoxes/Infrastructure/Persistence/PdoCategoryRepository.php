@@ -33,6 +33,40 @@ final readonly class PdoCategoryRepository implements CategoryRepositoryInterfac
         return $row ? $this->hydrate($row) : null;
     }
 
+    public function findFiltered(?string $name = null, ?string $type = null, ?bool $active = null, string $sortBy = 'name', string $sortOrder = 'ASC'): array
+    {
+        $query = 'SELECT * FROM transaction_categories WHERE deleted_at IS NULL';
+        $params = [];
+
+        if ($name !== null && $name !== '') {
+            $query .= ' AND name LIKE :name';
+            $params['name'] = '%' . $name . '%';
+        }
+
+        if ($type !== null && $type !== '') {
+            $query .= ' AND type = :type';
+            $params['type'] = $type;
+        }
+
+        if ($active !== null) {
+            $query .= ' AND active = :active';
+            $params['active'] = $active ? 1 : 0;
+        }
+
+        // Validar sortBy para evitar SQL injection
+        $validColumns = ['name', 'type', 'active', 'created_at'];
+        $sortBy = in_array($sortBy, $validColumns, true) ? $sortBy : 'name';
+        $sortOrder = strtoupper($sortOrder) === 'DESC' ? 'DESC' : 'ASC';
+
+        $query .= ' ORDER BY ' . $sortBy . ' ' . $sortOrder;
+
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return array_map(fn($row) => $this->hydrate($row), $rows);
+    }
+
     public function save(TransactionCategory $category): void
     {
         $stmt = $this->pdo->prepare('

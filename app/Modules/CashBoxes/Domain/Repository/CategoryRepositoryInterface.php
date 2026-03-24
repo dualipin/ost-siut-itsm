@@ -15,5 +15,10 @@ interface CategoryRepositoryInterface
 
     public function findById(int $categoryId): ?TransactionCategory;
 
+    /**
+     * @return TransactionCategory[]
+     */
+    public function findFiltered(?string $name = null, ?string $type = null, ?bool $active = null, string $sortBy = 'name', string $sortOrder = 'ASC'): array;
+
     public function save(TransactionCategory $category): void;
 }

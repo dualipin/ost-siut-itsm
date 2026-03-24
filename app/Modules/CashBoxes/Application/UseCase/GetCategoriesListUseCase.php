@@ -13,10 +13,23 @@ final readonly class GetCategoriesListUseCase
     ) {
     }
 
-    public function execute(): array
+    public function execute(?string $name = null, ?string $type = null, ?string $status = null, string $sortBy = 'name', string $sortOrder = 'ASC'): array
     {
+        $active = match($status) {
+            'active' => true,
+            'inactive' => false,
+            default => null,
+        };
+
         return [
-            'categories' => $this->categoryRepository->findAll()
+            'categories' => $this->categoryRepository->findFiltered($name, $type, $active, $sortBy, $sortOrder),
+            'filters' => [
+                'name' => $name,
+                'type' => $type,
+                'status' => $status,
+                'sortBy' => $sortBy,
+                'sortOrder' => $sortOrder,
+            ]
         ];
     }
 }
