@@ -37,7 +37,18 @@
                         <option value="inactive" {if $filters['status'] === 'inactive'}selected{/if}>Inactivas</option>
                     </select>
                 </div>
-                <div class="col-md-2 d-flex gap-2">
+                <div class="col-md-2">
+                    <select name="contribution_category" class="form-select rounded-3">
+                        <option value="">Subtipo (ingresos)</option>
+                        <option value="ordinary" {if $filters['contributionCategory'] === 'ordinary'}selected{/if}>Cuota ordinaria</option>
+                        <option value="extraordinary" {if $filters['contributionCategory'] === 'extraordinary'}selected{/if}>Cuota extraordinaria</option>
+                        <option value="trust_staff" {if $filters['contributionCategory'] === 'trust_staff'}selected{/if}>Personal de confianza</option>
+                        <option value="retired" {if $filters['contributionCategory'] === 'retired'}selected{/if}>Jubilados</option>
+                        <option value="union_leave" {if $filters['contributionCategory'] === 'union_leave'}selected{/if}>Permiso sindical</option>
+                        <option value="other" {if $filters['contributionCategory'] === 'other'}selected{/if}>Otro ingreso</option>
+                    </select>
+                </div>
+                <div class="col-md-12 col-lg-12 d-flex gap-2">
                     <button type="submit" class="btn btn-outline-primary rounded-3 w-100">
                         <i class="bi bi-funnel me-1"></i>Filtrar
                     </button>
@@ -64,6 +75,7 @@
                                             <input type="hidden" name="name" value="{$filters['name']}">
                                             <input type="hidden" name="type" value="{$filters['type']}">
                                             <input type="hidden" name="status" value="{$filters['status']}">
+                                            <input type="hidden" name="contribution_category" value="{$filters['contributionCategory']}">
                                             <input type="hidden" name="sortBy" value="name">
                                             <input type="hidden" name="sortOrder" value="{$filters['sortBy'] === 'name' && $filters['sortOrder'] === 'ASC' ? 'DESC' : 'ASC'}">
                                             <button type="submit" class="btn btn-link text-muted text-decoration-none p-0">
@@ -79,6 +91,7 @@
                                             <input type="hidden" name="name" value="{$filters['name']}">
                                             <input type="hidden" name="type" value="{$filters['type']}">
                                             <input type="hidden" name="status" value="{$filters['status']}">
+                                            <input type="hidden" name="contribution_category" value="{$filters['contributionCategory']}">
                                             <input type="hidden" name="sortBy" value="type">
                                             <input type="hidden" name="sortOrder" value="{$filters['sortBy'] === 'type' && $filters['sortOrder'] === 'ASC' ? 'DESC' : 'ASC'}">
                                             <button type="submit" class="btn btn-link text-muted text-decoration-none p-0">
@@ -90,11 +103,13 @@
                                         </form>
                                     </th>
                                     <th class="py-3 border-0">Descripción</th>
+                                    <th class="py-3 border-0">Subtipo de cuota</th>
                                     <th class="py-3 border-0 cursor-pointer">
                                         <form method="GET" style="display: inline;">
                                             <input type="hidden" name="name" value="{$filters['name']}">
                                             <input type="hidden" name="type" value="{$filters['type']}">
                                             <input type="hidden" name="status" value="{$filters['status']}">
+                                            <input type="hidden" name="contribution_category" value="{$filters['contributionCategory']}">
                                             <input type="hidden" name="sortBy" value="active">
                                             <input type="hidden" name="sortOrder" value="{$filters['sortBy'] === 'active' && $filters['sortOrder'] === 'ASC' ? 'DESC' : 'ASC'}">
                                             <button type="submit" class="btn btn-link text-muted text-decoration-none p-0">
@@ -123,6 +138,22 @@
                                         <span class="text-muted small">{$cat->description ?: '-'}</span>
                                     </td>
                                     <td>
+                                        {if $cat->contributionCategory}
+                                            <span class="badge bg-primary-subtle text-primary px-3">
+                                                {switch $cat->contributionCategory->value}
+                                                    {case 'ordinary'}Cuota ordinaria
+                                                    {case 'extraordinary'}Cuota extraordinaria
+                                                    {case 'trust_staff'}Personal de confianza
+                                                    {case 'retired'}Jubilados
+                                                    {case 'union_leave'}Permiso sindical
+                                                    {default}Otro ingreso
+                                                {/switch}
+                                            </span>
+                                        {else}
+                                            <span class="text-muted small">No aplica</span>
+                                        {/if}
+                                    </td>
+                                    <td>
                                         {if $cat->active}
                                             <span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>Activa</span>
                                         {else}
@@ -139,7 +170,7 @@
                                 {/foreach}
                                 {if count($categories) === 0}
                                 <tr>
-                                    <td colspan="5" class="text-center py-5 text-muted">No hay categorías registradas.</td>
+                                    <td colspan="6" class="text-center py-5 text-muted">No hay categorías registradas.</td>
                                 </tr>
                                 {/if}
                             </tbody>
@@ -168,12 +199,24 @@
                             <input type="text" name="name" class="form-control rounded-3" required>
                         </div>
                         
-                        <div class="mb-3">
+                        <div class="mb-3" x-data="{ selectedType: 'expense' }">
                             <label class="form-label small fw-bold">Tipo</label>
-                            <select name="type" class="form-select rounded-3">
+                            <select name="type" class="form-select rounded-3" x-model="selectedType">
                                 <option value="income">Ingreso</option>
                                 <option value="expense" selected>Egreso</option>
                             </select>
+
+                            <div class="mt-3" x-show="selectedType === 'income'" x-cloak>
+                                <label class="form-label small fw-bold">Subtipo de cuota</label>
+                                <select name="contribution_category" class="form-select rounded-3">
+                                    <option value="ordinary">Cuota ordinaria</option>
+                                    <option value="extraordinary">Cuota extraordinaria</option>
+                                    <option value="trust_staff">Personal de confianza</option>
+                                    <option value="retired">Jubilados</option>
+                                    <option value="union_leave">Permiso sindical</option>
+                                    <option value="other">Otro ingreso</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div class="mb-3">
@@ -210,12 +253,24 @@
                             <input type="text" name="name" class="form-control rounded-3" value="{$cat->name}" required>
                         </div>
                         
-                        <div class="mb-3">
+                        <div class="mb-3" x-data="{ selectedType: '{$cat->type->value}' }">
                             <label class="form-label small fw-bold">Tipo</label>
-                            <select name="type" class="form-select rounded-3">
+                            <select name="type" class="form-select rounded-3" x-model="selectedType">
                                 <option value="income" {if $cat->type->value === 'income'}selected{/if}>Ingreso</option>
                                 <option value="expense" {if $cat->type->value === 'expense'}selected{/if}>Egreso</option>
                             </select>
+
+                            <div class="mt-3" x-show="selectedType === 'income'" x-cloak>
+                                <label class="form-label small fw-bold">Subtipo de cuota</label>
+                                <select name="contribution_category" class="form-select rounded-3">
+                                    <option value="ordinary" {if $cat->contributionCategory?->value === 'ordinary'}selected{/if}>Cuota ordinaria</option>
+                                    <option value="extraordinary" {if $cat->contributionCategory?->value === 'extraordinary'}selected{/if}>Cuota extraordinaria</option>
+                                    <option value="trust_staff" {if $cat->contributionCategory?->value === 'trust_staff'}selected{/if}>Personal de confianza</option>
+                                    <option value="retired" {if $cat->contributionCategory?->value === 'retired'}selected{/if}>Jubilados</option>
+                                    <option value="union_leave" {if $cat->contributionCategory?->value === 'union_leave'}selected{/if}>Permiso sindical</option>
+                                    <option value="other" {if $cat->contributionCategory?->value === 'other'}selected{/if}>Otro ingreso</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div class="mb-3">

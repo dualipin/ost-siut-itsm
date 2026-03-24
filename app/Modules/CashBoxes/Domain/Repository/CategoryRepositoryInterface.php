@@ -18,7 +18,7 @@ interface CategoryRepositoryInterface
     /**
      * @return TransactionCategory[]
      */
-    public function findFiltered(?string $name = null, ?string $type = null, ?bool $active = null, string $sortBy = 'name', string $sortOrder = 'ASC'): array;
+    public function findFiltered(?string $name = null, ?string $type = null, ?bool $active = null, ?string $contributionCategory = null, string $sortBy = 'name', string $sortOrder = 'ASC'): array;
 
     public function save(TransactionCategory $category): void;
 }

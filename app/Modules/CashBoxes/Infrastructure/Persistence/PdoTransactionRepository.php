@@ -21,11 +21,11 @@ final readonly class PdoTransactionRepository implements TransactionRepositoryIn
     {
         $stmt = $this->pdo->prepare('
             INSERT INTO box_transactions (
-                box_id, category_id, created_by, type, amount,
+                box_id, category_id, contributor_user_id, created_by, type, amount,
                 balance_before, balance_after, description,
                 transaction_date, created_at, updated_at, deleted_at
             ) VALUES (
-                :box_id, :category_id, :created_by, :type, :amount,
+                :box_id, :category_id, :contributor_user_id, :created_by, :type, :amount,
                 :balance_before, :balance_after, :description,
                 :transaction_date, :created_at, :updated_at, :deleted_at
             )
@@ -36,6 +36,7 @@ final readonly class PdoTransactionRepository implements TransactionRepositoryIn
         $stmt->execute([
             'box_id' => $transaction->boxId,
             'category_id' => $transaction->categoryId,
+            'contributor_user_id' => $transaction->contributorUserId,
             'created_by' => $transaction->createdBy,
             'type' => $transaction->type->value,
             'amount' => $transaction->amount,
@@ -100,9 +101,42 @@ final readonly class PdoTransactionRepository implements TransactionRepositoryIn
 
     public function findByBoxId(int $boxId): array
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM box_transactions WHERE box_id = :box_id AND deleted_at IS NULL ORDER BY created_at DESC');
-        $stmt->execute(['box_id' => $boxId]);
-        
+        return $this->findByCriteria($boxId);
+    }
+
+    public function findByCriteria(?int $boxId = null, ?string $type = null, ?int $categoryId = null, ?string $startDate = null, ?string $endDate = null): array
+    {
+        $where = ['t.deleted_at IS NULL'];
+        $params = [];
+
+        if ($boxId !== null) {
+            $where[] = 't.box_id = :box_id';
+            $params['box_id'] = $boxId;
+        }
+
+        if ($type !== null && $type !== '') {
+            $where[] = 't.type = :type';
+            $params['type'] = $type;
+        }
+
+        if ($categoryId !== null) {
+            $where[] = 't.category_id = :category_id';
+            $params['category_id'] = $categoryId;
+        }
+
+        if ($startDate !== null && $startDate !== '') {
+            $where[] = 't.transaction_date >= :start_date';
+            $params['start_date'] = $startDate;
+        }
+
+        if ($endDate !== null && $endDate !== '') {
+            $where[] = 't.transaction_date <= :end_date';
+            $params['end_date'] = $endDate;
+        }
+
+        $sql = 'SELECT t.* FROM box_transactions t WHERE ' . implode(' AND ', $where) . ' ORDER BY t.transaction_date DESC, t.created_at DESC';
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $attachmentsByTransactionId = [];
@@ -126,7 +160,96 @@ final readonly class PdoTransactionRepository implements TransactionRepositoryIn
                 $attachmentsByTransactionId[$transactionId][] = (string) $attachmentRow['file_path'];
             }
         }
-        
+
+        return $this->hydrateTransactions($rows, $attachmentsByTransactionId);
+    }
+
+    public function summarizeByPeriod(string $startDate, string $endDate, ?int $boxId = null): array
+    {
+        $where = ['t.deleted_at IS NULL', 't.transaction_date BETWEEN :start_date AND :end_date'];
+        $params = [
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+        ];
+
+        if ($boxId !== null) {
+            $where[] = 't.box_id = :box_id';
+            $params['box_id'] = $boxId;
+        }
+
+        $sql = '
+            SELECT
+                DATE_FORMAT(t.transaction_date, "%Y-%m") AS month,
+                SUM(CASE WHEN t.type = "income" THEN t.amount ELSE 0 END) AS total_income,
+                SUM(CASE WHEN t.type = "expense" THEN t.amount ELSE 0 END) AS total_expense
+            FROM box_transactions t
+            WHERE ' . implode(' AND ', $where) . '
+            GROUP BY DATE_FORMAT(t.transaction_date, "%Y-%m")
+            ORDER BY month ASC
+        ';
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+
+        return array_map(
+            static fn (array $row): array => [
+                'month' => (string) $row['month'],
+                'total_income' => (float) $row['total_income'],
+                'total_expense' => (float) $row['total_expense'],
+            ],
+            $stmt->fetchAll(PDO::FETCH_ASSOC)
+        );
+    }
+
+    public function totalsByContributionCategory(string $startDate, string $endDate, ?int $boxId = null): array
+    {
+        $where = [
+            't.deleted_at IS NULL',
+            't.type = "income"',
+            't.transaction_date BETWEEN :start_date AND :end_date',
+        ];
+        $params = [
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+        ];
+
+        if ($boxId !== null) {
+            $where[] = 't.box_id = :box_id';
+            $params['box_id'] = $boxId;
+        }
+
+        $sql = '
+            SELECT
+                COALESCE(c.contribution_category, "other") AS contribution_category,
+                c.name AS category_name,
+                SUM(t.amount) AS total_amount
+            FROM box_transactions t
+            INNER JOIN transaction_categories c ON c.category_id = t.category_id
+            WHERE ' . implode(' AND ', $where) . '
+            GROUP BY COALESCE(c.contribution_category, "other"), c.name
+            ORDER BY total_amount DESC
+        ';
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+
+        return array_map(
+            static fn (array $row): array => [
+                'contribution_category' => (string) $row['contribution_category'],
+                'category_name' => (string) $row['category_name'],
+                'total_amount' => (float) $row['total_amount'],
+            ],
+            $stmt->fetchAll(PDO::FETCH_ASSOC)
+        );
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $rows
+     * @param array<int, array<int, string>> $attachmentsByTransactionId
+     * @return array<int, BoxTransaction>
+     */
+    private function hydrateTransactions(array $rows, array $attachmentsByTransactionId): array
+    {
         $transactions = [];
         foreach ($rows as $row) {
             $transactionId = (int) $row['transaction_id'];
@@ -136,6 +259,7 @@ final readonly class PdoTransactionRepository implements TransactionRepositoryIn
                 transactionId: $transactionId,
                 boxId: (int)$row['box_id'],
                 categoryId: (int)$row['category_id'],
+                contributorUserId: isset($row['contributor_user_id']) ? (int) $row['contributor_user_id'] : null,
                 createdBy: (int)$row['created_by'],
                 type: TransactionTypeEnum::from($row['type']),
                 amount: (float)$row['amount'],
@@ -151,6 +275,7 @@ final readonly class PdoTransactionRepository implements TransactionRepositoryIn
                 deletedAt: $row['deleted_at'] ? new DateTimeImmutable($row['deleted_at']) : null,
             );
         }
+
         return $transactions;
     }
 

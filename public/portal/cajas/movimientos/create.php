@@ -4,6 +4,7 @@ use App\Bootstrap;
 use App\Http\Middleware\MiddlewareFactory;
 use App\Http\Middleware\MiddlewareRunner;
 use App\Modules\CashBoxes\Application\UseCase\RecordTransactionUseCase;
+use App\Shared\Context\UserProviderInterface;
 use App\Shared\Context\UserContextInterface;
 use App\Shared\Domain\Enum\RoleEnum;
 use App\Shared\Utils\UrlBuilder;
@@ -14,10 +15,15 @@ $container = Bootstrap::buildContainer();
 
 $middleware = $container->get(MiddlewareFactory::class);
 $runner = $container->get(MiddlewareRunner::class);
-
-$runner->runOrRedirect($middleware->auth([RoleEnum::Admin, RoleEnum::Finanzas, RoleEnum::Lider]));
-
 $urlBuilder = $container->get(UrlBuilder::class);
+
+$runner->runOrRedirect($middleware->auth());
+
+$authUser = $container->get(UserProviderInterface::class)->get();
+if ($authUser === null || !in_array($authUser->role, [RoleEnum::Admin, RoleEnum::Finanzas, RoleEnum::Lider], true)) {
+    header('Location: ' . $urlBuilder->to('/portal/index.php'));
+    exit;
+}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header("Location: " . $urlBuilder->to('/portal/cajas/listado.php'));
@@ -33,7 +39,11 @@ if (!$user) {
 
 $boxId = (int)($_POST['box_id'] ?? 0);
 $categoryId = (int)($_POST['category_id'] ?? 0);
+$contributorUserId = isset($_POST['contributor_user_id']) && $_POST['contributor_user_id'] !== ''
+    ? (int) $_POST['contributor_user_id']
+    : null;
 $type = $_POST['type'] ?? '';
+$contributorUserId = $type === 'income' ? $contributorUserId : null;
 $amount = (float)($_POST['amount'] ?? 0.0);
 $description = empty($_POST['description']) ? null : $_POST['description'];
 
@@ -89,7 +99,7 @@ if (isset($_FILES['attachments']) && is_array($_FILES['attachments']['error'])) 
 
 try {
     $useCase = $container->get(RecordTransactionUseCase::class);
-    $useCase->execute($boxId, $categoryId, $user->id, $type, $amount, $description, $attachmentPaths);
+    $useCase->execute($boxId, $categoryId, $user->id, $type, $amount, $description, $contributorUserId, $attachmentPaths);
     
     // Redirect back to either the details of the box or movimientos depending on where it came from... 
     // Here we'll just redirect to movimientos since it's the safest single view for transactions.

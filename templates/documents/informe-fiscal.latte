@@ -1,0 +1,98 @@
+{layout '../@document.latte'}
+
+{varType array $report}
+{block title}Informe Financiero{/block}
+{var $primaryColor = $primaryColor ?? '#611232'}
+{var $logoSrc = $logoSrc ?? null}
+
+{block content}
+    <section style="margin-top: .2in;">
+        <h1 style="font-size: 16px; color: {$primaryColor}; margin-bottom: 8px;">INFORME FINANCIERO Y RENDICIÓN DE CUENTAS</h1>
+        <p><strong>Periodo:</strong> {$report['periodStart']} al {$report['periodEnd']}</p>
+        <p><strong>Caja:</strong> {$report['box'] ? $report['box']->name : 'Todas las cajas'}</p>
+        <p><strong>Fecha de generación:</strong> {$generatedAt}</p>
+    </section>
+
+    <section style="margin-top: 12px;">
+        <h2 style="font-size: 14px; color: {$primaryColor}; margin-bottom: 6px;">Resumen General</h2>
+        <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+            <tr>
+                <th style="border: 1px solid #333; padding: 6px; text-align: left;">Ingresos Totales</th>
+                <td style="border: 1px solid #333; padding: 6px; text-align: right;">${$report['summary']['totalIncome']|number:2, '.', ','}</td>
+            </tr>
+            <tr>
+                <th style="border: 1px solid #333; padding: 6px; text-align: left;">Egresos Totales</th>
+                <td style="border: 1px solid #333; padding: 6px; text-align: right;">${$report['summary']['totalExpense']|number:2, '.', ','}</td>
+            </tr>
+            <tr>
+                <th style="border: 1px solid #333; padding: 6px; text-align: left;">Balance Neto</th>
+                <td style="border: 1px solid #333; padding: 6px; text-align: right; font-weight: bold;">${$report['summary']['netBalance']|number:2, '.', ','}</td>
+            </tr>
+        </table>
+    </section>
+
+    <section style="margin-top: 12px;">
+        <h2 style="font-size: 14px; color: {$primaryColor}; margin-bottom: 6px;">Ingresos y Egresos Mensuales</h2>
+        <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+            <thead>
+            <tr>
+                <th style="border: 1px solid #333; padding: 6px; text-align: left;">Mes</th>
+                <th style="border: 1px solid #333; padding: 6px; text-align: right;">Ingresos</th>
+                <th style="border: 1px solid #333; padding: 6px; text-align: right;">Egresos</th>
+                <th style="border: 1px solid #333; padding: 6px; text-align: right;">Balance</th>
+            </tr>
+            </thead>
+            <tbody>
+            {foreach $report['monthly'] as $month}
+                <tr>
+                    <td style="border: 1px solid #333; padding: 6px;">{$month['month']}</td>
+                    <td style="border: 1px solid #333; padding: 6px; text-align: right;">${$month['total_income']|number:2, '.', ','}</td>
+                    <td style="border: 1px solid #333; padding: 6px; text-align: right;">${$month['total_expense']|number:2, '.', ','}</td>
+                    <td style="border: 1px solid #333; padding: 6px; text-align: right;">${($month['total_income'] - $month['total_expense'])|number:2, '.', ','}</td>
+                </tr>
+            {/foreach}
+            {if count($report['monthly']) === 0}
+                <tr>
+                    <td colspan="4" style="border: 1px solid #333; padding: 6px; text-align: center;">Sin movimientos en el periodo seleccionado.</td>
+                </tr>
+            {/if}
+            </tbody>
+        </table>
+    </section>
+
+    <section style="margin-top: 12px;">
+        <h2 style="font-size: 14px; color: {$primaryColor}; margin-bottom: 6px;">Desglose de Ingresos por Cuota</h2>
+        <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+            <thead>
+            <tr>
+                <th style="border: 1px solid #333; padding: 6px; text-align: left;">Categoría</th>
+                <th style="border: 1px solid #333; padding: 6px; text-align: left;">Subtipo</th>
+                <th style="border: 1px solid #333; padding: 6px; text-align: right;">Total</th>
+            </tr>
+            </thead>
+            <tbody>
+            {foreach $report['contributionTotals'] as $total}
+                <tr>
+                    <td style="border: 1px solid #333; padding: 6px;">{$total['category_name']}</td>
+                    <td style="border: 1px solid #333; padding: 6px;">
+                        {switch $total['contribution_category']}
+                            {case 'ordinary'}Cuota ordinaria
+                            {case 'extraordinary'}Cuota extraordinaria
+                            {case 'trust_staff'}Personal de confianza
+                            {case 'retired'}Jubilados
+                            {case 'union_leave'}Permiso sindical
+                            {default}Otro ingreso
+                        {/switch}
+                    </td>
+                    <td style="border: 1px solid #333; padding: 6px; text-align: right;">${$total['total_amount']|number:2, '.', ','}</td>
+                </tr>
+            {/foreach}
+            {if count($report['contributionTotals']) === 0}
+                <tr>
+                    <td colspan="3" style="border: 1px solid #333; padding: 6px; text-align: center;">Sin ingresos por categorías de cuota en el periodo seleccionado.</td>
+                </tr>
+            {/if}
+            </tbody>
+        </table>
+    </section>
+{/block}

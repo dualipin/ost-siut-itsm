@@ -11,6 +11,7 @@ use App\Modules\CashBoxes\Domain\Enum\TransactionTypeEnum;
 use App\Modules\CashBoxes\Domain\Exception\CashBoxNotFoundException;
 use App\Modules\CashBoxes\Domain\Exception\InsufficientFundsException;
 use App\Modules\CashBoxes\Domain\Repository\CashBoxRepositoryInterface;
+use App\Modules\CashBoxes\Domain\Repository\CategoryRepositoryInterface;
 use App\Modules\CashBoxes\Domain\Repository\TransactionRepositoryInterface;
 use DateTimeImmutable;
 use InvalidArgumentException;
@@ -19,6 +20,7 @@ final readonly class RecordTransactionUseCase
 {
     public function __construct(
         private CashBoxRepositoryInterface $cashBoxRepository,
+        private CategoryRepositoryInterface $categoryRepository,
         private TransactionRepositoryInterface $transactionRepository,
         private TransactionManager $transactionManager
     ) {
@@ -36,6 +38,7 @@ final readonly class RecordTransactionUseCase
         string $type,
         float $amount,
         ?string $description = null,
+        ?int $contributorUserId = null,
         array $attachments = []
     ): void {
         if ($amount <= 0) {
@@ -51,9 +54,18 @@ final readonly class RecordTransactionUseCase
             $typeEnum,
             $amount,
             $description,
+            $contributorUserId,
             $attachments
         ) {
             $box = $this->cashBoxRepository->findById($boxId);
+
+            $category = $this->categoryRepository->findById($categoryId);
+            if ($category === null) {
+                throw new InvalidArgumentException("La categoría seleccionada no existe.");
+            }
+            if ($category->type !== $typeEnum) {
+                throw new InvalidArgumentException("La categoría no coincide con el tipo de movimiento.");
+            }
             
             if (!$box->isOpen()) {
                 throw new InvalidArgumentException("Cannot record transaction in a closed box.");
@@ -75,6 +87,7 @@ final readonly class RecordTransactionUseCase
                 transactionId: $this->transactionRepository->nextTransactionId(),
                 boxId: $boxId,
                 categoryId: $categoryId,
+                contributorUserId: $contributorUserId,
                 createdBy: $createdBy,
                 type: $typeEnum,
                 amount: $amount,

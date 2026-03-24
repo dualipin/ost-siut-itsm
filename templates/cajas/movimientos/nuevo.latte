@@ -18,7 +18,7 @@
                 </div>
 
                 <div class="card-body p-4 p-md-5">
-                    <form action="{url('/portal/cajas/movimientos/create.php')}" method="POST" enctype="multipart/form-data">
+                    <form action="{url('/portal/cajas/movimientos/create.php')}" method="POST" enctype="multipart/form-data" x-data="{ selectedType: '{$filters['type'] ?: 'income'}' }">
 
                         <div class="mb-4">
                             <label for="box_id" class="form-label fw-medium">Caja de Origen/Destino</label>
@@ -35,9 +35,9 @@
                         <div class="row g-4 mb-4">
                             <div class="col-md-6">
                                 <label for="type" class="form-label fw-medium">Tipo de Movimiento</label>
-                                <select name="type" id="type" class="form-select" required>
-                                    <option value="income">Ingreso (+)</option>
-                                    <option value="expense">Egreso (-)</option>
+                                <select name="type" id="type" class="form-select" x-model="selectedType" required>
+                                    <option value="income" {if ($filters['type'] ?: 'income') === 'income'}selected{/if}>Ingreso (+)</option>
+                                    <option value="expense" {if ($filters['type'] ?: 'income') === 'expense'}selected{/if}>Egreso (-)</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
@@ -54,9 +54,36 @@
                             <select name="category_id" id="category_id" class="form-select" required>
                                 <option value="" disabled selected>Selecciona una categoría</option>
                                 {foreach $categories as $category}
-                                    <option value="{$category->categoryId}">{$category->name}</option>
+                                    <option value="{$category->categoryId}" {if $filters['categoryId'] === $category->categoryId}selected{/if}>
+                                        {$category->name}
+                                        {if $category->type->value === 'income'}(Ingreso){else}(Egreso){/if}
+                                        {if $category->contributionCategory}
+                                            - {switch $category->contributionCategory->value}
+                                                {case 'ordinary'}Cuota ordinaria
+                                                {case 'extraordinary'}Cuota extraordinaria
+                                                {case 'trust_staff'}Personal de confianza
+                                                {case 'retired'}Jubilados
+                                                {case 'union_leave'}Permiso sindical
+                                                {default}Otro ingreso
+                                            {/switch}
+                                        {/if}
+                                    </option>
                                 {/foreach}
                             </select>
+                            <div class="form-text">El tipo del movimiento debe coincidir con el tipo de categoría seleccionado.</div>
+                        </div>
+
+                        <div class="mb-4" x-show="selectedType === 'income'" x-cloak>
+                            <label for="contributor_user_id" class="form-label fw-medium">Aportante (opcional)</label>
+                            <select name="contributor_user_id" id="contributor_user_id" class="form-select">
+                                <option value="">Seleccionar aportante...</option>
+                                {foreach $contributors as $contributor}
+                                    <option value="{$contributor->id}">
+                                        {$contributor->fullName()} ({$contributor->role->value})
+                                    </option>
+                                {/foreach}
+                            </select>
+                            <div class="form-text">Úsalo cuando el ingreso esté asociado a una persona específica (jubilado, confianza o permiso sindical).</div>
                         </div>
 
                         <div class="mb-4">

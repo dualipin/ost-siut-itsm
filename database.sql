@@ -422,17 +422,19 @@ CREATE TABLE IF NOT EXISTS transparency_permissions
 
 CREATE TABLE IF NOT EXISTS transaction_categories
 (
-    category_id INT AUTO_INCREMENT PRIMARY KEY,
-    name        VARCHAR(100)               NOT NULL,
-    type        ENUM ('income', 'expense') NOT NULL,
-    description VARCHAR(255),
-    active      BOOLEAN                    NOT NULL DEFAULT TRUE,
-    created_at  DATETIME                            DEFAULT CURRENT_TIMESTAMP,
-    updated_at  DATETIME                            DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at  DATETIME                            DEFAULT NULL,
+    category_id            INT AUTO_INCREMENT PRIMARY KEY,
+    name                   VARCHAR(100)               NOT NULL,
+    type                   ENUM ('income', 'expense') NOT NULL,
+    description            VARCHAR(255),
+    contribution_category  VARCHAR(50)                DEFAULT NULL,
+    active                 BOOLEAN                    NOT NULL DEFAULT TRUE,
+    created_at             DATETIME                            DEFAULT CURRENT_TIMESTAMP,
+    updated_at             DATETIME                            DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at             DATETIME                            DEFAULT NULL,
 
     INDEX idx_type (type),
-    INDEX idx_active (active)
+    INDEX idx_active (active),
+    INDEX idx_contribution_category (contribution_category)
 );
 
 CREATE TABLE IF NOT EXISTS cash_boxes
@@ -459,28 +461,50 @@ CREATE TABLE IF NOT EXISTS cash_boxes
 
 CREATE TABLE IF NOT EXISTS box_transactions
 (
-    transaction_id   INT AUTO_INCREMENT PRIMARY KEY,
-    box_id           INT                        NOT NULL,
-    category_id      INT                        NOT NULL,
-    created_by       INT                        NOT NULL,
-    type             ENUM ('income', 'expense') NOT NULL,
-    amount           DECIMAL(14, 2)             NOT NULL CHECK (amount > 0),
-    balance_before   DECIMAL(14, 2)             NOT NULL,
-    balance_after    DECIMAL(14, 2)             NOT NULL,
-    description      TEXT,
-    transaction_date DATE                       NOT NULL DEFAULT (CURRENT_DATE),
-    created_at       DATETIME                            DEFAULT CURRENT_TIMESTAMP,
-    updated_at       DATETIME                            DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at       DATETIME                            DEFAULT NULL,
+    transaction_id       INT AUTO_INCREMENT PRIMARY KEY,
+    box_id               INT                        NOT NULL,
+    category_id          INT                        NOT NULL,
+    contributor_user_id  INT                        DEFAULT NULL,
+    created_by           INT                        NOT NULL,
+    type                 ENUM ('income', 'expense') NOT NULL,
+    amount               DECIMAL(14, 2)             NOT NULL CHECK (amount > 0),
+    balance_before       DECIMAL(14, 2)             NOT NULL,
+    balance_after        DECIMAL(14, 2)             NOT NULL,
+    description          TEXT,
+    transaction_date     DATE                       NOT NULL DEFAULT (CURRENT_DATE),
+    created_at           DATETIME                            DEFAULT CURRENT_TIMESTAMP,
+    updated_at           DATETIME                            DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at           DATETIME                            DEFAULT NULL,
 
     CONSTRAINT fk_transaction_box FOREIGN KEY (box_id) REFERENCES cash_boxes (box_id) ON UPDATE CASCADE,
     CONSTRAINT fk_transaction_category FOREIGN KEY (category_id) REFERENCES transaction_categories (category_id) ON UPDATE CASCADE,
+    CONSTRAINT fk_transaction_contributor FOREIGN KEY (contributor_user_id) REFERENCES users (user_id) ON UPDATE CASCADE,
     CONSTRAINT fk_transaction_user FOREIGN KEY (created_by) REFERENCES users (user_id) ON UPDATE CASCADE,
 
     INDEX idx_box_id (box_id),
     INDEX idx_type (type),
     INDEX idx_transaction_date (transaction_date),
-    INDEX idx_category (category_id)
+    INDEX idx_category (category_id),
+    INDEX idx_contributor_user_id (contributor_user_id)
+);
+
+CREATE TABLE IF NOT EXISTS financial_reports
+(
+    report_id     INT AUTO_INCREMENT PRIMARY KEY,
+    box_id        INT           DEFAULT NULL,
+    generated_by  INT           NOT NULL,
+    period_start  DATE          NOT NULL,
+    period_end    DATE          NOT NULL,
+    file_path     VARCHAR(255)  NOT NULL,
+    summary_json  JSON          DEFAULT NULL,
+    created_at    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_financial_report_box FOREIGN KEY (box_id) REFERENCES cash_boxes (box_id) ON UPDATE CASCADE,
+    CONSTRAINT fk_financial_report_user FOREIGN KEY (generated_by) REFERENCES users (user_id) ON UPDATE CASCADE,
+
+    INDEX idx_financial_report_period (period_start, period_end),
+    INDEX idx_financial_report_box (box_id),
+    INDEX idx_financial_report_user (generated_by)
 );
 
 

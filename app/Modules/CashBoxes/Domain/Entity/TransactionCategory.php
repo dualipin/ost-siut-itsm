@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\CashBoxes\Domain\Entity;
 
+use App\Modules\CashBoxes\Domain\Enum\ContributionCategoryEnum;
 use App\Modules\CashBoxes\Domain\Enum\TransactionTypeEnum;
 use DateTimeImmutable;
 
@@ -14,6 +15,7 @@ final readonly class TransactionCategory
         public string $name,
         public TransactionTypeEnum $type,
         public ?string $description,
+        public ?ContributionCategoryEnum $contributionCategory,
         public bool $active,
         public DateTimeImmutable $createdAt,
         public ?DateTimeImmutable $updatedAt = null,

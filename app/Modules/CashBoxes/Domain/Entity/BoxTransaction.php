@@ -13,6 +13,7 @@ final readonly class BoxTransaction
         public int $transactionId,
         public int $boxId,
         public int $categoryId,
+        public ?int $contributorUserId,
         public int $createdBy,
         public TransactionTypeEnum $type,
         public float $amount,
