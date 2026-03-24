@@ -2,12 +2,12 @@ insert into system_colors (id)
 values (1);
 
 insert into cat_income_types (name,
-                               description,
-                               is_periodic,
-                               frequency_days,
-                               tentative_payment_month,
-                               tentative_payment_day,
-                               active)
+                              description,
+                              is_periodic,
+                              frequency_days,
+                              tentative_payment_month,
+                              tentative_payment_day,
+                              active)
 VALUES ('Nomina',
         'Ingreso por concepto de nómina',
         true,
@@ -99,3 +99,17 @@ VALUES ('Nomina',
         12,
         20,
         true);
+
+
+INSERT INTO transaction_categories (name, type, description)
+VALUES ('Venta al contado', 'income', 'Ventas directas en efectivo'),
+       ('Cobro de deudas', 'income', 'Recaudación de cuentas por cobrar'),
+       ('Reposición de fondos', 'income', 'Reposición de fondo de caja chica'),
+       ('Otros ingresos', 'income', 'Ingresos misceláneos'),
+       ('Pago a proveedores', 'expense', 'Pago a proveedores comerciales'),
+       ('Pago de servicios', 'expense', 'Pago de servicios públicos (luz, agua, etc.)'),
+       ('Compra de mercancía', 'expense', 'Compra de productos o materia prima'),
+       ('Nómina', 'expense', 'Pagos de salarios y beneficios'),
+       ('Gasto de caja chica', 'expense', 'Gastos operativos menores'),
+       ('Otros gastos', 'expense', 'Gastos misceláneos');
+

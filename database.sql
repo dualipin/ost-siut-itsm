@@ -502,7 +502,6 @@ CREATE TABLE IF NOT EXISTS box_transfers
     CONSTRAINT fk_transfer_source FOREIGN KEY (source_box_id) REFERENCES cash_boxes (box_id) ON UPDATE CASCADE,
     CONSTRAINT fk_transfer_destination FOREIGN KEY (destination_box_id) REFERENCES cash_boxes (box_id) ON UPDATE CASCADE,
     CONSTRAINT fk_transfer_user FOREIGN KEY (created_by) REFERENCES users (user_id) ON UPDATE CASCADE,
-    CONSTRAINT chk_different_boxes CHECK (source_box_id <> destination_box_id),
 
     INDEX idx_source_box (source_box_id),
     INDEX idx_destination_box (destination_box_id),
