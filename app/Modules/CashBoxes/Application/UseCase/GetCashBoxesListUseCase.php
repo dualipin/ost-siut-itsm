@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\CashBoxes\Application\UseCase;
 
+use App\Modules\CashBoxes\Domain\DTO\CashBoxFilterCriteria;
 use App\Modules\CashBoxes\Domain\Repository\CashBoxRepositoryInterface;
 use App\Shared\Context\UserProviderInterface;
 
@@ -14,10 +15,12 @@ final readonly class GetCashBoxesListUseCase
     ) {
     }
 
-    public function execute(): array
+    public function execute(?CashBoxFilterCriteria $criteria = null): array
     {
+        $criteria ??= new CashBoxFilterCriteria();
+        
         return [
-            'boxes' => $this->cashBoxRepository->findAll()
+            'boxes' => $this->cashBoxRepository->findWithFilters($criteria)
         ];
     }
 }

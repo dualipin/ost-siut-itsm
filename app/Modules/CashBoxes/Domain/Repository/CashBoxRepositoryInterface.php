@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\CashBoxes\Domain\Repository;
 
+use App\Modules\CashBoxes\Domain\DTO\CashBoxFilterCriteria;
 use App\Modules\CashBoxes\Domain\Entity\CashBox;
 use App\Modules\CashBoxes\Domain\Exception\CashBoxNotFoundException;
 
@@ -20,6 +21,11 @@ interface CashBoxRepositoryInterface
      * @return CashBox[]
      */
     public function findAll(): array;
+
+    /**
+     * @return CashBox[]
+     */
+    public function findWithFilters(CashBoxFilterCriteria $criteria): array;
 
     public function nextId(): int;
 }

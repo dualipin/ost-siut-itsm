@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\CashBoxes\Infrastructure\Persistence;
 
+use App\Modules\CashBoxes\Domain\DTO\CashBoxFilterCriteria;
 use App\Modules\CashBoxes\Domain\Entity\CashBox;
 use App\Modules\CashBoxes\Domain\Enum\BoxStatusEnum;
 use App\Modules\CashBoxes\Domain\Exception\CashBoxNotFoundException;
@@ -67,6 +68,54 @@ final readonly class PdoCashBoxRepository implements CashBoxRepositoryInterface
     public function findAll(): array
     {
         $stmt = $this->pdo->query('SELECT * FROM cash_boxes WHERE deleted_at IS NULL ORDER BY created_at DESC');
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return array_map(fn($row) => $this->hydrate($row), $rows);
+    }
+
+    public function findWithFilters(CashBoxFilterCriteria $criteria): array
+    {
+        $where = ['deleted_at IS NULL'];
+        $params = [];
+
+        if ($criteria->name !== null) {
+            $where[] = 'name LIKE :name';
+            $params['name'] = '%' . $criteria->name . '%';
+        }
+
+        if ($criteria->status !== null) {
+            $where[] = 'status = :status';
+            $params['status'] = $criteria->status->value;
+        }
+
+        if ($criteria->minInitialBalance !== null) {
+            $where[] = 'initial_balance >= :min_initial';
+            $params['min_initial'] = $criteria->minInitialBalance;
+        }
+
+        if ($criteria->maxInitialBalance !== null) {
+            $where[] = 'initial_balance <= :max_initial';
+            $params['max_initial'] = $criteria->maxInitialBalance;
+        }
+
+        if ($criteria->minCurrentBalance !== null) {
+            $where[] = 'current_balance >= :min_current';
+            $params['min_current'] = $criteria->minCurrentBalance;
+        }
+
+        if ($criteria->maxCurrentBalance !== null) {
+            $where[] = 'current_balance <= :max_current';
+            $params['max_current'] = $criteria->maxCurrentBalance;
+        }
+
+        $validSortFields = ['name', 'status', 'initial_balance', 'current_balance', 'created_at', 'updated_at'];
+        $sortBy = in_array($criteria->sortBy, $validSortFields) ? $criteria->sortBy : 'created_at';
+        $sortOrder = strtoupper($criteria->sortOrder) === 'ASC' ? 'ASC' : 'DESC';
+
+        $sql = 'SELECT * FROM cash_boxes WHERE ' . implode(' AND ', $where) . ' ORDER BY ' . $sortBy . ' ' . $sortOrder;
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         return array_map(fn($row) => $this->hydrate($row), $rows);
