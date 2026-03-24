@@ -9,14 +9,20 @@
         icon: 'bi-plus-circle'
     }
 
-    <div class="row justify-content-center">
+    <div class="row g-4 align-items-start">
         <div class="col-12 col-lg-8">
-            <section class="bg-white shadow-sm border rounded-4 p-4 p-md-5">
-                <form action="{url('/portal/cajas/movimientos/create.php')}" method="POST" enctype="multipart/form-data">
-                        
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-0 pt-4 pb-0 px-4 px-md-5">
+                    <h2 class="h5 mb-1">Datos del movimiento</h2>
+                    <p class="text-muted small mb-0">Completa la información para registrar correctamente la transacción.</p>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <form action="{url('/portal/cajas/movimientos/create.php')}" method="POST" enctype="multipart/form-data">
+
                         <div class="mb-4">
                             <label for="box_id" class="form-label fw-medium">Caja de Origen/Destino</label>
-                            <select name="box_id" id="box_id" class="form-select bg-light border-0" required>
+                            <select name="box_id" id="box_id" class="form-select" required>
                                 {foreach $boxes as $box}
                                     <option value="{$box->boxId}" {if $box->boxId === $selectedBoxId}selected{/if}>
                                         {$box->name} (Saldo: ${$box->currentBalance|number:2, '.', ','} {$box->currency})
@@ -29,7 +35,7 @@
                         <div class="row g-4 mb-4">
                             <div class="col-md-6">
                                 <label for="type" class="form-label fw-medium">Tipo de Movimiento</label>
-                                <select name="type" id="type" class="form-select bg-light border-0" required>
+                                <select name="type" id="type" class="form-select" required>
                                     <option value="income">Ingreso (+)</option>
                                     <option value="expense">Egreso (-)</option>
                                 </select>
@@ -37,15 +43,15 @@
                             <div class="col-md-6">
                                 <label for="amount" class="form-label fw-medium">Monto</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-light border-0">$</span>
-                                    <input type="number" step="0.01" min="0.01" name="amount" id="amount" class="form-control bg-light border-0" placeholder="0.00" required>
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" step="0.01" min="0.01" name="amount" id="amount" class="form-control" placeholder="0.00" required>
                                 </div>
                             </div>
                         </div>
 
                         <div class="mb-4">
                             <label for="category_id" class="form-label fw-medium">Categoría</label>
-                            <select name="category_id" id="category_id" class="form-select bg-light border-0" required>
+                            <select name="category_id" id="category_id" class="form-select" required>
                                 <option value="" disabled selected>Selecciona una categoría</option>
                                 {foreach $categories as $category}
                                     <option value="{$category->categoryId}">{$category->name}</option>
@@ -55,23 +61,57 @@
 
                         <div class="mb-4">
                             <label for="description" class="form-label fw-medium">Descripción / Notas</label>
-                            <textarea name="description" id="description" class="form-control bg-light border-0" rows="3" placeholder="Detalles adicionales sobre esta transacción..." required></textarea>
+                            <textarea name="description" id="description" class="form-control" rows="3" placeholder="Detalles adicionales sobre esta transacción..." required></textarea>
                         </div>
 
-                        <div class="mb-5">
+                        <div class="mb-4">
                             <label for="attachments" class="form-label fw-medium">Archivos Adjuntos <span class="text-muted fw-normal">(Opcional)</span></label>
-                            <input type="file" name="attachments[]" id="attachments" class="form-control bg-light border-0" accept="image/jpeg,image/png,image/webp,application/pdf" multiple>
-                            <div class="form-text">Puedes adjuntar varios recibos, facturas o comprobantes (PDF o Imagen).</div>
+                            <input type="file" name="attachments[]" id="attachments" class="form-control" accept="image/jpeg,image/png,image/webp,application/pdf" multiple>
+                            <div class="form-text">Puedes adjuntar varios recibos, facturas o comprobantes (PDF o imagen).</div>
                         </div>
 
-                        <div class="d-flex justify-content-end gap-3 border-top pt-4">
-                            <a href="{url('/portal/cajas/movimientos.php')}?box_id={$selectedBoxId}" class="btn btn-light rounded-pill px-4">Cancelar</a>
+                        <div class="d-flex justify-content-end gap-2 border-top pt-4 mt-4">
+                            <a href="{url('/portal/cajas/movimientos.php')}?box_id={$selectedBoxId}" class="btn btn-outline-primary rounded-pill px-4">Cancelar</a>
                             <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">
                                 <i class="bi bi-save me-2"></i>Registrar Movimiento
                             </button>
                         </div>
-                </form>
-            </section>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h3 class="h6 mb-0">Resumen rápido</h3>
+                </div>
+                <div class="card-body pt-0">
+                    <div class="small text-muted mb-2">Caja seleccionada</div>
+                    <div class="fw-semibold mb-3">
+                        {foreach $boxes as $box}
+                            {if $box->boxId === $selectedBoxId}
+                                {$box->name}
+                            {/if}
+                        {/foreach}
+                    </div>
+
+                    <ul class="list-group list-group-flush small">
+                        <li class="list-group-item px-0 py-3 border-light">
+                            <div class="text-muted text-uppercase fw-semibold mb-1">Tipos</div>
+                            <div>Ingreso para entradas de dinero y egreso para salidas.</div>
+                        </li>
+                        <li class="list-group-item px-0 py-3 border-light">
+                            <div class="text-muted text-uppercase fw-semibold mb-1">Adjuntos</div>
+                            <div>PDF, JPG, PNG y WEBP. Puedes cargar varios archivos.</div>
+                        </li>
+                        <li class="list-group-item px-0 py-3 border-light border-0">
+                            <div class="text-muted text-uppercase fw-semibold mb-1">Recomendación</div>
+                            <div>Describe el movimiento con suficiente detalle para auditoría interna.</div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 </div>
