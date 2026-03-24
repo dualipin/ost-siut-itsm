@@ -467,7 +467,6 @@ CREATE TABLE IF NOT EXISTS box_transactions
     amount           DECIMAL(14, 2)             NOT NULL CHECK (amount > 0),
     balance_before   DECIMAL(14, 2)             NOT NULL,
     balance_after    DECIMAL(14, 2)             NOT NULL,
-    reference_number VARCHAR(100), -- invoice, receipt, folio, etc.
     description      TEXT,
     transaction_date DATE                       NOT NULL DEFAULT (CURRENT_DATE),
     created_at       DATETIME                            DEFAULT CURRENT_TIMESTAMP,
@@ -481,8 +480,22 @@ CREATE TABLE IF NOT EXISTS box_transactions
     INDEX idx_box_id (box_id),
     INDEX idx_type (type),
     INDEX idx_transaction_date (transaction_date),
-    INDEX idx_reference (reference_number),
     INDEX idx_category (category_id)
+);
+
+
+CREATE TABLE IF NOT EXISTS box_transaction_attachments
+(
+    attachment_id  INT AUTO_INCREMENT PRIMARY KEY,
+    transaction_id INT          NOT NULL,
+    file_path      VARCHAR(255) NOT NULL,
+    mime_type      VARCHAR(100) NOT NULL,
+    description    VARCHAR(255),
+    uploaded_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_attachment_transaction FOREIGN KEY (transaction_id) REFERENCES box_transactions (transaction_id) ON DELETE CASCADE,
+
+    INDEX idx_transaction (transaction_id)
 );
 
 CREATE TABLE IF NOT EXISTS box_transfers

@@ -7,6 +7,7 @@ namespace App\Modules\CashBoxes;
 use App\Modules\AbstractModule;
 use App\Modules\CashBoxes\Application\UseCase\CloseCashBoxUseCase;
 use App\Modules\CashBoxes\Application\UseCase\CreateCashBoxUseCase;
+use App\Modules\CashBoxes\Application\UseCase\CreateCategoryUseCase;
 use App\Modules\CashBoxes\Application\UseCase\GetCashBoxDetailUseCase;
 use App\Modules\CashBoxes\Application\UseCase\GetCashBoxesListUseCase;
 use App\Modules\CashBoxes\Application\UseCase\GetCategoriesListUseCase;
@@ -32,6 +33,7 @@ final class CashBoxesModule extends AbstractModule
     protected const array USE_CASES = [
         CloseCashBoxUseCase::class,
         CreateCashBoxUseCase::class,
+        CreateCategoryUseCase::class,
         GetCashBoxDetailUseCase::class,
         GetCashBoxesListUseCase::class,
         GetCategoriesListUseCase::class,

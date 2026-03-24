@@ -35,7 +35,7 @@ final readonly class PdoCashBoxRepository implements CashBoxRepositoryInterface
         $stmt = $this->pdo->prepare('
             INSERT INTO cash_boxes (
                 box_id, created_by, name, description, currency, 
-                initial_balance, current_balance, status, created_at, updatedAt, deleted_at
+                initial_balance, current_balance, status, created_at, updated_at, deleted_at
             ) VALUES (
                 :box_id, :created_by, :name, :description, :currency,
                 :initial_balance, :current_balance, :status, :created_at, :updated_at, :deleted_at

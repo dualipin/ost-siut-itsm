@@ -15,9 +15,9 @@
                 <option value="{$box->boxId}" {if $box->boxId === $selectedBoxId}selected{/if}>{$box->name} ({$box->currency})</option>
             {/foreach}
         </select>
-        <button class="btn btn-primary rounded-pill px-4 shadow-sm" @click="$dispatch('open-modal-transaction', { boxId: selectedBox })">
+        <a href="{url('/portal/cajas/movimientos/nuevo.php')}?box_id={$selectedBoxId}" class="btn btn-primary rounded-pill px-4 shadow-sm">
             <i class="bi bi-plus-lg me-2"></i>Nueva Transacción
-        </button>
+        </a>
     </div>
 
     <div class="row g-4">
@@ -82,6 +82,11 @@
                                         <div class="text-dark small">{$tx->description ?: '-'}</div>
                                         {if $tx->referenceNumber}
                                             <div class="text-muted" style="font-size: 0.75rem;">Ref: {$tx->referenceNumber}</div>
+                                        {/if}
+                                        {if $tx->attachment}
+                                            <a href="{url($tx->attachment)}" target="_blank" class="text-secondary small mt-1 d-inline-block">
+                                                <i class="bi bi-paperclip"></i> Adjunto
+                                            </a>
                                         {/if}
                                     </td>
                                     <td>

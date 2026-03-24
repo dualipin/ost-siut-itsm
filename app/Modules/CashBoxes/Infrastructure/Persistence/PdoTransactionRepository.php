@@ -23,11 +23,11 @@ final readonly class PdoTransactionRepository implements TransactionRepositoryIn
             INSERT INTO box_transactions (
                 box_id, category_id, created_by, type, amount,
                 balance_before, balance_after, reference_number, description,
-                transaction_date, created_at, updated_at, deleted_at
+                transaction_date, created_at, attachment, updated_at, deleted_at
             ) VALUES (
                 :box_id, :category_id, :created_by, :type, :amount,
                 :balance_before, :balance_after, :reference_number, :description,
-                :transaction_date, :created_at, :updated_at, :deleted_at
+                :transaction_date, :created_at, :attachment, :updated_at, :deleted_at
             )
         ');
         
@@ -45,6 +45,7 @@ final readonly class PdoTransactionRepository implements TransactionRepositoryIn
             'description' => $transaction->description,
             'transaction_date' => $transaction->transactionDate->format('Y-m-d'),
             'created_at' => $transaction->createdAt->format('Y-m-d H:i:s'),
+            'attachment' => $transaction->attachment,
             'updated_at' => $transaction->updatedAt?->format('Y-m-d H:i:s'),
             'deleted_at' => $transaction->deletedAt?->format('Y-m-d H:i:s'),
         ]);
@@ -100,6 +101,7 @@ final readonly class PdoTransactionRepository implements TransactionRepositoryIn
                 description: $row['description'],
                 transactionDate: new DateTimeImmutable($row['transaction_date']),
                 createdAt: new DateTimeImmutable($row['created_at']),
+                attachment: $row['attachment'] ?? null,
                 updatedAt: $row['updated_at'] ? new DateTimeImmutable($row['updated_at']) : null,
                 deletedAt: $row['deleted_at'] ? new DateTimeImmutable($row['deleted_at']) : null,
             );

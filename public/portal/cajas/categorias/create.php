@@ -3,7 +3,7 @@
 use App\Bootstrap;
 use App\Http\Middleware\MiddlewareFactory;
 use App\Http\Middleware\MiddlewareRunner;
-use App\Modules\CashBoxes\Application\UseCase\UpdateCategoryUseCase;
+use App\Modules\CashBoxes\Application\UseCase\CreateCategoryUseCase;
 use App\Shared\Domain\Enum\RoleEnum;
 use App\Shared\Utils\UrlBuilder;
 
@@ -23,21 +23,14 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$id = (int)($_POST['category_id'] ?? 0);
-
-if ($id <= 0) {
-    header("Location: " . $urlBuilder->to('/portal/cajas/categorias.php', ['error' => 'ID de categoría inválido']));
-    exit;
-}
-
 $name = $_POST['name'] ?? '';
 $description = $_POST['description'] ?? null;
 $type = $_POST['type'] ?? 'expense';
 $active = isset($_POST['active']) && $_POST['active'] === '1';
 
 try {
-    $useCase = $container->get(UpdateCategoryUseCase::class);
-    $useCase->execute($id, $name, $description, $type, $active);
+    $useCase = $container->get(CreateCategoryUseCase::class);
+    $useCase->execute($name, $description, $type, $active);
     
     header("Location: " . $urlBuilder->to('/portal/cajas/categorias.php', ['success' => 1]));
 } catch (Exception $e) {

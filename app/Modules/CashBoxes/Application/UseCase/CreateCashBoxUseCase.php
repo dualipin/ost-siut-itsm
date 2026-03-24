@@ -28,6 +28,10 @@ final readonly class CreateCashBoxUseCase
             throw new InvalidArgumentException("Initial balance cannot be negative.");
         }
 
+        if ($currency !== 'MXN') {
+            throw new InvalidArgumentException("Only MXN currency is allowed.");
+        }
+
         $now = new DateTimeImmutable();
 
         $box = new CashBox(

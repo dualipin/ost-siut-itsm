@@ -22,6 +22,7 @@ final readonly class BoxTransaction
         public ?string $description,
         public DateTimeImmutable $transactionDate,
         public DateTimeImmutable $createdAt,
+        public ?string $attachment = null,
         public ?DateTimeImmutable $updatedAt = null,
         public ?DateTimeImmutable $deletedAt = null,
     ) {
