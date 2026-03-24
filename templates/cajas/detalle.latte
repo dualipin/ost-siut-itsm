@@ -10,12 +10,12 @@
     }
 
     <div class="d-flex justify-content-end align-items-center mb-4 gap-2">
-        <button class="btn btn-outline-primary rounded-pill px-4 shadow-sm" @click="$dispatch('open-modal-edit-box', { id: {$box->boxId} })">
+        <button class="btn btn-outline-primary rounded-pill px-4 shadow-sm" @click="$dispatch('open-modal-edit-box', { id: {$box->boxId}, name: {=json_encode($box->name)}, description: {=json_encode($box->description)} })">
             <i class="bi bi-pencil me-2"></i>Editar
         </button>
-        <button class="btn btn-primary rounded-pill px-4 shadow-sm" @click="$dispatch('open-modal-transaction', { boxId: {$box->boxId} })">
+        <a href="{url('/portal/cajas/movimientos/nuevo.php')}?box_id={$box->boxId}" class="btn btn-primary rounded-pill px-4 shadow-sm">
             <i class="bi bi-plus-lg me-2"></i>Nueva Transacción
-        </button>
+        </a>
     </div>
 
     <div class="row g-4">
@@ -116,6 +116,5 @@
 {/block}
 
 {block modals}
-    {include 'components/form-modal-transaction.latte'}
     {include 'components/form-modal-edit-box.latte'}
 {/block}

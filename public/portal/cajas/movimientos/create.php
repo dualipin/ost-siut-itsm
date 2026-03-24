@@ -35,37 +35,61 @@ $boxId = (int)($_POST['box_id'] ?? 0);
 $categoryId = (int)($_POST['category_id'] ?? 0);
 $type = $_POST['type'] ?? '';
 $amount = (float)($_POST['amount'] ?? 0.0);
-$referenceNumber = empty($_POST['reference_number']) ? null : $_POST['reference_number'];
 $description = empty($_POST['description']) ? null : $_POST['description'];
 
-$attachmentPath = null;
-if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
+$attachmentPaths = [];
+if (isset($_FILES['attachments']) && is_array($_FILES['attachments']['error'])) {
     $uploadDir = __DIR__ . '/../../../../public/uploads/cajas/movimientos/';
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0755, true);
     }
-    
-    $finfo = new finfo(FILEINFO_MIME_TYPE);
-    $mimeType = $finfo->file($_FILES['attachment']['tmp_name']);
+
     $allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
-    
-    if (in_array($mimeType, $allowedMimes)) {
-        $extension = pathinfo($_FILES['attachment']['name'], PATHINFO_EXTENSION);
-        $filename = uniqid('tx_') . '.' . $extension;
-        $destination = $uploadDir . $filename;
-        
-        if (move_uploaded_file($_FILES['attachment']['tmp_name'], $destination)) {
-            $attachmentPath = '/uploads/cajas/movimientos/' . $filename;
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+
+    foreach ($_FILES['attachments']['error'] as $index => $errorCode) {
+        if ($errorCode === UPLOAD_ERR_NO_FILE) {
+            continue;
         }
-    } else {
-        header("Location: " . $urlBuilder->to('/portal/cajas/movimientos.php', ['box_id' => $boxId, 'error' => 'Tipo de archivo adjunto no permitido. Solo se permiten imágenes (JPEG, PNG, WEBP) o PDF.']));
-        exit;
+
+        if ($errorCode !== UPLOAD_ERR_OK) {
+            header("Location: " . $urlBuilder->to('/portal/cajas/movimientos.php', ['box_id' => $boxId, 'error' => 'No se pudo subir uno de los archivos adjuntos.']));
+            exit;
+        }
+
+        $tmpName = $_FILES['attachments']['tmp_name'][$index] ?? null;
+        $originalName = $_FILES['attachments']['name'][$index] ?? '';
+
+        if (!is_string($tmpName) || $tmpName === '' || !is_uploaded_file($tmpName)) {
+            continue;
+        }
+
+        $mimeType = $finfo->file($tmpName);
+        if (!in_array($mimeType, $allowedMimes, true)) {
+            header("Location: " . $urlBuilder->to('/portal/cajas/movimientos.php', ['box_id' => $boxId, 'error' => 'Tipo de archivo adjunto no permitido. Solo se permiten imágenes (JPEG, PNG, WEBP) o PDF.']));
+            exit;
+        }
+
+        $extension = strtolower((string) pathinfo($originalName, PATHINFO_EXTENSION));
+        if ($extension === '') {
+            $extension = $mimeType === 'application/pdf' ? 'pdf' : 'jpg';
+        }
+
+        $filename = uniqid('tx_', true) . '_' . $index . '.' . $extension;
+        $destination = $uploadDir . $filename;
+
+        if (!move_uploaded_file($tmpName, $destination)) {
+            header("Location: " . $urlBuilder->to('/portal/cajas/movimientos.php', ['box_id' => $boxId, 'error' => 'No se pudo guardar uno de los archivos adjuntos.']));
+            exit;
+        }
+
+        $attachmentPaths[] = '/uploads/cajas/movimientos/' . $filename;
     }
 }
 
 try {
     $useCase = $container->get(RecordTransactionUseCase::class);
-    $useCase->execute($boxId, $categoryId, $user->id, $type, $amount, $referenceNumber, $description, $attachmentPath);
+    $useCase->execute($boxId, $categoryId, $user->id, $type, $amount, $description, $attachmentPaths);
     
     // Redirect back to either the details of the box or movimientos depending on where it came from... 
     // Here we'll just redirect to movimientos since it's the safest single view for transactions.

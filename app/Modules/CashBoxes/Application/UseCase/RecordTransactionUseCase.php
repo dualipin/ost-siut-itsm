@@ -35,9 +35,8 @@ final readonly class RecordTransactionUseCase
         int $createdBy,
         string $type,
         float $amount,
-        ?string $referenceNumber = null,
         ?string $description = null,
-        ?string $attachment = null
+        array $attachments = []
     ): void {
         if ($amount <= 0) {
             throw new InvalidArgumentException("Amount must be greater than zero.");
@@ -51,9 +50,8 @@ final readonly class RecordTransactionUseCase
             $createdBy,
             $typeEnum,
             $amount,
-            $referenceNumber,
             $description,
-            $attachment
+            $attachments
         ) {
             $box = $this->cashBoxRepository->findById($boxId);
             
@@ -82,11 +80,11 @@ final readonly class RecordTransactionUseCase
                 amount: $amount,
                 balanceBefore: $balanceBefore,
                 balanceAfter: $balanceAfter,
-                referenceNumber: $referenceNumber,
                 description: $description,
                 transactionDate: $now,
                 createdAt: $now,
-                attachment: $attachment
+                attachments: $attachments,
+                attachment: $attachments[0] ?? null
             );
 
             $updatedBox = new CashBox(

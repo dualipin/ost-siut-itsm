@@ -4,12 +4,8 @@
     boxDesc: '',
     openModal(event) {
         this.boxId = event.detail.id;
-        // The detailed page has the box var available
-        const currentBox = {json_encode($box)|noescape};
-        if(currentBox && currentBox.boxId === this.boxId) {
-            this.boxName = currentBox.name;
-            this.boxDesc = currentBox.description || '';
-        }
+        this.boxName = event.detail.name;
+        this.boxDesc = event.detail.description || '';
         const modal = new bootstrap.Modal(document.getElementById('editBoxModal'));
         modal.show();
     }
