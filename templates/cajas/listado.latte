@@ -63,12 +63,9 @@
                                     </td>
                                     <td class="px-4 text-end">
                                         <div class="btn-group shadow-sm rounded-3">
-                                            <a href="{url('/portal/cajas/detalle.php?id=' . $box->boxId)}" class="btn btn-sm btn-white border-end" title="Ver detalle">
-                                                <i class="bi bi-eye"></i>
+                                            <a href="{url('/portal/cajas/detalle.php?id=' . $box->boxId)}" class="btn btn-white border-end px-3 py-2" title="Ver detalle">
+                                                <i class="bi bi-eye fs-5"></i>
                                             </a>
-                                            <button type="button" class="btn btn-sm btn-white" title="Nueva transacción" @click="$dispatch('open-modal-transaction', { boxId: {$box->boxId} })">
-                                                <i class="bi bi-plus-circle text-primary"></i>
-                                            </button>
                                         </div>
                                     </td>
                                 </tr>
