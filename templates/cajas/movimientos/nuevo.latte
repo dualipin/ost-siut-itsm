@@ -64,10 +64,48 @@
                             <textarea name="description" id="description" class="form-control" rows="3" placeholder="Detalles adicionales sobre esta transacción..." required></textarea>
                         </div>
 
-                        <div class="mb-4">
-                            <label for="attachments" class="form-label fw-medium">Archivos Adjuntos <span class="text-muted fw-normal">(Opcional)</span></label>
-                            <input type="file" name="attachments[]" id="attachments" class="form-control" accept="image/jpeg,image/png,image/webp,application/pdf" multiple>
-                            <div class="form-text">Puedes adjuntar varios recibos, facturas o comprobantes (PDF o imagen).</div>
+                        <div class="mb-4" x-data="{
+                            attachmentInputs: [0],
+                            nextAttachmentId: 1,
+                            addAttachment() {
+                                this.attachmentInputs.push(this.nextAttachmentId++);
+                            },
+                            removeAttachment(index) {
+                                if (this.attachmentInputs.length === 1) {
+                                    return;
+                                }
+
+                                this.attachmentInputs.splice(index, 1);
+                            }
+                        }">
+                            <label class="form-label fw-medium">Archivos Adjuntos <span class="text-muted fw-normal">(Opcional)</span></label>
+
+                            <template x-for="(inputId, index) in attachmentInputs" :key="inputId">
+                                <div class="d-flex gap-2 mb-2 align-items-start">
+                                    <input
+                                        type="file"
+                                        name="attachments[]"
+                                        class="form-control"
+                                        :id="'attachment_' + inputId"
+                                        accept="image/jpeg,image/png,image/webp,application/pdf"
+                                    >
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-danger"
+                                        @click="removeAttachment(index)"
+                                        :disabled="attachmentInputs.length === 1"
+                                        aria-label="Quitar archivo"
+                                    >
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </template>
+
+                            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill" @click="addAttachment()">
+                                <i class="bi bi-plus-lg me-1"></i>Agregar otro archivo
+                            </button>
+
+                            <div class="form-text mt-2">Agrega los comprobantes uno por uno y se enviarán todos al guardar el movimiento.</div>
                         </div>
 
                         <div class="d-flex justify-content-end gap-2 border-top pt-4 mt-4">
