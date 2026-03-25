@@ -1,0 +1,51 @@
+<div class="modal fade" id="newBoxModal" tabindex="-1" aria-hidden="true" x-data="{
+    openModal() {
+        const modal = bootstrap.Modal.getOrCreateInstance($el);
+        modal.show();
+    }
+}" @open-modal-new-box.window="openModal()">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <form action="{url('/portal/cajas/create.php')}" method="POST">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">Nueva Caja de Efectivo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Nombre</label>
+                        <input type="text" name="name" class="form-control rounded-3" required placeholder="Ej. Caja General">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Moneda</label>
+                        <div class="d-flex align-items-center bg-light p-2 rounded-3 border">
+                            <i class="bi bi-cash me-2 text-primary"></i>
+                            <span class="fw-bold text-dark">MXN</span>
+                            <span class="ms-2 small text-muted">- Peso Mexicano</span>
+                            <input type="hidden" name="currency" value="MXN">
+                        </div>
+                        <div class="form-text mt-1 small text-muted">Esta caja operará exclusivamente en pesos mexicanos.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Saldo Inicial</label>
+                        <div class="input-group">
+                            <span class="input-group-text border-end-0 bg-transparent">$</span>
+                            <input type="number" name="initial_balance" class="form-control rounded-end-3 border-start-0 ps-0" step="0.01" min="0" value="0.00" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Descripción</label>
+                        <textarea name="description" class="form-control rounded-3" rows="2" placeholder="Propósito de esta caja..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">Crear Caja</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

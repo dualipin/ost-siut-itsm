@@ -2,12 +2,12 @@ insert into system_colors (id)
 values (1);
 
 insert into cat_income_types (name,
-                               description,
-                               is_periodic,
-                               frequency_days,
-                               tentative_payment_month,
-                               tentative_payment_day,
-                               active)
+                              description,
+                              is_periodic,
+                              frequency_days,
+                              tentative_payment_month,
+                              tentative_payment_day,
+                              active)
 VALUES ('Nomina',
         'Ingreso por concepto de nómina',
         true,
@@ -99,3 +99,19 @@ VALUES ('Nomina',
         12,
         20,
         true);
+
+
+INSERT INTO transaction_categories (name, type, description, contribution_category)
+VALUES ('Cuota Ordinaria', 'income', 'Descuento quincenal aplicado por el patrón a agremiados activos.', 'ordinary'),
+       ('Cuota Extraordinaria', 'income', 'Aportaciones adicionales autorizadas por la asamblea o comité.', 'extraordinary'),
+       ('Aportación Personal de Confianza', 'income', 'Transferencia voluntaria de personal de confianza.', 'trust_staff'),
+       ('Cuota Personal Jubilado', 'income', 'Aportación voluntaria de personal jubilado.', 'retired'),
+       ('Cuota de Permiso Sindical', 'income', 'Aportación de agremiados con permiso sindical.', 'union_leave'),
+       ('Otros ingresos', 'income', 'Ingresos no clasificados en cuotas estándar.', 'other'),
+       ('Servicios jurídicos', 'expense', 'Pago de asesoría y representación legal del sindicato.', NULL),
+       ('Aportación SNES', 'expense', 'Cuota o aportación institucional al SNES.', NULL),
+       ('Mantenimiento de oficina', 'expense', 'Limpieza, reparaciones y mantenimiento general de oficina.', NULL),
+       ('Apoyos de solidaridad', 'expense', 'Apoyos por enfermedad, fallecimiento u otras contingencias.', NULL),
+       ('Eventos sindicales', 'expense', 'Gastos de convivencias y actividades institucionales.', NULL),
+       ('Otros gastos', 'expense', 'Egresos no clasificados en categorías predefinidas.', NULL);
+

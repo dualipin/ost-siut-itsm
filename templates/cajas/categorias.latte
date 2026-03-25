@@ -1,0 +1,295 @@
+{layout '../@portal.latte'}
+
+{block main}
+<div class="container-fluid py-4">
+
+    {include '../components/header-page.latte',
+        title: 'Categorías',
+        description: 'Gestiona los tipos de transacciones de entrada y salida.',
+        icon: 'bi-tags'
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div style="flex: 1;"></div>
+        <button class="btn btn-primary rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#createCategoryModal">
+            <i class="bi bi-tag me-2"></i>Nueva Categoría
+        </button>
+    </div>
+
+    <!-- Filtros -->
+    <div class="row g-3 mb-4">
+        <form method="GET" class="w-100">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" name="name" class="form-control rounded-3" placeholder="Buscar por nombre..." value="{$filters['name']}">
+                </div>
+                <div class="col-md-3">
+                    <select name="type" class="form-select rounded-3">
+                        <option value="">Todos los tipos</option>
+                        <option value="income" {if $filters['type'] === 'income'}selected{/if}>Ingreso</option>
+                        <option value="expense" {if $filters['type'] === 'expense'}selected{/if}>Egreso</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="status" class="form-select rounded-3">
+                        <option value="">Todos los estados</option>
+                        <option value="active" {if $filters['status'] === 'active'}selected{/if}>Activas</option>
+                        <option value="inactive" {if $filters['status'] === 'inactive'}selected{/if}>Inactivas</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="contribution_category" class="form-select rounded-3">
+                        <option value="">Subtipo (ingresos)</option>
+                        <option value="ordinary" {if $filters['contributionCategory'] === 'ordinary'}selected{/if}>Cuota ordinaria</option>
+                        <option value="extraordinary" {if $filters['contributionCategory'] === 'extraordinary'}selected{/if}>Cuota extraordinaria</option>
+                        <option value="trust_staff" {if $filters['contributionCategory'] === 'trust_staff'}selected{/if}>Personal de confianza</option>
+                        <option value="retired" {if $filters['contributionCategory'] === 'retired'}selected{/if}>Jubilados</option>
+                        <option value="union_leave" {if $filters['contributionCategory'] === 'union_leave'}selected{/if}>Permiso sindical</option>
+                        <option value="other" {if $filters['contributionCategory'] === 'other'}selected{/if}>Otro ingreso</option>
+                    </select>
+                </div>
+                <div class="col-md-12 col-lg-12 d-flex gap-2">
+                    <button type="submit" class="btn btn-outline-primary rounded-3 w-100">
+                        <i class="bi bi-funnel me-1"></i>Filtrar
+                    </button>
+                    <a href="{url('/portal/cajas/categorias.php')}" class="btn btn-outline-secondary rounded-3 p-0 px-2  d-flex align-items-center justify-content-center">
+                        <i class="bi bi-x fs-4"></i>
+                    </a>
+                </div>
+            </div>
+            <input type="hidden" name="sortBy" value="{$filters['sortBy']}">
+            <input type="hidden" name="sortOrder" value="{$filters['sortOrder']}">
+        </form>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light text-muted small text-uppercase">
+                                <tr>
+                                    <th class="px-4 py-3 border-0 cursor-pointer">
+                                        <form method="GET" style="display: inline;" x-data="">
+                                            <input type="hidden" name="name" value="{$filters['name']}">
+                                            <input type="hidden" name="type" value="{$filters['type']}">
+                                            <input type="hidden" name="status" value="{$filters['status']}">
+                                            <input type="hidden" name="contribution_category" value="{$filters['contributionCategory']}">
+                                            <input type="hidden" name="sortBy" value="name">
+                                            <input type="hidden" name="sortOrder" value="{$filters['sortBy'] === 'name' && $filters['sortOrder'] === 'ASC' ? 'DESC' : 'ASC'}">
+                                            <button type="submit" class="btn btn-link text-muted text-decoration-none p-0">
+                                                Nombre
+                                                {if $filters['sortBy'] === 'name'}
+                                                    <i class="bi bi-arrow-{$filters['sortOrder'] === 'ASC' ? 'up' : 'down'} ms-1"></i>
+                                                {/if}
+                                            </button>
+                                        </form>
+                                    </th>
+                                    <th class="py-3 border-0 cursor-pointer">
+                                        <form method="GET" style="display: inline;">
+                                            <input type="hidden" name="name" value="{$filters['name']}">
+                                            <input type="hidden" name="type" value="{$filters['type']}">
+                                            <input type="hidden" name="status" value="{$filters['status']}">
+                                            <input type="hidden" name="contribution_category" value="{$filters['contributionCategory']}">
+                                            <input type="hidden" name="sortBy" value="type">
+                                            <input type="hidden" name="sortOrder" value="{$filters['sortBy'] === 'type' && $filters['sortOrder'] === 'ASC' ? 'DESC' : 'ASC'}">
+                                            <button type="submit" class="btn btn-link text-muted text-decoration-none p-0">
+                                                Tipo
+                                                {if $filters['sortBy'] === 'type'}
+                                                    <i class="bi bi-arrow-{$filters['sortOrder'] === 'ASC' ? 'up' : 'down'} ms-1"></i>
+                                                {/if}
+                                            </button>
+                                        </form>
+                                    </th>
+                                    <th class="py-3 border-0">Descripción</th>
+                                    <th class="py-3 border-0">Subtipo de cuota</th>
+                                    <th class="py-3 border-0 cursor-pointer">
+                                        <form method="GET" style="display: inline;">
+                                            <input type="hidden" name="name" value="{$filters['name']}">
+                                            <input type="hidden" name="type" value="{$filters['type']}">
+                                            <input type="hidden" name="status" value="{$filters['status']}">
+                                            <input type="hidden" name="contribution_category" value="{$filters['contributionCategory']}">
+                                            <input type="hidden" name="sortBy" value="active">
+                                            <input type="hidden" name="sortOrder" value="{$filters['sortBy'] === 'active' && $filters['sortOrder'] === 'ASC' ? 'DESC' : 'ASC'}">
+                                            <button type="submit" class="btn btn-link text-muted text-decoration-none p-0">
+                                                Estado
+                                                {if $filters['sortBy'] === 'active'}
+                                                    <i class="bi bi-arrow-{$filters['sortOrder'] === 'ASC' ? 'up' : 'down'} ms-1"></i>
+                                                {/if}
+                                            </button>
+                                        </form>
+                                    </th>
+                                    <th class="px-4 py-3 border-0 text-end">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {foreach $categories as $cat}
+                                <tr>
+                                    <td class="px-4 py-3 fw-bold text-dark">{$cat->name}</td>
+                                    <td>
+                                        {if $cat->type->value === 'income'}
+                                            <span class="badge bg-success-subtle text-success px-3">Ingreso</span>
+                                        {else}
+                                            <span class="badge bg-danger-subtle text-danger px-3">Egreso</span>
+                                        {/if}
+                                    </td>
+                                    <td>
+                                        <span class="text-muted small">{$cat->description ?: '-'}</span>
+                                    </td>
+                                    <td>
+                                        {if $cat->contributionCategory}
+                                            <span class="badge bg-primary-subtle text-primary px-3">
+                                                {switch $cat->contributionCategory->value}
+                                                    {case 'ordinary'}Cuota ordinaria
+                                                    {case 'extraordinary'}Cuota extraordinaria
+                                                    {case 'trust_staff'}Personal de confianza
+                                                    {case 'retired'}Jubilados
+                                                    {case 'union_leave'}Permiso sindical
+                                                    {default}Otro ingreso
+                                                {/switch}
+                                            </span>
+                                        {else}
+                                            <span class="text-muted small">No aplica</span>
+                                        {/if}
+                                    </td>
+                                    <td>
+                                        {if $cat->active}
+                                            <span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>Activa</span>
+                                        {else}
+                                            <span class="text-muted"><i class="bi bi-dash-circle me-1"></i>Inactiva</span>
+                                        {/if}
+                                    </td>
+                                    <td class="px-4 text-end">
+                                        <button class="btn btn-sm btn-light border" 
+                                                data-bs-toggle="modal" data-bs-target="#editCategoryModal-{$cat->categoryId}">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {/foreach}
+                                {if count($categories) === 0}
+                                <tr>
+                                    <td colspan="6" class="text-center py-5 text-muted">No hay categorías registradas.</td>
+                                </tr>
+                                {/if}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block modals}
+    <!-- Create Category Modal -->
+    <div class="modal fade" id="createCategoryModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow rounded-4">
+                <form action="{url('/portal/cajas/categorias/create.php')}" method="POST">
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title fw-bold">Nueva Categoría</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Nombre</label>
+                            <input type="text" name="name" class="form-control rounded-3" required>
+                        </div>
+                        
+                        <div class="mb-3" x-data="{ selectedType: 'expense' }">
+                            <label class="form-label small fw-bold">Tipo</label>
+                            <select name="type" class="form-select rounded-3" x-model="selectedType">
+                                <option value="income">Ingreso</option>
+                                <option value="expense" selected>Egreso</option>
+                            </select>
+
+                            <div class="mt-3" x-show="selectedType === 'income'" x-cloak>
+                                <label class="form-label small fw-bold">Subtipo de cuota</label>
+                                <select name="contribution_category" class="form-select rounded-3">
+                                    <option value="ordinary">Cuota ordinaria</option>
+                                    <option value="extraordinary">Cuota extraordinaria</option>
+                                    <option value="trust_staff">Personal de confianza</option>
+                                    <option value="retired">Jubilados</option>
+                                    <option value="union_leave">Permiso sindical</option>
+                                    <option value="other">Otro ingreso</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Descripción</label>
+                            <textarea name="description" class="form-control rounded-3" rows="2"></textarea>
+                        </div>
+                        
+                        <input type="hidden" name="active" value="1">
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">Crear Categoría</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Category Modals -->
+    {foreach $categories as $cat}
+    <div class="modal fade" id="editCategoryModal-{$cat->categoryId}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow rounded-4">
+                <form action="{url('/portal/cajas/categorias/update.php')}" method="POST">
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title fw-bold">Editar Categoría</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="category_id" value="{$cat->categoryId}">
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Nombre</label>
+                            <input type="text" name="name" class="form-control rounded-3" value="{$cat->name}" required>
+                        </div>
+                        
+                        <div class="mb-3" x-data="{ selectedType: '{$cat->type->value}' }">
+                            <label class="form-label small fw-bold">Tipo</label>
+                            <select name="type" class="form-select rounded-3" x-model="selectedType">
+                                <option value="income" {if $cat->type->value === 'income'}selected{/if}>Ingreso</option>
+                                <option value="expense" {if $cat->type->value === 'expense'}selected{/if}>Egreso</option>
+                            </select>
+
+                            <div class="mt-3" x-show="selectedType === 'income'" x-cloak>
+                                <label class="form-label small fw-bold">Subtipo de cuota</label>
+                                <select name="contribution_category" class="form-select rounded-3">
+                                    <option value="ordinary" {if $cat->contributionCategory?->value === 'ordinary'}selected{/if}>Cuota ordinaria</option>
+                                    <option value="extraordinary" {if $cat->contributionCategory?->value === 'extraordinary'}selected{/if}>Cuota extraordinaria</option>
+                                    <option value="trust_staff" {if $cat->contributionCategory?->value === 'trust_staff'}selected{/if}>Personal de confianza</option>
+                                    <option value="retired" {if $cat->contributionCategory?->value === 'retired'}selected{/if}>Jubilados</option>
+                                    <option value="union_leave" {if $cat->contributionCategory?->value === 'union_leave'}selected{/if}>Permiso sindical</option>
+                                    <option value="other" {if $cat->contributionCategory?->value === 'other'}selected{/if}>Otro ingreso</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Descripción</label>
+                            <textarea name="description" class="form-control rounded-3" rows="2">{$cat->description}</textarea>
+                        </div>
+
+                        <div class="form-check form-switch mt-3">
+                            <input class="form-check-input" type="checkbox" name="active" value="1" id="activeSwitch-{$cat->categoryId}" {if $cat->active}checked{/if}>
+                            <label class="form-check-label small fw-bold" for="activeSwitch-{$cat->categoryId}">Categoría Activa</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {/foreach}
+{/block}

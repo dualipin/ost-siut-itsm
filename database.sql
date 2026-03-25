@@ -417,6 +417,179 @@ CREATE TABLE IF NOT EXISTS transparency_permissions
     INDEX idx_user (user_id)
 );
 
+
+-- cajas
+
+CREATE TABLE IF NOT EXISTS transaction_categories
+(
+    category_id            INT AUTO_INCREMENT PRIMARY KEY,
+    name                   VARCHAR(100)               NOT NULL,
+    type                   ENUM ('income', 'expense') NOT NULL,
+    description            VARCHAR(255),
+    contribution_category  VARCHAR(50)                DEFAULT NULL,
+    active                 BOOLEAN                    NOT NULL DEFAULT TRUE,
+    created_at             DATETIME                            DEFAULT CURRENT_TIMESTAMP,
+    updated_at             DATETIME                            DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at             DATETIME                            DEFAULT NULL,
+
+    INDEX idx_type (type),
+    INDEX idx_active (active),
+    INDEX idx_contribution_category (contribution_category)
+);
+
+CREATE TABLE IF NOT EXISTS cash_boxes
+(
+    box_id          INT AUTO_INCREMENT PRIMARY KEY,
+    created_by      INT          NOT NULL,
+    name            VARCHAR(100) NOT NULL,
+    description     VARCHAR(255),
+    currency        VARCHAR(10)  NOT NULL DEFAULT 'MXN',
+    initial_balance DECIMAL(14, 2)        DEFAULT 0.00,
+    current_balance DECIMAL(14, 2)        DEFAULT 0.00,
+    status          VARCHAR(25)  NOT NULL DEFAULT 'open',
+    created_at      DATETIME              DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME              DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at      DATETIME              DEFAULT NULL,
+
+    CONSTRAINT fk_box_created_by FOREIGN KEY (created_by)
+        REFERENCES users (user_id) ON UPDATE CASCADE,
+
+    INDEX idx_status (status),
+    INDEX idx_created_by (created_by)
+);
+
+
+CREATE TABLE IF NOT EXISTS box_transactions
+(
+    transaction_id       INT AUTO_INCREMENT PRIMARY KEY,
+    box_id               INT                        NOT NULL,
+    category_id          INT                        NOT NULL,
+    contributor_user_id  INT                        DEFAULT NULL,
+    created_by           INT                        NOT NULL,
+    type                 ENUM ('income', 'expense') NOT NULL,
+    amount               DECIMAL(14, 2)             NOT NULL CHECK (amount > 0),
+    balance_before       DECIMAL(14, 2)             NOT NULL,
+    balance_after        DECIMAL(14, 2)             NOT NULL,
+    description          TEXT,
+    transaction_date     DATE                       NOT NULL DEFAULT (CURRENT_DATE),
+    created_at           DATETIME                            DEFAULT CURRENT_TIMESTAMP,
+    updated_at           DATETIME                            DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at           DATETIME                            DEFAULT NULL,
+
+    CONSTRAINT fk_transaction_box FOREIGN KEY (box_id) REFERENCES cash_boxes (box_id) ON UPDATE CASCADE,
+    CONSTRAINT fk_transaction_category FOREIGN KEY (category_id) REFERENCES transaction_categories (category_id) ON UPDATE CASCADE,
+    CONSTRAINT fk_transaction_contributor FOREIGN KEY (contributor_user_id) REFERENCES users (user_id) ON UPDATE CASCADE,
+    CONSTRAINT fk_transaction_user FOREIGN KEY (created_by) REFERENCES users (user_id) ON UPDATE CASCADE,
+
+    INDEX idx_box_id (box_id),
+    INDEX idx_type (type),
+    INDEX idx_transaction_date (transaction_date),
+    INDEX idx_category (category_id),
+    INDEX idx_contributor_user_id (contributor_user_id)
+);
+
+CREATE TABLE IF NOT EXISTS financial_reports
+(
+    report_id     INT AUTO_INCREMENT PRIMARY KEY,
+    box_id        INT           DEFAULT NULL,
+    generated_by  INT           NOT NULL,
+    period_start  DATE          NOT NULL,
+    period_end    DATE          NOT NULL,
+    file_path     VARCHAR(255)  NOT NULL,
+    summary_json  JSON          DEFAULT NULL,
+    created_at    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_financial_report_box FOREIGN KEY (box_id) REFERENCES cash_boxes (box_id) ON UPDATE CASCADE,
+    CONSTRAINT fk_financial_report_user FOREIGN KEY (generated_by) REFERENCES users (user_id) ON UPDATE CASCADE,
+
+    INDEX idx_financial_report_period (period_start, period_end),
+    INDEX idx_financial_report_box (box_id),
+    INDEX idx_financial_report_user (generated_by)
+);
+
+
+CREATE TABLE IF NOT EXISTS box_transaction_attachments
+(
+    attachment_id  INT AUTO_INCREMENT PRIMARY KEY,
+    transaction_id INT          NOT NULL,
+    file_path      VARCHAR(255) NOT NULL,
+    mime_type      VARCHAR(100) NOT NULL,
+    description    VARCHAR(255),
+    uploaded_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_attachment_transaction FOREIGN KEY (transaction_id) REFERENCES box_transactions (transaction_id) ON DELETE CASCADE,
+
+    INDEX idx_transaction (transaction_id)
+);
+
+CREATE TABLE IF NOT EXISTS box_transfers
+(
+    transfer_id                INT AUTO_INCREMENT PRIMARY KEY,
+    source_box_id              INT            NOT NULL,
+    destination_box_id         INT            NOT NULL,
+    created_by                 INT            NOT NULL,
+    amount                     DECIMAL(14, 2) NOT NULL CHECK (amount > 0),
+    source_balance_before      DECIMAL(14, 2) NOT NULL,
+    source_balance_after       DECIMAL(14, 2) NOT NULL,
+    destination_balance_before DECIMAL(14, 2) NOT NULL,
+    destination_balance_after  DECIMAL(14, 2) NOT NULL,
+    notes                      TEXT,
+    transferred_at             DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_transfer_source FOREIGN KEY (source_box_id) REFERENCES cash_boxes (box_id) ON UPDATE CASCADE,
+    CONSTRAINT fk_transfer_destination FOREIGN KEY (destination_box_id) REFERENCES cash_boxes (box_id) ON UPDATE CASCADE,
+    CONSTRAINT fk_transfer_user FOREIGN KEY (created_by) REFERENCES users (user_id) ON UPDATE CASCADE,
+
+    INDEX idx_source_box (source_box_id),
+    INDEX idx_destination_box (destination_box_id),
+    INDEX idx_transferred_at (transferred_at)
+);
+
+
+CREATE TABLE IF NOT EXISTS box_closings
+(
+    closing_id       INT AUTO_INCREMENT PRIMARY KEY,
+    box_id           INT            NOT NULL,
+    closed_by        INT            NOT NULL,
+    period_start     DATE           NOT NULL,
+    period_end       DATE           NOT NULL,
+    expected_balance DECIMAL(14, 2) NOT NULL, -- from system
+    actual_balance   DECIMAL(14, 2) NOT NULL, -- physical cash count
+    difference       DECIMAL(14, 2) GENERATED ALWAYS AS (actual_balance - expected_balance) STORED,
+    total_income     DECIMAL(14, 2) NOT NULL DEFAULT 0.00,
+    total_expense    DECIMAL(14, 2) NOT NULL DEFAULT 0.00,
+    notes            TEXT,
+    closed_at        DATETIME                DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_closing_box FOREIGN KEY (box_id) REFERENCES cash_boxes (box_id) ON UPDATE CASCADE,
+    CONSTRAINT fk_closing_user FOREIGN KEY (closed_by) REFERENCES users (user_id) ON UPDATE CASCADE,
+
+    INDEX idx_closing_box (box_id),
+    INDEX idx_closing_period (period_start, period_end)
+);
+
+CREATE TABLE IF NOT EXISTS box_user_access
+(
+    access_id  INT AUTO_INCREMENT PRIMARY KEY,
+    box_id     INT         NOT NULL,
+    user_id    INT         NOT NULL,
+    role       VARCHAR(30) NOT NULL DEFAULT 'operator',
+    granted_by INT         NOT NULL,
+    active     BOOLEAN     NOT NULL DEFAULT TRUE,
+    granted_at DATETIME             DEFAULT CURRENT_TIMESTAMP,
+    revoked_at DATETIME             DEFAULT NULL,
+
+    CONSTRAINT fk_access_box FOREIGN KEY (box_id) REFERENCES cash_boxes (box_id) ON UPDATE CASCADE,
+    CONSTRAINT fk_access_user FOREIGN KEY (user_id) REFERENCES users (user_id) ON UPDATE CASCADE,
+    CONSTRAINT fk_access_grantor FOREIGN KEY (granted_by) REFERENCES users (user_id) ON UPDATE CASCADE,
+    UNIQUE KEY uq_box_user (box_id, user_id),
+
+    INDEX idx_user_id (user_id),
+    INDEX idx_active (active)
+);
+
+
+
 -- ============================================================
 -- SISTEMA DE MENSAJERÍA
 -- Tres tipos de hilo:

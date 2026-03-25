@@ -1,0 +1,114 @@
+{layout '../@portal.latte'}
+
+{block main}
+<div class="container-fluid py-4">
+    {include '../components/header-page.latte',
+        title: 'Informe Financiero',
+        description: 'Genera y consulta reportes fiscales de ingresos y egresos por periodo.',
+        icon: 'bi-file-earmark-pdf'
+    }
+
+    <div class="row g-4">
+        <div class="col-12 col-xl-5">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h2 class="h5 mb-1">Generar informe</h2>
+                    <p class="text-muted small mb-0">Define el periodo fiscal y opcionalmente una caja específica.</p>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{url('/portal/cajas/informe/generar.php')}" class="row g-3">
+                        <div class="col-12">
+                            <label for="box_id" class="form-label small fw-semibold text-muted">Caja</label>
+                            <select id="box_id" name="box_id" class="form-select rounded-3">
+                                <option value="">Todas las cajas</option>
+                                {foreach $boxes as $box}
+                                    <option value="{$box->boxId}" {if $selectedBoxId === $box->boxId}selected{/if}>{$box->name}</option>
+                                {/foreach}
+                            </select>
+                        </div>
+
+                        <div class="col-6">
+                            <label for="period_start" class="form-label small fw-semibold text-muted">Periodo inicio</label>
+                            <input id="period_start" name="period_start" type="date" class="form-control rounded-3" value="{$defaultPeriodStart}" required>
+                        </div>
+
+                        <div class="col-6">
+                            <label for="period_end" class="form-label small fw-semibold text-muted">Periodo fin</label>
+                            <input id="period_end" name="period_end" type="date" class="form-control rounded-3" value="{$defaultPeriodEnd}" required>
+                        </div>
+
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm w-100">
+                                <i class="bi bi-download me-2"></i>Generar PDF y guardar histórico
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-xl-7">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-0 py-3">
+                    <h2 class="h5 mb-1">Histórico de informes</h2>
+                    <p class="text-muted small mb-0">Reportes generados por Finanzas, Liderazgo o Administración.</p>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light text-muted small text-uppercase">
+                                <tr>
+                                    <th class="px-4 py-3 border-0">Generado</th>
+                                    <th class="py-3 border-0">Periodo</th>
+                                    <th class="py-3 border-0">Caja</th>
+                                    <th class="py-3 border-0">Balance Neto</th>
+                                    <th class="px-4 py-3 border-0 text-end">Archivo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {foreach $reports as $report}
+                                    <tr>
+                                        <td class="px-4 py-3 small text-muted">{$report->createdAt->format('d/m/Y H:i')}</td>
+                                        <td class="small">{$report->periodStart->format('d/m/Y')} - {$report->periodEnd->format('d/m/Y')}</td>
+                                        <td class="small">
+                                            {var $boxName = 'Todas las cajas'}
+                                            {if $report->boxId}
+                                                {foreach $boxes as $box}
+                                                    {if $box->boxId === $report->boxId}
+                                                        {var $boxName = $box->name}
+                                                    {/if}
+                                                {/foreach}
+                                            {/if}
+                                            {$boxName}
+                                        </td>
+                                        <td class="small">
+                                            {var $net = $report->summary['netBalance'] ?? null}
+                                            {if is_numeric($net)}
+                                                <span class="fw-semibold {if (float)$net >= 0}text-success{else}text-danger{/if}">
+                                                    ${((float)$net)|number:2, '.', ','}
+                                                </span>
+                                            {else}
+                                                <span class="text-muted">N/D</span>
+                                            {/if}
+                                        </td>
+                                        <td class="px-4 py-3 text-end">
+                                            <a href="{url($report->filePath)}" class="btn btn-sm btn-outline-primary rounded-pill" target="_blank">
+                                                <i class="bi bi-file-earmark-arrow-down me-1"></i>Descargar
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {/foreach}
+                                {if count($reports) === 0}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-5 text-muted">Aún no hay informes generados.</td>
+                                    </tr>
+                                {/if}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}

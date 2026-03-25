@@ -1,0 +1,184 @@
+{layout '../@portal.latte'}
+
+{block main}
+<div class="container-fluid py-4" x-data="{ selectedBox: {$selectedBoxId} }">
+
+    {include '../components/header-page.latte',
+        title: 'Movimientos de Caja',
+        description: 'Consulta el historial de ingresos, egresos y transferencias.',
+        icon: 'bi-arrow-left-right'
+    }
+
+    <div class="d-flex justify-content-end align-items-center mb-4 gap-2">
+        <select class="form-select border-0 shadow-sm rounded-pill" style="min-width: 200px;" x-model="selectedBox" @change="window.location.href = '{url('/portal/cajas/movimientos.php')}?box_id=' + selectedBox">
+            {foreach $boxes as $box}
+                <option value="{$box->boxId}" {if $box->boxId === $selectedBoxId}selected{/if}>{$box->name} ({$box->currency})</option>
+            {/foreach}
+        </select>
+        <a href="{url('/portal/cajas/movimientos/nuevo.php')}?box_id={$selectedBoxId}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+            <i class="bi bi-plus-lg me-2"></i>Nueva Transacción
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3 align-items-end">
+                <input type="hidden" name="box_id" value="{$selectedBoxId}">
+
+                <div class="col-12 col-md-3">
+                    <label for="type" class="form-label small fw-semibold text-muted">Tipo</label>
+                    <select id="type" name="type" class="form-select rounded-3">
+                        <option value="">Todos</option>
+                        <option value="income" {if $filters['type'] === 'income'}selected{/if}>Ingreso</option>
+                        <option value="expense" {if $filters['type'] === 'expense'}selected{/if}>Egreso</option>
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-3">
+                    <label for="category_id" class="form-label small fw-semibold text-muted">Categoría</label>
+                    <select id="category_id" name="category_id" class="form-select rounded-3">
+                        <option value="">Todas</option>
+                        {foreach $categories as $category}
+                            <option value="{$category->categoryId}" {if $filters['categoryId'] === $category->categoryId}selected{/if}>
+                                {$category->name}
+                            </option>
+                        {/foreach}
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-2">
+                    <label for="start_date" class="form-label small fw-semibold text-muted">Desde</label>
+                    <input id="start_date" name="start_date" type="date" class="form-control rounded-3" value="{$filters['startDate']}">
+                </div>
+
+                <div class="col-12 col-md-2">
+                    <label for="end_date" class="form-label small fw-semibold text-muted">Hasta</label>
+                    <input id="end_date" name="end_date" type="date" class="form-control rounded-3" value="{$filters['endDate']}">
+                </div>
+
+                <div class="col-12 col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-outline-primary rounded-3 w-100">
+                        <i class="bi bi-funnel me-1"></i>Filtrar
+                    </button>
+                    <a href="{url('/portal/cajas/movimientos.php')}?box_id={$selectedBoxId}" class="btn btn-outline-secondary rounded-3 d-flex align-items-center justify-content-center px-3">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Totals Summary -->
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="bg-white-50 p-2 rounded-3 text-white">
+                            <i class="bi bi-wallet2 fs-4"></i>
+                        </div>
+                        <span class="badge bg-white-50 text-white rounded-pill px-3">Saldo Actual</span>
+                    </div>
+                    <h2 class="display-6 fw-bold mb-0">
+                        {var $currentBox = null}
+                        {foreach $boxes as $b}{if $b->boxId === $selectedBoxId}{var $currentBox = $b}{/if}{/foreach}
+                        {if $currentBox}${($currentBox->currentBalance)|number:2, '.', ','}{else}$0.00{/if}
+                    </h2>
+                    <p class="small opacity-75 mt-2">{$currentBox?->currency ?? 'MXN'}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transactions Table -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="card-title mb-0">Historial Reciente</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light text-muted small text-uppercase">
+                                <tr>
+                                    <th class="px-4 py-3 border-0">Fecha</th>
+                                    <th class="py-3 border-0">Tipo</th>
+                                    <th class="py-3 border-0">Categoría</th>
+                                    <th class="py-3 border-0">Observaciones</th>
+                                    <th class="py-3 border-0">Aportante</th>
+                                    <th class="py-3 border-0">Monto</th>
+                                    <th class="py-3 border-0">Evidencia</th>
+                                    <th class="px-4 py-3 border-0">Saldo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {foreach $transactions as $tx}
+                                <tr>
+                                    <td class="px-4 py-3 small text-muted">
+                                        {$tx->transactionDate->format('d/m/Y')}
+                                    </td>
+                                    <td>
+                                        {if $tx->type->value === 'income'}
+                                            <span class="text-success"><i class="bi bi-arrow-up-circle me-1"></i>Ingreso</span>
+                                        {else}
+                                            <span class="text-danger"><i class="bi bi-arrow-down-circle me-1"></i>Egreso</span>
+                                        {/if}
+                                    </td>
+                                    <td>
+                                        {foreach $categories as $cat}
+                                            {if $cat->categoryId === $tx->categoryId}{$cat->name}{/if}
+                                        {/foreach}
+                                    </td>
+                                    <td>
+                                        <div class="text-dark small">{$tx->description ?: '-'}</div>
+                                        {if $tx->referenceNumber}
+                                            <div class="text-muted" style="font-size: 0.75rem;">Ref: {$tx->referenceNumber}</div>
+                                        {/if}
+                                    </td>
+                                    <td>
+                                        {var $contributorName = '-'}
+                                        {if $tx->contributorUserId}
+                                            {foreach $contributors as $contributor}
+                                                {if $contributor->id === $tx->contributorUserId}
+                                                    {var $contributorName = $contributor->fullName()}
+                                                {/if}
+                                            {/foreach}
+                                        {/if}
+                                        <span class="small text-muted">{$contributorName}</span>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold {if $tx->type->value === 'income'}text-success{else}text-danger{/if}">
+                                            {if $tx->type->value === 'income'}+{else}-{/if}${$tx->amount|number:2, '.', ','}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {if count($tx->attachments) > 0}
+                                            <div class="d-flex flex-column gap-1">
+                                                {foreach $tx->attachments as $attachment}
+                                                    <a href="{url($attachment)}" target="_blank" class="text-secondary small d-inline-block">
+                                                        <i class="bi bi-paperclip"></i> Ver comprobante
+                                                    </a>
+                                                {/foreach}
+                                            </div>
+                                        {else}
+                                            <span class="small text-muted">Sin evidencia</span>
+                                        {/if}
+                                    </td>
+                                    <td class="px-4">
+                                        <div class="text-muted small">{$tx->balanceAfter|number:2, '.', ','}</div>
+                                    </td>
+                                </tr>
+                                {/foreach}
+                                {if count($transactions) === 0}
+                                <tr>
+                                    <td colspan="8" class="text-center py-5 text-muted">No hay movimientos en esta caja.</td>
+                                </tr>
+                                {/if}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}

@@ -1,0 +1,32 @@
+<div class="modal fade" id="editBoxModal" tabindex="-1" aria-hidden="true" x-data="{
+    boxId: {$box->boxId},
+    boxName: {=json_encode($box->name)},
+    boxDesc: {=json_encode($box->description)} ?? ''
+}">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <form action="{url('/portal/cajas/update.php')}" method="POST">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">Editar Caja de Efectivo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="box_id" :value="boxId">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Nombre</label>
+                        <input type="text" name="name" class="form-control rounded-3" :value="boxName" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Descripción</label>
+                        <textarea name="description" class="form-control rounded-3" rows="2" x-text="boxDesc"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

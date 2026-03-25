@@ -147,7 +147,11 @@
                     <td class="px-4 py-3 fw-medium text-capitalize">{$msg['subject']|truncate:20}</td>
                     <td class="px-4 py-3"><small>{$msg['hours_elapsed']}h</small></td>
                     <td class="px-4 py-3">
-                      <button class="btn btn-sm btn-outline-primary rounded-pill" type="button">Abrir</button>
+                      {if $msg['thread_type'] === 'qa'}
+                        <a href="/portal/mensajeria/dudas/detalle.php?id={$msg['thread_id']}" class="btn btn-sm btn-outline-primary rounded-pill">Abrir</a>
+                      {else}
+                        <a href="/portal/mensajeria/contacto/detalle.php?id={$msg['thread_id']}" class="btn btn-sm btn-outline-primary rounded-pill">Abrir</a>
+                      {/if}
                     </td>
                   </tr>
                 {/foreach}
