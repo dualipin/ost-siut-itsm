@@ -16,9 +16,8 @@
 <article class="container-fluid px-0">
   {if $hasThumbnail}
     <section class="mb-4">
-      <h2 class="h5 fw-semibold mb-3">Miniatura</h2>
       <div class="rounded-4 overflow-hidden border">
-        <img src="{upload($publicacion->thumbnailUrl)}" class="d-block w-100" alt="Miniatura de {$publicacion->title}">
+        <img src="{upload($publicacion->thumbnailUrl)}" class="d-block w-100" alt="Imagen de {$publicacion->title}">
       </div>
     </section>
   {/if}
