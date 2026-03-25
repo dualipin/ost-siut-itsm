@@ -20,8 +20,14 @@ use function trim;
 use const ENT_QUOTES;
 use const ENT_SUBSTITUTE;
 use const ENT_XML1;
+use const UPLOAD_ERR_CANT_WRITE;
+use const UPLOAD_ERR_EXTENSION;
+use const UPLOAD_ERR_FORM_SIZE;
+use const UPLOAD_ERR_INI_SIZE;
+use const UPLOAD_ERR_NO_TMP_DIR;
 use const UPLOAD_ERR_NO_FILE;
 use const UPLOAD_ERR_OK;
+use const UPLOAD_ERR_PARTIAL;
 
 final readonly class CreatePublicationUseCase
 {
@@ -214,7 +220,7 @@ final readonly class CreatePublicationUseCase
             !is_array($errors) ||
             !is_array($sizes)
         ) {
-            throw new PublicationValidationException(
+            throw new PublicationAttachmentUploadException(
                 "El formato de adjuntos recibido no es válido.",
             );
         }
@@ -229,8 +235,8 @@ final readonly class CreatePublicationUseCase
             }
 
             if ($errorCode !== UPLOAD_ERR_OK) {
-                throw new PublicationValidationException(
-                    "Uno de los adjuntos no se pudo cargar correctamente.",
+                throw new PublicationAttachmentUploadException(
+                    $this->uploadErrorMessage($errorCode, true),
                 );
             }
 
@@ -239,7 +245,7 @@ final readonly class CreatePublicationUseCase
             $size = (int) ($sizes[$index] ?? 0);
 
             if ($fileName === "" || $tmpName === "") {
-                throw new PublicationValidationException(
+                throw new PublicationAttachmentUploadException(
                     "Uno de los adjuntos es inválido.",
                 );
             }
@@ -271,8 +277,8 @@ final readonly class CreatePublicationUseCase
         }
 
         if ($error !== UPLOAD_ERR_OK) {
-            throw new PublicationValidationException(
-                "No fue posible cargar la miniatura.",
+            throw new PublicationAttachmentUploadException(
+                $this->uploadErrorMessage($error, false),
             );
         }
 
@@ -281,7 +287,7 @@ final readonly class CreatePublicationUseCase
         $size = (int) ($uploadedFile["size"] ?? 0);
 
         if ($name === "" || $tmpName === "") {
-            throw new PublicationValidationException(
+            throw new PublicationAttachmentUploadException(
                 "El archivo de miniatura es inválido.",
             );
         }
@@ -291,5 +297,19 @@ final readonly class CreatePublicationUseCase
             "tmp_name" => $tmpName,
             "size" => $size,
         ];
+    }
+
+    private function uploadErrorMessage(int $errorCode, bool $isAttachment): string
+    {
+        $resource = $isAttachment ? "Uno de los adjuntos" : "La miniatura";
+
+        return match ($errorCode) {
+            UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => $resource . " supera el tamaño permitido por el servidor.",
+            UPLOAD_ERR_PARTIAL => $resource . " se cargó parcialmente.",
+            UPLOAD_ERR_NO_TMP_DIR => "El servidor no tiene configurado un directorio temporal para cargas.",
+            UPLOAD_ERR_CANT_WRITE => "El servidor no pudo escribir el archivo temporal en disco.",
+            UPLOAD_ERR_EXTENSION => "Una extensión de PHP detuvo la carga del archivo.",
+            default => $resource . " no se pudo cargar correctamente (código " . $errorCode . ").",
+        };
     }
 }

@@ -11,6 +11,7 @@ use App\Modules\Publication\Domain\Enum\PublicationTypeEnum;
 use App\Modules\Publication\Domain\Exception\PublicationAttachmentUploadException;
 use App\Modules\Publication\Domain\Exception\PublicationValidationException;
 use App\Shared\Context\UserProviderInterface;
+use Psr\Log\LoggerInterface;
 
 require_once __DIR__ . "/../../../bootstrap.php";
 
@@ -23,6 +24,7 @@ $runner->runOrRedirect($middleware->auth());
 $request = new FormRequest();
 $redirector = $container->get(Redirector::class);
 $userProvider = $container->get(UserProviderInterface::class);
+$logger = $container->get(LoggerInterface::class);
 $authUser = $userProvider->get();
 
 if ($authUser === null) {
@@ -76,7 +78,14 @@ if ($request->isSubmitted()) {
 				$redirector->to("/portal/publicaciones/registrar.php", [
 					"success" => "Publicación registrada correctamente.",
 				])->send();
-			} catch (PublicationValidationException | PublicationAttachmentUploadException $exception) {
+			} catch (PublicationAttachmentUploadException $exception) {
+				$logger->warning("Error de carga de adjuntos al registrar publicación", [
+					"user_id" => $authUser?->id,
+					"message" => $exception->getMessage(),
+					"code" => $exception->getCode(),
+				]);
+				$error = "No fue posible procesar los archivos adjuntos. Intenta nuevamente.";
+			} catch (PublicationValidationException $exception) {
 				$error = $exception->getMessage();
 			} catch (Throwable) {
 				$error = "No fue posible registrar la publicación.";

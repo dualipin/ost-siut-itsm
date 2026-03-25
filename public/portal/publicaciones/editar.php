@@ -13,6 +13,7 @@ use App\Modules\Publication\Domain\Exception\PublicationAttachmentUploadExceptio
 use App\Modules\Publication\Domain\Exception\PublicationValidationException;
 use App\Shared\Context\UserProviderInterface;
 use App\Shared\Domain\Enum\RoleEnum;
+use Psr\Log\LoggerInterface;
 
 require_once __DIR__ . "/../../../bootstrap.php";
 
@@ -24,6 +25,7 @@ $runner->runOrRedirect($middleware->auth());
 
 $redirector = $container->get(Redirector::class);
 $request = new FormRequest();
+$logger = $container->get(LoggerInterface::class);
 $authUser = $container->get(UserProviderInterface::class)->get();
 
 $canManagePublications =
@@ -103,7 +105,15 @@ if ($request->isSubmitted()) {
                     "detalle" => $publicationId,
                     "success" => "Publicación actualizada correctamente.",
                 ])->send();
-            } catch (PublicationValidationException | PublicationAttachmentUploadException $exception) {
+            } catch (PublicationAttachmentUploadException $exception) {
+                $logger->warning("Error de carga de adjuntos al actualizar publicación", [
+                    "user_id" => $authUser?->id,
+                    "publication_id" => $publicationId,
+                    "message" => $exception->getMessage(),
+                    "code" => $exception->getCode(),
+                ]);
+                $error = "No fue posible procesar los archivos adjuntos. Intenta nuevamente.";
+            } catch (PublicationValidationException $exception) {
                 $error = $exception->getMessage();
             } catch (Throwable) {
                 $error = "No fue posible actualizar la publicación.";
