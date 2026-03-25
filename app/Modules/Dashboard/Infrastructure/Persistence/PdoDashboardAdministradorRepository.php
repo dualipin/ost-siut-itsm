@@ -44,7 +44,8 @@ final class PdoDashboardAdministradorRepository extends PdoBaseRepository implem
                 COALESCE(CONCAT(u.name, ' ', u.surnames), mt.external_name, 'Externo') as sender_name,
                 mt.created_at,
                 TIMESTAMPDIFF(HOUR, mt.created_at, NOW()) as hours_elapsed,
-                mt.status
+                mt.status,
+                mt.thread_type
             FROM message_threads mt
             LEFT JOIN users u ON mt.sender_id = u.user_id
             WHERE mt.status IN ('pending', 'open')
