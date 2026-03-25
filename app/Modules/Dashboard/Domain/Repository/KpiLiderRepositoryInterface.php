@@ -55,7 +55,7 @@ interface KpiLiderRepositoryInterface
 
     /**
      * Recent publications (last 3), ordered by creation date DESC.
-     * Returns array of {publication_id: int, title: string, created_at: string, expiration_date: ?string}.
+     * Returns array of {publication_id: int, title: string, publication_type: string, created_at: string, expiration_date: ?string}.
      */
     public function getRecentPublications(int $limit = 3): array;
 }

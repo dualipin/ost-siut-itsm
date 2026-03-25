@@ -113,7 +113,7 @@ final class PdoKpiLiderRepository extends PdoBaseRepository implements KpiLiderR
     {
         $limit = (int)$limit;
         $stmt = $this->pdo->query(
-            "SELECT publication_id, title, created_at, expiration_date
+            "SELECT publication_id, title, publication_type, created_at, expiration_date
             FROM publications
             ORDER BY created_at DESC
             LIMIT " . $limit

@@ -107,19 +107,34 @@
         {if empty($recentPublications)}
           <p class="text-muted mb-0">No hay publicaciones</p>
         {else}
+          {var $publicationRoutes = [
+            'aviso' => '/portal/publicaciones/avisos.php',
+            'noticia' => '/portal/publicaciones/noticias.php',
+            'gestion' => '/portal/publicaciones/gestiones.php',
+            'contratos' => '/portal/publicaciones/contratos.php',
+            'formato' => '/portal/publicaciones/formatos.php',
+            'acervo' => '/portal/publicaciones/acervos.php',
+          ]}
           <div class="d-flex flex-column gap-3">
             {foreach $recentPublications as $pub}
-              <div class="border-bottom pb-3">
-                <h6 class="fw-bold mb-2">{$pub['title']}</h6>
-                <small class="text-muted">
-                  <i class="bi bi-calendar me-1"></i>
-                  {$pub['created_at']|date:'d \d\e M \d\e Y'}
-                </small>
-                {if !empty($pub['expiration_date'])}
-                  <small class="badge bg-warning-subtle text-warning ms-2">
-                    Vence: {$pub['expiration_date']|date:'d/m/Y'}
+              {var $detailUrl = url(
+                $publicationRoutes[$pub['publication_type'] ?? 'noticia'] ?? '/portal/publicaciones/noticias.php',
+                ['detalle' => $pub['publication_id']]
+              )}
+              <div class="border-bottom pb-3 d-flex justify-content-between align-items-start gap-3">
+                <div>
+                  <h6 class="fw-bold mb-2">{$pub['title']}</h6>
+                  <small class="text-muted">
+                    <i class="bi bi-calendar me-1"></i>
+                    {$pub['created_at']|date:'d \d\e M \d\e Y'}
                   </small>
-                {/if}
+                  {if !empty($pub['expiration_date'])}
+                    <small class="badge bg-warning-subtle text-warning ms-2">
+                      Vence: {$pub['expiration_date']|date:'d/m/Y'}
+                    </small>
+                  {/if}
+                </div>
+                <a href="{$detailUrl}" class="btn btn-outline-primary btn-sm">Ver publicación</a>
               </div>
             {/foreach}
           </div>
