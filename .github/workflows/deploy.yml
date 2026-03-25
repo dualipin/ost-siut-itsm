@@ -53,17 +53,17 @@ jobs:
             composer.lock
             phpunit.xml
             .prettier*
-            .vscode/
-            .github/
+            .vscode/**
+            .github/**
             *.sql
             package.json
             package-lock.json
             .phpstorm.meta.php
             .editorconfig
-            data/
-            .claude/
-            .agent/
+            data/**
+            .claude/**
+            .agent/**
             .editorconfig
             AGENTS.md
             CLAUDE.md
-            docs/
+            docs/**
