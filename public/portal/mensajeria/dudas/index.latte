@@ -65,7 +65,7 @@
           <tbody>
             {foreach $threads as $thread}
               <tr role="button" class="cursor-pointer"
-                  onclick="window.location.href='detalle.php?id={$thread['thread_id']}'">
+                  onclick="window.location.href='detalle.php?id={(int) $thread['thread_id']}'">
                 <td class="ps-4">
                   <span class="d-inline-block text-truncate" style="max-width: 300px;">
                     {$thread['first_message'] ?: $thread['subject'] ?: 'Sin contenido'}

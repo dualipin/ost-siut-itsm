@@ -34,9 +34,19 @@ if ($authenticatedUser === null) {
     exit;
 }
 
-$threadId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+$threadIdRaw = filter_input(INPUT_GET, 'id', FILTER_UNSAFE_RAW);
+$threadIdNormalized = is_string($threadIdRaw)
+    ? trim($threadIdRaw, " \t\n\r\0\x0B\"'")
+    : '';
 
-if ($threadId === null || $threadId === false) {
+if ($threadIdNormalized === '' || !ctype_digit($threadIdNormalized)) {
+    header('Location: index.php');
+    exit;
+}
+
+$threadId = (int) $threadIdNormalized;
+
+if ($threadId <= 0) {
     header('Location: index.php');
     exit;
 }
