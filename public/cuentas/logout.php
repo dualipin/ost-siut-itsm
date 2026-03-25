@@ -16,4 +16,4 @@ $useCase->execute(
     userAgent: $_SERVER["HTTP_USER_AGENT"] ?? null,
 );
 
-$redirect->to("/cuentas/login.php")->send();
+$redirect->to("/index.php")->send();
