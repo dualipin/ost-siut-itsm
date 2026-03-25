@@ -29,7 +29,7 @@
           <tbody>
             {foreach $threads as $thread}
               <tr role="button" class="cursor-pointer"
-                  onclick="window.location.href='detalle.php?id={$thread['thread_id']}'">
+                  onclick="window.location.href='detalle.php?id={(int) $thread['thread_id']}'">
                 <td class="ps-4 fw-semibold">
                   {$thread['subject'] ?: 'Sin asunto'}
                 </td>
