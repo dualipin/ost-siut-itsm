@@ -194,6 +194,7 @@
 {/block}
 
 {block scripts}
+{include parent}
 <script>
 document.addEventListener('alpine:init', () => {
     Alpine.data('threadDetail', () => ({

@@ -236,6 +236,7 @@
 {/if}
 
 {block scripts}
+  {include parent}
   {if $isPrivileged}
     <script src="/assets/js/components/tabla-gestionada.js" type="module"></script>
   {/if}
