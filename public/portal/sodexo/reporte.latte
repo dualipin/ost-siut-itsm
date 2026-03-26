@@ -1,0 +1,324 @@
+{extends ../../../templates/@portal.latte}
+
+{varType array $encuestas}
+{varType int $totalAgremiados}
+{varType int $totalAdministrativos}
+{varType int $totalDocentes}
+{varType float $granTotalPagado}
+{varType float $granTotalAdeudo}
+
+{block titulo}Reporte — Adeudo Vales de Despensa Electrónico{/block}
+
+{block main}
+
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+  <div>
+    <h4 class="fw-bold mb-1">
+      <i class="bi bi-file-earmark-bar-graph-fill me-2 text-primary"></i>
+      Reporte: Adeudo Vales de Despensa Electrónico
+    </h4>
+    <p class="text-muted mb-0 small">
+      Revisión salarial 2025 — Solicitud de pago retroactivo
+    </p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="/portal/sodexo/reporte-pdf.php"
+       target="_blank"
+       class="btn btn-danger">
+      <i class="bi bi-file-earmark-pdf-fill me-2"></i>Descargar PDF
+    </a>
+    <a href="/portal/sodexo/solicitud.php" class="btn btn-outline-primary">
+      <i class="bi bi-arrow-left me-1"></i>Volver
+    </a>
+  </div>
+</div>
+
+{* Tarjetas de resumen *}
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card border-0 shadow-sm text-center py-3">
+      <p class="text-muted small fw-semibold text-uppercase mb-1">Agremiados Registrados</p>
+      <h3 class="fw-bold mb-0 text-primary">{$totalAgremiados}</h3>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card border-0 shadow-sm text-center py-3">
+      <p class="text-muted small fw-semibold text-uppercase mb-1">Administrativos</p>
+      <h3 class="fw-bold mb-0 text-secondary">{$totalAdministrativos}</h3>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card border-0 shadow-sm text-center py-3">
+      <p class="text-muted small fw-semibold text-uppercase mb-1">Docentes</p>
+      <h3 class="fw-bold mb-0 text-warning">{$totalDocentes}</h3>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card border-0 shadow-sm text-center py-3 bg-danger text-white">
+      <p class="small fw-semibold text-uppercase mb-1 text-white-50">Gran Total Adeudo</p>
+      <h3 class="fw-bold mb-0">${number_format($granTotalAdeudo, 2)}</h3>
+    </div>
+  </div>
+</div>
+
+{* Tabla de resultados *}
+{if count($encuestas) === 0}
+  <div class="alert alert-info text-center py-5">
+    <i class="bi bi-inbox fs-1 d-block mb-3 opacity-50"></i>
+    <strong>Aún no hay declaraciones registradas.</strong>
+    <p class="text-muted mb-0 mt-1 small">
+      Los agremiados deben ingresar al portal y completar su solicitud de pago retroactivo.
+    </p>
+  </div>
+{else}
+
+  {* Sección Administrativos *}
+  {var $admins = array_filter($encuestas, fn($e) => $e->esAdministrativo())}
+  {if count($admins) > 0}
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-secondary text-white py-2 px-3">
+      <h6 class="mb-0 fw-bold">
+        <i class="bi bi-person-badge me-2"></i>Administrativos
+        <span class="badge bg-white text-secondary ms-2">{count($admins)}</span>
+      </h6>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+          <thead class="table-light">
+            <tr>
+              <th class="px-3">Agremiado</th>
+              <th class="px-3">Categoría / Área</th>
+              <th class="text-center px-2">Dic 2025</th>
+              <th class="text-center px-2">Ene 2026</th>
+              <th class="text-center px-2">Feb 2026</th>
+              <th class="text-center px-2">Mar 2026</th>
+              <th class="text-center px-2 text-success">Total Pagado</th>
+              <th class="text-center px-2 text-danger">Total Adeudo</th>
+              <th class="text-center px-2">RFC Firma</th>
+            </tr>
+          </thead>
+          <tbody>
+            {foreach $admins as $enc}
+            <tr>
+              <td class="px-3 fw-semibold small">{$enc->userSurnames} {$enc->userName}</td>
+              <td class="px-3 text-muted small">{$enc->userCategory}{if $enc->userDepartment} / {$enc->userDepartment}{/if}</td>
+
+              {* Diciembre *}
+              <td class="text-center px-2">
+                {if $enc->mesAdmSeleccionado('dic')}
+                  <div>
+                    <span class="badge bg-success d-block mb-1">
+                      $<span>{number_format($enc->pagadoEnMes('dic'), 2)}</span>
+                    </span>
+                    <small class="text-muted d-block" style="font-size:.68rem;">
+                      P: ${number_format($enc->admDicPuntualidad ?? 0, 2)}
+                      A: ${number_format($enc->admDicAsistencia ?? 0, 2)}
+                    </small>
+                  </div>
+                {else}
+                  <span class="badge bg-danger">$0.00</span>
+                {/if}
+              </td>
+
+              {* Enero *}
+              <td class="text-center px-2">
+                {if $enc->mesAdmSeleccionado('ene')}
+                  <div>
+                    <span class="badge bg-success d-block mb-1">
+                      $<span>{number_format($enc->pagadoEnMes('ene'), 2)}</span>
+                    </span>
+                    <small class="text-muted d-block" style="font-size:.68rem;">
+                      P: ${number_format($enc->admEnePuntualidad ?? 0, 2)}
+                      A: ${number_format($enc->admEneAsistencia ?? 0, 2)}
+                    </small>
+                  </div>
+                {else}
+                  <span class="badge bg-danger">$0.00</span>
+                {/if}
+              </td>
+
+              {* Febrero *}
+              <td class="text-center px-2">
+                {if $enc->mesAdmSeleccionado('feb')}
+                  <div>
+                    <span class="badge bg-success d-block mb-1">
+                      $<span>{number_format($enc->pagadoEnMes('feb'), 2)}</span>
+                    </span>
+                    <small class="text-muted d-block" style="font-size:.68rem;">
+                      P: ${number_format($enc->admFebPuntualidad ?? 0, 2)}
+                      A: ${number_format($enc->admFebAsistencia ?? 0, 2)}
+                    </small>
+                  </div>
+                {else}
+                  <span class="badge bg-danger">$0.00</span>
+                {/if}
+              </td>
+
+              {* Marzo *}
+              <td class="text-center px-2">
+                {if $enc->mesAdmSeleccionado('mar')}
+                  <div>
+                    <span class="badge bg-success d-block mb-1">
+                      $<span>{number_format($enc->pagadoEnMes('mar'), 2)}</span>
+                    </span>
+                    <small class="text-muted d-block" style="font-size:.68rem;">
+                      P: ${number_format($enc->admMarPuntualidad ?? 0, 2)}
+                      A: ${number_format($enc->admMarAsistencia ?? 0, 2)}
+                    </small>
+                  </div>
+                {else}
+                  <span class="badge bg-danger">$0.00</span>
+                {/if}
+              </td>
+
+              <td class="text-center px-2">
+                <span class="fw-bold text-success">${number_format($enc->totalPagado(), 2)}</span>
+              </td>
+              <td class="text-center px-2">
+                {if $enc->totalAdeudo() > 0}
+                  <span class="fw-bold text-danger">${number_format($enc->totalAdeudo(), 2)}</span>
+                {else}
+                  <span class="badge bg-success">Al corriente</span>
+                {/if}
+              </td>
+              <td class="text-center px-2">
+                {if $enc->firmaRfc}
+                  <code class="small">{$enc->firmaRfc}</code>
+                {else}
+                  <span class="text-muted small">—</span>
+                {/if}
+              </td>
+            </tr>
+            {/foreach}
+          </tbody>
+          <tfoot class="table-secondary fw-bold">
+            <tr>
+              <td colspan="6" class="px-3 text-end">Subtotal Administrativos:</td>
+              <td class="text-center text-success">
+                ${number_format(array_sum(array_map(fn($e) => $e->totalPagado(), $admins)), 2)}
+              </td>
+              <td class="text-center text-danger">
+                ${number_format(array_sum(array_map(fn($e) => $e->totalAdeudo(), $admins)), 2)}
+              </td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+  {/if}
+
+  {* Sección Docentes *}
+  {var $docentes = array_filter($encuestas, fn($e) => $e->esDocente())}
+  {if count($docentes) > 0}
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-warning text-dark py-2 px-3">
+      <h6 class="mb-0 fw-bold">
+        <i class="bi bi-mortarboard me-2"></i>Docentes
+        <span class="badge bg-white text-warning ms-2">{count($docentes)}</span>
+      </h6>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+          <thead class="table-light">
+            <tr>
+              <th class="px-3">Agremiado</th>
+              <th class="px-3">Categoría / Área</th>
+              <th class="text-center px-3">Dic 2025 ($100)</th>
+              <th class="text-center px-3">Mar 2026 ($100)</th>
+              <th class="text-center px-3 text-success">Total Pagado</th>
+              <th class="text-center px-3 text-danger">Total Adeudo</th>
+              <th class="text-center px-3">RFC Firma</th>
+            </tr>
+          </thead>
+          <tbody>
+            {foreach $docentes as $enc}
+            <tr>
+              <td class="px-3 fw-semibold small">{$enc->userSurnames} {$enc->userName}</td>
+              <td class="px-3 text-muted small">{$enc->userCategory}{if $enc->userDepartment} / {$enc->userDepartment}{/if}</td>
+              <td class="text-center px-3">
+                {if $enc->docDicPagado}
+                  <span class="badge bg-success">
+                    <i class="bi bi-check-circle-fill me-1"></i>$100.00
+                  </span>
+                {else}
+                  <span class="badge bg-danger">
+                    <i class="bi bi-x-circle-fill me-1"></i>No pagado
+                  </span>
+                {/if}
+              </td>
+              <td class="text-center px-3">
+                {if $enc->docMarPagado}
+                  <span class="badge bg-success">
+                    <i class="bi bi-check-circle-fill me-1"></i>$100.00
+                  </span>
+                {else}
+                  <span class="badge bg-danger">
+                    <i class="bi bi-x-circle-fill me-1"></i>No pagado
+                  </span>
+                {/if}
+              </td>
+              <td class="text-center px-3">
+                <span class="fw-bold text-success">${number_format($enc->totalPagado(), 2)}</span>
+              </td>
+              <td class="text-center px-3">
+                {if $enc->totalAdeudo() > 0}
+                  <span class="fw-bold text-danger">${number_format($enc->totalAdeudo(), 2)}</span>
+                {else}
+                  <span class="badge bg-success">Al corriente</span>
+                {/if}
+              </td>
+              <td class="text-center px-3">
+                {if $enc->firmaRfc}
+                  <code class="small">{$enc->firmaRfc}</code>
+                {else}
+                  <span class="text-muted small">—</span>
+                {/if}
+              </td>
+            </tr>
+            {/foreach}
+          </tbody>
+          <tfoot class="table-secondary fw-bold">
+            <tr>
+              <td colspan="4" class="px-3 text-end">Subtotal Docentes:</td>
+              <td class="text-center text-success">
+                ${number_format(array_sum(array_map(fn($e) => $e->totalPagado(), $docentes)), 2)}
+              </td>
+              <td class="text-center text-danger">
+                ${number_format(array_sum(array_map(fn($e) => $e->totalAdeudo(), $docentes)), 2)}
+              </td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+  {/if}
+
+  {* Totales globales *}
+  <div class="card border-primary border-2 shadow-sm">
+    <div class="card-body py-3 px-4">
+      <div class="row g-0 text-center">
+        <div class="col-4 border-end">
+          <p class="text-muted small fw-semibold mb-1 text-uppercase">Total Declaraciones</p>
+          <h4 class="fw-bold mb-0 text-primary">{$totalAgremiados}</h4>
+        </div>
+        <div class="col-4 border-end">
+          <p class="text-muted small fw-semibold mb-1 text-uppercase">Gran Total Pagado</p>
+          <h4 class="fw-bold mb-0 text-success">${number_format($granTotalPagado, 2)}</h4>
+        </div>
+        <div class="col-4">
+          <p class="text-muted small fw-semibold mb-1 text-uppercase">Gran Total Adeudo</p>
+          <h4 class="fw-bold mb-0 text-danger">${number_format($granTotalAdeudo, 2)}</h4>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{/if}
+
+{/block}
