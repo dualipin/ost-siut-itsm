@@ -33,7 +33,7 @@ final readonly class GuardarEncuestaUseCase
             docDicPagado: $dto->docDicPagado,
             docMarPagado: $dto->docMarPagado,
 
-            firmaRfc: $dto->firmaRfc,
+            firmaCurp: $dto->firmaCurp,
         );
 
         return $this->repository->guardar($encuesta);

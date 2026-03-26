@@ -293,7 +293,7 @@
         {/if}
 
         {* ═══════════════════════════════════════════════════════════ *}
-        {* SECCIÓN FIRMA (RFC)                                         *}
+        {* SECCIÓN FIRMA (CURP)                                         *}
         {* ═══════════════════════════════════════════════════════════ *}
         <hr class="my-4">
 
@@ -305,27 +305,28 @@
             <div class="alert bg-white border shadow-sm small mb-4 text-dark p-3 rounded-3">
               <i class="bi bi-info-circle me-2 text-primary"></i>
               El/La suscrito(a) declara bajo protesta de decir verdad que la información proporcionada
-              es verídica y correcta. Su <strong>RFC</strong> actuará como firma electrónica para esta solicitud.
+              es verídica y correcta. Su <strong>CURP</strong> actuará como firma electrónica para esta solicitud.
             </div>
             <div class="form-floating mb-3">
               <input type="text"
                      class="form-control form-control-lg text-uppercase border shadow-sm"
-                     id="firma_rfc"
-                     name="firma_rfc"
+                     id="firma_curp"
+                     name="firma_curp"
                      maxlength="20"
-                     placeholder="RFC del Agremiado"
+                     placeholder="CURP del Agremiado"
                      autocomplete="off"
-                     x-model="firmaRfc"
+                     x-model="firmaCurp"
+                @input="firmaCurp = sanitizeCurp($event.target.value)"
                      style="font-family: 'Courier New', Courier, monospace; letter-spacing: 2px; font-weight: bold; background-color: #f8f9fa;">
-              <label for="firma_rfc" class="fw-semibold text-muted">RFC del Agremiado</label>
+              <label for="firma_curp" class="fw-semibold text-muted">CURP del Agremiado</label>
             </div>
           </div>
 
-          <div class="col-md-5 text-center" x-show="firmaRfc.length >= 12" x-transition>
+          <div class="col-md-5 text-center" x-show="firmaCurp.length === 18" x-transition>
             <div class="d-inline-block p-4 bg-white border-0 shadow-sm rounded-4">
               <p class="text-muted small mb-3 fw-bold text-uppercase">Código de Verificación</p>
               <div id="qrContainer" class="d-flex justify-content-center"></div>
-              <p class="text-primary small mt-3 mb-0 fw-bold" x-text="firmaRfc.toUpperCase()"></p>
+              <p class="text-primary small mt-3 mb-0 fw-bold" x-text="firmaCurp.toUpperCase()"></p>
             </div>
           </div>
         </div>
@@ -360,7 +361,7 @@ var __encuestaInit = {
   },
   docDic: {if $encuesta?->docDicPagado}true{else}false{/if},
   docMar: {if $encuesta?->docMarPagado}true{else}false{/if},
-  firmaRfc: {json_encode($encuesta?->firmaRfc ?? '')}
+  firmaCurp: {json_encode($firmaCurpInicial ?? '')}
 };
 
 function encuestaSodexo() {
@@ -369,7 +370,7 @@ function encuestaSodexo() {
     meses: JSON.parse(JSON.stringify(__encuestaInit.meses)),
     docDic: __encuestaInit.docDic,
     docMar: __encuestaInit.docMar,
-    firmaRfc: __encuestaInit.firmaRfc,
+    firmaCurp: '',
 
     mesActual: null,
     tempPunt: 0,
@@ -488,7 +489,13 @@ function encuestaSodexo() {
       this.qrInstance.append(container);
     },
 
+    sanitizeCurp(value) {
+      return (value || '').toString().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 18);
+    },
+
     init() {
+      this.firmaCurp = this.sanitizeCurp(__encuestaInit.firmaCurp);
+
       const modalElement = document.getElementById('modalMontosPagados');
       const modalPuntInput = document.getElementById('modalInpPunt');
       const modalAsisInput = document.getElementById('modalInpAsis');
@@ -533,9 +540,13 @@ function encuestaSodexo() {
         btnModalConfirmar.addEventListener('click', () => this.confirmarModal());
       }
 
-      this.$watch('firmaRfc', (v) => {
-        const upper = (v || '').toUpperCase();
-        if (upper.length >= 12) {
+      this.$watch('firmaCurp', (v) => {
+        const upper = this.sanitizeCurp(v);
+        if (upper !== v) {
+          this.firmaCurp = upper;
+          return;
+        }
+        if (upper.length === 18) {
           this.$nextTick(() => this.generarQR(upper));
         } else {
           const c = document.getElementById('qrContainer');
@@ -543,8 +554,8 @@ function encuestaSodexo() {
         }
       });
 
-      if (this.firmaRfc && this.firmaRfc.length >= 12) {
-        this.$nextTick(() => this.generarQR(this.firmaRfc.toUpperCase()));
+      if (this.firmaCurp && this.firmaCurp.length === 18) {
+        this.$nextTick(() => this.generarQR(this.firmaCurp.toUpperCase()));
       }
     }
   };

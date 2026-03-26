@@ -33,8 +33,8 @@ final readonly class SodexoEncuesta
         public bool $docDicPagado = false,
         public bool $docMarPagado = false,
 
-        // Firma: RFC del agremiado
-        public ?string $firmaRfc = null,
+        // Firma: CURP del agremiado
+        public ?string $firmaCurp = null,
 
         public ?DateTimeImmutable $createdAt = null,
         public ?DateTimeImmutable $updatedAt = null,

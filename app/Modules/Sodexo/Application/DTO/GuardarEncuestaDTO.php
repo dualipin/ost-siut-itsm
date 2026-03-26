@@ -32,6 +32,6 @@ final readonly class GuardarEncuestaDTO
         // Docente - Marzo 2026
         public bool $docMarPagado,
 
-        public ?string $firmaRfc,
+        public ?string $firmaCurp,
     ) {}
 }

@@ -757,7 +757,7 @@ CREATE TABLE IF NOT EXISTS sodexo_encuesta
     doc_mar_pagado    TINYINT(1)   NOT NULL DEFAULT 0 COMMENT 'Mar 2026 pagado (100)',
 
     -- Firma del agremiado (RFC como identificador)
-    firma_rfc         VARCHAR(20)  DEFAULT NULL,
+    firma_curp        VARCHAR(20)  DEFAULT NULL COMMENT 'CURP del agremiado (firma electrónica)',
 
     created_at        DATETIME     DEFAULT CURRENT_TIMESTAMP,
     updated_at        DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

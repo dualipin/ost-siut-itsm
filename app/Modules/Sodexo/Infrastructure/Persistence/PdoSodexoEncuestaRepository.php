@@ -29,7 +29,7 @@ final class PdoSodexoEncuestaRepository extends PdoBaseRepository implements Sod
                 adm_mar_asistencia,
                 doc_dic_pagado,
                 doc_mar_pagado,
-                firma_rfc
+                firma_curp
             ) VALUES (
                 :user_id,
                 :tipo_empleado,
@@ -43,7 +43,7 @@ final class PdoSodexoEncuestaRepository extends PdoBaseRepository implements Sod
                 :adm_mar_asistencia,
                 :doc_dic_pagado,
                 :doc_mar_pagado,
-                :firma_rfc
+                :firma_curp
             )
             ON DUPLICATE KEY UPDATE
                 tipo_empleado       = VALUES(tipo_empleado),
@@ -57,7 +57,7 @@ final class PdoSodexoEncuestaRepository extends PdoBaseRepository implements Sod
                 adm_mar_asistencia  = VALUES(adm_mar_asistencia),
                 doc_dic_pagado      = VALUES(doc_dic_pagado),
                 doc_mar_pagado      = VALUES(doc_mar_pagado),
-                firma_rfc           = VALUES(firma_rfc),
+                firma_curp          = VALUES(firma_curp),
                 updated_at          = CURRENT_TIMESTAMP
             ",
         );
@@ -75,7 +75,7 @@ final class PdoSodexoEncuestaRepository extends PdoBaseRepository implements Sod
             'adm_mar_asistencia'  => $encuesta->admMarAsistencia,
             'doc_dic_pagado'      => (int) $encuesta->docDicPagado,
             'doc_mar_pagado'      => (int) $encuesta->docMarPagado,
-            'firma_rfc'           => $encuesta->firmaRfc,
+            'firma_curp'          => $encuesta->firmaCurp,
         ]);
 
         return $stmt->rowCount() >= 1;
@@ -154,7 +154,7 @@ final class PdoSodexoEncuestaRepository extends PdoBaseRepository implements Sod
             docDicPagado: (bool) ($row['doc_dic_pagado'] ?? false),
             docMarPagado: (bool) ($row['doc_mar_pagado'] ?? false),
 
-            firmaRfc:  isset($row['firma_rfc']) ? (string) $row['firma_rfc'] : null,
+            firmaCurp: isset($row['firma_curp']) ? (string) $row['firma_curp'] : null,
             createdAt: $this->parseDateTime($row['created_at'] ?? null),
             updatedAt: $this->parseDateTime($row['updated_at'] ?? null),
         );

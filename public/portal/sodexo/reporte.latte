@@ -95,7 +95,7 @@
               <th class="text-center px-2">Mar 2026</th>
               <th class="text-center px-2 text-success">Total Pagado</th>
               <th class="text-center px-2 text-danger">Total Adeudo</th>
-              <th class="text-center px-2">RFC Firma</th>
+              <th class="text-center px-2">CURP Firma</th>
             </tr>
           </thead>
           <tbody>
@@ -183,8 +183,8 @@
                 {/if}
               </td>
               <td class="text-center px-2">
-                {if $enc->firmaRfc}
-                  <code class="small">{$enc->firmaRfc}</code>
+                {if $enc->firmaCurp}
+                  <code class="small">{$enc->firmaCurp}</code>
                 {else}
                   <span class="text-muted small">—</span>
                 {/if}
@@ -231,7 +231,7 @@
               <th class="text-center px-3">Mar 2026 ($100)</th>
               <th class="text-center px-3 text-success">Total Pagado</th>
               <th class="text-center px-3 text-danger">Total Adeudo</th>
-              <th class="text-center px-3">RFC Firma</th>
+              <th class="text-center px-3">CURP Firma</th>
             </tr>
           </thead>
           <tbody>
@@ -272,8 +272,8 @@
                 {/if}
               </td>
               <td class="text-center px-3">
-                {if $enc->firmaRfc}
-                  <code class="small">{$enc->firmaRfc}</code>
+                {if $enc->firmaCurp}
+                  <code class="small">{$enc->firmaCurp}</code>
                 {else}
                   <span class="text-muted small">—</span>
                 {/if}

@@ -45,6 +45,11 @@ $tipoEmpleado = str_contains($category, 'docente') ? 'docente' : 'administrativo
 $obtenerUseCase   = $container->get(ObtenerEncuestaUseCase::class);
 $encuestaExistente = $obtenerUseCase->execute($authUser->id);
 
+$firmaCurpInicial = normalizeCurp((string) ($encuestaExistente?->firmaCurp ?? ''));
+if ($firmaCurpInicial === '') {
+    $firmaCurpInicial = normalizeCurp((string) ($userFull->personalInfo->curp ?? ''));
+}
+
 $errors  = [];
 $success = false;
 
@@ -53,6 +58,10 @@ if ($request->isSubmitted()) {
     // Recargar la encuesta actualizada tras guardar
     if ($success) {
         $encuestaExistente = $obtenerUseCase->execute($authUser->id);
+        $firmaCurpInicial = normalizeCurp((string) ($encuestaExistente?->firmaCurp ?? ''));
+    } else {
+        // Preserve user input when validation fails.
+        $firmaCurpInicial = normalizeCurp((string) $request->input('firma_curp', $firmaCurpInicial));
     }
 }
 
@@ -60,6 +69,7 @@ $renderer->render("./solicitud.latte", [
     'user'              => $userFull,
     'tipoEmpleado'      => $tipoEmpleado,
     'encuesta'          => $encuestaExistente,
+    'firmaCurpInicial'  => $firmaCurpInicial,
     'errors'            => $errors,
     'success'           => $success,
     // Precomputed booleans for the Latte template (avoid {var} scoping issues)
@@ -81,12 +91,12 @@ function procesarFormulario(
 ): array {
     $errors = [];
 
-    $firmaRfc = strtoupper(trim((string) $request->input('firma_rfc', '')));
+    $firmaCurp = normalizeCurp((string) $request->input('firma_curp', ''));
 
-    if ($firmaRfc === '') {
-        $errors[] = "El RFC de firma es obligatorio para dar validez a la declaración.";
-    } elseif (!preg_match('/^[A-Z&Ñ]{3,4}\d{6}[A-Z0-9]{3}$/i', $firmaRfc)) {
-        $errors[] = "El RFC ingresado no tiene un formato válido (ej. ABCD123456XYZ).";
+    if ($firmaCurp === '') {
+        $errors[] = "La CURP es obligatoria para dar validez a la declaración.";
+    } elseif (!preg_match('/^[A-Z]{4}\d{6}[HM][A-Z]{2}[A-Z]{3}[A-Z0-9]\d$/i', $firmaCurp)) {
+        $errors[] = "La CURP ingresada no tiene un formato válido (18 caracteres, ej. PEGA850101HTCRRB09).";
     }
 
     if ($errors !== []) {
@@ -142,7 +152,7 @@ function procesarFormulario(
         admMarAsistencia:  $admMarAsistencia,
         docDicPagado:      $docDicPagado,
         docMarPagado:      $docMarPagado,
-        firmaRfc:          $firmaRfc,
+        firmaCurp:         $firmaCurp,
     );
 
     try {
@@ -164,4 +174,15 @@ function clampAmount(string $raw): float
 {
     $value = (float) $raw;
     return max(0.0, min(50.0, $value));
+}
+
+/**
+ * Normaliza CURP y elimina comillas envolventes accidentales.
+ */
+function normalizeCurp(string $value): string
+{
+    $normalized = strtoupper(trim($value));
+
+    // Keep only valid CURP charset to avoid quotes/escapes from legacy data.
+    return (string) preg_replace('/[^A-Z0-9]/', '', $normalized);
 }
