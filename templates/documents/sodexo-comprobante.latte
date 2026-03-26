@@ -4,7 +4,6 @@
 {varType App\Modules\Sodexo\Domain\Entity\SodexoEncuesta $encuesta}
 {varType string $logoSrc}
 {varType string $primaryColor}
-{varType ?string $qrBase64}
 {varType string $generadoEn}
 
 {block title}Comprobante — Adeudo Vales de Despensa Electrónico{/block}
@@ -58,8 +57,8 @@
   }
 
   .user-info .lbl {
-    background-color: {$primaryColor};
-    color: #fff;
+    background-color: #f2f2f2;
+    color: #333;
     font-weight: bold;
     width: 25%;
   }
@@ -265,9 +264,6 @@
   <div style="margin-bottom: 20px; font-size: 12px; color: {$primaryColor};">
     <strong>Firma del Agremiado Emisor</strong>
   </div>
-  {if $qrBase64}
-    <img src="{$qrBase64}" class="qr-img" alt="QR Firma">
-  {/if}
   <div style="font-family: monospace; font-size: 13px; margin-top: 5px;">
     <strong>{$encuesta->firmaCurp}</strong>
   </div>

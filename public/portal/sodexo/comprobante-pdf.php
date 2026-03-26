@@ -9,10 +9,6 @@ use App\Modules\Sodexo\Application\UseCase\ObtenerEncuestaUseCase;
 use App\Shared\Context\UserContext;
 use App\Modules\User\Domain\Repository\UserRepositoryInterface;
 use Dompdf\Dompdf;
-use chillerlan\QRCode\QRCode;
-use chillerlan\QRCode\QROptions;
-use chillerlan\QRCode\Common\EccLevel;
-use chillerlan\QRCode\Output\QRGdImagePNG;
 
 require_once __DIR__ . "/../../../bootstrap.php";
 
@@ -67,21 +63,6 @@ try {
     }
 } catch (\Throwable) {}
 
-// Generar QR localmente vía dependencia
-$firmaCurp = (string) ($encuesta->firmaCurp ?? $userFull->personalInfo->curp ?? '');
-$qrBase64 = null;
-if ($firmaCurp !== '') {
-    try {
-        $options = new QROptions([
-            'outputType'       => QRGdImagePNG::class,
-            'eccLevel'         => EccLevel::L,
-            'scale'            => 4,
-            'imageTransparent' => false,
-        ]);
-        $qrBase64 = (new QRCode($options))->render($firmaCurp);
-    } catch (\Throwable) {}
-}
-
 $html = $renderer->renderToString(
     __DIR__ . "/../../../templates/documents/sodexo-comprobante.latte",
     [
@@ -89,7 +70,6 @@ $html = $renderer->renderToString(
         'encuesta'     => $encuesta,
         'logoSrc'      => $logoSrc,
         'primaryColor' => $primaryColor,
-        'qrBase64'     => $qrBase64,
         'generadoEn'   => (new \DateTimeImmutable())->format('d/m/Y H:i'),
     ]
 );
