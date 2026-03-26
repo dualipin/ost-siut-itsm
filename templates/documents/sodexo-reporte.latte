@@ -1,0 +1,441 @@
+{layout '../@document.latte'}
+
+{varType array $encuestas}
+{varType string $generadoPor}
+{varType string $generadoEn}
+{varType int $totalEncuestas}
+{varType int $totalAdministrativos}
+{varType int $totalDocentes}
+{varType float $sumaGlobalPagado}
+{varType float $sumaGlobalAdeudo}
+
+{var $primaryColor = $primaryColor ?? '#611232'}
+
+{block title}Reporte — Adeudo Vales de Despensa Electrónico{/block}
+
+{block content}
+
+<style>
+  body { font-size: 10px; }
+
+  h2.section-title {
+    font-size: 13px;
+    color: {$primaryColor};
+    border-bottom: 2px solid {$primaryColor};
+    padding-bottom: 4px;
+    margin-bottom: 8px;
+    margin-top: 14px;
+  }
+
+  .report-header-info {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 12px;
+    font-size: 10px;
+  }
+
+  .report-header-info td {
+    padding: 3px 6px;
+  }
+
+  .summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 14px;
+  }
+
+  .summary-table td,
+  .summary-table th {
+    border: 1px solid #ccc;
+    padding: 5px 8px;
+    text-align: center;
+  }
+
+  .summary-table th {
+    background-color: {$primaryColor};
+    color: #ffffff;
+    font-size: 10px;
+  }
+
+  .summary-table .lbl {
+    text-align: left;
+    font-weight: bold;
+    background-color: #f2f2f2;
+    width: 40%;
+  }
+
+  .main-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9px;
+    margin-bottom: 6px;
+    page-break-inside: auto;
+  }
+
+  .main-table thead tr {
+    background-color: {$primaryColor};
+    color: #ffffff;
+  }
+
+  .main-table th {
+    padding: 5px 4px;
+    text-align: center;
+    border: 1px solid #999;
+    font-size: 8.5px;
+  }
+
+  .main-table td {
+    padding: 4px;
+    border: 1px solid #ccc;
+    vertical-align: middle;
+    text-align: center;
+  }
+
+  .main-table td.name-col {
+    text-align: left;
+    font-weight: bold;
+  }
+
+  .main-table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+
+  .main-table tfoot tr {
+    background-color: #e8e8e8;
+    font-weight: bold;
+    font-size: 9.5px;
+  }
+
+  .badge-pagado {
+    display: inline-block;
+    background-color: #198754;
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 8.5px;
+  }
+
+  .badge-adeudo {
+    display: inline-block;
+    background-color: #dc3545;
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 8.5px;
+  }
+
+  .badge-ok {
+    display: inline-block;
+    background-color: #0d6efd;
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 8.5px;
+  }
+
+  .section-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 9px;
+    margin-bottom: 5px;
+  }
+
+  .section-badge-adm {
+    background-color: #6c757d;
+    color: #fff;
+  }
+
+  .section-badge-doc {
+    background-color: #ffc107;
+    color: #333;
+  }
+
+  .totals-row td {
+    background-color: #ffe0e0;
+    font-weight: bold;
+  }
+
+  .empty-msg {
+    text-align: center;
+    padding: 20px;
+    color: #888;
+    font-style: italic;
+  }
+
+  .nota-legal {
+    font-size: 8.5px;
+    color: #555;
+    margin-top: 16px;
+    border-top: 1px solid #ddd;
+    padding-top: 8px;
+    text-align: justify;
+  }
+</style>
+
+{* ── Título principal ── *}
+<section>
+  <h1 style="font-size:14px; color:{$primaryColor}; text-align:center; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.5px;">
+    Solicitud de Pago Retroactivo de Vales de Despensa Electrónico
+  </h1>
+  <p style="text-align:center; font-size:10px; color:#333; margin-bottom:10px;">
+    <strong>Adeudo pago complemento por revisión salarial 2025 de prestación Vales de Despensa Electrónico</strong>
+  </p>
+</section>
+
+{* ── Metadatos del reporte ── *}
+<table class="report-header-info">
+  <tr>
+    <td class="lbl" style="font-weight:bold; color:#555; width:25%;">Generado por:</td>
+    <td>{$generadoPor}</td>
+    <td class="lbl" style="font-weight:bold; color:#555; width:22%;">Fecha de emisión:</td>
+    <td>{$generadoEn}</td>
+  </tr>
+  <tr>
+    <td class="lbl" style="font-weight:bold; color:#555;">Total de declaraciones:</td>
+    <td>{$totalEncuestas}</td>
+    <td class="lbl" style="font-weight:bold; color:#555;">Folio:</td>
+    <td>SIUT-SOD-{date('YmdHis')}</td>
+  </tr>
+</table>
+
+{* ── Resumen ejecutivo ── *}
+<h2 class="section-title">Resumen Ejecutivo</h2>
+
+<table class="summary-table">
+  <thead>
+    <tr>
+      <th>Concepto</th>
+      <th>Cantidad</th>
+      <th>Total Esperado</th>
+      <th>Total Pagado</th>
+      <th>Total Adeudo</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="lbl">Administrativos</td>
+      <td>{$totalAdministrativos}</td>
+      <td>${number_format($totalAdministrativos * 400, 2)}</td>
+      <td style="color:#198754; font-weight:bold;">
+        ${number_format(array_sum(array_map(fn($e) => $e->esAdministrativo() ? $e->totalPagado() : 0.0, $encuestas)), 2)}
+      </td>
+      <td style="color:#dc3545; font-weight:bold;">
+        ${number_format(array_sum(array_map(fn($e) => $e->esAdministrativo() ? $e->totalAdeudo() : 0.0, $encuestas)), 2)}
+      </td>
+    </tr>
+    <tr>
+      <td class="lbl">Docentes</td>
+      <td>{$totalDocentes}</td>
+      <td>${number_format($totalDocentes * 200, 2)}</td>
+      <td style="color:#198754; font-weight:bold;">
+        ${number_format(array_sum(array_map(fn($e) => $e->esDocente() ? $e->totalPagado() : 0.0, $encuestas)), 2)}
+      </td>
+      <td style="color:#dc3545; font-weight:bold;">
+        ${number_format(array_sum(array_map(fn($e) => $e->esDocente() ? $e->totalAdeudo() : 0.0, $encuestas)), 2)}
+      </td>
+    </tr>
+    <tr class="totals-row">
+      <td style="text-align:left; font-weight:bold;">TOTAL GENERAL</td>
+      <td>{$totalEncuestas}</td>
+      <td>${number_format(($totalAdministrativos * 400) + ($totalDocentes * 200), 2)}</td>
+      <td style="color:#198754; font-weight:bold;">${number_format($sumaGlobalPagado, 2)}</td>
+      <td style="color:#dc3545; font-weight:bold;">${number_format($sumaGlobalAdeudo, 2)}</td>
+    </tr>
+  </tbody>
+</table>
+
+
+{* ══════════════════════════════════════════════════════════════════ *}
+{* DETALLE ADMINISTRATIVOS                                           *}
+{* ══════════════════════════════════════════════════════════════════ *}
+{var $admins = array_filter($encuestas, fn($e) => $e->esAdministrativo())}
+
+{if count($admins) > 0}
+<h2 class="section-title" style="page-break-before: auto;">
+  Personal Administrativo
+</h2>
+<span class="section-badge section-badge-adm">Administrativos — Pago mensual: $50 Puntualidad + $50 Asistencia = $100/mes</span>
+
+<table class="main-table">
+  <thead>
+    <tr>
+      <th style="text-align:left; width:18%;">Agremiado (ID)</th>
+      <th style="width:16%;">Dic 2025<br><small>P / A / Total</small></th>
+      <th style="width:16%;">Ene 2026<br><small>P / A / Total</small></th>
+      <th style="width:16%;">Feb 2026<br><small>P / A / Total</small></th>
+      <th style="width:16%;">Mar 2026<br><small>P / A / Total</small></th>
+      <th style="width:9%;">Pagado</th>
+      <th style="width:9%;">Adeudo</th>
+    </tr>
+  </thead>
+  <tbody>
+    {foreach $admins as $enc}
+    <tr>
+      <td class="name-col">{$enc->userSurnames} {$enc->userName}</td>
+
+      {* Diciembre *}
+      <td>
+        {if $enc->mesAdmSeleccionado('dic')}
+          <span class="badge-pagado">
+            ${number_format($enc->admDicPuntualidad ?? 0, 2)} /
+            ${number_format($enc->admDicAsistencia  ?? 0, 2)} /
+            ${number_format($enc->pagadoEnMes('dic'), 2)}
+          </span>
+        {else}
+          <span class="badge-adeudo">No pagado</span>
+        {/if}
+      </td>
+
+      {* Enero *}
+      <td>
+        {if $enc->mesAdmSeleccionado('ene')}
+          <span class="badge-pagado">
+            ${number_format($enc->admEnePuntualidad ?? 0, 2)} /
+            ${number_format($enc->admEneAsistencia  ?? 0, 2)} /
+            ${number_format($enc->pagadoEnMes('ene'), 2)}
+          </span>
+        {else}
+          <span class="badge-adeudo">No pagado</span>
+        {/if}
+      </td>
+
+      {* Febrero *}
+      <td>
+        {if $enc->mesAdmSeleccionado('feb')}
+          <span class="badge-pagado">
+            ${number_format($enc->admFebPuntualidad ?? 0, 2)} /
+            ${number_format($enc->admFebAsistencia  ?? 0, 2)} /
+            ${number_format($enc->pagadoEnMes('feb'), 2)}
+          </span>
+        {else}
+          <span class="badge-adeudo">No pagado</span>
+        {/if}
+      </td>
+
+      {* Marzo *}
+      <td>
+        {if $enc->mesAdmSeleccionado('mar')}
+          <span class="badge-pagado">
+            ${number_format($enc->admMarPuntualidad ?? 0, 2)} /
+            ${number_format($enc->admMarAsistencia  ?? 0, 2)} /
+            ${number_format($enc->pagadoEnMes('mar'), 2)}
+          </span>
+        {else}
+          <span class="badge-adeudo">No pagado</span>
+        {/if}
+      </td>
+
+      <td style="color:#198754; font-weight:bold;">
+        ${number_format($enc->totalPagado(), 2)}
+      </td>
+      <td>
+        {if $enc->totalAdeudo() > 0}
+          <span class="badge-adeudo">${number_format($enc->totalAdeudo(), 2)}</span>
+        {else}
+          <span class="badge-ok">Al corriente</span>
+        {/if}
+      </td>
+    </tr>
+    {/foreach}
+  </tbody>
+  <tfoot>
+    <tr>
+      <td style="text-align:right;" colspan="5">Subtotal Administrativos:</td>
+      <td style="color:#198754;">
+        ${number_format(array_sum(array_map(fn($e) => $e->totalPagado(), $admins)), 2)}
+      </td>
+      <td style="color:#dc3545;">
+        ${number_format(array_sum(array_map(fn($e) => $e->totalAdeudo(), $admins)), 2)}
+      </td>
+    </tr>
+  </tfoot>
+</table>
+{/if}
+
+
+{* ══════════════════════════════════════════════════════════════════ *}
+{* DETALLE DOCENTES                                                  *}
+{* ══════════════════════════════════════════════════════════════════ *}
+{var $docentes = array_filter($encuestas, fn($e) => $e->esDocente())}
+
+{if count($docentes) > 0}
+<h2 class="section-title" style="page-break-before: auto;">
+  Personal Docente
+</h2>
+<span class="section-badge section-badge-doc">Docentes — Pago único por quincena: $100 Dic 2025 + $100 Mar 2026 = $200 total</span>
+
+<table class="main-table">
+  <thead>
+    <tr>
+      <th style="text-align:left; width:30%;">Agremiado (ID)</th>
+      <th style="width:20%;">Dic 2025 ($100)</th>
+      <th style="width:20%;">Mar 2026 ($100)</th>
+      <th style="width:15%;">Total Pagado</th>
+      <th style="width:15%;">Total Adeudo</th>
+    </tr>
+  </thead>
+  <tbody>
+    {foreach $docentes as $enc}
+    <tr>
+      <td class="name-col">{$enc->userSurnames} {$enc->userName}</td>
+      <td>
+        {if $enc->docDicPagado}
+          <span class="badge-pagado">$100.00 ✓</span>
+        {else}
+          <span class="badge-adeudo">No pagado</span>
+        {/if}
+      </td>
+      <td>
+        {if $enc->docMarPagado}
+          <span class="badge-pagado">$100.00 ✓</span>
+        {else}
+          <span class="badge-adeudo">No pagado</span>
+        {/if}
+      </td>
+      <td style="color:#198754; font-weight:bold;">
+        ${number_format($enc->totalPagado(), 2)}
+      </td>
+      <td>
+        {if $enc->totalAdeudo() > 0}
+          <span class="badge-adeudo">${number_format($enc->totalAdeudo(), 2)}</span>
+        {else}
+          <span class="badge-ok">Al corriente</span>
+        {/if}
+      </td>
+    </tr>
+    {/foreach}
+  </tbody>
+  <tfoot>
+    <tr>
+      <td style="text-align:right;" colspan="3">Subtotal Docentes:</td>
+      <td style="color:#198754;">
+        ${number_format(array_sum(array_map(fn($e) => $e->totalPagado(), $docentes)), 2)}
+      </td>
+      <td style="color:#dc3545;">
+        ${number_format(array_sum(array_map(fn($e) => $e->totalAdeudo(), $docentes)), 2)}
+      </td>
+    </tr>
+  </tfoot>
+</table>
+{/if}
+
+{if count($encuestas) === 0}
+  <p class="empty-msg">— No se han registrado declaraciones aún —</p>
+{/if}
+
+
+{* ── Nota legal ── *}
+<div class="nota-legal">
+  <strong>Nota legal:</strong>
+  La información contenida en este reporte fue proporcionada directamente por cada agremiado a través del
+  portal del Sindicato Único de Trabajadores del Instituto Tecnológico Superior de Macuspana (OST-SIUT-ITSM),
+  quien declara bajo protesta de decir verdad la veracidad de los datos capturados.
+  Los montos reflejados corresponden al incremento complementario de prestación de Vales de Despensa
+  Electrónico derivado de la Revisión Salarial 2025 y representan el adeudo por parte del Tecnológico
+  de Macuspana. Este documento tiene carácter informativo y de gestión sindical.
+  Generado el {$generadoEn} por {$generadoPor}.
+</div>
+
+{/block}

@@ -730,3 +730,39 @@ CREATE TABLE IF NOT EXISTS mail_queue
     INDEX (status, priority, scheduled_at),                                               -- Optimiza la consulta del cron
     INDEX (status, lock_token)
 );
+
+-- ============================================================
+-- Módulo: Encuesta Sodexo - Solicitud pago retroactivo
+-- Vales de Despensa Electrónico (revisión salarial 2025)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS sodexo_encuesta
+(
+    encuesta_id       INT AUTO_INCREMENT PRIMARY KEY,
+    user_id           INT          NOT NULL,
+    tipo_empleado     VARCHAR(20)  NOT NULL COMMENT 'administrativo o docente',
+
+    -- Administrativos: monto pagado por mes (NULL = mes no seleccionado / no pagado)
+    -- Puntualidad: 0-50 pesos | Asistencia: 0-50 pesos | Total mes: max 100 pesos
+    adm_dic_puntualidad DECIMAL(6, 2) DEFAULT NULL COMMENT 'Dic 2025 puntualidad',
+    adm_dic_asistencia  DECIMAL(6, 2) DEFAULT NULL COMMENT 'Dic 2025 asistencia',
+    adm_ene_puntualidad DECIMAL(6, 2) DEFAULT NULL COMMENT 'Ene 2026 puntualidad',
+    adm_ene_asistencia  DECIMAL(6, 2) DEFAULT NULL COMMENT 'Ene 2026 asistencia',
+    adm_feb_puntualidad DECIMAL(6, 2) DEFAULT NULL COMMENT 'Feb 2026 puntualidad',
+    adm_feb_asistencia  DECIMAL(6, 2) DEFAULT NULL COMMENT 'Feb 2026 asistencia',
+    adm_mar_puntualidad DECIMAL(6, 2) DEFAULT NULL COMMENT 'Mar 2026 puntualidad',
+    adm_mar_asistencia  DECIMAL(6, 2) DEFAULT NULL COMMENT 'Mar 2026 asistencia',
+
+    -- Docentes: se pagaron 100 pesos en cada quincena seleccionada
+    doc_dic_pagado    TINYINT(1)   NOT NULL DEFAULT 0 COMMENT 'Dic 2025 pagado (100)',
+    doc_mar_pagado    TINYINT(1)   NOT NULL DEFAULT 0 COMMENT 'Mar 2026 pagado (100)',
+
+    -- Firma del agremiado (RFC como identificador)
+    firma_curp        VARCHAR(20)  DEFAULT NULL COMMENT 'CURP del agremiado (firma electrónica)',
+
+    created_at        DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    updated_at        DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_sodexo_user FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
+    UNIQUE KEY unique_sodexo_user (user_id),
+    INDEX idx_tipo_empleado (tipo_empleado)
+);

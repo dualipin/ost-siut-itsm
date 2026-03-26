@@ -1,0 +1,657 @@
+{extends ../../../templates/@portal.latte}
+
+{block head}
+<style>
+  [x-cloak],
+  [x-cloak].d-flex,
+  [x-cloak].d-block,
+  [x-cloak].d-inline-flex {
+    display: none !important;
+  }
+</style>
+{/block}
+
+{varType App\Modules\User\Domain\Entity\User $user}
+{varType string $tipoEmpleado}
+{varType ?App\Modules\Sodexo\Domain\Entity\SodexoEncuesta $encuesta}
+{varType array $errors}
+{varType bool $success}
+{varType bool $admDicSel}
+{varType bool $admEneSel}
+{varType bool $admFebSel}
+{varType bool $admMarSel}
+
+{block titulo}Solicitud Pago Retroactivo — Vales de Despensa Electrónico{/block}
+
+{block main}
+
+<div x-data="encuestaSodexo()" x-init="init()">
+
+  {include ../../../templates/components/header-page.latte,
+    title: 'Solicitud Pago Retroactivo',
+    description: 'Declaración de adeudo por revisión salarial 2025 — Vales de Despensa Electrónico',
+    icon: 'bi-card-checklist'
+  }
+
+  {if $success}
+  <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn mb-4" role="alert">
+    <i class="bi bi-check-circle-fill me-2"></i>
+    <strong>¡Declaración guardada correctamente!</strong>
+    Tu información ha sido registrada. Puedes actualizarla en cualquier momento.
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {/if}
+
+  {if $errors}
+  <div class="alert alert-danger border-0 shadow-sm alert-dismissible fade show animate__animated animate__shakeX mb-4 rounded-3" role="alert">
+    <div class="d-flex align-items-center">
+      <i class="bi bi-exclamation-triangle-fill fs-4 me-3 text-danger"></i>
+      <div>
+        <strong class="d-block mb-1">Se encontraron errores:</strong>
+        <ul class="mb-0 small ps-3">
+          {foreach $errors as $e}<li>{$e}</li>{/foreach}
+        </ul>
+      </div>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {/if}
+
+  <div class="mb-5">
+
+    <div class="p-0">
+
+      {* Datos del interesado *}
+      <div class="row g-3 p-4 bg-white border-0 shadow-sm rounded-4 mb-5">
+        <div class="col-md-5">
+          <p class="text-muted small fw-bold text-uppercase mb-1">
+            <i class="bi bi-person me-1"></i>Nombre del Interesado
+          </p>
+          <p class="mb-0 fs-5 fw-bold text-dark">{$user->personalInfo->name} {$user->personalInfo->surnames}</p>
+        </div>
+        <div class="col-md-4 border-start ps-4">
+          <p class="text-muted small fw-bold text-uppercase mb-1">
+            <i class="bi bi-briefcase me-1"></i>Plaza / Categoría
+          </p>
+          <p class="mb-0 text-dark">{$user->workData->category ?? 'No especificada'}</p>
+        </div>
+        <div class="col-md-3 border-start ps-4">
+          <p class="text-muted small fw-bold text-uppercase mb-1">
+            <i class="bi bi-building me-1"></i>Departamento
+          </p>
+          <p class="mb-0 text-dark">{$user->workData->department ?? 'No especificado'}</p>
+        </div>
+      </div>
+
+      <div class="d-flex align-items-center mb-5 border-start border-primary border-4 ps-3 py-1">
+        <div>
+          <h4 class="fw-bold text-dark mb-1">Adeudo pago complemento por revisión salarial 2025 de prestación Vales de Despensa Electrónico</h4>
+        </div>
+      </div>
+
+      <form method="POST" action="" id="formEncuesta">
+
+        {* ═══════════════════════════════════════════════════════════ *}
+        {* SECCIÓN ADMINISTRATIVO                                      *}
+        {* ═══════════════════════════════════════════════════════════ *}
+        {if $tipoEmpleado === 'administrativo'}
+
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <span class="badge bg-secondary fs-6 px-3 py-2">
+            <i class="bi bi-person-badge me-1"></i>Administrativo
+          </span>
+          <small class="text-muted">
+            Seleccione los meses para declarar los montos incrementados que <strong>SÍ recibió</strong>
+          </small>
+        </div>
+
+        <div class="row g-3 mb-4">
+
+          {foreach [
+            ['key' => 'dic', 'label' => 'Diciembre 2025',
+              'sel' => $admDicSel,
+              'punt' => ($encuesta?->admDicPuntualidad ?? 0),
+              'asis' => ($encuesta?->admDicAsistencia ?? 0)],
+            ['key' => 'ene', 'label' => 'Enero 2026',
+              'sel' => $admEneSel,
+              'punt' => ($encuesta?->admEnePuntualidad ?? 0),
+              'asis' => ($encuesta?->admEneAsistencia ?? 0)],
+            ['key' => 'feb', 'label' => 'Febrero 2026',
+              'sel' => $admFebSel,
+              'punt' => ($encuesta?->admFebPuntualidad ?? 0),
+              'asis' => ($encuesta?->admFebAsistencia ?? 0)],
+            ['key' => 'mar', 'label' => 'Marzo 2026',
+              'sel' => $admMarSel,
+              'punt' => ($encuesta?->admMarPuntualidad ?? 0),
+              'asis' => ($encuesta?->admMarAsistencia ?? 0)],
+          ] as $m}
+
+          <div class="col-12">
+            <div class="card border-0 shadow-sm"
+                 :class="meses.{$m['key']}.sel ? 'bg-success bg-opacity-10' : 'bg-white'">
+              <div class="card-body py-3">
+                <div class="row align-items-center">
+
+                  <div class="col-md-4">
+                    <div class="d-flex align-items-center gap-3"
+                         @click.prevent="toggleMes('{$m['key']}')"
+                         style="cursor:pointer; user-select:none;">
+                      <div class="form-check-box border rounded-circle"
+                           style="width:1.6em; height:1.6em; display:flex; align-items:center; justify-content:center; border-color:#dee2e6 !important; flex-shrink:0; transition: all 0.2s;"
+                           :class="meses.{$m['key']}.sel ? 'bg-success border-success text-white' : 'bg-white'">
+                        <i class="bi bi-check-lg" x-show="meses.{$m['key']}.sel" style="font-size:1em;"></i>
+                      </div>
+                      <span class="fw-bold text-dark">{$m['label']}</span>
+                    </div>
+                  </div>
+
+                  <div class="col-md-8" x-show="meses.{$m['key']}.sel" x-transition>
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                      <span class="badge border border-primary text-primary bg-white px-3 py-2">
+                        Puntualidad: <strong>$<span x-text="meses.{$m['key']}.punt.toFixed(2)"></span></strong>
+                      </span>
+                      <span class="badge border border-info text-info bg-white px-3 py-2">
+                        Asistencia: <strong>$<span x-text="meses.{$m['key']}.asis.toFixed(2)"></span></strong>
+                      </span>
+                      <span class="badge bg-success px-3 py-2">
+                        Recibido: <strong>$<span x-text="(meses.{$m['key']}.punt + meses.{$m['key']}.asis).toFixed(2)"></span></strong>
+                      </span>
+                      <button type="button" class="btn btn-sm btn-link text-decoration-none"
+                              @click.stop="abrirModal('{$m['key']}')">
+                        <i class="bi bi-pencil-square me-1"></i>Ajustar
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+
+                {* Hidden inputs — se deshabilitan si el mes no está seleccionado, así no se envían *}
+                <input type="hidden" name="{$m['key']}_seleccionado" value="1"
+                       :disabled="!meses.{$m['key']}.sel">
+                <input type="hidden" name="{$m['key']}_puntualidad"
+                       :value="meses.{$m['key']}.punt"
+                       :disabled="!meses.{$m['key']}.sel">
+                <input type="hidden" name="{$m['key']}_asistencia"
+                       :value="meses.{$m['key']}.asis"
+                       :disabled="!meses.{$m['key']}.sel">
+              </div>
+            </div>
+          </div>
+
+          {/foreach}
+        </div>
+
+        {* Totales administrativo *}
+        <div class="row g-3 mb-2">
+          <div class="col-md-4">
+            <div class="p-3 bg-white border rounded shadow-sm text-center">
+              <p class="text-muted small fw-bold text-uppercase mb-1">Monto Esperado</p>
+              <h3 class="mb-0 fw-bold text-dark">$400.00</h3>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="p-3 bg-white border rounded shadow-sm text-center border-start border-success border-4">
+              <p class="text-muted small fw-bold text-uppercase mb-1">Monto Recibido</p>
+              <h3 class="mb-0 fw-bold text-success">$<span x-text="totalPagadoVal.toFixed(2)"></span></h3>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="p-3 bg-white border rounded shadow-sm text-center border-start border-danger border-4">
+              <p class="text-muted small fw-bold text-uppercase mb-1">Diferencia Solicitada</p>
+              <h3 class="mb-0 fw-bold text-danger">$<span x-text="totalAdeudoVal.toFixed(2)"></span></h3>
+            </div>
+          </div>
+        </div>
+
+        {/if}
+
+        {* ═══════════════════════════════════════════════════════════ *}
+        {* SECCIÓN DOCENTE                                             *}
+        {* ═══════════════════════════════════════════════════════════ *}
+        {if $tipoEmpleado === 'docente'}
+
+        <div class="d-flex align-items-center gap-2 mb-3 mt-4">
+          <span class="badge bg-warning text-dark fs-6 px-3 py-2">
+            <i class="bi bi-mortarboard me-1"></i>Docente
+          </span>
+          <small class="text-muted">
+            Seleccione los meses en que <strong>SÍ recibió</strong> el pago de $100.00
+          </small>
+        </div>
+
+        <div class="row g-3 mb-4">
+
+          <div class="col-12 col-md-6">
+            <div class="card border-0 shadow-sm"
+                 :class="docDic ? 'bg-success bg-opacity-10' : 'bg-white'">
+              <div class="card-body py-3">
+                <div class="form-check d-flex align-items-center gap-3" style="padding-left:0;">
+                  <input class="form-check-input m-0 flex-shrink-0 rounded-circle"
+                         type="checkbox"
+                         id="chkDocDic"
+                         name="doc_dic_pagado"
+                         value="1"
+                         x-model="docDic"
+                         @change="recalcularTotales()"
+                         {if $encuesta?->docDicPagado}checked{/if}
+                         style="width:1.6em; height:1.6em; cursor:pointer;">
+                  <label class="form-check-label fw-bold text-dark" for="chkDocDic" style="cursor:pointer;">
+                    Diciembre 2025
+                    <span class="badge bg-primary ms-2">$100.00</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <div class="card border-0 shadow-sm"
+                 :class="docMar ? 'bg-success bg-opacity-10' : 'bg-white'">
+              <div class="card-body py-3">
+                <div class="form-check d-flex align-items-center gap-3" style="padding-left:0;">
+                  <input class="form-check-input m-0 flex-shrink-0 rounded-circle"
+                         type="checkbox"
+                         id="chkDocMar"
+                         name="doc_mar_pagado"
+                         value="1"
+                         x-model="docMar"
+                         @change="recalcularTotales()"
+                         {if $encuesta?->docMarPagado}checked{/if}
+                         style="width:1.6em; height:1.6em; cursor:pointer;">
+                  <label class="form-check-label fw-bold text-dark" for="chkDocMar" style="cursor:pointer;">
+                    Marzo 2026
+                    <span class="badge bg-primary ms-2">$100.00</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        {* Totales docente *}
+        <div class="row g-3 mb-2">
+          <div class="col-md-4">
+            <div class="p-3 bg-white border rounded shadow-sm text-center">
+              <p class="text-muted small fw-bold text-uppercase mb-1">Monto Esperado</p>
+              <h3 class="mb-0 fw-bold text-dark">$200.00</h3>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="p-3 bg-white border rounded shadow-sm text-center border-start border-success border-4">
+              <p class="text-muted small fw-bold text-uppercase mb-1">Monto Recibido</p>
+              <h3 class="mb-0 fw-bold text-success">$<span x-text="totalPagadoVal.toFixed(2)"></span></h3>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="p-3 bg-white border rounded shadow-sm text-center border-start border-danger border-4">
+              <p class="text-muted small fw-bold text-uppercase mb-1">Diferencia Solicitada</p>
+              <h3 class="mb-0 fw-bold text-danger">$<span x-text="totalAdeudoVal.toFixed(2)"></span></h3>
+            </div>
+          </div>
+        </div>
+
+        {/if}
+
+        {* ═══════════════════════════════════════════════════════════ *}
+        {* SECCIÓN FIRMA (CURP)                                         *}
+        {* ═══════════════════════════════════════════════════════════ *}
+        <hr class="my-4">
+
+        <div class="row g-4 align-items-start mt-2">
+          <div class="col-md-7">
+            <h6 class="fw-bold mb-3 text-dark">
+              <i class="bi bi-pen-fill me-2 text-primary"></i>Firma del Declarante
+            </h6>
+            <div class="alert bg-white border shadow-sm small mb-4 text-dark p-3 rounded-3">
+              <i class="bi bi-info-circle me-2 text-primary"></i>
+              El/La suscrito(a) declara bajo protesta de decir verdad que la información proporcionada
+              es verídica y correcta. Su <strong>CURP</strong> actuará como firma electrónica para esta solicitud.
+            </div>
+            <div class="form-floating mb-3">
+              <input type="text"
+                     class="form-control form-control-lg text-uppercase border shadow-sm"
+                     id="firma_curp"
+                     name="firma_curp"
+                     maxlength="20"
+                     placeholder="CURP del Agremiado"
+                     autocomplete="off"
+                     x-model="firmaCurp"
+                @input="firmaCurp = sanitizeCurp($event.target.value)"
+                     style="font-family: 'Courier New', Courier, monospace; letter-spacing: 2px; font-weight: bold; background-color: #f8f9fa;">
+              <label for="firma_curp" class="fw-semibold text-muted">CURP del Agremiado</label>
+            </div>
+          </div>
+
+          <div class="col-md-5 text-center" x-show="firmaCurp.length === 18" x-transition>
+            <div class="d-inline-block p-4 bg-white border-0 shadow-sm rounded-4">
+              <p class="text-muted small mb-3 fw-bold text-uppercase">Código de Verificación</p>
+              <div id="qrContainer" class="d-flex justify-content-center"></div>
+              <p class="text-primary small mt-3 mb-0 fw-bold" x-text="firmaCurp.toUpperCase()"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-5 pt-4 border-top">
+          <a href="/portal/index.php" class="btn btn-link text-muted text-decoration-none">
+            <i class="bi bi-arrow-left me-1"></i>Regresar al panel
+          </a>
+          <div class="d-flex gap-3">
+            {if $encuesta !== null}
+              <a href="/portal/sodexo/comprobante-pdf.php" target="_blank" class="btn btn-outline-danger btn-lg px-4 shadow-sm rounded-3">
+                <i class="bi bi-file-earmark-pdf-fill me-2"></i>Descargar Comprobante
+              </a>
+            {/if}
+            <button type="submit" class="btn btn-primary btn-lg px-5 shadow-sm rounded-3">
+              <i class="bi bi-send-check-fill me-2"></i>
+              {if $encuesta !== null}Actualizar Solicitud{else}Confirmar y Enviar{/if}
+            </button>
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+</div>
+{/block}
+
+{block scripts}
+{include parent}
+<script>
+var __encuestaInit = {
+  tipoEmpleado: {$tipoEmpleado},
+  meses: {
+    dic: { sel: {if $admDicSel}true{else}false{/if}, punt: {($encuesta?->admDicPuntualidad ?? 0)}, asis: {($encuesta?->admDicAsistencia ?? 0)} },
+    ene: { sel: {if $admEneSel}true{else}false{/if}, punt: {($encuesta?->admEnePuntualidad ?? 0)}, asis: {($encuesta?->admEneAsistencia ?? 0)} },
+    feb: { sel: {if $admFebSel}true{else}false{/if}, punt: {($encuesta?->admFebPuntualidad ?? 0)}, asis: {($encuesta?->admFebAsistencia ?? 0)} },
+    mar: { sel: {if $admMarSel}true{else}false{/if}, punt: {($encuesta?->admMarPuntualidad ?? 0)}, asis: {($encuesta?->admMarAsistencia ?? 0)} }
+  },
+  docDic: {if $encuesta?->docDicPagado}true{else}false{/if},
+  docMar: {if $encuesta?->docMarPagado}true{else}false{/if},
+  firmaCurp: {$firmaCurpInicial ?? ''}
+};
+
+function encuestaSodexo() {
+  return {
+    tipoEmpleado: __encuestaInit.tipoEmpleado,
+    meses: JSON.parse(JSON.stringify(__encuestaInit.meses)),
+    docDic: __encuestaInit.docDic,
+    docMar: __encuestaInit.docMar,
+    firmaCurp: '',
+
+    totalPagadoVal: 0,
+    totalAdeudoVal: 0,
+
+    mesActual: null,
+    tempPunt: 0,
+    tempAsis: 0,
+    modalRef: null,
+    modalPuntInput: null,
+    modalAsisInput: null,
+    modalMesLabel: null,
+    modalTotal: null,
+
+    mesLabels: {
+      dic: 'Diciembre 2025',
+      ene: 'Enero 2026',
+      feb: 'Febrero 2026',
+      mar: 'Marzo 2026'
+    },
+
+    recalcularTotales() {
+      let t = 0;
+      if (this.tipoEmpleado === 'docente') {
+        const d = Array.isArray(this.docDic) ? this.docDic.length > 0 : !!this.docDic;
+        const m = Array.isArray(this.docMar) ? this.docMar.length > 0 : !!this.docMar;
+        t = (d ? 100 : 0) + (m ? 100 : 0);
+      } else {
+        for (const k in this.meses) {
+          if (this.meses[k].sel) {
+            t += Math.min(50, Math.max(0, this.meses[k].punt || 0))
+               + Math.min(50, Math.max(0, this.meses[k].asis || 0));
+          }
+        }
+      }
+      this.totalPagadoVal = t;
+      const esperado = this.tipoEmpleado === 'docente' ? 200 : 400;
+      this.totalAdeudoVal = Math.max(0, esperado - t);
+    },
+
+    toggleMes(key) {
+      if (this.meses[key].sel) {
+        this.meses[key].sel  = false;
+        this.meses[key].punt = 0;
+        this.meses[key].asis = 0;
+        this.meses = { ...this.meses }; // Force Alpine deep reactivity
+        this.recalcularTotales();
+      } else {
+        this.abrirModal(key);
+      }
+    },
+
+    abrirModal(key) {
+      this.mesActual    = key;
+      this.tempPunt     = this.meses[key].punt || 0;
+      this.tempAsis     = this.meses[key].asis || 0;
+      this.actualizarVistaModal();
+      if (this.modalRef) {
+        this.modalRef.show();
+      }
+    },
+
+    cancelarModal() {
+      if (this.modalRef) {
+        this.modalRef.hide();
+      }
+    },
+
+    confirmarModal() {
+      if (!this.mesActual) return;
+      const p = Math.min(50, Math.max(0, parseFloat(this.tempPunt) || 0));
+      const a = Math.min(50, Math.max(0, parseFloat(this.tempAsis) || 0));
+      this.meses[this.mesActual].punt = p;
+      this.meses[this.mesActual].asis = a;
+      this.meses[this.mesActual].sel  = true;
+      this.meses = { ...this.meses };
+      this.recalcularTotales();
+      this.cancelarModal();
+    },
+
+    clampTemp() {
+      if (this.tempPunt > 50) this.tempPunt = 50;
+      if (this.tempPunt < 0)  this.tempPunt = 0;
+      if (this.tempAsis > 50) this.tempAsis = 50;
+      if (this.tempAsis < 0)  this.tempAsis = 0;
+      this.actualizarTotalModal();
+    },
+
+    actualizarVistaModal() {
+      if (this.modalMesLabel) {
+        this.modalMesLabel.textContent = this.mesLabels[this.mesActual] || this.mesActual || '';
+      }
+      if (this.modalPuntInput) {
+        this.modalPuntInput.value = String(this.tempPunt);
+      }
+      if (this.modalAsisInput) {
+        this.modalAsisInput.value = String(this.tempAsis);
+      }
+      this.actualizarTotalModal();
+    },
+
+    actualizarTotalModal() {
+      if (!this.modalTotal) return;
+      const total = Math.min(50, Math.max(0, this.tempPunt || 0)) + Math.min(50, Math.max(0, this.tempAsis || 0));
+      this.modalTotal.textContent = total.toFixed(2);
+    },
+
+    qrInstance: null,
+
+    generarQR(rfc) {
+      const container = document.getElementById('qrContainer');
+      if (!container || typeof QRCodeStyling === 'undefined') return;
+      container.innerHTML = '';
+      this.qrInstance = new QRCodeStyling({
+        width: 128,
+        height: 128,
+        data: rfc,
+        margin: 4,
+        dotsOptions: { color: '#611232', type: 'rounded' },
+        backgroundOptions: { color: '#ffffff' },
+        cornersSquareOptions: { type: 'extra-rounded', color: '#611232' },
+        cornersDotOptions: { color: '#611232' }
+      });
+      this.qrInstance.append(container);
+    },
+
+    sanitizeCurp(value) {
+      return (value || '').toString().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 18);
+    },
+
+    init() {
+      this.firmaCurp = this.sanitizeCurp(__encuestaInit.firmaCurp);
+      this.recalcularTotales();
+      this.$watch('docDic', () => this.recalcularTotales());
+      this.$watch('docMar', () => this.recalcularTotales());
+
+      const modalElement = document.getElementById('modalMontosPagados');
+      const modalPuntInput = document.getElementById('modalInpPunt');
+      const modalAsisInput = document.getElementById('modalInpAsis');
+      const modalMesLabel = document.getElementById('modalMesLabel');
+      const modalTotal = document.getElementById('modalTotalMes');
+      const btnModalCancelar = document.getElementById('btnModalCancelar');
+      const btnModalConfirmar = document.getElementById('btnModalConfirmar');
+
+      this.modalPuntInput = modalPuntInput;
+      this.modalAsisInput = modalAsisInput;
+      this.modalMesLabel = modalMesLabel;
+      this.modalTotal = modalTotal;
+
+      if (modalElement && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+        this.modalRef = bootstrap.Modal.getOrCreateInstance(modalElement);
+        modalElement.addEventListener('hidden.bs.modal', () => {
+          this.mesActual = null;
+        });
+      }
+
+      if (modalPuntInput) {
+        modalPuntInput.addEventListener('input', (event) => {
+          this.tempPunt = parseFloat(event.target.value) || 0;
+          this.clampTemp();
+          event.target.value = String(this.tempPunt);
+        });
+      }
+
+      if (modalAsisInput) {
+        modalAsisInput.addEventListener('input', (event) => {
+          this.tempAsis = parseFloat(event.target.value) || 0;
+          this.clampTemp();
+          event.target.value = String(this.tempAsis);
+        });
+      }
+
+      if (btnModalCancelar) {
+        btnModalCancelar.addEventListener('click', () => this.cancelarModal());
+      }
+
+      if (btnModalConfirmar) {
+        btnModalConfirmar.addEventListener('click', () => this.confirmarModal());
+      }
+
+      this.$watch('firmaCurp', (v) => {
+        const upper = this.sanitizeCurp(v);
+        if (upper !== v) {
+          this.firmaCurp = upper;
+          return;
+        }
+        if (upper.length === 18) {
+          this.$nextTick(() => this.generarQR(upper));
+        } else {
+          const c = document.getElementById('qrContainer');
+          if (c) c.innerHTML = '';
+        }
+      });
+
+      if (this.firmaCurp && this.firmaCurp.length === 18) {
+        this.$nextTick(() => this.generarQR(this.firmaCurp.toUpperCase()));
+      }
+    }
+  };
+}
+</script>
+{/block}
+
+{block modals}
+<div class="modal fade" id="modalMontosPagados" tabindex="-1" aria-labelledby="modalMontosPagadosLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 rounded-4 shadow-sm">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="modalMontosPagadosLabel">
+          <i class="bi bi-cash-coin me-2"></i>Montos Pagados
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+        <p class="text-muted small mb-3">
+          Ingrese el monto que <strong>SÍ le pagaron</strong> en este mes por cada concepto.
+          Si no le pagaron algún concepto, escriba <strong>0</strong>.
+          El máximo por concepto es <strong>$50.00</strong>.
+        </p>
+
+        <p class="small fw-semibold mb-3" id="modalMesLabel"></p>
+
+        <div class="row g-3">
+          <div class="col-6">
+            <label for="modalInpPunt" class="form-label fw-semibold small">
+              <i class="bi bi-clock-fill me-1 text-primary"></i>Puntualidad
+            </label>
+            <div class="input-group">
+              <span class="input-group-text fw-bold">$</span>
+              <input type="number"
+                     id="modalInpPunt"
+                     class="form-control text-end"
+                     min="0"
+                     max="50"
+                     step="0.01"
+                     placeholder="0.00">
+            </div>
+            <div class="form-text text-end">Máx. $50.00</div>
+          </div>
+
+          <div class="col-6">
+            <label for="modalInpAsis" class="form-label fw-semibold small">
+              <i class="bi bi-person-check-fill me-1 text-info"></i>Asistencia
+            </label>
+            <div class="input-group">
+              <span class="input-group-text fw-bold">$</span>
+              <input type="number"
+                     id="modalInpAsis"
+                     class="form-control text-end"
+                     min="0"
+                     max="50"
+                     step="0.01"
+                     placeholder="0.00">
+            </div>
+            <div class="form-text text-end">Máx. $50.00</div>
+          </div>
+        </div>
+
+        <div class="alert alert-info py-2 mt-3 mb-0 d-flex justify-content-between align-items-center">
+          <small><i class="bi bi-calculator me-1"></i>Total del mes:</small>
+          <strong>$<span id="modalTotalMes">0.00</span></strong>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" id="btnModalCancelar" data-bs-dismiss="modal">
+          <i class="bi bi-x-lg me-1"></i>Cancelar
+        </button>
+        <button type="button" class="btn btn-success px-4" id="btnModalConfirmar">
+          <i class="bi bi-check-lg me-2"></i>Confirmar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{/block}

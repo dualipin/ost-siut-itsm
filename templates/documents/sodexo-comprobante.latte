@@ -1,0 +1,281 @@
+{layout '../@document.latte'}
+
+{varType App\Modules\User\Domain\Entity\User $user}
+{varType App\Modules\Sodexo\Domain\Entity\SodexoEncuesta $encuesta}
+{varType string $logoSrc}
+{varType string $primaryColor}
+{varType string $generadoEn}
+
+{block title}Comprobante — Adeudo Vales de Despensa Electrónico{/block}
+
+{block content}
+
+<style>
+  body { font-size: 11px; }
+
+  .header-table {
+    width: 100%;
+    margin-bottom: 20px;
+    border-bottom: 2px solid {$primaryColor};
+    padding-bottom: 10px;
+  }
+
+  .header-table td {
+    vertical-align: middle;
+  }
+
+  .logo-img {
+    height: 60px;
+    object-fit: contain;
+  }
+
+  h1 {
+    font-size: 16px;
+    color: {$primaryColor};
+    margin: 0;
+    text-transform: uppercase;
+    text-align: right;
+  }
+
+  .subtitle {
+    font-size: 12px;
+    color: #444;
+    text-align: right;
+    margin-top: 4px;
+    font-weight: bold;
+  }
+
+  .user-info {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+
+  .user-info td {
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+  }
+
+  .user-info .lbl {
+    background-color: #f2f2f2;
+    color: #333;
+    font-weight: bold;
+    width: 25%;
+  }
+
+  .title-section {
+    font-size: 14px;
+    color: {$primaryColor};
+    border-bottom: 1px solid {$primaryColor};
+    margin-bottom: 10px;
+    padding-bottom: 4px;
+    font-weight: bold;
+  }
+
+  .main-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+
+  .main-table th {
+    background-color: #f2f2f2;
+    color: #333;
+    padding: 8px;
+    border: 1px solid #999;
+    text-align: center;
+  }
+
+  .main-table td {
+    padding: 8px;
+    border: 1px solid #ccc;
+    text-align: center;
+  }
+
+  .totals-table {
+    width: 50%;
+    float: right;
+    border-collapse: collapse;
+    margin-bottom: 30px;
+  }
+
+  .totals-table td {
+    padding: 8px;
+    border: 1px solid #ccc;
+    font-size: 12px;
+  }
+
+  .totals-table .lbl {
+    background-color: #f2f2f2;
+    font-weight: bold;
+  }
+
+  .signature-section {
+    clear: both;
+    text-align: center;
+    margin-top: 50px;
+    padding-top: 20px;
+    border-top: 1px dashed #ccc;
+  }
+
+  .qr-img {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 10px;
+  }
+
+  .legal-text {
+    font-size: 9.5px;
+    color: #555;
+    text-align: justify;
+    line-height: 1.4;
+    margin-top: 15px;
+  }
+</style>
+
+<table class="header-table">
+  <tr>
+    <td style="width: 25%;">
+      {if $logoSrc}
+        <img src="{$logoSrc}" class="logo-img" alt="Logo">
+      {/if}
+    </td>
+    <td style="width: 75%;">
+      <h1>Comprobante de Acuse</h1>
+      <div class="subtitle">Adeudo revisión salarial 2025 (Vales de Despensa Electrónico)</div>
+      <div style="font-size: 10px; color: #777; text-align: right; margin-top: 5px;">
+        Emisión: {$generadoEn} | Folio: SIUT-ACUSE-<span style="color:{$primaryColor};">{$encuesta->id}</span>
+      </div>
+    </td>
+  </tr>
+</table>
+
+<div class="title-section">Datos del Agremiado</div>
+<table class="user-info">
+  <tr>
+    <td class="lbl">Nombre (S):</td>
+    <td>{$user->personalInfo->name} {$user->personalInfo->surnames}</td>
+  </tr>
+  <tr>
+    <td class="lbl">Categoría / Plaza:</td>
+    <td>{$user->workData->category ?? 'No especificada'}</td>
+  </tr>
+  <tr>
+    <td class="lbl">Rol en Sondeo:</td>
+    <td style="text-transform: uppercase; font-weight: bold; color: {if $encuesta->esAdministrativo()}#6c757d{else}#d39e00{/if};">
+      {$encuesta->tipoEmpleado}
+    </td>
+  </tr>
+</table>
+
+<div class="title-section">Detalle de Adeudo Declarado</div>
+
+{if $encuesta->esAdministrativo()}
+  <table class="main-table">
+    <thead>
+      <tr>
+        <th>Mes / Periodo</th>
+        <th>Estatus</th>
+        <th>Puntualidad</th>
+        <th>Asistencia</th>
+        <th style="color: #198754;">Total Recibido</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Diciembre 2025</td>
+        <td>{if $encuesta->mesAdmSeleccionado('dic')}<strong style="color: #198754;">Declarado</strong>{else}<span style="color:#dc3545;">- No pagado -</span>{/if}</td>
+        <td>${number_format($encuesta->admDicPuntualidad ?? 0, 2)}</td>
+        <td>${number_format($encuesta->admDicAsistencia ?? 0, 2)}</td>
+        <td style="font-weight:bold; color: #198754;">${number_format($encuesta->pagadoEnMes('dic'), 2)}</td>
+      </tr>
+      <tr>
+        <td>Enero 2026</td>
+        <td>{if $encuesta->mesAdmSeleccionado('ene')}<strong style="color: #198754;">Declarado</strong>{else}<span style="color:#dc3545;">- No pagado -</span>{/if}</td>
+        <td>${number_format($encuesta->admEnePuntualidad ?? 0, 2)}</td>
+        <td>${number_format($encuesta->admEneAsistencia ?? 0, 2)}</td>
+        <td style="font-weight:bold; color: #198754;">${number_format($encuesta->pagadoEnMes('ene'), 2)}</td>
+      </tr>
+      <tr>
+        <td>Febrero 2026</td>
+        <td>{if $encuesta->mesAdmSeleccionado('feb')}<strong style="color: #198754;">Declarado</strong>{else}<span style="color:#dc3545;">- No pagado -</span>{/if}</td>
+        <td>${number_format($encuesta->admFebPuntualidad ?? 0, 2)}</td>
+        <td>${number_format($encuesta->admFebAsistencia ?? 0, 2)}</td>
+        <td style="font-weight:bold; color: #198754;">${number_format($encuesta->pagadoEnMes('feb'), 2)}</td>
+      </tr>
+      <tr>
+        <td>Marzo 2026</td>
+        <td>{if $encuesta->mesAdmSeleccionado('mar')}<strong style="color: #198754;">Declarado</strong>{else}<span style="color:#dc3545;">- No pagado -</span>{/if}</td>
+        <td>${number_format($encuesta->admMarPuntualidad ?? 0, 2)}</td>
+        <td>${number_format($encuesta->admMarAsistencia ?? 0, 2)}</td>
+        <td style="font-weight:bold; color: #198754;">${number_format($encuesta->pagadoEnMes('mar'), 2)}</td>
+      </tr>
+    </tbody>
+  </table>
+{else}
+  <table class="main-table">
+    <thead>
+      <tr>
+        <th>Mes / Quincena</th>
+        <th>Estatus del Complemento ($100.00)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="padding: 12px; font-size: 13px;">Diciembre 2025</td>
+        <td style="font-weight:bold; padding: 12px; font-size: 13px;">
+          {if $encuesta->docDicPagado}
+            <span style="color: #198754;">Monto Pagado Simultáneo</span>
+          {else}
+            <span style="color: #dc3545;">Diferencia Adeudada</span>
+          {/if}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 12px; font-size: 13px;">Marzo 2026</td>
+        <td style="font-weight:bold; padding: 12px; font-size: 13px;">
+          {if $encuesta->docMarPagado}
+            <span style="color: #198754;">Monto Pagado Simultáneo</span>
+          {else}
+            <span style="color: #dc3545;">Diferencia Adeudada</span>
+          {/if}
+        </td>
+      </tr>
+    </tbody>
+  </table>
+{/if}
+
+<table class="totals-table">
+  <tr>
+    <td class="lbl">Monto Total Esperado</td>
+    <td style="text-align:right;">${number_format($encuesta->esAdministrativo() ? 400 : 200, 2)}</td>
+  </tr>
+  <tr>
+    <td class="lbl">Gran Total Percibido</td>
+    <td style="text-align:right; color: #198754; font-weight: bold;">${number_format($encuesta->totalPagado(), 2)}</td>
+  </tr>
+  <tr>
+    <td class="lbl" style="background-color: #f8dbdb; color: #dc3545;">Diferencia Reclamada</td>
+    <td style="text-align:right; color: #dc3545; font-size: 15px; font-weight: bold;">${number_format($encuesta->totalAdeudo(), 2)}</td>
+  </tr>
+</table>
+
+<div class="signature-section">
+  <div style="margin-bottom: 20px; font-size: 12px; color: {$primaryColor};">
+    <strong>Firma del Agremiado Emisor</strong>
+  </div>
+  <div style="font-family: monospace; font-size: 13px; margin-top: 5px;">
+    <strong>{$encuesta->firmaCurp}</strong>
+  </div>
+
+  <div class="legal-text">
+    El/La suscrito(a) declara bajo protesta de decir verdad que la información proporcionada en el presente acuse 
+    es verídica y correcta. Su identificador CURP funge como firma electrónica indubitada de esta solicitud, 
+    respaldando la declaración de saldos correspondientes a la diferencia salarial adeudada por el Tecnológico 
+    de Macuspana en concepto del incremento 2025 al complemento de Vales de Despensa Electrónico. 
+    Si la información resultare falsa, se asumirán las responsabilidades que haya a lugar y que determine el 
+    reglamento interno.
+  </div>
+</div>
+
+{/block}
