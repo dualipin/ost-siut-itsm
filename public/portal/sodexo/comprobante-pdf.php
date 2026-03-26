@@ -9,6 +9,10 @@ use App\Modules\Sodexo\Application\UseCase\ObtenerEncuestaUseCase;
 use App\Shared\Context\UserContext;
 use App\Modules\User\Domain\Repository\UserRepositoryInterface;
 use Dompdf\Dompdf;
+use chillerlan\QRCode\QRCode;
+use chillerlan\QRCode\QROptions;
+use chillerlan\QRCode\Common\EccLevel;
+use chillerlan\QRCode\Output\QRGdImagePNG;
 
 require_once __DIR__ . "/../../../bootstrap.php";
 
@@ -63,15 +67,19 @@ try {
     }
 } catch (\Throwable) {}
 
-// Generar QR vía API para incrustarlo como Base64 en Dompdf
+// Generar QR localmente vía dependencia
 $firmaCurp = (string) ($encuesta->firmaCurp ?? $userFull->personalInfo->curp ?? '');
 $qrBase64 = null;
 if ($firmaCurp !== '') {
-    $qrUrl  = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" . urlencode($firmaCurp);
-    $qrData = @file_get_contents($qrUrl); // Suprimir advertencias en caso de falla de conexión
-    if ($qrData) {
-        $qrBase64 = "data:image/png;base64," . base64_encode($qrData);
-    }
+    try {
+        $options = new QROptions([
+            'outputType'       => QRGdImagePNG::class,
+            'eccLevel'         => EccLevel::L,
+            'scale'            => 4,
+            'imageTransparent' => false,
+        ]);
+        $qrBase64 = (new QRCode($options))->render($firmaCurp);
+    } catch (\Throwable) {}
 }
 
 $html = $renderer->renderToString(

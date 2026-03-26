@@ -27,7 +27,7 @@
     "ramsey/uuid": "^4.9",
     "ext-intl": "*",
     "monolog/monolog": "^3.10",
-    "chillerlan/php-qrcode": "*"
+    "chillerlan/php-qrcode": "^6.0"
   },
   "require-dev": {
     "matthiasmullie/minify": "^1.3",

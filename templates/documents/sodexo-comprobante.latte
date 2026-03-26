@@ -185,28 +185,28 @@
     <tbody>
       <tr>
         <td>Diciembre 2025</td>
-        <td>{if $encuesta->mesAdmSeleccionado('dic')}<strong style="color: #198754;">Declarado ✓</strong>{else}<span style="color:#dc3545;">- No pagado ✗ -</span>{/if}</td>
+        <td>{if $encuesta->mesAdmSeleccionado('dic')}<strong style="color: #198754;">Declarado</strong>{else}<span style="color:#dc3545;">- No pagado -</span>{/if}</td>
         <td>${number_format($encuesta->admDicPuntualidad ?? 0, 2)}</td>
         <td>${number_format($encuesta->admDicAsistencia ?? 0, 2)}</td>
         <td style="font-weight:bold; color: #198754;">${number_format($encuesta->pagadoEnMes('dic'), 2)}</td>
       </tr>
       <tr>
         <td>Enero 2026</td>
-        <td>{if $encuesta->mesAdmSeleccionado('ene')}<strong style="color: #198754;">Declarado ✓</strong>{else}<span style="color:#dc3545;">- No pagado ✗ -</span>{/if}</td>
+        <td>{if $encuesta->mesAdmSeleccionado('ene')}<strong style="color: #198754;">Declarado</strong>{else}<span style="color:#dc3545;">- No pagado -</span>{/if}</td>
         <td>${number_format($encuesta->admEnePuntualidad ?? 0, 2)}</td>
         <td>${number_format($encuesta->admEneAsistencia ?? 0, 2)}</td>
         <td style="font-weight:bold; color: #198754;">${number_format($encuesta->pagadoEnMes('ene'), 2)}</td>
       </tr>
       <tr>
         <td>Febrero 2026</td>
-        <td>{if $encuesta->mesAdmSeleccionado('feb')}<strong style="color: #198754;">Declarado ✓</strong>{else}<span style="color:#dc3545;">- No pagado ✗ -</span>{/if}</td>
+        <td>{if $encuesta->mesAdmSeleccionado('feb')}<strong style="color: #198754;">Declarado</strong>{else}<span style="color:#dc3545;">- No pagado -</span>{/if}</td>
         <td>${number_format($encuesta->admFebPuntualidad ?? 0, 2)}</td>
         <td>${number_format($encuesta->admFebAsistencia ?? 0, 2)}</td>
         <td style="font-weight:bold; color: #198754;">${number_format($encuesta->pagadoEnMes('feb'), 2)}</td>
       </tr>
       <tr>
         <td>Marzo 2026</td>
-        <td>{if $encuesta->mesAdmSeleccionado('mar')}<strong style="color: #198754;">Declarado ✓</strong>{else}<span style="color:#dc3545;">- No pagado ✗ -</span>{/if}</td>
+        <td>{if $encuesta->mesAdmSeleccionado('mar')}<strong style="color: #198754;">Declarado</strong>{else}<span style="color:#dc3545;">- No pagado -</span>{/if}</td>
         <td>${number_format($encuesta->admMarPuntualidad ?? 0, 2)}</td>
         <td>${number_format($encuesta->admMarAsistencia ?? 0, 2)}</td>
         <td style="font-weight:bold; color: #198754;">${number_format($encuesta->pagadoEnMes('mar'), 2)}</td>
@@ -226,9 +226,9 @@
         <td style="padding: 12px; font-size: 13px;">Diciembre 2025</td>
         <td style="font-weight:bold; padding: 12px; font-size: 13px;">
           {if $encuesta->docDicPagado}
-            <span style="color: #198754;">Monto Pagado Simultáneo ✓</span>
+            <span style="color: #198754;">Monto Pagado Simultáneo</span>
           {else}
-            <span style="color: #dc3545;">Diferencia Adeudada ✗</span>
+            <span style="color: #dc3545;">Diferencia Adeudada</span>
           {/if}
         </td>
       </tr>
@@ -236,9 +236,9 @@
         <td style="padding: 12px; font-size: 13px;">Marzo 2026</td>
         <td style="font-weight:bold; padding: 12px; font-size: 13px;">
           {if $encuesta->docMarPagado}
-            <span style="color: #198754;">Monto Pagado Simultáneo ✓</span>
+            <span style="color: #198754;">Monto Pagado Simultáneo</span>
           {else}
-            <span style="color: #dc3545;">Diferencia Adeudada ✗</span>
+            <span style="color: #dc3545;">Diferencia Adeudada</span>
           {/if}
         </td>
       </tr>
