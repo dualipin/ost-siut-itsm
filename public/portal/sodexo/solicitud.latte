@@ -232,6 +232,7 @@
                          name="doc_dic_pagado"
                          value="1"
                          x-model="docDic"
+                         @change="recalcularTotales()"
                          {if $encuesta?->docDicPagado}checked{/if}
                          style="width:1.6em; height:1.6em; cursor:pointer;">
                   <label class="form-check-label fw-bold text-dark" for="chkDocDic" style="cursor:pointer;">
@@ -254,6 +255,7 @@
                          name="doc_mar_pagado"
                          value="1"
                          x-model="docMar"
+                         @change="recalcularTotales()"
                          {if $encuesta?->docMarPagado}checked{/if}
                          style="width:1.6em; height:1.6em; cursor:pointer;">
                   <label class="form-check-label fw-bold text-dark" for="chkDocMar" style="cursor:pointer;">
@@ -351,7 +353,7 @@
 {include parent}
 <script>
 var __encuestaInit = {
-  tipoEmpleado: {json_encode($tipoEmpleado)},
+  tipoEmpleado: {$tipoEmpleado},
   meses: {
     dic: { sel: {if $admDicSel}true{else}false{/if}, punt: {($encuesta?->admDicPuntualidad ?? 0)}, asis: {($encuesta?->admDicAsistencia ?? 0)} },
     ene: { sel: {if $admEneSel}true{else}false{/if}, punt: {($encuesta?->admEnePuntualidad ?? 0)}, asis: {($encuesta?->admEneAsistencia ?? 0)} },
@@ -360,7 +362,7 @@ var __encuestaInit = {
   },
   docDic: {if $encuesta?->docDicPagado}true{else}false{/if},
   docMar: {if $encuesta?->docMarPagado}true{else}false{/if},
-  firmaCurp: {json_encode($firmaCurpInicial ?? '')}
+  firmaCurp: {$firmaCurpInicial ?? ''}
 };
 
 function encuestaSodexo() {
@@ -393,7 +395,9 @@ function encuestaSodexo() {
     recalcularTotales() {
       let t = 0;
       if (this.tipoEmpleado === 'docente') {
-        t = (this.docDic ? 100 : 0) + (this.docMar ? 100 : 0);
+        const d = Array.isArray(this.docDic) ? this.docDic.length > 0 : !!this.docDic;
+        const m = Array.isArray(this.docMar) ? this.docMar.length > 0 : !!this.docMar;
+        t = (d ? 100 : 0) + (m ? 100 : 0);
       } else {
         for (const k in this.meses) {
           if (this.meses[k].sel) {
