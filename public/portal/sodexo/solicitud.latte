@@ -336,10 +336,17 @@
           <a href="/portal/index.php" class="btn btn-link text-muted text-decoration-none">
             <i class="bi bi-arrow-left me-1"></i>Regresar al panel
           </a>
-          <button type="submit" class="btn btn-primary btn-lg px-5 shadow-sm rounded-3">
-            <i class="bi bi-send-check-fill me-2"></i>
-            {if $encuesta !== null}Actualizar Solicitud{else}Confirmar y Enviar{/if}
-          </button>
+          <div class="d-flex gap-3">
+            {if $encuesta !== null}
+              <a href="/portal/sodexo/comprobante-pdf.php" target="_blank" class="btn btn-outline-danger btn-lg px-4 shadow-sm rounded-3">
+                <i class="bi bi-file-earmark-pdf-fill me-2"></i>Descargar Comprobante
+              </a>
+            {/if}
+            <button type="submit" class="btn btn-primary btn-lg px-5 shadow-sm rounded-3">
+              <i class="bi bi-send-check-fill me-2"></i>
+              {if $encuesta !== null}Actualizar Solicitud{else}Confirmar y Enviar{/if}
+            </button>
+          </div>
         </div>
 
       </form>
