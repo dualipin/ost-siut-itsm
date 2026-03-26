@@ -192,13 +192,13 @@
           <div class="col-md-4">
             <div class="p-3 bg-white border rounded shadow-sm text-center border-start border-success border-4">
               <p class="text-muted small fw-bold text-uppercase mb-1">Monto Recibido</p>
-              <h3 class="mb-0 fw-bold text-success">$<span x-text="totalPagado.toFixed(2)"></span></h3>
+              <h3 class="mb-0 fw-bold text-success">$<span x-text="totalPagadoVal.toFixed(2)"></span></h3>
             </div>
           </div>
           <div class="col-md-4">
             <div class="p-3 bg-white border rounded shadow-sm text-center border-start border-danger border-4">
               <p class="text-muted small fw-bold text-uppercase mb-1">Diferencia Solicitada</p>
-              <h3 class="mb-0 fw-bold text-danger">$<span x-text="totalAdeudo.toFixed(2)"></span></h3>
+              <h3 class="mb-0 fw-bold text-danger">$<span x-text="totalAdeudoVal.toFixed(2)"></span></h3>
             </div>
           </div>
         </div>
@@ -278,13 +278,13 @@
           <div class="col-md-4">
             <div class="p-3 bg-white border rounded shadow-sm text-center border-start border-success border-4">
               <p class="text-muted small fw-bold text-uppercase mb-1">Monto Recibido</p>
-              <h3 class="mb-0 fw-bold text-success">$<span x-text="totalPagado.toFixed(2)"></span></h3>
+              <h3 class="mb-0 fw-bold text-success">$<span x-text="totalPagadoVal.toFixed(2)"></span></h3>
             </div>
           </div>
           <div class="col-md-4">
             <div class="p-3 bg-white border rounded shadow-sm text-center border-start border-danger border-4">
               <p class="text-muted small fw-bold text-uppercase mb-1">Diferencia Solicitada</p>
-              <h3 class="mb-0 fw-bold text-danger">$<span x-text="totalAdeudo.toFixed(2)"></span></h3>
+              <h3 class="mb-0 fw-bold text-danger">$<span x-text="totalAdeudoVal.toFixed(2)"></span></h3>
             </div>
           </div>
         </div>
@@ -371,6 +371,9 @@ function encuestaSodexo() {
     docMar: __encuestaInit.docMar,
     firmaCurp: '',
 
+    totalPagadoVal: 0,
+    totalAdeudoVal: 0,
+
     mesActual: null,
     tempPunt: 0,
     tempAsis: 0,
@@ -387,23 +390,21 @@ function encuestaSodexo() {
       mar: 'Marzo 2026'
     },
 
-    get totalPagado() {
-      if (this.tipoEmpleado === 'docente') {
-        return (this.docDic ? 100 : 0) + (this.docMar ? 100 : 0);
-      }
+    recalcularTotales() {
       let t = 0;
-      for (const k in this.meses) {
-        if (this.meses[k].sel) {
-          t += Math.min(50, Math.max(0, this.meses[k].punt || 0))
-             + Math.min(50, Math.max(0, this.meses[k].asis || 0));
+      if (this.tipoEmpleado === 'docente') {
+        t = (this.docDic ? 100 : 0) + (this.docMar ? 100 : 0);
+      } else {
+        for (const k in this.meses) {
+          if (this.meses[k].sel) {
+            t += Math.min(50, Math.max(0, this.meses[k].punt || 0))
+               + Math.min(50, Math.max(0, this.meses[k].asis || 0));
+          }
         }
       }
-      return t;
-    },
-
-    get totalAdeudo() {
+      this.totalPagadoVal = t;
       const esperado = this.tipoEmpleado === 'docente' ? 200 : 400;
-      return Math.max(0, esperado - this.totalPagado);
+      this.totalAdeudoVal = Math.max(0, esperado - t);
     },
 
     toggleMes(key) {
@@ -411,6 +412,8 @@ function encuestaSodexo() {
         this.meses[key].sel  = false;
         this.meses[key].punt = 0;
         this.meses[key].asis = 0;
+        this.meses = { ...this.meses }; // Force Alpine deep reactivity
+        this.recalcularTotales();
       } else {
         this.abrirModal(key);
       }
@@ -439,6 +442,8 @@ function encuestaSodexo() {
       this.meses[this.mesActual].punt = p;
       this.meses[this.mesActual].asis = a;
       this.meses[this.mesActual].sel  = true;
+      this.meses = { ...this.meses };
+      this.recalcularTotales();
       this.cancelarModal();
     },
 
@@ -494,6 +499,9 @@ function encuestaSodexo() {
 
     init() {
       this.firmaCurp = this.sanitizeCurp(__encuestaInit.firmaCurp);
+      this.recalcularTotales();
+      this.$watch('docDic', () => this.recalcularTotales());
+      this.$watch('docMar', () => this.recalcularTotales());
 
       const modalElement = document.getElementById('modalMontosPagados');
       const modalPuntInput = document.getElementById('modalInpPunt');
