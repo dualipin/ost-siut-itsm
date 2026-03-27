@@ -30,9 +30,14 @@ if (!in_array($authUser->role, [RoleEnum::Admin, RoleEnum::Lider], true)) {
 $useCase   = $container->get(ObtenerTodasEncuestasUseCase::class);
 $encuestas = $useCase->execute();
 
+$userIdFilter = isset($_GET['user_id']) ? (int) $_GET['user_id'] : null;
+if ($userIdFilter !== null) {
+    $encuestas = array_filter($encuestas, fn($e) => $e->userId === $userIdFilter);
+}
+
 $uploadsDir = __DIR__ . '/../../uploads/sodexo/';
 
-$zipFilename = "recibos_sodexo_" . date('Y-m-d_H-i') . ".zip";
+$zipFilename = "recibos_sodexo_" . ($userIdFilter ? "usuario_{$userIdFilter}_" : "") . date('Y-m-d_H-i') . ".zip";
 $zipPath = sys_get_temp_dir() . '/' . $zipFilename;
 
 $zip = new ZipArchive();

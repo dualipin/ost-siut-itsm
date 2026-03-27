@@ -98,6 +98,7 @@
               <th class="text-center px-2 py-3 text-success">Total Pagado</th>
               <th class="text-center px-2 py-3 text-danger">Total Adeudo</th>
               <th class="text-center px-3 py-3">RFC Firma</th>
+              <th class="text-center px-2 py-3">Recibos</th>
             </tr>
           </thead>
           <tbody>
@@ -189,6 +190,25 @@
                   <span class="text-muted small">—</span>
                 {/if}
               </td>
+              <td class="text-center px-2">
+                {if $enc->admDicRecibo || $enc->admEneRecibo || $enc->admFebRecibo || $enc->admMarRecibo}
+                  <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                      <i class="bi bi-file-earmark-text"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm fs-7">
+                      {if $enc->admDicRecibo}<li><a class="dropdown-item" href="/uploads/sodexo/{$enc->admDicRecibo}" target="_blank"><i class="bi bi-box-arrow-up-right me-2"></i>Diciembre</a></li>{/if}
+                      {if $enc->admEneRecibo}<li><a class="dropdown-item" href="/uploads/sodexo/{$enc->admEneRecibo}" target="_blank"><i class="bi bi-box-arrow-up-right me-2"></i>Enero</a></li>{/if}
+                      {if $enc->admFebRecibo}<li><a class="dropdown-item" href="/uploads/sodexo/{$enc->admFebRecibo}" target="_blank"><i class="bi bi-box-arrow-up-right me-2"></i>Febrero</a></li>{/if}
+                      {if $enc->admMarRecibo}<li><a class="dropdown-item" href="/uploads/sodexo/{$enc->admMarRecibo}" target="_blank"><i class="bi bi-box-arrow-up-right me-2"></i>Marzo</a></li>{/if}
+                      <li><hr class="dropdown-divider"></li>
+                      <li><a class="dropdown-item text-primary" href="/portal/sodexo/descargar-recibos.php?user_id={$enc->userId}"><i class="bi bi-file-zip me-2"></i>Descargar ZIP</a></li>
+                    </ul>
+                  </div>
+                {else}
+                  <span class="text-muted small">—</span>
+                {/if}
+              </td>
             </tr>
             {/foreach}
           </tbody>
@@ -201,7 +221,7 @@
               <td class="text-center text-danger py-3">
                 ${number_format(array_sum(array_map(fn($e) => $e->totalAdeudo(), $admins)), 2)}
               </td>
-              <td></td>
+              <td colspan="2"></td>
             </tr>
           </tfoot>
         </table>
@@ -231,6 +251,7 @@
               <th class="text-center px-3 py-3 text-success">Total Pagado</th>
               <th class="text-center px-3 py-3 text-danger">Total Adeudo</th>
               <th class="text-center px-3 py-3">CURP Firma</th>
+              <th class="text-center px-3 py-3">Recibos</th>
             </tr>
           </thead>
           <tbody>
@@ -275,6 +296,23 @@
                   <span class="text-muted small">—</span>
                 {/if}
               </td>
+              <td class="text-center px-2">
+                {if $enc->docDicRecibo || $enc->docMarRecibo}
+                  <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                      <i class="bi bi-file-earmark-text"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm fs-7">
+                      {if $enc->docDicRecibo}<li><a class="dropdown-item" href="/uploads/sodexo/{$enc->docDicRecibo}" target="_blank"><i class="bi bi-box-arrow-up-right me-2"></i>Diciembre</a></li>{/if}
+                      {if $enc->docMarRecibo}<li><a class="dropdown-item" href="/uploads/sodexo/{$enc->docMarRecibo}" target="_blank"><i class="bi bi-box-arrow-up-right me-2"></i>Marzo</a></li>{/if}
+                      <li><hr class="dropdown-divider"></li>
+                      <li><a class="dropdown-item text-primary" href="/portal/sodexo/descargar-recibos.php?user_id={$enc->userId}"><i class="bi bi-file-zip me-2"></i>Descargar ZIP</a></li>
+                    </ul>
+                  </div>
+                {else}
+                  <span class="text-muted small">—</span>
+                {/if}
+              </td>
             </tr>
             {/foreach}
           </tbody>
@@ -287,7 +325,7 @@
               <td class="text-center text-danger py-3">
                 ${number_format(array_sum(array_map(fn($e) => $e->totalAdeudo(), $docentes)), 2)}
               </td>
-              <td></td>
+              <td colspan="2"></td>
             </tr>
           </tfoot>
         </table>
