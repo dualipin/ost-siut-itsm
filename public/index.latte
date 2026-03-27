@@ -1,6 +1,24 @@
 {extends ../templates/@landing.latte}
 
 {block main}
+{* Banner Promocional para Sodexo *}
+<div class="bg-light py-3 border-bottom border-secondary shadow-sm">
+  <div class="container">
+    <div class="d-flex flex-column flex-md-row align-items-center justify-content-center gap-3 text-center text-md-start">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-megaphone-fill text-primary fs-4 d-none d-md-block"></i>
+        <p class="mb-0 fw-semibold text-primary-emphasis">
+          Registro de Solicitud de Reembolso Retroactivo Vale SODEXO
+          <span class="badge rounded-pill bg-primary ms-1 animate__animated animate__pulse animate__infinite">¡Nuevo!</span>
+        </p>
+      </div>
+      <a href="/cuentas/login.php?redirect=/portal/sodexo/solicitud.php" class="btn btn-primary text-white fw-bold rounded-pill px-4 shadow-sm hover-shadow transition-all">
+        <i class="bi bi-pencil-square me-1"></i> Realizar Registro
+      </a>
+    </div>
+  </div>
+</div>
+
 <section class="py-5 min-vh-100" id="home">
   <div class="container py-5">
     <div class="row align-items-center">
