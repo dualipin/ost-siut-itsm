@@ -176,7 +176,7 @@
                 {if $enc->totalAdeudo() > 0}
                   <span class="fw-bold text-danger">${number_format($enc->totalAdeudo(), 2)}</span>
                 {else}
-                  <span class="badge border border-success text-success bg-white fw-normal">Al corriente</span>
+                  <span class="badge border border-danger text-danger bg-white fw-normal">Con Adeudo</span>
                 {/if}
               </td>
               <td class="text-center px-3">
@@ -262,7 +262,7 @@
                 {if $enc->totalAdeudo() > 0}
                   <span class="fw-bold text-danger">${number_format($enc->totalAdeudo(), 2)}</span>
                 {else}
-                  <span class="badge border border-success text-success bg-white fw-normal">Al corriente</span>
+                  <span class="badge border border-danger text-danger bg-white fw-normal">Con Adeudo</span>
                 {/if}
               </td>
               <td class="text-center px-3">
