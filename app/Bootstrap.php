@@ -14,6 +14,7 @@ use App\Modules\Transparency\TransparencyModule;
 use App\Modules\User\UserModule;
 use App\Modules\CashBoxes\CashBoxesModule;
 use App\Modules\Sodexo\SodexoModule;
+use App\Modules\Requests\RequestsModule;
 use DI\ContainerBuilder;
 use Dotenv\Dotenv;
 use Psr\Container\ContainerInterface;
@@ -70,6 +71,7 @@ class Bootstrap
             new UserModule(),
             new CashBoxesModule(),
             new SodexoModule(),
+            new RequestsModule(),
         ];
 
         foreach ($modules as $module) {
