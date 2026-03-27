@@ -154,70 +154,18 @@
 
             {* Cambio de estado — solo roles privilegiados o el dueño para cancelar en pendiente *}
             {if $isPrivileged || ($isOwner && $request->isPending())}
-            <div class="card border-0 shadow-sm rounded-4 mb-4" x-data="{ open: false }">
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
                 <div class="card-body p-4">
                     <h6 class="fw-bold mb-3">
                         <i class="bi bi-gear text-primary me-2"></i>Cambiar Estado
                     </h6>
 
                     <button type="button" class="btn btn-outline-primary rounded-pill w-100"
-                            @click="open = true"
+                            data-bs-toggle="modal" data-bs-target="#modalCambiarEstado"
                             {if $statusEnum->isTerminal()}disabled{/if}>
                         <i class="bi bi-arrow-repeat me-2"></i>
                         {if $statusEnum->isTerminal()}Estado final — sin cambios{else}Cambiar estado{/if}
                     </button>
-
-                    {* Modal inline *}
-                    <div x-show="open"
-                         class="modal d-block"
-                         style="background:rgba(0,0,0,.5);"
-                         @keydown.escape.window="open = false">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content border-0 shadow rounded-4">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">
-                                        <i class="bi bi-arrow-repeat me-2 text-primary"></i>Cambiar Estado
-                                    </h5>
-                                    <button type="button" class="btn-close" @click="open = false"></button>
-                                </div>
-                                <form method="POST" action="{url('/portal/solicitudes/cambiar-estado.php')}">
-                                    <div class="modal-body">
-                                        <input type="hidden" name="request_id" value="{$request->request_id}">
-
-                                        <div class="mb-3">
-                                            <label for="new_status" class="form-label fw-semibold">Nuevo Estado</label>
-                                            <select name="new_status" id="new_status" class="form-select rounded-3" required>
-                                                <option value="">— Selecciona —</option>
-                                                {foreach $statusEnum->allowedTransitions() as $transition}
-                                                    {* Agremiado no privilegiado solo puede cancelar *}
-                                                    {if $isPrivileged || $transition->value === 'cancelada'}
-                                                        <option value="{$transition->value}">{$transition->label()}</option>
-                                                    {/if}
-                                                {/foreach}
-                                            </select>
-                                        </div>
-
-                                        {if $isPrivileged}
-                                        <div class="mb-3">
-                                            <label for="admin_notes" class="form-label fw-semibold">Notas / Observaciones</label>
-                                            <textarea name="admin_notes" id="admin_notes" rows="3"
-                                                      class="form-control rounded-3"
-                                                      placeholder="Motivo del cambio de estado (opcional)..."></textarea>
-                                        </div>
-                                        {/if}
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-outline-secondary rounded-pill" @click="open = false">
-                                            Cancelar
-                                        </button>
-                                        <button type="submit" class="btn btn-primary rounded-pill px-4">
-                                            <i class="bi bi-check-lg me-2"></i>Confirmar
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
             {/if}
@@ -262,4 +210,57 @@
     </div>
 
 </div>
+{/block}
+
+
+{block modals}
+{if $isPrivileged || ($isOwner && $request->isPending())}
+<div class="modal fade" id="modalCambiarEstado" tabindex="-1" aria-labelledby="modalCambiarEstadoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCambiarEstadoLabel">
+                    <i class="bi bi-arrow-repeat me-2 text-primary"></i>Cambiar Estado
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <form method="POST" action="{url('/portal/solicitudes/cambiar-estado.php')}">
+                <div class="modal-body">
+                    <input type="hidden" name="request_id" value="{$request->request_id}">
+                    
+                    <div class="mb-3">
+                        <label for="new_status" class="form-label fw-semibold">Nuevo Estado</label>
+                        <select name="new_status" id="new_status" class="form-select rounded-3" required>
+                            <option value="">— Selecciona —</option>
+                            {foreach $statusEnum->allowedTransitions() as $transition}
+                                {* Agremiado no privilegiado solo puede cancelar *}
+                                {if $isPrivileged || $transition->value === 'cancelada'}
+                                    <option value="{$transition->value}">{$transition->label()}</option>
+                                {/if}
+                            {/foreach}
+                        </select>
+                    </div>
+
+                    {if $isPrivileged}
+                    <div class="mb-3">
+                        <label for="admin_notes" class="form-label fw-semibold">Notas / Observaciones</label>
+                        <textarea name="admin_notes" id="admin_notes" rows="3"
+                                  class="form-control rounded-3"
+                                  placeholder="Motivo del cambio de estado (opcional)..."></textarea>
+                    </div>
+                    {/if}
+                </div>
+                <div class="modal-footer border-top-0">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill fw-semibold shadow-sm" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold shadow-sm">
+                        <i class="bi bi-check-lg me-2"></i>Confirmar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/if}
 {/block}

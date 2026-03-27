@@ -7,8 +7,10 @@ use App\Infrastructure\Templating\RendererInterface;
 use App\Modules\Requests\Application\UseCase\GetRequestDetailUseCase;
 use App\Modules\Requests\Infrastructure\Persistence\PdoRequestRepository;
 use App\Shared\Context\UserContextInterface;
+use Psr\Log\LoggerInterface;
 
 require_once __DIR__ . '/../../../bootstrap.php';
+
 
 $container  = Bootstrap::buildContainer();
 $middleware = $container->get(MiddlewareFactory::class);
@@ -21,6 +23,9 @@ $useCase     = $container->get(GetRequestDetailUseCase::class);
 $repository  = $container->get(PdoRequestRepository::class);
 $authUser    = $userContext->get();
 
+
+$logger = $container->get(LoggerInterface::class);
+
 $requestId = (int)($_GET['id'] ?? 0);
 
 if ($requestId === 0) {
@@ -30,7 +35,8 @@ if ($requestId === 0) {
 
 try {
     $data = $useCase->execute($requestId);
-} catch (Throwable) {
+} catch (Throwable $e) {
+    $logger->error('Error fetching request detail', ['exception' => $e]);
     header('Location: /portal/solicitudes/mis-solicitudes.php');
     exit;
 }

@@ -22,7 +22,7 @@ final readonly class PdoRequestRepository implements RequestRepositoryInterface
     {
         $stmt = $this->pdo->prepare(
             "SELECT r.*, rt.name AS type_name,
-                    CONCAT(u.first_name, ' ', u.last_name) AS user_full_name
+                    CONCAT(u.name, ' ', u.surnames) AS user_full_name
              FROM requests r
              JOIN request_types rt ON rt.request_type_id = r.request_type_id
              JOIN users u ON u.user_id = r.user_id
@@ -195,7 +195,7 @@ final readonly class PdoRequestRepository implements RequestRepositoryInterface
     public function findStatusHistory(int $requestId): array
     {
         $stmt = $this->pdo->prepare(
-            "SELECT h.*, CONCAT(u.first_name, ' ', u.last_name) AS changed_by_name
+            "SELECT h.*, CONCAT(u.name, ' ', u.surnames) AS changed_by_name
              FROM request_status_history h
              LEFT JOIN users u ON u.user_id = h.changed_by
              WHERE h.request_id = :request_id
