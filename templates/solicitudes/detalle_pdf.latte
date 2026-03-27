@@ -73,7 +73,7 @@
                 <td style="padding: 8px; border: 1px solid #ccc;">{$entry->changedAt->format('d/m/Y H:i')}</td>
                 <td style="padding: 8px; border: 1px solid #ccc;">
                     {if $entryStatusFromEnum}
-                        {$entryStatusFromEnum->label()} &rarr; 
+                        {$entryStatusFromEnum->label()} -> 
                     {/if}
                     {$entryStatusToEnum ? $entryStatusToEnum->label() : $entry->statusTo}
                 </td>
