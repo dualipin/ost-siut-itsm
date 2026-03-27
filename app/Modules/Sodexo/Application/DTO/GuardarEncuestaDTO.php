@@ -26,11 +26,19 @@ final readonly class GuardarEncuestaDTO
         public ?float $admMarPuntualidad,
         public ?float $admMarAsistencia,
 
+        public ?string $admDicRecibo,
+        public ?string $admEneRecibo,
+        public ?string $admFebRecibo,
+        public ?string $admMarRecibo,
+
         // Docente - Diciembre 2025
         public bool $docDicPagado,
 
         // Docente - Marzo 2026
         public bool $docMarPagado,
+
+        public ?string $docDicRecibo,
+        public ?string $docMarRecibo,
 
         public ?string $firmaCurp,
     ) {}

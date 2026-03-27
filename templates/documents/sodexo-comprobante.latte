@@ -225,7 +225,7 @@
         <td style="padding: 12px; font-size: 13px;">Diciembre 2025</td>
         <td style="font-weight:bold; padding: 12px; font-size: 13px;">
           {if $encuesta->docDicPagado}
-            <span style="color: #198754;">Monto Pagado Simultáneo</span>
+            <span style="color: #198754;">Monto pendiente de pago $100 pesos</span>
           {else}
             <span style="color: #dc3545;">Diferencia Adeudada</span>
           {/if}
@@ -235,7 +235,7 @@
         <td style="padding: 12px; font-size: 13px;">Marzo 2026</td>
         <td style="font-weight:bold; padding: 12px; font-size: 13px;">
           {if $encuesta->docMarPagado}
-            <span style="color: #198754;">Monto Pagado Simultáneo</span>
+            <span style="color: #198754;">Monto pendiente de pago $100 pesos</span>
           {else}
             <span style="color: #dc3545;">Diferencia Adeudada</span>
           {/if}
@@ -247,15 +247,7 @@
 
 <table class="totals-table">
   <tr>
-    <td class="lbl">Monto Total Esperado</td>
-    <td style="text-align:right;">${number_format($encuesta->esAdministrativo() ? 400 : 200, 2)}</td>
-  </tr>
-  <tr>
-    <td class="lbl">Gran Total Percibido</td>
-    <td style="text-align:right; color: #198754; font-weight: bold;">${number_format($encuesta->totalPagado(), 2)}</td>
-  </tr>
-  <tr>
-    <td class="lbl" style="background-color: #f8dbdb; color: #dc3545;">Diferencia reclamada para reembolso</td>
+    <td class="lbl" style="background-color: #f8dbdb; color: #dc3545;">Monto total a reembolso</td>
     <td style="text-align:right; color: #dc3545; font-size: 15px; font-weight: bold;">${number_format($encuesta->totalAdeudo(), 2)}</td>
   </tr>
 </table>

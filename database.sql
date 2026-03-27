@@ -752,9 +752,17 @@ CREATE TABLE IF NOT EXISTS sodexo_encuesta
     adm_mar_puntualidad DECIMAL(6, 2) DEFAULT NULL COMMENT 'Mar 2026 puntualidad',
     adm_mar_asistencia  DECIMAL(6, 2) DEFAULT NULL COMMENT 'Mar 2026 asistencia',
 
+    adm_dic_recibo      VARCHAR(255) DEFAULT NULL COMMENT 'Recibo Dic 2025',
+    adm_ene_recibo      VARCHAR(255) DEFAULT NULL COMMENT 'Recibo Ene 2026',
+    adm_feb_recibo      VARCHAR(255) DEFAULT NULL COMMENT 'Recibo Feb 2026',
+    adm_mar_recibo      VARCHAR(255) DEFAULT NULL COMMENT 'Recibo Mar 2026',
+
     -- Docentes: se pagaron 100 pesos en cada quincena seleccionada
     doc_dic_pagado    TINYINT(1)   NOT NULL DEFAULT 0 COMMENT 'Dic 2025 pagado (100)',
     doc_mar_pagado    TINYINT(1)   NOT NULL DEFAULT 0 COMMENT 'Mar 2026 pagado (100)',
+
+    doc_dic_recibo    VARCHAR(255) DEFAULT NULL COMMENT 'Recibo Dic 2025',
+    doc_mar_recibo    VARCHAR(255) DEFAULT NULL COMMENT 'Recibo Mar 2026',
 
     -- Firma del agremiado (RFC como identificador)
     firma_curp        VARCHAR(20)  DEFAULT NULL COMMENT 'CURP del agremiado (firma electrónica)',

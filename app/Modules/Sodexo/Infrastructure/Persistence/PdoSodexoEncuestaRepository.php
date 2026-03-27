@@ -27,8 +27,14 @@ final class PdoSodexoEncuestaRepository extends PdoBaseRepository implements Sod
                 adm_feb_asistencia,
                 adm_mar_puntualidad,
                 adm_mar_asistencia,
+                adm_dic_recibo,
+                adm_ene_recibo,
+                adm_feb_recibo,
+                adm_mar_recibo,
                 doc_dic_pagado,
                 doc_mar_pagado,
+                doc_dic_recibo,
+                doc_mar_recibo,
                 firma_curp
             ) VALUES (
                 :user_id,
@@ -41,8 +47,14 @@ final class PdoSodexoEncuestaRepository extends PdoBaseRepository implements Sod
                 :adm_feb_asistencia,
                 :adm_mar_puntualidad,
                 :adm_mar_asistencia,
+                :adm_dic_recibo,
+                :adm_ene_recibo,
+                :adm_feb_recibo,
+                :adm_mar_recibo,
                 :doc_dic_pagado,
                 :doc_mar_pagado,
+                :doc_dic_recibo,
+                :doc_mar_recibo,
                 :firma_curp
             )
             ON DUPLICATE KEY UPDATE
@@ -55,8 +67,14 @@ final class PdoSodexoEncuestaRepository extends PdoBaseRepository implements Sod
                 adm_feb_asistencia  = VALUES(adm_feb_asistencia),
                 adm_mar_puntualidad = VALUES(adm_mar_puntualidad),
                 adm_mar_asistencia  = VALUES(adm_mar_asistencia),
+                adm_dic_recibo      = COALESCE(VALUES(adm_dic_recibo), adm_dic_recibo),
+                adm_ene_recibo      = COALESCE(VALUES(adm_ene_recibo), adm_ene_recibo),
+                adm_feb_recibo      = COALESCE(VALUES(adm_feb_recibo), adm_feb_recibo),
+                adm_mar_recibo      = COALESCE(VALUES(adm_mar_recibo), adm_mar_recibo),
                 doc_dic_pagado      = VALUES(doc_dic_pagado),
                 doc_mar_pagado      = VALUES(doc_mar_pagado),
+                doc_dic_recibo      = COALESCE(VALUES(doc_dic_recibo), doc_dic_recibo),
+                doc_mar_recibo      = COALESCE(VALUES(doc_mar_recibo), doc_mar_recibo),
                 firma_curp          = VALUES(firma_curp),
                 updated_at          = CURRENT_TIMESTAMP
             ",
@@ -73,8 +91,14 @@ final class PdoSodexoEncuestaRepository extends PdoBaseRepository implements Sod
             'adm_feb_asistencia'  => $encuesta->admFebAsistencia,
             'adm_mar_puntualidad' => $encuesta->admMarPuntualidad,
             'adm_mar_asistencia'  => $encuesta->admMarAsistencia,
+            'adm_dic_recibo'      => $encuesta->admDicRecibo,
+            'adm_ene_recibo'      => $encuesta->admEneRecibo,
+            'adm_feb_recibo'      => $encuesta->admFebRecibo,
+            'adm_mar_recibo'      => $encuesta->admMarRecibo,
             'doc_dic_pagado'      => (int) $encuesta->docDicPagado,
             'doc_mar_pagado'      => (int) $encuesta->docMarPagado,
+            'doc_dic_recibo'      => $encuesta->docDicRecibo,
+            'doc_mar_recibo'      => $encuesta->docMarRecibo,
             'firma_curp'          => $encuesta->firmaCurp,
         ]);
 
@@ -151,8 +175,16 @@ final class PdoSodexoEncuestaRepository extends PdoBaseRepository implements Sod
             admMarPuntualidad: isset($row['adm_mar_puntualidad']) ? (float) $row['adm_mar_puntualidad'] : null,
             admMarAsistencia:  isset($row['adm_mar_asistencia'])  ? (float) $row['adm_mar_asistencia']  : null,
 
+            admDicRecibo: isset($row['adm_dic_recibo']) ? (string) $row['adm_dic_recibo'] : null,
+            admEneRecibo: isset($row['adm_ene_recibo']) ? (string) $row['adm_ene_recibo'] : null,
+            admFebRecibo: isset($row['adm_feb_recibo']) ? (string) $row['adm_feb_recibo'] : null,
+            admMarRecibo: isset($row['adm_mar_recibo']) ? (string) $row['adm_mar_recibo'] : null,
+
             docDicPagado: (bool) ($row['doc_dic_pagado'] ?? false),
             docMarPagado: (bool) ($row['doc_mar_pagado'] ?? false),
+
+            docDicRecibo: isset($row['doc_dic_recibo']) ? (string) $row['doc_dic_recibo'] : null,
+            docMarRecibo: isset($row['doc_mar_recibo']) ? (string) $row['doc_mar_recibo'] : null,
 
             firmaCurp: isset($row['firma_curp']) ? (string) $row['firma_curp'] : null,
             createdAt: $this->parseDateTime($row['created_at'] ?? null),

@@ -89,7 +89,7 @@
         </div>
       </div>
 
-      <form method="POST" action="" id="formEncuesta">
+      <form method="POST" action="" id="formEncuesta" enctype="multipart/form-data">
 
         {* ═══════════════════════════════════════════════════════════ *}
         {* SECCIÓN ADMINISTRATIVO                                      *}
@@ -111,19 +111,23 @@
             ['key' => 'dic', 'label' => 'Diciembre 2025',
               'sel' => $admDicSel,
               'punt' => ($encuesta?->admDicPuntualidad ?? 0),
-              'asis' => ($encuesta?->admDicAsistencia ?? 0)],
+              'asis' => ($encuesta?->admDicAsistencia ?? 0),
+              'file' => $encuesta?->admDicRecibo],
             ['key' => 'ene', 'label' => 'Enero 2026',
               'sel' => $admEneSel,
               'punt' => ($encuesta?->admEnePuntualidad ?? 0),
-              'asis' => ($encuesta?->admEneAsistencia ?? 0)],
+              'asis' => ($encuesta?->admEneAsistencia ?? 0),
+              'file' => $encuesta?->admEneRecibo],
             ['key' => 'feb', 'label' => 'Febrero 2026',
               'sel' => $admFebSel,
               'punt' => ($encuesta?->admFebPuntualidad ?? 0),
-              'asis' => ($encuesta?->admFebAsistencia ?? 0)],
+              'asis' => ($encuesta?->admFebAsistencia ?? 0),
+              'file' => $encuesta?->admFebRecibo],
             ['key' => 'mar', 'label' => 'Marzo 2026',
               'sel' => $admMarSel,
               'punt' => ($encuesta?->admMarPuntualidad ?? 0),
-              'asis' => ($encuesta?->admMarAsistencia ?? 0)],
+              'asis' => ($encuesta?->admMarAsistencia ?? 0),
+              'file' => $encuesta?->admMarRecibo],
           ] as $m}
 
           <div class="col-12">
@@ -161,6 +165,19 @@
                         <i class="bi bi-pencil-square me-1"></i>Ajustar
                       </button>
                     </div>
+
+                    <div class="mt-3 bg-light p-2 rounded border border-light-subtle">
+                      <label class="form-label small fw-bold mb-1"><i class="bi bi-paperclip"></i> Comprobante / Recibo</label>
+                      {if $m['file']}
+                        <div class="mb-2">
+                          <a href="/uploads/sodexo/{$m['file']}" target="_blank" class="badge bg-secondary text-decoration-none bg-opacity-75">
+                            <i class="bi bi-eye"></i> Ver archivo actual
+                          </a>
+                        </div>
+                      {/if}
+                      <input type="file" name="adm_{$m['key']}_recibo_file" class="form-control form-control-sm" accept=".pdf,image/*" :required="meses.{$m['key']}.sel {if $m['file']}&& false{/if}" :disabled="!meses.{$m['key']}.sel">
+                      <small class="text-muted" style="font-size: 0.7rem;">Sube tu recibo en formato PDF, JPG o PNG. Máx. 5MB</small>
+                    </div>
                   </div>
 
                 </div>
@@ -183,21 +200,9 @@
 
         {* Totales administrativo *}
         <div class="row g-3 mb-2">
-          <div class="col-md-4">
-            <div class="p-3 bg-white border rounded shadow-sm text-center">
-              <p class="text-muted small fw-bold text-uppercase mb-1">Monto Esperado</p>
-              <h3 class="mb-0 fw-bold text-dark">$400.00</h3>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="p-3 bg-white border rounded shadow-sm text-center border-start border-success border-4">
-              <p class="text-muted small fw-bold text-uppercase mb-1">Monto Recibido</p>
-              <h3 class="mb-0 fw-bold text-success">$<span x-text="totalPagadoVal.toFixed(2)"></span></h3>
-            </div>
-          </div>
-          <div class="col-md-4">
+          <div class="col-md-12">
             <div class="p-3 bg-white border rounded shadow-sm text-center border-start border-danger border-4">
-              <p class="text-muted small fw-bold text-uppercase mb-1">Diferencia Solicitada</p>
+              <p class="text-muted small fw-bold text-uppercase mb-1">Total de reembolso</p>
               <h3 class="mb-0 fw-bold text-danger">$<span x-text="totalAdeudoVal.toFixed(2)"></span></h3>
             </div>
           </div>
@@ -240,6 +245,19 @@
                     <span class="badge bg-primary ms-2">$100.00</span>
                   </label>
                 </div>
+                
+                <div class="mt-3 bg-light p-2 rounded border border-light-subtle" x-show="docDic" x-transition>
+                  <label class="form-label small fw-bold mb-1"><i class="bi bi-paperclip"></i> Comprobante / Recibo</label>
+                  {if $encuesta?->docDicRecibo}
+                    <div class="mb-2">
+                      <a href="/uploads/sodexo/{$encuesta?->docDicRecibo}" target="_blank" class="badge bg-secondary text-decoration-none bg-opacity-75">
+                        <i class="bi bi-eye"></i> Ver archivo actual
+                      </a>
+                    </div>
+                  {/if}
+                  <input type="file" name="doc_dic_recibo_file" class="form-control form-control-sm" accept=".pdf,image/*" :required="docDic {if $encuesta?->docDicRecibo}&& false{/if}" :disabled="!docDic">
+                  <small class="text-muted" style="font-size: 0.7rem;">Sube tu recibo en formato PDF, JPG o PNG. Máx. 5MB</small>
+                </div>
               </div>
             </div>
           </div>
@@ -263,6 +281,19 @@
                     <span class="badge bg-primary ms-2">$100.00</span>
                   </label>
                 </div>
+
+                <div class="mt-3 bg-light p-2 rounded border border-light-subtle" x-show="docMar" x-transition>
+                  <label class="form-label small fw-bold mb-1"><i class="bi bi-paperclip"></i> Comprobante / Recibo</label>
+                  {if $encuesta?->docMarRecibo}
+                    <div class="mb-2">
+                      <a href="/uploads/sodexo/{$encuesta?->docMarRecibo}" target="_blank" class="badge bg-secondary text-decoration-none bg-opacity-75">
+                        <i class="bi bi-eye"></i> Ver archivo actual
+                      </a>
+                    </div>
+                  {/if}
+                  <input type="file" name="doc_mar_recibo_file" class="form-control form-control-sm" accept=".pdf,image/*" :required="docMar {if $encuesta?->docMarRecibo}&& false{/if}" :disabled="!docMar">
+                  <small class="text-muted" style="font-size: 0.7rem;">Sube tu recibo en formato PDF, JPG o PNG. Máx. 5MB</small>
+                </div>
               </div>
             </div>
           </div>
@@ -271,21 +302,9 @@
 
         {* Totales docente *}
         <div class="row g-3 mb-2">
-          <div class="col-md-4">
-            <div class="p-3 bg-white border rounded shadow-sm text-center">
-              <p class="text-muted small fw-bold text-uppercase mb-1">Monto Esperado</p>
-              <h3 class="mb-0 fw-bold text-dark">$200.00</h3>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="p-3 bg-white border rounded shadow-sm text-center border-start border-success border-4">
-              <p class="text-muted small fw-bold text-uppercase mb-1">Monto Recibido</p>
-              <h3 class="mb-0 fw-bold text-success">$<span x-text="totalPagadoVal.toFixed(2)"></span></h3>
-            </div>
-          </div>
-          <div class="col-md-4">
+          <div class="col-md-12">
             <div class="p-3 bg-white border rounded shadow-sm text-center border-start border-danger border-4">
-              <p class="text-muted small fw-bold text-uppercase mb-1">Diferencia Solicitada</p>
+              <p class="text-muted small fw-bold text-uppercase mb-1">Total de reembolso</p>
               <h3 class="mb-0 fw-bold text-danger">$<span x-text="totalAdeudoVal.toFixed(2)"></span></h3>
             </div>
           </div>
