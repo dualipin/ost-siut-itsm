@@ -10,6 +10,7 @@
 {varType float $sumaGlobalAdeudo}
 
 {var $primaryColor = $primaryColor ?? '#611232'}
+{var $secondaryColor = $secondaryColor ?? '#a57f2c'}
 
 {block title}Reporte — Adeudo Vales de Despensa Electrónico{/block}
 
@@ -148,8 +149,8 @@
   }
 
   .section-badge-doc {
-    background-color: #ffc107;
-    color: #333;
+    background-color: {$secondaryColor};
+    color: #fff;
   }
 
   .totals-row td {

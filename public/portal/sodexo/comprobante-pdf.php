@@ -41,7 +41,6 @@ $renderer = $container->get(RendererInterface::class);
 
 /** @var Dompdf $pdf */
 $pdf = $container->get(Dompdf::class);
-$pdf->set_option('isRemoteEnabled', true);
 
 // Logo institucional
 $logoPath = __DIR__ . "/../../assets/images/logo.webp";
@@ -54,29 +53,40 @@ if (is_file($logoPath)) {
     }
 }
 
+// Opciones de seguridad para Dompdf en local
+$options = $pdf->getOptions();
+$options->setIsRemoteEnabled(true);
+$options->setChroot(__DIR__ . "/../../"); 
+$pdf->setOptions($options);
+
 // Configuración de color
 $primaryColor = "#611232";
+$secondaryColor = "#a57f2c";
+
 try {
     $colorConfig = $container->get(GetColorUseCase::class)->execute();
-    if ($colorConfig !== null && $colorConfig->primary !== '') {
-        $primaryColor = $colorConfig->primary;
+    if ($colorConfig !== null) {
+        if ($colorConfig->primary !== '') $primaryColor = $colorConfig->primary;
+        if ($colorConfig->secondary !== '') $secondaryColor = $colorConfig->secondary;
     }
 } catch (\Throwable) {}
 
 $html = $renderer->renderToString(
     __DIR__ . "/../../../templates/documents/sodexo-comprobante.latte",
     [
-        'user'         => $userFull,
-        'encuesta'     => $encuesta,
-        'logoSrc'      => $logoSrc,
-        'primaryColor' => $primaryColor,
-        'generadoEn'   => (new \DateTimeImmutable())->format('d/m/Y H:i'),
+        'user'           => $userFull,
+        'encuesta'       => $encuesta,
+        'logoSrc'        => $logoSrc,
+        'primaryColor'   => $primaryColor,
+        'secondaryColor' => $secondaryColor,
+        'generadoEn'     => (new \DateTimeImmutable())->format('d/m/Y H:i'),
     ]
 );
 
 $pdf->loadHtml($html);
 $pdf->render();
 
+$firmaCurp = $encuesta->firmaCurp ?? 'SIN-CURP';
 $filename = "comprobante-sodexo-" . $firmaCurp . "-" . date("Ymd") . ".pdf";
 $pdf->stream($filename, ["Attachment" => true]);
 exit;

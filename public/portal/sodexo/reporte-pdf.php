@@ -50,16 +50,26 @@ if (is_file($logoPath)) {
     }
 }
 
+// Habilitar carga de recursos remotos si es necesario, pero Dompdf
+// a veces falla en local con URLs de loopback (localhost).
+// Forzamos opciones seguras.
+$options = $pdf->getOptions();
+$options->setIsRemoteEnabled(true); 
+$options->setChroot(__DIR__ . "/../../"); // Permitir acceso a archivos locales
+$pdf->setOptions($options);
+
 // Obtener color institucional
 $primaryColor = "#611232";
+$secondaryColor = "#a57f2c";
 
 try {
     $colorConfig = $container->get(GetColorUseCase::class)->execute();
-    if ($colorConfig !== null && $colorConfig->primary !== '') {
-        $primaryColor = $colorConfig->primary;
+    if ($colorConfig !== null) {
+        if ($colorConfig->primary !== '') $primaryColor = $colorConfig->primary;
+        if ($colorConfig->secondary !== '') $secondaryColor = $colorConfig->secondary;
     }
 } catch (\Throwable) {
-    // Usar color por defecto
+    // Usar colores por defecto
 }
 
 // Calcular totales globales para el resumen
@@ -87,6 +97,7 @@ $html = $renderer->renderToString(
         'generadoEn'           => (new \DateTimeImmutable())->format('d/m/Y H:i'),
         'logoSrc'              => $logoSrc,
         'primaryColor'         => $primaryColor,
+        'secondaryColor'       => $secondaryColor,
         'totalEncuestas'       => $totalEncuestas,
         'totalAdministrativos' => $totalAdministrativos,
         'totalDocentes'        => $totalDocentes,
