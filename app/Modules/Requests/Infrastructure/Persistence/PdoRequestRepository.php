@@ -18,7 +18,7 @@ final readonly class PdoRequestRepository implements RequestRepositoryInterface
     {
     }
 
-    public function findById(int $requestId): Request
+    public function findById(int $requestId)
     {
         $stmt = $this->pdo->prepare(
             "SELECT r.*, rt.name AS type_name,

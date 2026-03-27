@@ -13,7 +13,7 @@ interface RequestRepositoryInterface
     /**
      * @throws RequestNotFoundException
      */
-    public function findById(int $requestId): Request;
+    public function findById(int $requestId);
 
     /**
      * @return Request[]
