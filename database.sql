@@ -774,3 +774,84 @@ CREATE TABLE IF NOT EXISTS sodexo_encuesta
     UNIQUE KEY unique_sodexo_user (user_id),
     INDEX idx_tipo_empleado (tipo_empleado)
 );
+
+
+-- modulo de solicitudes
+
+-- Catálogo de tipos de solicitud
+CREATE TABLE IF NOT EXISTS request_types
+(
+    request_type_id INT AUTO_INCREMENT PRIMARY KEY,
+    name            VARCHAR(100) NOT NULL,
+    description     VARCHAR(255),
+    active          BOOLEAN  NOT NULL DEFAULT TRUE,
+    created_at      DATETIME          DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME          DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    INDEX idx_active (active)
+);
+
+-- Solicitudes
+CREATE TABLE IF NOT EXISTS requests
+(
+    request_id      INT AUTO_INCREMENT PRIMARY KEY,
+    user_id         INT          NOT NULL,
+    request_type_id INT          NOT NULL,
+    folio           VARCHAR(50)  UNIQUE,
+    reason          TEXT         NOT NULL,
+    status          VARCHAR(30)  NOT NULL DEFAULT 'pendiente',
+    -- pendiente | en_revision | aprobada | rechazada | entregada | cancelada
+    admin_notes     TEXT,
+    resolved_by     INT                   DEFAULT NULL,
+    resolved_at     DATETIME              DEFAULT NULL,
+    created_at      DATETIME              DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME              DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at      DATETIME              DEFAULT NULL,
+
+    CONSTRAINT fk_request_user
+        FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE RESTRICT,
+    CONSTRAINT fk_request_type
+        FOREIGN KEY (request_type_id) REFERENCES request_types (request_type_id) ON DELETE RESTRICT,
+    CONSTRAINT fk_request_resolver
+        FOREIGN KEY (resolved_by) REFERENCES users (user_id) ON DELETE SET NULL,
+
+    INDEX idx_user_status (user_id, status),
+    INDEX idx_status_date (status, created_at),
+    INDEX idx_folio (folio)
+);
+
+-- Historial de cambios de estado
+CREATE TABLE IF NOT EXISTS request_status_history
+(
+    history_id   INT AUTO_INCREMENT PRIMARY KEY,
+    request_id   INT         NOT NULL,
+    changed_by   INT                  DEFAULT NULL,
+    status_from  VARCHAR(30)          DEFAULT NULL,
+    status_to    VARCHAR(30) NOT NULL,
+    notes        TEXT,
+    changed_at   DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_rsh_request
+        FOREIGN KEY (request_id) REFERENCES requests (request_id) ON DELETE CASCADE,
+    CONSTRAINT fk_rsh_user
+        FOREIGN KEY (changed_by) REFERENCES users (user_id) ON DELETE SET NULL,
+
+    INDEX idx_request (request_id),
+    INDEX idx_changed_at (changed_at)
+);
+
+-- Archivos adjuntos a la solicitud (facturas, fotos, etc.)
+CREATE TABLE IF NOT EXISTS request_attachments
+(
+    attachment_id INT AUTO_INCREMENT PRIMARY KEY,
+    request_id    INT          NOT NULL,
+    file_path     VARCHAR(255) NOT NULL,
+    mime_type     VARCHAR(100),
+    description   VARCHAR(255),
+    uploaded_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_ra_request
+        FOREIGN KEY (request_id) REFERENCES requests (request_id) ON DELETE CASCADE,
+
+    INDEX idx_request (request_id)
+);

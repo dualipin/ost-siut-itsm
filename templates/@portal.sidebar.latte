@@ -193,6 +193,41 @@
           </div>
         </li>
 
+        {* ── Solicitudes ── *}
+        <li class="nav-item mb-2">
+          <span
+                  class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
+                  type="button" data-bs-toggle="collapse" data-bs-target="#solicitudes-collapse" aria-expanded="false"
+                  aria-controls="solicitudes-collapse">
+            Solicitudes
+            <i class="bi bi-chevron-down"></i>
+          </span>
+          <div class="collapse ms-3" id="solicitudes-collapse">
+            <ul class="nav flex-column pb-1">
+              <li class="nav-item" data-aos="fade-right" data-aos-delay="200">
+                <a href="{url('/portal/solicitudes/nueva.php')}" class="nav-link text-white px-3 mb-1">
+                  <i class="bi bi-send-plus me-2"></i>
+                  <span>Nueva Solicitud</span>
+                </a>
+              </li>
+              <li class="nav-item" data-aos="fade-right" data-aos-delay="300">
+                <a href="{url('/portal/solicitudes/mis-solicitudes.php')}" class="nav-link text-white px-3 mb-1">
+                  <i class="bi bi-journal-text me-2"></i>
+                  <span>Mis Solicitudes</span>
+                </a>
+              </li>
+              {if $authUser->role->value === 'administrador' || $authUser->role->value === 'finanzas' || $authUser->role->value === 'lider'}
+                <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                  <a href="{url('/portal/solicitudes/panel.php')}" class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-clipboard2-data me-2"></i>
+                    <span>Panel de Solicitudes</span>
+                  </a>
+                </li>
+              {/if}
+            </ul>
+          </div>
+        </li>
+
         <li class="nav-item mb-2">
           <span
                   class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"

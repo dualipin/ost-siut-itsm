@@ -115,3 +115,8 @@ VALUES ('Cuota Ordinaria', 'income', 'Descuento quincenal aplicado por el patró
        ('Eventos sindicales', 'expense', 'Gastos de convivencias y actividades institucionales.', NULL),
        ('Otros gastos', 'expense', 'Egresos no clasificados en categorías predefinidas.', NULL);
 
+
+-- Tipos de solicitud
+INSERT INTO request_types (name, description, active)
+VALUES ('Lentes', 'Solicitud de apoyo para adquisición de lentes oftálmicos.', TRUE),
+       ('Laptop', 'Solicitud de apoyo para adquisición de equipo de cómputo portátil.', TRUE);

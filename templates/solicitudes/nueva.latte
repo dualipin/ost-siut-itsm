@@ -1,0 +1,247 @@
+{layout '../../templates/@portal.latte'}
+
+{block main}
+<div class="container-fluid py-4">
+
+    {include '../components/header-page.latte',
+        title: 'Nueva Solicitud',
+        description: 'Completa el formulario para enviar tu solicitud al sindicato.',
+        icon: 'bi-send-plus'
+    }
+
+    {if isset($success)}
+        <div class="alert alert-success border-0 shadow-sm rounded-4 d-flex align-items-center gap-3 mb-4" role="alert">
+            <i class="bi bi-check-circle-fill fs-4 text-success"></i>
+            <div>{$success|noescape}</div>
+        </div>
+    {/if}
+
+    {if isset($error)}
+        <div class="alert alert-danger border-0 shadow-sm rounded-4 d-flex align-items-center gap-3 mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill fs-4 text-danger"></i>
+            <div>{$error}</div>
+        </div>
+    {/if}
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4 p-lg-5">
+
+                    <form method="POST"
+                          enctype="multipart/form-data"
+                          x-data="solicitudForm()"
+                          id="form-nueva-solicitud">
+
+                        {* Tipo de Solicitud *}
+                        <div class="mb-4">
+                            <label for="request_type_id" class="form-label fw-semibold">
+                                <i class="bi bi-tag me-1 text-primary"></i>
+                                Tipo de Solicitud <span class="text-danger">*</span>
+                            </label>
+                            <select name="request_type_id" id="request_type_id"
+                                    class="form-select rounded-3" required>
+                                <option value="">— Selecciona un tipo —</option>
+                                {foreach $types as $type}
+                                    <option value="{$type->requestTypeId}">{$type->name}</option>
+                                {/foreach}
+                            </select>
+                            {if count($types) === 0}
+                                <div class="form-text text-warning">
+                                    <i class="bi bi-exclamation-circle me-1"></i>
+                                    No hay tipos de solicitud disponibles. Contacta al administrador.
+                                </div>
+                            {/if}
+                        </div>
+
+                        {* Motivo *}
+                        <div class="mb-4">
+                            <label for="reason" class="form-label fw-semibold">
+                                <i class="bi bi-chat-text me-1 text-primary"></i>
+                                Motivo de la Solicitud <span class="text-danger">*</span>
+                            </label>
+                            <textarea name="reason" id="reason" rows="5"
+                                      class="form-control rounded-3"
+                                      placeholder="Describe detalladamente el motivo de tu solicitud..."
+                                      required x-model="reason"></textarea>
+                            <div class="d-flex justify-content-between mt-1">
+                                <span class="form-text">Sé específico para facilitar la revisión.</span>
+                                <span class="form-text" x-text="reason.length + ' caracteres'"></span>
+                            </div>
+                        </div>
+
+                        {* Adjuntos *}
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-paperclip me-1 text-primary"></i>
+                                Archivos Adjuntos
+                                <span class="badge bg-secondary-subtle text-secondary rounded-pill ms-1">Opcional · máx. 3</span>
+                            </label>
+
+                            <div class="border rounded-4 p-3 bg-light"
+                                 @dragover.prevent="dragOver = true"
+                                 @dragleave.prevent="dragOver = false"
+                                 @drop.prevent="handleDrop($event)"
+                                 :class="dragOver ? 'border-primary' : ''">
+
+                                <div class="text-center py-3" x-show="files.length === 0">
+                                    <i class="bi bi-cloud-upload fs-2 text-muted mb-2 d-block"></i>
+                                    <p class="text-muted mb-2">Arrastra archivos aquí o</p>
+                                    <label for="attachments" class="btn btn-outline-primary btn-sm rounded-pill px-4">
+                                        <i class="bi bi-folder2-open me-2"></i>Seleccionar archivos
+                                        <input type="file" id="attachments" name="attachments[]"
+                                               multiple accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
+                                               class="d-none" @change="handleFiles($event)" x-ref="fileInput">
+                                    </label>
+                                    <p class="text-muted small mt-2 mb-0">PDF, imágenes o documentos Word · Máx. 5 MB c/u</p>
+                                </div>
+
+                                <template x-if="files.length > 0">
+                                    <div>
+                                        <div class="d-flex flex-column gap-2 mb-3">
+                                            <template x-for="(file, i) in files" :key="i">
+                                                <div class="d-flex align-items-center gap-3 bg-white rounded-3 p-2 border">
+                                                    <div class="text-primary fs-4">
+                                                        <i class="bi" :class="fileIcon(file.type)"></i>
+                                                    </div>
+                                                    <div class="flex-grow-1 overflow-hidden">
+                                                        <div class="text-truncate fw-semibold small" x-text="file.name"></div>
+                                                        <div class="text-muted small" x-text="formatSize(file.size)"></div>
+                                                    </div>
+                                                    <button type="button" class="btn btn-sm btn-link text-danger p-0"
+                                                            @click="removeFile(i)" title="Quitar">
+                                                        <i class="bi bi-x-circle-fill"></i>
+                                                    </button>
+                                                </div>
+                                            </template>
+                                        </div>
+                                        <label x-show="files.length < 3" for="attachments"
+                                               class="btn btn-outline-secondary btn-sm rounded-pill">
+                                            <i class="bi bi-plus me-1"></i>Agregar más
+                                        </label>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        {* Submit *}
+                        <div class="d-flex justify-content-end gap-3">
+                            <a href="{url('/portal/solicitudes/mis-solicitudes.php')}"
+                               class="btn btn-outline-secondary rounded-pill px-4" type="button">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary rounded-pill px-5 shadow-sm"
+                                    id="btn-submit-solicitud">
+                                <i class="bi bi-send me-2"></i>Enviar Solicitud
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {* Información lateral *}
+        <div class="col-12 col-lg-4 mt-4 mt-lg-0">
+            <div class="card border-0 shadow-sm rounded-4 mb-3">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-3">
+                        <i class="bi bi-info-circle text-primary me-2"></i>¿Cómo funciona?
+                    </h6>
+                    <ol class="list-group list-group-flush list-group-numbered">
+                        <li class="list-group-item border-0 ps-0">
+                            <span class="text-muted small">Envías tu solicitud con los documentos de soporte.</span>
+                        </li>
+                        <li class="list-group-item border-0 ps-0">
+                            <span class="text-muted small">El equipo sindical la revisa y cambia el estado.</span>
+                        </li>
+                        <li class="list-group-item border-0 ps-0">
+                            <span class="text-muted small">Recibirás actualizaciones en "Mis Solicitudes".</span>
+                        </li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 bg-primary-subtle">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold text-primary mb-2">
+                        <i class="bi bi-shield-check me-2"></i>Estados de solicitud
+                    </h6>
+                    <div class="d-flex flex-column gap-2 small">
+                        <div><span class="badge bg-warning-subtle text-warning rounded-pill me-2">Pendiente</span>En espera de revisión</div>
+                        <div><span class="badge bg-info-subtle text-info rounded-pill me-2">En Revisión</span>Siendo procesada</div>
+                        <div><span class="badge bg-success-subtle text-success rounded-pill me-2">Aprobada</span>Aprobada, en proceso de entrega</div>
+                        <div><span class="badge bg-primary-subtle text-primary rounded-pill me-2">Entregada</span>La solicitud fue entregada</div>
+                        <div><span class="badge bg-danger-subtle text-danger rounded-pill me-2">Rechazada</span>No procede</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block scripts}
+<script>
+function solicitudForm() {
+    return {
+        reason: '',
+        files: [],
+        dragOver: false,
+
+        handleFiles(event) {
+            const newFiles = Array.from(event.target.files);
+            this.addFiles(newFiles);
+            event.target.value = '';
+        },
+
+        handleDrop(event) {
+            this.dragOver = false;
+            const newFiles = Array.from(event.dataTransfer.files);
+            this.addFiles(newFiles);
+        },
+
+        addFiles(newFiles) {
+            const allowed = ['image/jpeg','image/png','image/webp','application/pdf',
+                'application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+            newFiles.forEach(f => {
+                if (this.files.length >= 3) return;
+                if (!allowed.includes(f.type)) {
+                    Alpine.store('toast').show({ type: 'warning', message: `Tipo no permitido: ${f.name}` });
+                    return;
+                }
+                if (f.size > 5 * 1024 * 1024) {
+                    Alpine.store('toast').show({ type: 'warning', message: `Archivo demasiado grande: ${f.name}` });
+                    return;
+                }
+                this.files.push(f);
+            });
+
+            // Sync with real file input
+            const dt = new DataTransfer();
+            this.files.forEach(f => dt.items.add(f));
+            this.$refs.fileInput.files = dt.files;
+        },
+
+        removeFile(index) {
+            this.files.splice(index, 1);
+            const dt = new DataTransfer();
+            this.files.forEach(f => dt.items.add(f));
+            this.$refs.fileInput.files = dt.files;
+        },
+
+        fileIcon(mime) {
+            if (mime === 'application/pdf') return 'bi-file-earmark-pdf-fill text-danger';
+            if (mime.startsWith('image/')) return 'bi-file-earmark-image-fill text-info';
+            return 'bi-file-earmark-word-fill text-primary';
+        },
+
+        formatSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / 1048576).toFixed(1) + ' MB';
+        }
+    };
+}
+</script>
+{/block}

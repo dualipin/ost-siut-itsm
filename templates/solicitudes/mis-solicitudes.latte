@@ -1,0 +1,87 @@
+{layout '../../templates/@portal.latte'}
+
+{block main}
+<div class="container-fluid py-4">
+
+    {include '../components/header-page.latte',
+        title: 'Mis Solicitudes',
+        description: 'Consulta el estado de todas tus solicitudes enviadas.',
+        icon: 'bi-journal-text'
+    }
+
+    <div class="d-flex justify-content-end mb-4">
+        <a href="{url('/portal/solicitudes/nueva.php')}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+            <i class="bi bi-plus-lg me-2"></i>Nueva Solicitud
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light text-muted small text-uppercase">
+                                <tr>
+                                    <th class="px-4 py-3 border-0">Folio</th>
+                                    <th class="py-3 border-0">Tipo</th>
+                                    <th class="py-3 border-0">Motivo</th>
+                                    <th class="py-3 border-0">Estado</th>
+                                    <th class="py-3 border-0">Fecha</th>
+                                    <th class="px-4 py-3 border-0 text-end">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {foreach $requests as $item}
+                                <tr class="transition-all">
+                                    <td class="px-4 py-3">
+                                        <span class="badge bg-secondary-subtle text-secondary rounded-pill fw-mono px-3">
+                                            {$item->folio ?? '—'}
+                                        </span>
+                                    </td>
+                                    <td class="py-3">
+                                        <span class="text-dark small fw-semibold">{$item->type_name ?? '—'}</span>
+                                    </td>
+                                    <td class="py-3" style="max-width: 280px;">
+                                        <span class="text-muted small d-block text-truncate">{$item->reason|truncate:60}</span>
+                                    </td>
+                                    <td class="py-3">
+                                        {var $statusEnum = \App\Modules\Requests\Domain\Enum\RequestStatusEnum::from($item->status->value)}
+                                        <span class="badge rounded-pill {$statusEnum->badgeClass()} px-3">
+                                            {$statusEnum->label()}
+                                        </span>
+                                    </td>
+                                    <td class="py-3">
+                                        <span class="text-muted small">{$item->createdAt->format('d/m/Y')}</span>
+                                    </td>
+                                    <td class="px-4 text-end">
+                                        <a href="{url('/portal/solicitudes/detalle.php?id=' . $item->requestId)}"
+                                           class="btn btn-sm btn-outline-primary rounded-3" title="Ver detalle">
+                                            <i class="bi bi-eye"></i>
+                                            <span class="d-none d-md-inline ms-1">Ver</span>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {/foreach}
+
+                                {if count($requests) === 0}
+                                <tr>
+                                    <td colspan="6" class="text-center py-5 text-muted">
+                                        <i class="bi bi-inbox fs-1 d-block mb-3 opacity-25"></i>
+                                        <p class="mb-3">No tienes solicitudes registradas.</p>
+                                        <a href="{url('/portal/solicitudes/nueva.php')}"
+                                           class="btn btn-primary rounded-pill px-4">
+                                            <i class="bi bi-plus-lg me-2"></i>Crear primera solicitud
+                                        </a>
+                                    </td>
+                                </tr>
+                                {/if}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
