@@ -19,7 +19,7 @@ $renderer    = $container->get(RendererInterface::class);
 $userContext = $container->get(UserContextInterface::class);
 $useCase     = $container->get(GetRequestDetailUseCase::class);
 $repository  = $container->get(PdoRequestRepository::class);
-$authUser    = $userContext->getUser();
+$authUser    = $userContext->get();
 
 $requestId = (int)($_GET['id'] ?? 0);
 
@@ -40,7 +40,7 @@ $privilegedRoles = ['administrador', 'finanzas', 'lider'];
 $isPrivileged    = in_array($authUser->role->value, $privilegedRoles, true);
 
 // Access control: owner OR privileged role
-if (!$isPrivileged && !$request->isOwnedBy($authUser->userId)) {
+if (!$isPrivileged && !$request->isOwnedBy($authUser->id)) {
     header('Location: /portal/acceso-denegado.php');
     exit;
 }

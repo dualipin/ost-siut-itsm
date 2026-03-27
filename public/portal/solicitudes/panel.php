@@ -19,7 +19,7 @@ $renderer    = $container->get(RendererInterface::class);
 $userContext = $container->get(UserContextInterface::class);
 $useCase     = $container->get(GetAllRequestsUseCase::class);
 $typesUseCase = $container->get(GetRequestTypesUseCase::class);
-$authUser    = $userContext->getUser();
+$authUser    = $userContext->get();
 
 // Only privileged roles
 $privilegedRoles = ['administrador', 'finanzas', 'lider'];

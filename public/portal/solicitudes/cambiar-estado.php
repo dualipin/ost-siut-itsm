@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $userContext     = $container->get(UserContextInterface::class);
 $changeUseCase   = $container->get(ChangeRequestStatusUseCase::class);
-$authUser        = $userContext->getUser();
+$authUser        = $userContext->get();
 
 $privilegedRoles = ['administrador', 'finanzas', 'lider'];
 $isPrivileged    = in_array($authUser->role->value, $privilegedRoles, true);
@@ -38,7 +38,7 @@ try {
     $changeUseCase->execute(
         requestId:       $requestId,
         newStatusValue:  $newStatus,
-        changedBy:       $authUser->userId,
+        changedBy:       $authUser->id,
         isPrivilegedRole: $isPrivileged,
         adminNotes:      $adminNotes,
     );

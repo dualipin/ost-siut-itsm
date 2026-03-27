@@ -20,7 +20,7 @@ $userContext   = $container->get(UserContextInterface::class);
 $typesUseCase  = $container->get(GetRequestTypesUseCase::class);
 $createUseCase = $container->get(CreateRequestUseCase::class);
 
-$authUser = $userContext->getUser();
+$authUser = $userContext->get();
 $error    = null;
 $success  = null;
 
@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        $folio   = $createUseCase->execute($authUser->userId, $requestTypeId, $reason, $uploadedFiles);
+        $folio   = $createUseCase->execute($authUser->id, $requestTypeId, $reason, $uploadedFiles);
         $success = "Solicitud registrada exitosamente con folio <strong>{$folio}</strong>.";
     } catch (Throwable $e) {
         $error = $e->getMessage();

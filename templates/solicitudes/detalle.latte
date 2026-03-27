@@ -2,13 +2,13 @@
 
 {var $statusEnum = \App\Modules\Requests\Domain\Enum\RequestStatusEnum::from($request->status->value)}
 {var $privilegedRoles = ['administrador', 'finanzas', 'lider']}
-{var $isOwner = $request->isOwnedBy($authUser->userId)}
+{var $isOwner = $request->isOwnedBy($authUser->id)}
 
 {block main}
 <div class="container-fluid py-4">
 
     {include '../components/header-page.latte',
-        title: 'Solicitud ' . ($request->folio ?? '#' . $request->requestId),
+        title: 'Solicitud ' . ($request->folio ?? '#' . $request->request_id),
         description: 'Detalle completo de la solicitud y su historial de cambios.',
         icon: 'bi-file-text'
     }
@@ -182,7 +182,7 @@
                                 </div>
                                 <form method="POST" action="{url('/portal/solicitudes/cambiar-estado.php')}">
                                     <div class="modal-body">
-                                        <input type="hidden" name="request_id" value="{$request->requestId}">
+                                        <input type="hidden" name="request_id" value="{$request->request_id}">
 
                                         <div class="mb-3">
                                             <label for="new_status" class="form-label fw-semibold">Nuevo Estado</label>

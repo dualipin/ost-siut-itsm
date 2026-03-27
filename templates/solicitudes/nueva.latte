@@ -70,7 +70,7 @@
                             </div>
                         </div>
 
-                        {* Adjuntos *}
+                        {* Adjuntos (Todo List Style) *}
                         <div class="mb-4">
                             <label class="form-label fw-semibold">
                                 <i class="bi bi-paperclip me-1 text-primary"></i>
@@ -78,49 +78,61 @@
                                 <span class="badge bg-secondary-subtle text-secondary rounded-pill ms-1">Opcional · máx. 3</span>
                             </label>
 
-                            <div class="border rounded-4 p-3 bg-light"
-                                 @dragover.prevent="dragOver = true"
-                                 @dragleave.prevent="dragOver = false"
-                                 @drop.prevent="handleDrop($event)"
-                                 :class="dragOver ? 'border-primary' : ''">
+                            <div class="d-flex flex-column gap-3">
+                                <template x-for="(att, i) in attachments" :key="att.id">
+                                    <div class="card border border-2 shadow-none rounded-4 bg-white overflow-hidden transition-all"
+                                         :class="att.selected ? 'border-primary-subtle' : 'border-light-subtle'">
+                                        <div class="card-body p-3">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="flex-shrink-0 bg-light rounded-3 d-flex align-items-center justify-content-center transition-all"
+                                                     style="width: 48px; height: 48px;">
+                                                    <i class="bi fs-4" :class="att.selected ? fileIcon(att.type) : 'bi-plus-lg text-muted'"></i>
+                                                </div>
 
-                                <div class="text-center py-3" x-show="files.length === 0">
-                                    <i class="bi bi-cloud-upload fs-2 text-muted mb-2 d-block"></i>
-                                    <p class="text-muted mb-2">Arrastra archivos aquí o</p>
-                                    <label for="attachments" class="btn btn-outline-primary btn-sm rounded-pill px-4">
-                                        <i class="bi bi-folder2-open me-2"></i>Seleccionar archivos
-                                        <input type="file" id="attachments" name="attachments[]"
-                                               multiple accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
-                                               class="d-none" @change="handleFiles($event)" x-ref="fileInput">
-                                    </label>
-                                    <p class="text-muted small mt-2 mb-0">PDF, imágenes o documentos Word · Máx. 5 MB c/u</p>
-                                </div>
+                                                <div class="flex-grow-1 overflow-hidden">
+                                                    <template x-if="!att.selected">
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <label :for="'file-' + att.id" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1">
+                                                                <i class="bi bi-folder2-open me-1"></i>Seleccionar archivo
+                                                            </label>
+                                                            <span class="text-muted small">Adjunto <span x-text="i + 1"></span></span>
+                                                        </div>
+                                                    </template>
 
-                                <template x-if="files.length > 0">
-                                    <div>
-                                        <div class="d-flex flex-column gap-2 mb-3">
-                                            <template x-for="(file, i) in files" :key="i">
-                                                <div class="d-flex align-items-center gap-3 bg-white rounded-3 p-2 border">
-                                                    <div class="text-primary fs-4">
-                                                        <i class="bi" :class="fileIcon(file.type)"></i>
-                                                    </div>
-                                                    <div class="flex-grow-1 overflow-hidden">
-                                                        <div class="text-truncate fw-semibold small" x-text="file.name"></div>
-                                                        <div class="text-muted small" x-text="formatSize(file.size)"></div>
-                                                    </div>
+                                                    <template x-if="att.selected">
+                                                        <div>
+                                                            <div class="fw-semibold small text-truncate" x-text="att.name"></div>
+                                                            <div class="text-muted x-small" x-text="formatSize(att.size)"></div>
+                                                        </div>
+                                                    </template>
+                                                </div>
+
+                                                <div class="flex-shrink-0 d-flex gap-2">
+                                                    <template x-if="att.selected">
+                                                        <label :for="'file-' + att.id" class="btn btn-sm btn-link text-primary p-0" title="Cambiar archivo">
+                                                            <i class="bi bi-pencil-square"></i>
+                                                        </label>
+                                                    </template>
+
                                                     <button type="button" class="btn btn-sm btn-link text-danger p-0"
-                                                            @click="removeFile(i)" title="Quitar">
-                                                        <i class="bi bi-x-circle-fill"></i>
+                                                            @click="removeAttachment(att.id)" title="Quitar">
+                                                        <i class="bi bi-trash3-fill"></i>
                                                     </button>
                                                 </div>
-                                            </template>
+                                            </div>
+
+                                            <input type="file" :id="'file-' + att.id" name="attachments[]"
+                                                   class="d-none" @change="handleFile(att.id, $event)"
+                                                   accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx">
                                         </div>
-                                        <label x-show="files.length < 3" for="attachments"
-                                               class="btn btn-outline-secondary btn-sm rounded-pill">
-                                            <i class="bi bi-plus me-1"></i>Agregar más
-                                        </label>
                                     </div>
                                 </template>
+
+                                <button type="button" x-show="attachments.length < 3"
+                                        class="btn btn-outline-primary border-dashed rounded-4 py-3 w-100 hover-shadow transition-all"
+                                        @click="addAttachment()">
+                                    <i class="bi bi-plus-circle-dotted me-2"></i>Agregar otro documento
+                                </button>
                             </div>
                         </div>
 
@@ -182,57 +194,56 @@
 {/block}
 
 {block scripts}
-<script>
+<script n:syntax="off">
 function solicitudForm() {
     return {
         reason: '',
-        files: [],
-        dragOver: false,
+        attachments: [
+            { id: Date.now(), name: '', size: 0, type: '', selected: false }
+        ],
 
-        handleFiles(event) {
-            const newFiles = Array.from(event.target.files);
-            this.addFiles(newFiles);
-            event.target.value = '';
+        addAttachment() {
+            if (this.attachments.length < 3) {
+                this.attachments.push({ id: Date.now(), name: '', size: 0, type: '', selected: false });
+            }
         },
 
-        handleDrop(event) {
-            this.dragOver = false;
-            const newFiles = Array.from(event.dataTransfer.files);
-            this.addFiles(newFiles);
+        removeAttachment(id) {
+            this.attachments = this.attachments.filter(a => a.id !== id);
+            if (this.attachments.length === 0) {
+                this.addAttachment();
+            }
         },
 
-        addFiles(newFiles) {
+        handleFile(id, event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
             const allowed = ['image/jpeg','image/png','image/webp','application/pdf',
                 'application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-            newFiles.forEach(f => {
-                if (this.files.length >= 3) return;
-                if (!allowed.includes(f.type)) {
-                    Alpine.store('toast').show({ type: 'warning', message: `Tipo no permitido: ${f.name}` });
-                    return;
-                }
-                if (f.size > 5 * 1024 * 1024) {
-                    Alpine.store('toast').show({ type: 'warning', message: `Archivo demasiado grande: ${f.name}` });
-                    return;
-                }
-                this.files.push(f);
-            });
 
-            // Sync with real file input
-            const dt = new DataTransfer();
-            this.files.forEach(f => dt.items.add(f));
-            this.$refs.fileInput.files = dt.files;
-        },
+            if (!allowed.includes(file.type)) {
+                Alpine.store('toast').show({ type: 'warning', message: `Tipo no permitido: ${file.name}` });
+                event.target.value = '';
+                return;
+            }
 
-        removeFile(index) {
-            this.files.splice(index, 1);
-            const dt = new DataTransfer();
-            this.files.forEach(f => dt.items.add(f));
-            this.$refs.fileInput.files = dt.files;
+            if (file.size > 5 * 1024 * 1024) {
+                Alpine.store('toast').show({ type: 'warning', message: `Archivo demasiado grande: ${file.name}` });
+                event.target.value = '';
+                return;
+            }
+
+            const att = this.attachments.find(a => a.id === id);
+            att.name = file.name;
+            att.size = file.size;
+            att.type = file.type;
+            att.selected = true;
         },
 
         fileIcon(mime) {
             if (mime === 'application/pdf') return 'bi-file-earmark-pdf-fill text-danger';
-            if (mime.startsWith('image/')) return 'bi-file-earmark-image-fill text-info';
+            if (mime && mime.startsWith('image/')) return 'bi-file-earmark-image-fill text-info';
             return 'bi-file-earmark-word-fill text-primary';
         },
 

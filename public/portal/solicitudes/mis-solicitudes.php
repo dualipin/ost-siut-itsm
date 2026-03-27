@@ -17,9 +17,9 @@ $runner->runOrRedirect($middleware->auth());
 $renderer    = $container->get(RendererInterface::class);
 $userContext = $container->get(UserContextInterface::class);
 $useCase     = $container->get(GetMyRequestsUseCase::class);
-$authUser    = $userContext->getUser();
+$authUser    = $userContext->get();
 
-$data             = $useCase->execute($authUser->userId);
+$data             = $useCase->execute($authUser->id);
 $data['authUser'] = $authUser;
 
 $renderer->render(__DIR__ . '/../../../templates/solicitudes/mis-solicitudes.latte', $data);

@@ -95,7 +95,7 @@ final readonly class PdoRequestRepository implements RequestRepositoryInterface
         $sortOrder       = strtoupper($sortOrder) === 'ASC' ? 'ASC' : 'DESC';
 
         $sql = "SELECT r.*, rt.name AS type_name,
-                       CONCAT(u.first_name, ' ', u.last_name) AS user_full_name
+                       CONCAT(u.name, ' ', u.surnames) AS user_full_name
                 FROM requests r
                 JOIN request_types rt ON rt.request_type_id = r.request_type_id
                 JOIN users u ON u.user_id = r.user_id
