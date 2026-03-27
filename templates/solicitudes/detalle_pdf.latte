@@ -1,0 +1,91 @@
+{layout '../@document.latte'}
+
+{block title}Detalle de Solicitud {$request->folio ?? '#' . $request->request_id}{/block}
+
+{block content}
+{var $statusEnum = \App\Modules\Requests\Domain\Enum\RequestStatusEnum::from($request->status->value)}
+
+<h2 style="font-size: 1.5em; text-align: center; margin-bottom: 20px; color: {$institutionalColor}; border-bottom: 1px solid {$institutionalColor}; padding-bottom: 10px;">
+    Detalle de Solicitud {$request->folio ?? '#' . $request->request_id}
+</h2>
+
+<table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px;">
+    <tr>
+        <td style="width: 25%; font-weight: bold; padding: 8px; border-bottom: 1px solid #ccc; background-color: #f9f9f9;">Folio:</td>
+        <td style="width: 75%; padding: 8px; border-bottom: 1px solid #ccc;">{$request->folio ?? '—'}</td>
+    </tr>
+    <tr>
+        <td style="font-weight: bold; padding: 8px; border-bottom: 1px solid #ccc; background-color: #f9f9f9;">Solicitante:</td>
+        <td style="padding: 8px; border-bottom: 1px solid #ccc;">{$request->user_full_name ?? '—'}</td>
+    </tr>
+    <tr>
+        <td style="font-weight: bold; padding: 8px; border-bottom: 1px solid #ccc; background-color: #f9f9f9;">Tipo:</td>
+        <td style="padding: 8px; border-bottom: 1px solid #ccc;">{$request->type_name ?? '—'}</td>
+    </tr>
+    <tr>
+        <td style="font-weight: bold; padding: 8px; border-bottom: 1px solid #ccc; background-color: #f9f9f9;">Estado Actual:</td>
+        <td style="padding: 8px; border-bottom: 1px solid #ccc;">{$statusEnum->label()}</td>
+    </tr>
+    <tr>
+        <td style="font-weight: bold; padding: 8px; border-bottom: 1px solid #ccc; background-color: #f9f9f9;">Fecha de Creación:</td>
+        <td style="padding: 8px; border-bottom: 1px solid #ccc;">{$request->createdAt->format('d/m/Y H:i')}</td>
+    </tr>
+    {if $request->resolvedAt}
+    <tr>
+        <td style="font-weight: bold; padding: 8px; border-bottom: 1px solid #ccc; background-color: #f9f9f9;">Fecha de Resolución:</td>
+        <td style="padding: 8px; border-bottom: 1px solid #ccc;">{$request->resolvedAt->format('d/m/Y H:i')}</td>
+    </tr>
+    {/if}
+</table>
+
+<div style="margin-bottom: 20px;">
+    <h3 style="font-size: 1.2em; color: {$institutionalColor}; border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 10px;">Motivo</h3>
+    <div style="padding: 15px; background-color: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 5px; text-align: justify; line-height: 1.5;">
+        {$request->reason|breaklines}
+    </div>
+</div>
+
+{if $request->adminNotes}
+<div style="margin-bottom: 20px;">
+    <h3 style="font-size: 1.2em; color: {$institutionalColor}; border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 10px;">Notas del Administrador</h3>
+    <div style="padding: 15px; background-color: #e8f4f8; border: 1px solid #b6d4fe; border-radius: 5px; text-align: justify; line-height: 1.5;">
+        {$request->adminNotes|breaklines}
+    </div>
+</div>
+{/if}
+
+{if count($history) > 0}
+<div style="margin-top: 30px; page-break-inside: avoid;">
+    <h3 style="font-size: 1.2em; color: {$institutionalColor}; border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 10px;">Historial de Cambios</h3>
+    <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+        <thead>
+            <tr style="background-color: #f0f0f0;">
+                <th style="padding: 8px; border: 1px solid #ccc; text-align: left;">Fecha</th>
+                <th style="padding: 8px; border: 1px solid #ccc; text-align: left;">Cambio de Estado</th>
+                <th style="padding: 8px; border: 1px solid #ccc; text-align: left;">Notas</th>
+            </tr>
+        </thead>
+        <tbody>
+            {foreach $history as $entry}
+            {var $entryStatusToEnum = \App\Modules\Requests\Domain\Enum\RequestStatusEnum::tryFrom($entry->statusTo)}
+            {var $entryStatusFromEnum = $entry->statusFrom ? \App\Modules\Requests\Domain\Enum\RequestStatusEnum::tryFrom($entry->statusFrom) : null}
+            <tr>
+                <td style="padding: 8px; border: 1px solid #ccc;">{$entry->changedAt->format('d/m/Y H:i')}</td>
+                <td style="padding: 8px; border: 1px solid #ccc;">
+                    {if $entryStatusFromEnum}
+                        {$entryStatusFromEnum->label()} &rarr; 
+                    {/if}
+                    {$entryStatusToEnum ? $entryStatusToEnum->label() : $entry->statusTo}
+                </td>
+                <td style="padding: 8px; border: 1px solid #ccc;">{$entry->notes ?? ''}</td>
+            </tr>
+            {/foreach}
+        </tbody>
+    </table>
+</div>
+{/if}
+
+<div style="margin-top: 40px; text-align: center; color: #777; font-size: 10px;">
+    Documento generado el {date('d/m/Y \a \l\a\s H:i')}
+</div>
+{/block}

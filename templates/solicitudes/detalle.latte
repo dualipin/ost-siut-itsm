@@ -53,6 +53,9 @@
                         <dt class="col-sm-4 text-muted small text-uppercase">Folio</dt>
                         <dd class="col-sm-8 fw-bold">{$request->folio ?? '—'}</dd>
 
+                        <dt class="col-sm-4 text-muted small text-uppercase">Solicitante</dt>
+                        <dd class="col-sm-8">{$request->user_full_name ?? '—'}</dd>
+
                         <dt class="col-sm-4 text-muted small text-uppercase">Tipo</dt>
                         <dd class="col-sm-8">{$request->type_name ?? '—'}</dd>
 
@@ -194,7 +197,14 @@
                 </div>
             </div>
 
-            <div class="mt-3">
+            <div class="mt-3 text-center">
+                <a href="{url('/portal/solicitudes/descargar-pdf.php?id=' . $request->request_id)}"
+                   class="btn btn-danger rounded-pill w-100 shadow-sm mb-3" target="_blank">
+                    <i class="bi bi-file-earmark-pdf-fill me-2"></i>Descargar PDF
+                </a>
+            </div>
+
+            <div class="mt-2">
                 <a href="{url('/portal/solicitudes/mis-solicitudes.php')}"
                    class="btn btn-link text-decoration-none text-muted">
                     <i class="bi bi-arrow-left me-1"></i>Volver a mis solicitudes
