@@ -113,31 +113,53 @@ function procesarFormulario(
     $admMarPuntualidad = null;
     $admMarAsistencia  = null;
 
-    if ($tipoEmpleado === 'administrativo') {
-        if ($request->input('dic_seleccionado') !== null) {
-            $admDicPuntualidad = clampAmount((string) $request->input('dic_puntualidad', '0'));
-            $admDicAsistencia  = clampAmount((string) $request->input('dic_asistencia',  '0'));
+    $admDicRecibo = null;
+    $admEneRecibo = null;
+    $admFebRecibo = null;
+    $admMarRecibo = null;
+
+    try {
+        if ($tipoEmpleado === 'administrativo') {
+            if ($request->input('dic_seleccionado') !== null) {
+                $admDicPuntualidad = clampAmount((string) $request->input('dic_puntualidad', '0'));
+                $admDicAsistencia  = clampAmount((string) $request->input('dic_asistencia',  '0'));
+                $admDicRecibo      = subirRecibo('adm_dic_recibo_file');
+            }
+            if ($request->input('ene_seleccionado') !== null) {
+                $admEnePuntualidad = clampAmount((string) $request->input('ene_puntualidad', '0'));
+                $admEneAsistencia  = clampAmount((string) $request->input('ene_asistencia',  '0'));
+                $admEneRecibo      = subirRecibo('adm_ene_recibo_file');
+            }
+            if ($request->input('feb_seleccionado') !== null) {
+                $admFebPuntualidad = clampAmount((string) $request->input('feb_puntualidad', '0'));
+                $admFebAsistencia  = clampAmount((string) $request->input('feb_asistencia',  '0'));
+                $admFebRecibo      = subirRecibo('adm_feb_recibo_file');
+            }
+            if ($request->input('mar_seleccionado') !== null) {
+                $admMarPuntualidad = clampAmount((string) $request->input('mar_puntualidad', '0'));
+                $admMarAsistencia  = clampAmount((string) $request->input('mar_asistencia',  '0'));
+                $admMarRecibo      = subirRecibo('adm_mar_recibo_file');
+            }
         }
-        if ($request->input('ene_seleccionado') !== null) {
-            $admEnePuntualidad = clampAmount((string) $request->input('ene_puntualidad', '0'));
-            $admEneAsistencia  = clampAmount((string) $request->input('ene_asistencia',  '0'));
+
+        // ── Docente ──────────────────────────────────────────────────────────
+        $docDicPagado = false;
+        $docDicRecibo = null;
+        if ($tipoEmpleado === 'docente' && $request->input('doc_dic_pagado') !== null) {
+            $docDicPagado = true;
+            $docDicRecibo = subirRecibo('doc_dic_recibo_file');
         }
-        if ($request->input('feb_seleccionado') !== null) {
-            $admFebPuntualidad = clampAmount((string) $request->input('feb_puntualidad', '0'));
-            $admFebAsistencia  = clampAmount((string) $request->input('feb_asistencia',  '0'));
+
+        $docMarPagado = false;
+        $docMarRecibo = null;
+        if ($tipoEmpleado === 'docente' && $request->input('doc_mar_pagado') !== null) {
+            $docMarPagado = true;
+            $docMarRecibo = subirRecibo('doc_mar_recibo_file');
         }
-        if ($request->input('mar_seleccionado') !== null) {
-            $admMarPuntualidad = clampAmount((string) $request->input('mar_puntualidad', '0'));
-            $admMarAsistencia  = clampAmount((string) $request->input('mar_asistencia',  '0'));
-        }
+    } catch (\RuntimeException $e) {
+        $errors[] = $e->getMessage();
+        return [$errors, false];
     }
-
-    // ── Docente ──────────────────────────────────────────────────────────
-    $docDicPagado = $tipoEmpleado === 'docente'
-        && $request->input('doc_dic_pagado') !== null;
-
-    $docMarPagado = $tipoEmpleado === 'docente'
-        && $request->input('doc_mar_pagado') !== null;
 
     $dto = new GuardarEncuestaDTO(
         userId:            $userId,
@@ -150,8 +172,14 @@ function procesarFormulario(
         admFebAsistencia:  $admFebAsistencia,
         admMarPuntualidad: $admMarPuntualidad,
         admMarAsistencia:  $admMarAsistencia,
+        admDicRecibo:      $admDicRecibo,
+        admEneRecibo:      $admEneRecibo,
+        admFebRecibo:      $admFebRecibo,
+        admMarRecibo:      $admMarRecibo,
         docDicPagado:      $docDicPagado,
         docMarPagado:      $docMarPagado,
+        docDicRecibo:      $docDicRecibo,
+        docMarRecibo:      $docMarRecibo,
         firmaCurp:         $firmaCurp,
     );
 
@@ -185,4 +213,39 @@ function normalizeCurp(string $value): string
 
     // Keep only valid CURP charset to avoid quotes/escapes from legacy data.
     return (string) preg_replace('/[^A-Z0-9]/', '', $normalized);
+}
+
+/**
+ * Handle upload of receipt files.
+ */
+function subirRecibo(string $inputName): ?string
+{
+    if (!isset($_FILES[$inputName]) || $_FILES[$inputName]['error'] !== UPLOAD_ERR_OK) {
+        return null; // File not present or upload error
+    }
+
+    $file = $_FILES[$inputName];
+    $allowed = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+    if (!in_array($file['type'], $allowed)) {
+        throw new \RuntimeException("El archivo " . $file['name'] . " tiene un formato inválido. Solo se permiten PDF y JPG/PNG.");
+    }
+
+    $tamanoMax = 5 * 1024 * 1024; // 5MB
+    if ($file['size'] > $tamanoMax) {
+        throw new \RuntimeException("El archivo " . $file['name'] . " excede el tamaño máximo de 5MB.");
+    }
+
+    $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+    $filename = uniqid('recibo_') . '.' . $ext;
+    $path = __DIR__ . '/../../uploads/sodexo/' . $filename;
+
+    if (!is_dir(dirname($path))) {
+        mkdir(dirname($path), 0755, true);
+    }
+
+    if (move_uploaded_file($file['tmp_name'], $path)) {
+        return $filename;
+    }
+
+    throw new \RuntimeException("Error al guardar el archivo " . $file['name']);
 }

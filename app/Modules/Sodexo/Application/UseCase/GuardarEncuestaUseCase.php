@@ -30,8 +30,16 @@ final readonly class GuardarEncuestaUseCase
             admMarPuntualidad: $dto->admMarPuntualidad,
             admMarAsistencia:  $dto->admMarAsistencia,
 
+            admDicRecibo: $dto->admDicRecibo,
+            admEneRecibo: $dto->admEneRecibo,
+            admFebRecibo: $dto->admFebRecibo,
+            admMarRecibo: $dto->admMarRecibo,
+
             docDicPagado: $dto->docDicPagado,
             docMarPagado: $dto->docMarPagado,
+
+            docDicRecibo: $dto->docDicRecibo,
+            docMarRecibo: $dto->docMarRecibo,
 
             firmaCurp: $dto->firmaCurp,
         );

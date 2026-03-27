@@ -29,9 +29,17 @@ final readonly class SodexoEncuesta
         public ?float $admMarPuntualidad = null,
         public ?float $admMarAsistencia  = null,
 
+        public ?string $admDicRecibo = null,
+        public ?string $admEneRecibo = null,
+        public ?string $admFebRecibo = null,
+        public ?string $admMarRecibo = null,
+
         // Docente: true = se le pagó ese mes (100 pesos cada uno)
         public bool $docDicPagado = false,
         public bool $docMarPagado = false,
+
+        public ?string $docDicRecibo = null,
+        public ?string $docMarRecibo = null,
 
         // Firma: CURP del agremiado
         public ?string $firmaCurp = null,
