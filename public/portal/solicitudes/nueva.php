@@ -79,6 +79,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $data = $typesUseCase->execute();
+
+$descriptionsMap = [];
+foreach ($data['types'] as $type) {
+    if ($type->description) {
+        $descriptionsMap[$type->requestTypeId] = $type->description;
+    }
+}
+
+$data['descriptionsMapJson'] = json_encode($descriptionsMap);
 $data['error']    = $error;
 $data['success']  = $success;
 $data['authUser'] = $authUser;

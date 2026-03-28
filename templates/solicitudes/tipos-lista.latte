@@ -1,0 +1,248 @@
+{layout '../../templates/@portal.latte'}
+
+{block main}
+<div class="container-fluid py-4">
+
+    {include '../components/header-page.latte',
+        title: 'Tipos de Solicitud',
+        description: 'Gestiona los tipos disponibles para los agremiados al registrar una solicitud.',
+        icon: 'bi-tags'
+    }
+
+    {* Acciones *}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <a href="{url('/portal/solicitudes/panel.php')}" class="btn btn-outline-secondary rounded-3">
+            <i class="bi bi-arrow-left me-1"></i>Volver al Panel
+        </a>
+        <button type="button" id="btn-nuevo-tipo" class="btn btn-primary rounded-3"
+                data-bs-toggle="modal" data-bs-target="#modalNuevoTipo">
+            <i class="bi bi-plus-circle me-2"></i>Nuevo Tipo
+        </button>
+    </div>
+
+    {* Tabla de tipos *}
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-muted small text-uppercase">
+                        <tr>
+                            <th class="px-4 py-3 border-0">#</th>
+                            <th class="py-3 border-0">Nombre</th>
+                            <th class="py-3 border-0">Descripción</th>
+                            <th class="py-3 border-0">Estado</th>
+                            <th class="py-3 border-0">Creado</th>
+                            <th class="px-4 py-3 border-0 text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {foreach $types as $type}
+                        <tr class="transition-all">
+                            <td class="px-4 py-3">
+                                <span class="text-muted small">{$type->requestTypeId}</span>
+                            </td>
+                            <td class="py-3">
+                                <span class="fw-semibold">{$type->name}</span>
+                            </td>
+                            <td class="py-3" style="max-width: 280px;">
+                                {if $type->description}
+                                    <span class="text-muted small d-block text-truncate">{$type->description}</span>
+                                {else}
+                                    <span class="text-muted small fst-italic">Sin descripción</span>
+                                {/if}
+                            </td>
+                            <td class="py-3">
+                                {if $type->active}
+                                    <span class="badge rounded-pill bg-success-subtle text-success px-3">Activo</span>
+                                {else}
+                                    <span class="badge rounded-pill bg-secondary-subtle text-secondary px-3">Inactivo</span>
+                                {/if}
+                            </td>
+                            <td class="py-3">
+                                <span class="text-muted small">{$type->createdAt->format('d/m/Y')}</span>
+                            </td>
+                            <td class="px-4 text-end">
+                                <div class="d-flex gap-2 justify-content-end">
+                                    {* Botón Editar *}
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-primary rounded-3"
+                                            title="Editar"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalEditarTipo"
+                                            data-id="{$type->requestTypeId}"
+                                            data-name="{$type->name}"
+                                            data-description="{$type->description}"
+                                            data-active="{$type->active ? '1' : '0'}">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+
+                                    {* Botón Toggle Activo/Inactivo *}
+                                    <form method="POST" action="{url('/portal/solicitudes/tipos.php')}" class="d-inline">
+                                        <input type="hidden" name="action" value="toggle">
+                                        <input type="hidden" name="id" value="{$type->requestTypeId}">
+                                        <button type="submit"
+                                                class="btn btn-sm {if $type->active}btn-outline-warning{else}btn-outline-success{/if} rounded-3"
+                                                title="{if $type->active}Desactivar{else}Activar{/if}">
+                                            <i class="bi {if $type->active}bi-toggle-on{else}bi-toggle-off{/if}"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {/foreach}
+
+                        {if count($types) === 0}
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="bi bi-tags fs-1 d-block mb-3 opacity-25"></i>
+                                No hay tipos de solicitud registrados.
+                            </td>
+                        </tr>
+                        {/if}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {if count($types) > 0}
+        <div class="card-footer bg-transparent border-top-0 px-4 py-3 text-muted small">
+            Total: <strong>{count($types)}</strong> tipos
+            {var $activos = count(array_filter($types, fn($t) => $t->active))}
+            &nbsp;·&nbsp; <span class="text-success">{$activos} activos</span>
+            &nbsp;·&nbsp; <span class="text-secondary">{count($types) - $activos} inactivos</span>
+        </div>
+        {/if}
+    </div>
+
+</div>
+{/block}
+
+{block modals}
+{* Modal: Nuevo Tipo *}
+<div class="modal fade" id="modalNuevoTipo" tabindex="-1"
+     aria-labelledby="modalNuevoTipoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h2 class="modal-title h5 fw-bold" id="modalNuevoTipoLabel">
+                    <i class="bi bi-plus-circle me-2 text-primary"></i>Nuevo Tipo de Solicitud
+                </h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <form method="POST" action="{url('/portal/solicitudes/tipos.php')}">
+                <input type="hidden" name="action" value="create">
+                <div class="modal-body pt-3">
+                    <div class="mb-3">
+                        <label for="nuevo-nombre" class="form-label small fw-semibold">Nombre <span class="text-danger">*</span></label>
+                        <input type="text" id="nuevo-nombre" name="name" class="form-control rounded-3"
+                               placeholder="Ej. Préstamo, Beca, Apoyo médico"
+                               required maxlength="100" autocomplete="off">
+                    </div>
+                    <div class="mb-3">
+                        <label for="nuevo-descripcion" class="form-label small fw-semibold">Descripción <span class="text-muted">(opcional)</span></label>
+                        <textarea id="nuevo-descripcion" name="description" class="form-control rounded-3"
+                                  rows="3" maxlength="500"
+                                  placeholder="Breve descripción del tipo de solicitud..."></textarea>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch"
+                               id="nuevo-activo" name="active" value="1" checked>
+                        <label class="form-check-label small" for="nuevo-activo">Activo (visible para los agremiados)</label>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary rounded-3" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary rounded-3">
+                        <i class="bi bi-save me-1"></i>Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{* Modal: Editar Tipo *}
+<div class="modal fade" id="modalEditarTipo" tabindex="-1"
+     aria-labelledby="modalEditarTipoLabel" aria-hidden="true"
+     x-data="editTipoModal()">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h2 class="modal-title h5 fw-bold" id="modalEditarTipoLabel">
+                    <i class="bi bi-pencil-square me-2 text-primary"></i>Editar Tipo de Solicitud
+                </h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <form method="POST" action="{url('/portal/solicitudes/tipos.php')}">
+                <input type="hidden" name="action" value="update">
+                <input type="hidden" name="id" x-bind:value="id">
+                <div class="modal-body pt-3">
+                    <div class="mb-3">
+                        <label for="editar-nombre" class="form-label small fw-semibold">Nombre <span class="text-danger">*</span></label>
+                        <input type="text" id="editar-nombre" name="name" class="form-control rounded-3"
+                               x-bind:value="name"
+                               required maxlength="100" autocomplete="off">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editar-descripcion" class="form-label small fw-semibold">Descripción <span class="text-muted">(opcional)</span></label>
+                        <textarea id="editar-descripcion" name="description" class="form-control rounded-3"
+                                  rows="3" maxlength="500"
+                                  x-text="description"></textarea>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch"
+                               id="editar-activo" name="active" value="1"
+                               x-bind:checked="active">
+                        <label class="form-check-label small" for="editar-activo">Activo (visible para los agremiados)</label>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary rounded-3" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary rounded-3">
+                        <i class="bi bi-save me-1"></i>Actualizar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block scripts}
+{include parent}
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('editTipoModal', () => ({
+            id: '',
+            name: '',
+            description: '',
+            active: true,
+
+            init() {
+                this.$el.addEventListener('show.bs.modal', (event) => {
+                    const btn = event.relatedTarget;
+                    if (!btn) return;
+                    this.id          = btn.getAttribute('data-id') ?? '';
+                    this.name        = btn.getAttribute('data-name') ?? '';
+                    this.description = btn.getAttribute('data-description') ?? '';
+                    this.active      = btn.getAttribute('data-active') === '1';
+                });
+            },
+        }));
+    });
+
+{if $toast !== null}
+    (function () {
+        const showFlash = () => Alpine.store('toast').show({
+            type: {$toast['type']|json},
+            message: {$toast['message']|json}
+        });
+
+        if (typeof Alpine !== 'undefined' && Alpine.store('toast')) {
+            showFlash();
+        } else {
+            document.addEventListener('alpine:init', () => setTimeout(showFlash, 50));
+        }
+    })();
+{/if}
+</script>
+{/block}

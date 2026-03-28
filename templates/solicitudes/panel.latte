@@ -9,6 +9,13 @@
         icon: 'bi-clipboard2-data'
     }
 
+    {* Acciones del panel *}
+    <div class="d-flex justify-content-end mb-3">
+        <a href="{url('/portal/solicitudes/tipos-lista.php')}" class="btn btn-outline-primary rounded-3">
+            <i class="bi bi-tags me-2"></i>Gestionar Tipos
+        </a>
+    </div>
+
     {* Filtros *}
     <div class="card border-0 shadow-sm rounded-4 mb-4">
         <div class="card-body p-4">
@@ -156,4 +163,68 @@
         {/if}
     </div>
 </div>
+{/block}
+
+{block modals}
+{* Modal: Nuevo Tipo de Solicitud *}
+<div class="modal fade" id="modalNuevoTipo" tabindex="-1"
+     aria-labelledby="modalNuevoTipoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h2 class="modal-title h5 fw-bold" id="modalNuevoTipoLabel">
+                    <i class="bi bi-tags me-2 text-primary"></i>Nuevo Tipo de Solicitud
+                </h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <form method="POST" action="{url('/portal/solicitudes/tipos.php')}">
+                <div class="modal-body pt-3">
+                    <div class="mb-3">
+                        <label for="tipo-nombre" class="form-label small fw-semibold">Nombre <span class="text-danger">*</span></label>
+                        <input type="text" id="tipo-nombre" name="name" class="form-control rounded-3"
+                               placeholder="Ej. Préstamo, Beca, Apoyo médico"
+                               required maxlength="100" autocomplete="off">
+                    </div>
+                    <div class="mb-3">
+                        <label for="tipo-descripcion" class="form-label small fw-semibold">Descripción <span class="text-muted">(opcional)</span></label>
+                        <textarea id="tipo-descripcion" name="description" class="form-control rounded-3"
+                                  rows="3" maxlength="500"
+                                  placeholder="Breve descripción del tipo de solicitud..."></textarea>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch"
+                               id="tipo-activo" name="active" value="1" checked>
+                        <label class="form-check-label small" for="tipo-activo">Activo (visible para los agremiados)</label>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary rounded-3" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary rounded-3">
+                        <i class="bi bi-save me-1"></i>Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}
+
+{block scripts}
+{include parent}
+{if $toast !== null}
+<script>
+    (function () {
+        const showFlash = () => Alpine.store('toast').show({
+            type: {$toast['type']|json},
+            message: {$toast['message']|json}
+        });
+
+        if (typeof Alpine !== 'undefined' && Alpine.store('toast')) {
+            showFlash();
+        } else {
+            document.addEventListener('alpine:init', () => setTimeout(showFlash, 50));
+        }
+    })();
+</script>
+{/if}
 {/block}
