@@ -3,6 +3,7 @@
 use App\Bootstrap;
 use App\Http\Middleware\MiddlewareFactory;
 use App\Http\Middleware\MiddlewareRunner;
+use App\Infrastructure\Session\SessionInterface;
 use App\Infrastructure\Templating\RendererInterface;
 use App\Modules\Requests\Application\UseCase\GetAllRequestsUseCase;
 use App\Modules\Requests\Application\UseCase\GetRequestTypesUseCase;
@@ -15,11 +16,12 @@ $middleware = $container->get(MiddlewareFactory::class);
 $runner     = $container->get(MiddlewareRunner::class);
 $runner->runOrRedirect($middleware->auth());
 
-$renderer    = $container->get(RendererInterface::class);
-$userContext = $container->get(UserContextInterface::class);
-$useCase     = $container->get(GetAllRequestsUseCase::class);
+$renderer     = $container->get(RendererInterface::class);
+$userContext  = $container->get(UserContextInterface::class);
+$session      = $container->get(SessionInterface::class);
+$useCase      = $container->get(GetAllRequestsUseCase::class);
 $typesUseCase = $container->get(GetRequestTypesUseCase::class);
-$authUser    = $userContext->get();
+$authUser     = $userContext->get();
 
 // Only privileged roles
 $privilegedRoles = ['administrador', 'finanzas', 'lider'];
@@ -39,5 +41,7 @@ $sortOrder  = $_GET['sort_order'] ?? 'DESC';
 $data = $useCase->execute($folio, $typeId, $status, $dateFrom, $dateTo, $sortBy, $sortOrder);
 $data['types']    = $typesUseCase->execute(false)['types'];
 $data['authUser'] = $authUser;
+$data['toast']    = $session->get('toast');
+$session->remove('toast');
 
 $renderer->render(__DIR__ . '/../../../templates/solicitudes/panel.latte', $data);

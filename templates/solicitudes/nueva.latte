@@ -40,7 +40,8 @@
                                 Tipo de Solicitud <span class="text-danger">*</span>
                             </label>
                             <select name="request_type_id" id="request_type_id"
-                                    class="form-select rounded-3" required>
+                                    class="form-select rounded-3" required
+                                    x-model="requestTypeId">
                                 <option value="">— Selecciona un tipo —</option>
                                 {foreach $types as $type}
                                     <option value="{$type->requestTypeId}">{$type->name}</option>
@@ -52,6 +53,15 @@
                                     No hay tipos de solicitud disponibles. Contacta al administrador.
                                 </div>
                             {/if}
+
+                            <div x-show="getRequestDescription()" 
+                                 x-transition
+                                 class="mt-3 p-3 bg-light rounded-3 border-start border-primary border-4">
+                                <span class="text-muted small">
+                                    <i class="bi bi-info-circle-fill text-primary me-1"></i>
+                                    <span x-text="getRequestDescription()"></span>
+                                </span>
+                            </div>
                         </div>
 
                         {* Motivo *}
@@ -198,9 +208,15 @@
 function solicitudForm() {
     return {
         reason: '',
+        requestTypeId: '',
+        descriptionsMap: {$descriptionsMap|noescape|json},
         attachments: [
             { id: Date.now(), name: '', size: 0, type: '', selected: false }
         ],
+
+        getRequestDescription() {
+            return this.descriptionsMap[this.requestTypeId] || null;
+        },
 
         addAttachment() {
             if (this.attachments.length < 3) {
