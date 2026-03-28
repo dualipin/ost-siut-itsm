@@ -205,12 +205,14 @@
 
 {block scripts}
 {include parent}
-<script n:syntax="off">
+<script id="dataRequestDescriptions" type="application/json">{$descriptionsMapJson|noescape}</script>
+<script>
 function solicitudForm() {
+    const descriptionsData = document.getElementById('dataRequestDescriptions')?.textContent || '{}';
     return {
         reason: '',
         requestTypeId: '',
-        descriptionsMap: JSON.parse({$descriptionsMapJson|noescape}),
+        descriptionsMap: JSON.parse(descriptionsData),
         attachments: [
             { id: Date.now(), name: '', size: 0, type: '', selected: false }
         ],
