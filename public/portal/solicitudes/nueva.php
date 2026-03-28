@@ -80,7 +80,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $data = $typesUseCase->execute();
 
-// Agregamos un mapa de descripciones para que Alpine pueda mostrarlas en tiempo real
 $descriptionsMap = [];
 foreach ($data['types'] as $type) {
     if ($type->description) {
@@ -88,7 +87,7 @@ foreach ($data['types'] as $type) {
     }
 }
 
-$data['descriptionsMap'] = $descriptionsMap;
+$data['descriptionsMapJson'] = json_encode($descriptionsMap);
 $data['error']    = $error;
 $data['success']  = $success;
 $data['authUser'] = $authUser;

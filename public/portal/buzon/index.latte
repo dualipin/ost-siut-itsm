@@ -45,6 +45,7 @@
 {/block}
 
 {block scripts}
+{include parent}
 <script n:syntax="off">
   (() => {
     const mensajes   = Array.from(JSON.parse(document.getElementById('dataMensajes')?.textContent || '[]'));
