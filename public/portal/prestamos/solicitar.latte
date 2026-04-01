@@ -391,21 +391,50 @@ function loanApplication() {
       let current = new Date();
       const endYear = current.getFullYear();
       
-      // limit until end of year
-      let limitDate = new Date(endYear, 11, 31); // Dec 31
-      
-      let count = 0;
-      while (current <= limitDate && count < 52) {
-        current.setDate(current.getDate() + freqDays);
+      if (freqDays === 15) {
+        // Para frecuencia quincenal, generamos los días 15 y el último día de cada mes
+        let month = current.getMonth();
+        let year = current.getFullYear();
         
-        // Push only dates before dec 31
-        if (current <= limitDate) {
-           dates.push({
-             value: current.toISOString().split('T')[0],
-             label: current.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })
-           });
+        while (year === endYear && month <= 11) {
+          // Día 15
+          let d15 = new Date(year, month, 15);
+          // Asegurar de no modificar la hora y comparar solo fechas
+          if (d15 > current || (d15.getDate() === current.getDate() && d15.getMonth() === current.getMonth())) {
+             dates.push({
+               value: d15.toISOString().split('T')[0],
+               label: d15.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })
+             });
+          }
+          
+          // Último día del mes
+          let lastDay = new Date(year, month + 1, 0);
+          if (lastDay > current || (lastDay.getDate() === current.getDate() && lastDay.getMonth() === current.getMonth())) {
+             dates.push({
+               value: lastDay.toISOString().split('T')[0],
+               label: lastDay.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })
+             });
+          }
+          
+          month++;
         }
-        count++;
+      } else {
+        // limit until end of year
+        let limitDate = new Date(endYear, 11, 31); // Dec 31
+        
+        let count = 0;
+        while (current <= limitDate && count < 52) {
+          current.setDate(current.getDate() + freqDays);
+          
+          // Push only dates before dec 31
+          if (current <= limitDate) {
+             dates.push({
+               value: current.toISOString().split('T')[0],
+               label: current.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })
+             });
+          }
+          count++;
+        }
       }
       return dates;
     },
