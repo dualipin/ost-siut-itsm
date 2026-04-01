@@ -1,4 +1,479 @@
 {extends ../../../templates/@portal.latte}
 
 {block main}
+<div class="container-fluid py-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h1 class="h3 mb-1">
+            <i class="bi bi-file-earmark-text me-2"></i>Solicitar Préstamo
+          </h1>
+          <p class="text-muted mb-0">Complete el formulario para solicitar un nuevo préstamo</p>
+        </div>
+        <a href="/portal/prestamos/activos.php" class="btn btn-outline-secondary">
+          <i class="bi bi-arrow-left me-1"></i>Regresar
+        </a>
+      </div>
+
+      {* Success Message *}
+      {if $success}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+          <i class="bi bi-check-circle me-2"></i>
+          <strong>Solicitud guardada exitosamente</strong>
+          {if $loan_id}
+            {if isset($old_input['save_draft']) && $old_input['save_draft'] == '1'}
+              Su borrador ha sido guardado. Puede completarlo y enviarlo más tarde.
+            {else}
+              Su solicitud de préstamo ha sido enviada para revisión. Folio de seguimiento: <strong>#{$loan_id}</strong>
+            {/if}
+          {/if}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {/if}
+
+      {* Error Messages *}
+      {if count($errors) > 0}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          <strong>Se encontraron los siguientes errores:</strong>
+          <ul class="mb-0 mt-2">
+            {foreach $errors as $error}
+              <li>{$error}</li>
+            {/foreach}
+          </ul>
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {/if}
+
+      {* User Info Card *}
+      <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-md-6">
+              <h6 class="mb-2">Solicitante</h6>
+              <p class="mb-0"><strong>{$user->nombre} {$user->apellido_paterno} {$user->apellido_materno}</strong></p>
+              <p class="text-muted mb-0 small">
+                Rol: <span class="badge bg-primary">{$user->role}</span>
+                {if $is_saver}
+                  <span class="badge bg-success ms-1"><i class="bi bi-piggy-bank me-1"></i>Ahorrador</span>
+                {/if}
+              </p>
+            </div>
+            <div class="col-md-6 text-md-end mt-3 mt-md-0">
+              <div class="text-muted small">
+                <p class="mb-1">
+                  <i class="bi bi-percent me-1"></i>
+                  Tasa de interés aplicable: 
+                  <strong>
+                    {if $user->role == 'agremiado' && $is_saver}
+                      6%
+                    {elseif $user->role == 'agremiado'}
+                      7.5%
+                    {elseif $is_saver}
+                      8%
+                    {else}
+                      9.5%
+                    {/if}
+                  </strong> anual
+                </p>
+                <p class="mb-0 text-info">
+                  <i class="bi bi-info-circle me-1"></i>
+                  {if !$is_saver}
+                    Ahorra para obtener una mejor tasa de interés
+                  {else}
+                    Beneficio por ser ahorrador
+                  {/if}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {* Loan Application Form *}
+      <form method="POST" action="" x-data="loanApplication()" @submit="handleSubmit">
+        <div class="row">
+          {* Left Column - Basic Info *}
+          <div class="col-lg-7">
+            <div class="card shadow-sm mb-4">
+              <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-calculator me-2"></i>Datos del Préstamo</h5>
+              </div>
+              <div class="card-body">
+                {* Requested Amount *}
+                <div class="mb-3">
+                  <label for="requested_amount" class="form-label required">
+                    Monto Solicitado <span class="text-danger">*</span>
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input 
+                      type="number" 
+                      class="form-control" 
+                      id="requested_amount"
+                      name="requested_amount"
+                      x-model="amount"
+                      @input="calculateSimulation"
+                      step="0.01"
+                      min="100"
+                      max="1000000"
+                      required
+                      placeholder="Ej: 10000.00"
+                      value="{$old_input['requested_amount'] ?? ''}"
+                    >
+                    <span class="input-group-text">MXN</span>
+                  </div>
+                  <div class="form-text">Monto entre $100.00 y $1,000,000.00</div>
+                </div>
+
+                {* Term *}
+                <div class="mb-3">
+                  <label for="term" class="form-label required">
+                    Plazo (quincenas) <span class="text-danger">*</span>
+                  </label>
+                  <input 
+                    type="number" 
+                    class="form-control" 
+                    id="term"
+                    name="term"
+                    x-model="term"
+                    @input="calculateSimulation"
+                    min="1"
+                    max="52"
+                    required
+                    placeholder="Ej: 24"
+                    value="{$old_input['term'] ?? ''}"
+                  >
+                  <div class="form-text">
+                    Entre 1 y 52 quincenas. 
+                    <span x-show="term > 0" x-text="'(' + (term / 2).toFixed(1) + ' meses)'"></span>
+                  </div>
+                </div>
+
+                {* Interest Method *}
+                <div class="mb-3">
+                  <label for="interest_method" class="form-label required">
+                    Método de Interés <span class="text-danger">*</span>
+                  </label>
+                  <select 
+                    class="form-select" 
+                    id="interest_method"
+                    name="interest_method"
+                    x-model="interestMethod"
+                    @change="calculateSimulation"
+                    required
+                  >
+                    <option value="">Seleccione...</option>
+                    <option value="metodo_aleman" {if ($old_input['interest_method'] ?? '') == 'metodo_aleman'}selected{/if}>
+                      Método Alemán (Interés Simple)
+                    </option>
+                    <option value="compuesto" {if ($old_input['interest_method'] ?? '') == 'compuesto'}selected{/if}>
+                      Interés Compuesto (Pago único)
+                    </option>
+                  </select>
+                  <div class="form-text">
+                    <strong>Método Alemán:</strong> Pagos quincenales con capital constante<br>
+                    <strong>Compuesto:</strong> Para prestaciones (pago único al final)
+                  </div>
+                </div>
+
+                {* Payment Frequency *}
+                <div class="mb-3">
+                  <label for="payment_frequency" class="form-label">Frecuencia de Pago</label>
+                  <select 
+                    class="form-select" 
+                    id="payment_frequency"
+                    name="payment_frequency"
+                    disabled
+                  >
+                    <option value="quincenal" selected>Quincenal</option>
+                  </select>
+                  <div class="form-text">Los pagos se realizan cada quincena</div>
+                </div>
+
+                {* Payment Day Selection *}
+                <div class="mb-3">
+                  <label for="payment_day" class="form-label required">
+                    Día de Pago <span class="text-danger">*</span>
+                  </label>
+                  <select 
+                    class="form-select" 
+                    id="payment_day"
+                    name="payment_day"
+                    required
+                  >
+                    <option value="15" {if ($old_input['payment_day'] ?? 15) == 15}selected{/if}>Día 15 de cada mes</option>
+                    <option value="ultimo" {if ($old_input['payment_day'] ?? '') == 'ultimo'}selected{/if}>Último día del mes</option>
+                  </select>
+                  <input type="hidden" name="payment_month_day" value="15">
+                </div>
+              </div>
+            </div>
+
+            {* Dates Card *}
+            <div class="card shadow-sm mb-4">
+              <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-calendar3 me-2"></i>Fechas</h5>
+              </div>
+              <div class="card-body">
+                {* Disbursement Date *}
+                <div class="mb-3">
+                  <label for="disbursement_date" class="form-label required">
+                    Fecha de Desembolso <span class="text-danger">*</span>
+                  </label>
+                  <input 
+                    type="date" 
+                    class="form-control" 
+                    id="disbursement_date"
+                    name="disbursement_date"
+                    min="{$today}"
+                    max="{date('Y-12-31')}"
+                    required
+                    value="{$old_input['disbursement_date'] ?? $today}"
+                  >
+                  <div class="form-text">Fecha en que se entregará el préstamo</div>
+                </div>
+
+                {* First Payment Date *}
+                <div class="mb-3">
+                  <label for="first_payment_date" class="form-label required">
+                    Fecha del Primer Pago <span class="text-danger">*</span>
+                  </label>
+                  <input 
+                    type="date" 
+                    class="form-control" 
+                    id="first_payment_date"
+                    name="first_payment_date"
+                    min="{$today}"
+                    max="{date('Y-12-31')}"
+                    required
+                    value="{$old_input['first_payment_date'] ?? $next_month}"
+                  >
+                  <div class="form-text text-warning">
+                    <i class="bi bi-exclamation-triangle me-1"></i>
+                    <strong>Importante:</strong> El préstamo debe liquidarse antes del 31 de diciembre del año en curso
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {* Notes Card *}
+            <div class="card shadow-sm mb-4">
+              <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-chat-left-text me-2"></i>Notas Adicionales</h5>
+              </div>
+              <div class="card-body">
+                <div class="mb-0">
+                  <label for="notes" class="form-label">Comentarios u Observaciones</label>
+                  <textarea 
+                    class="form-control" 
+                    id="notes"
+                    name="notes"
+                    rows="3"
+                    placeholder="Agregue cualquier comentario o información adicional..."
+                  >{$old_input['notes'] ?? ''}</textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {* Right Column - Simulation *}
+          <div class="col-lg-5">
+            <div class="card shadow-sm mb-4 sticky-top" style="top: 20px;">
+              <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Simulación</h5>
+              </div>
+              <div class="card-body" x-show="amount > 0 && term > 0">
+                {* Simulation will be shown here via Alpine.js *}
+                <div class="mb-3">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted">Monto Solicitado:</span>
+                    <strong class="text-primary" x-text="formatCurrency(amount)">$0.00</strong>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted">Plazo:</span>
+                    <strong x-text="term + ' quincenas'">0 quincenas</strong>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted">Tasa de Interés:</span>
+                    <strong x-text="interestRate + '%'">0%</strong>
+                  </div>
+                  <hr>
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted">Pago Quincenal:</span>
+                    <strong class="text-success h5 mb-0" x-text="formatCurrency(paymentAmount)">$0.00</strong>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted">Total a Pagar:</span>
+                    <strong x-text="formatCurrency(totalToPay)">$0.00</strong>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Intereses:</span>
+                    <strong class="text-warning" x-text="formatCurrency(totalInterest)">$0.00</strong>
+                  </div>
+                </div>
+
+                <div class="alert alert-info small mb-0">
+                  <i class="bi bi-info-circle me-1"></i>
+                  Esta es una simulación aproximada. Los valores exactos se calcularán al aprobar el préstamo.
+                </div>
+              </div>
+              <div class="card-body text-center text-muted" x-show="!amount || !term">
+                <i class="bi bi-calculator display-1 opacity-25"></i>
+                <p class="mb-0 mt-2">Complete los datos para ver la simulación</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {* Form Actions *}
+        <div class="row">
+          <div class="col-12">
+            <div class="card shadow-sm">
+              <div class="card-body">
+                <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center">
+                  <div class="form-check">
+                    <input 
+                      class="form-check-input" 
+                      type="checkbox" 
+                      id="terms_accepted"
+                      required
+                    >
+                    <label class="form-check-label" for="terms_accepted">
+                      Acepto los <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">términos y condiciones</a>
+                    </label>
+                  </div>
+                  <div class="d-flex gap-2">
+                    <button 
+                      type="submit" 
+                      name="save_draft" 
+                      value="1"
+                      class="btn btn-outline-secondary"
+                    >
+                      <i class="bi bi-save me-1"></i>Guardar Borrador
+                    </button>
+                    <button 
+                      type="submit" 
+                      name="save_draft" 
+                      value="0"
+                      class="btn btn-primary"
+                    >
+                      <i class="bi bi-send me-1"></i>Enviar Solicitud
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{* Terms Modal *}
+<div class="modal fade" id="termsModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Términos y Condiciones del Préstamo</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <h6>1. Condiciones Generales</h6>
+        <p>El préstamo otorgado por el Sindicato está sujeto a las siguientes condiciones:</p>
+        <ul>
+          <li>El préstamo debe ser liquidado antes del 31 de diciembre del año en curso</li>
+          <li>Los pagos se realizan de forma quincenal mediante descuento de nómina</li>
+          <li>La tasa de interés depende del rol del solicitante y su condición de ahorrador</li>
+        </ul>
+
+        <h6>2. Tasas de Interés Anuales</h6>
+        <ul>
+          <li><strong>Agremiado Ahorrador:</strong> 6%</li>
+          <li><strong>Agremiado No Ahorrador:</strong> 7.5%</li>
+          <li><strong>No Agremiado Ahorrador:</strong> 8%</li>
+          <li><strong>No Agremiado No Ahorrador:</strong> 9.5%</li>
+        </ul>
+
+        <h6>3. Pagos y Picos</h6>
+        <p>
+          Si no se realiza un pago en la fecha establecida (pico), se aplicará un interés moratorio 
+          del 2% anual sobre el saldo pendiente, y se regenerará la tabla de amortización.
+        </p>
+
+        <h6>4. Documentación Requerida</h6>
+        <p>Una vez aprobado el préstamo, deberá presentar:</p>
+        <ul>
+          <li>Pagaré firmado</li>
+          <li>Anuencia de descuento firmada</li>
+        </ul>
+
+        <h6>5. Aceptación</h6>
+        <p>
+          Al enviar esta solicitud, el solicitante acepta todos los términos y condiciones establecidos, 
+          así como las políticas del sindicato respecto a préstamos.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{* Alpine.js Script *}
+<script>
+function loanApplication() {
+  return {
+    amount: 0,
+    term: 0,
+    interestMethod: '',
+    interestRate: {if $user->role == 'agremiado' && $is_saver}6{elseif $user->role == 'agremiado'}7.5{elseif $is_saver}8{else}9.5{/if},
+    paymentAmount: 0,
+    totalToPay: 0,
+    totalInterest: 0,
+    
+    calculateSimulation() {
+      if (this.amount > 0 && this.term > 0 && this.interestMethod === 'metodo_aleman') {
+        // Simple German method calculation
+        const dailyRate = (this.interestRate / 100) / 365;
+        const principal = this.amount / this.term;
+        let balance = this.amount;
+        let totalInterest = 0;
+        
+        // Approximate calculation (15 days per payment)
+        for (let i = 0; i < this.term; i++) {
+          const interest = balance * dailyRate * 15;
+          totalInterest += interest;
+          balance -= principal;
+        }
+        
+        this.totalInterest = totalInterest;
+        this.totalToPay = this.amount + totalInterest;
+        this.paymentAmount = this.totalToPay / this.term;
+      } else if (this.amount > 0 && this.term > 0 && this.interestMethod === 'compuesto') {
+        // Compound interest (single payment)
+        const dailyRate = (this.interestRate / 100) / 365;
+        const days = this.term * 15; // Approximate
+        this.totalToPay = this.amount * Math.pow(1 + dailyRate, days);
+        this.totalInterest = this.totalToPay - this.amount;
+        this.paymentAmount = this.totalToPay; // Single payment
+      }
+    },
+    
+    formatCurrency(value) {
+      return new Intl.NumberFormat('es-MX', {
+        style: 'currency',
+        currency: 'MXN'
+      }).format(value || 0);
+    },
+    
+    handleSubmit(event) {
+      // Form validation happens automatically
+    }
+  }
+}
+</script>
 {/block}
