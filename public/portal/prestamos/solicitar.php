@@ -100,6 +100,11 @@ if ($request->method() === "POST") {
 $today = date('Y-m-d');
 $nextMonth = date('Y-m-d', strtotime('+1 month'));
 
+// Get income types
+$db = $container->get(\PDO::class);
+$incomeTypesStmt = $db->query("SELECT * FROM cat_income_types WHERE active = 1");
+$incomeTypes = $incomeTypesStmt->fetchAll(\PDO::FETCH_OBJ);
+
 $renderer->render("./solicitar.latte", [
     'user' => $currentUser,
     'is_saver' => $isSaver,
@@ -110,4 +115,5 @@ $renderer->render("./solicitar.latte", [
     'today' => $today,
     'next_month' => $nextMonth,
     'old_input' => $request->all(),
+    'income_types' => $incomeTypes,
 ]);

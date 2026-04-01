@@ -117,7 +117,7 @@
                       class="form-control rounded-end-3" 
                       id="requested_amount"
                       name="requested_amount"
-                      x-model="amount"
+                      x-model.number="amount"
                       @input="calculateSimulation"
                       step="0.01"
                       min="100"
@@ -131,132 +131,72 @@
                   <div class="form-text">Monto entre $100.00 y $1,000,000.00</div>
                 </div>
 
-                {* Term *}
+                {* Income Types / Deduction Forms *}
                 <div class="mb-3">
-                  <label for="term" class="form-label required">
-                    Plazo (quincenas) <span class="text-danger">*</span>
-                  </label>
-                  <input 
-                    type="number" 
-                    class="form-control rounded-3" 
-                    id="term"
-                    name="term"
-                    x-model="term"
-                    @input="calculateSimulation"
-                    min="1"
-                    max="52"
-                    required
-                    placeholder="Ej: 24"
-                    value="{$old_input['term'] ?? ''}"
-                  >
-                  <div class="form-text">
-                    Entre 1 y 52 quincenas. 
-                    <span x-show="term > 0" x-text="'(' + (term / 2).toFixed(1) + ' meses)'"></span>
+                  <label class="form-label fw-bold">Formas de Descuento</label>
+                  <div class="form-text mb-3">Distribuya el monto solicitado en una o más formas de pago (El total debe igualar el Monto Solicitado).</div>
+                  
+                  <div class="accordion" id="accordionIncomeTypes">
+                    {foreach $income_types as $index => $type}
+                    <div class="accordion-item mb-2 border rounded-3 overflow-hidden shadow-sm">
+                      <h2 class="accordion-header" id="heading{$type->income_type_id}">
+                        <button class="accordion-button collapsed bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{$type->income_type_id}" aria-expanded="false" aria-controls="collapse{$type->income_type_id}">
+                          <div class="d-flex w-100 justify-content-between align-items-center me-3">
+                            <span class="fw-semibold">{$type->name}</span>
+                            <span class="badge bg-primary rounded-pill badge-amount" x-show="incomeSources[{$type->income_type_id}]?.amount > 0" x-text="formatCurrency(incomeSources[{$type->income_type_id}].amount)"></span>
+                          </div>
+                        </button>
+                      </h2>
+                      <div id="collapse{$type->income_type_id}" class="accordion-collapse collapse" aria-labelledby="heading{$type->income_type_id}" data-bs-parent="#accordionIncomeTypes">
+                        <div class="accordion-body">
+                          <p class="small text-muted">{$type->description}</p>
+                          
+                          <div class="row g-3">
+                            <div class="col-md-6">
+                              <label class="form-label small">Monto a cubrir con {$type->name}</label>
+                              <div class="input-group input-group-sm">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" name="income_amounts[{$type->income_type_id}]" x-model.number="incomeSources[{$type->income_type_id}].amount" @input="calculateSimulation" step="0.01" min="0" placeholder="0.00">
+                              </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                              <label class="form-label small">Comprobante (Estado de cuenta/Recibo)</label>
+                              <input type="file" class="form-control form-control-sm" name="income_documents[{$type->income_type_id}]" accept=".pdf,.jpg,.jpeg,.png">
+                            </div>
+                            
+                            {if $type->is_periodic}
+                            <!-- Para pagos periódicos, seleccionar fecha de último pago -->
+                            <div class="col-12" x-show="incomeSources[{$type->income_type_id}]?.amount > 0">
+                              <label class="form-label small required">Fecha de último pago (estimada)</label>
+                              <select class="form-select form-select-sm" name="income_last_dates[{$type->income_type_id}]" x-model="incomeSources[{$type->income_type_id}].lastDate" @change="calculateSimulation">
+                                <option value="">Seleccione una fecha...</option>
+                                <template x-for="date in generatePaymentDates({$type->frequency_days})" :key="date.value">
+                                  <option :value="date.value" x-text="date.label"></option>
+                                </template>
+                              </select>
+                            </div>
+                            {else}
+                            <div class="col-12" x-show="incomeSources[{$type->income_type_id}]?.amount > 0">
+                                <div class="alert alert-secondary small py-2 mb-0">
+                                  <i class="bi bi-info-circle me-1"></i>
+                                  Pago único estimado para el mes {$type->tentative_payment_month}
+                                </div>
+                            </div>
+                            {/if}
+                          </div>
+                          
+                        </div>
+                      </div>
+                    </div>
+                    {/foreach}
                   </div>
-                </div>
-
-                {* Interest Method *}
-                <div class="mb-3">
-                  <label for="interest_method" class="form-label required">
-                    Método de Interés <span class="text-danger">*</span>
-                  </label>
-                  <select 
-                    class="form-select rounded-3" 
-                    id="interest_method"
-                    name="interest_method"
-                    x-model="interestMethod"
-                    @change="calculateSimulation"
-                    required
-                  >
-                    <option value="">Seleccione...</option>
-                    <option value="metodo_aleman" {if ($old_input['interest_method'] ?? '') == 'metodo_aleman'}selected{/if}>
-                      Método Alemán (Interés Simple)
-                    </option>
-                    <option value="compuesto" {if ($old_input['interest_method'] ?? '') == 'compuesto'}selected{/if}>
-                      Interés Compuesto (Pago único)
-                    </option>
-                  </select>
-                  <div class="form-text">
-                    <strong>Método Alemán:</strong> Pagos quincenales con capital constante<br>
-                    <strong>Compuesto:</strong> Para prestaciones (pago único al final)
-                  </div>
-                </div>
-
-                {* Payment Frequency *}
-                <div class="mb-3">
-                  <label for="payment_frequency" class="form-label">Frecuencia de Pago</label>
-                  <select 
-                    class="form-select rounded-3" 
-                    id="payment_frequency"
-                    name="payment_frequency"
-                    disabled
-                  >
-                    <option value="quincenal" selected>Quincenal</option>
-                  </select>
-                  <div class="form-text">Los pagos se realizan cada quincena</div>
-                </div>
-
-                {* Payment Day Selection *}
-                <div class="mb-3">
-                  <label for="payment_day" class="form-label required">
-                    Día de Pago <span class="text-danger">*</span>
-                  </label>
-                  <select 
-                    class="form-select rounded-3" 
-                    id="payment_day"
-                    name="payment_day"
-                    required
-                  >
-                    <option value="15" {if ($old_input['payment_day'] ?? 15) == 15}selected{/if}>Día 15 de cada mes</option>
-                    <option value="ultimo" {if ($old_input['payment_day'] ?? '') == 'ultimo'}selected{/if}>Último día del mes</option>
-                  </select>
-                  <input type="hidden" name="payment_month_day" value="15">
-                </div>
-              </div>
-            </div>
-
-            {* Dates Card *}
-            <div class="card border-0 shadow-sm rounded-4 mb-4">
-              <div class="card-header bg-gradient bg-secondary text-white border-0 rounded-top-4">
-                <h5 class="mb-0 fw-semibold"><i class="bi bi-calendar3 me-2"></i>Fechas</h5>
-              </div>
-              <div class="card-body p-4">
-                {* Disbursement Date *}
-                <div class="mb-3">
-                  <label for="disbursement_date" class="form-label required">
-                    Fecha de Desembolso <span class="text-danger">*</span>
-                  </label>
-                  <input 
-                    type="date" 
-                    class="form-control rounded-3" 
-                    id="disbursement_date"
-                    name="disbursement_date"
-                    min="{$today}"
-                    max="{date('Y-12-31')}"
-                    required
-                    value="{$old_input['disbursement_date'] ?? $today}"
-                  >
-                  <div class="form-text">Fecha en que se entregará el préstamo</div>
-                </div>
-
-                {* First Payment Date *}
-                <div class="mb-3">
-                  <label for="first_payment_date" class="form-label required">
-                    Fecha del Primer Pago <span class="text-danger">*</span>
-                  </label>
-                  <input 
-                    type="date" 
-                    class="form-control rounded-3" 
-                    id="first_payment_date"
-                    name="first_payment_date"
-                    min="{$today}"
-                    max="{date('Y-12-31')}"
-                    required
-                    value="{$old_input['first_payment_date'] ?? $next_month}"
-                  >
-                  <div class="form-text text-warning">
-                    <i class="bi bi-exclamation-triangle me-1"></i>
-                    <strong>Importante:</strong> El préstamo debe liquidarse antes del 31 de diciembre del año en curso
+                  
+                  <div class="alert mt-3 py-2 px-3 small border-0" :class="remainingAmount === 0 ? 'bg-success-subtle text-success' : (remainingAmount < 0 ? 'bg-danger-subtle text-danger' : 'bg-warning-subtle text-warning')">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <span><strong>Total Distribuido:</strong> <span x-text="formatCurrency(totalDistributed)"></span></span>
+                      <span><strong>Restante:</strong> <span x-text="formatCurrency(Math.abs(remainingAmount))"></span> <span x-show="remainingAmount < 0">(Excedente)</span></span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -288,7 +228,7 @@
               <div class="card-header bg-gradient bg-success text-white border-0 rounded-top-4">
                 <h5 class="mb-0 fw-semibold"><i class="bi bi-graph-up me-2"></i>Simulación</h5>
               </div>
-              <div class="card-body p-4" x-show="amount > 0 && term > 0">
+              <div class="card-body p-4" x-show="amount > 0">
                 {* Simulation will be shown here via Alpine.js *}
                 <div class="mb-3">
                   <div class="d-flex justify-content-between align-items-center mb-2">
@@ -296,8 +236,8 @@
                     <strong class="text-primary" x-text="formatCurrency(amount)">$0.00</strong>
                   </div>
                   <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="text-muted">Plazo:</span>
-                    <strong x-text="term + ' quincenas'">0 quincenas</strong>
+                    <span class="text-muted">Distribuido:</span>
+                    <strong :class="remainingAmount === 0 ? 'text-success' : 'text-warning'" x-text="formatCurrency(totalDistributed)"></strong>
                   </div>
                   <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="text-muted">Tasa de Interés:</span>
@@ -305,11 +245,7 @@
                   </div>
                   <hr>
                   <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="text-muted">Pago Quincenal:</span>
-                    <strong class="text-success h5 mb-0" x-text="formatCurrency(paymentAmount)">$0.00</strong>
-                  </div>
-                  <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="text-muted">Total a Pagar:</span>
+                    <span class="text-muted">Total a Pagar (aprox):</span>
                     <strong x-text="formatCurrency(totalToPay)">$0.00</strong>
                   </div>
                   <div class="d-flex justify-content-between align-items-center">
@@ -320,10 +256,10 @@
 
                 <div class="alert alert-info small mb-0">
                   <i class="bi bi-info-circle me-1"></i>
-                  Esta es una simulación aproximada. Los valores exactos se calcularán al aprobar el préstamo.
+                  Esta es una simulación aproximada. Los valores exactos y fechas finales se calcularán al aprobar el préstamo.
                 </div>
               </div>
-              <div class="card-body text-center text-muted" x-show="!amount || !term">
+              <div class="card-body text-center text-muted" x-show="!amount">
                 <i class="bi bi-calculator display-1 opacity-25"></i>
                 <p class="mb-0 mt-2">Complete los datos para ver la simulación</p>
               </div>
@@ -432,39 +368,84 @@
 function loanApplication() {
   return {
     amount: 0,
-    term: 0,
-    interestMethod: '',
+    incomeSources: {
+      {foreach $income_types as $type}
+      {$type->income_type_id}: { amount: 0, lastDate: '', isPeriodic: {$type->is_periodic ? 'true' : 'false'}, freq: {$type->frequency_days ?? 0}, method: {$type->is_periodic ? "'metodo_aleman'" : "'compuesto'"} },
+      {/foreach}
+    },
     interestRate: {if $user->role == 'agremiado' && $is_saver}6{elseif $user->role == 'agremiado'}7.5{elseif $is_saver}8{else}9.5{/if},
-    paymentAmount: 0,
     totalToPay: 0,
     totalInterest: 0,
     
-    calculateSimulation() {
-      if (this.amount > 0 && this.term > 0 && this.interestMethod === 'metodo_aleman') {
-        // Simple German method calculation
-        const dailyRate = (this.interestRate / 100) / 365;
-        const principal = this.amount / this.term;
-        let balance = this.amount;
-        let totalInterest = 0;
+    get totalDistributed() {
+      return Object.values(this.incomeSources).reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+    },
+    
+    get remainingAmount() {
+      return (Number(this.amount) || 0) - this.totalDistributed;
+    },
+
+    generatePaymentDates(freqDays) {
+      if (!freqDays) return [];
+      const dates = [];
+      let current = new Date();
+      const endYear = current.getFullYear();
+      
+      // limit until end of year
+      let limitDate = new Date(endYear, 11, 31); // Dec 31
+      
+      let count = 0;
+      while (current <= limitDate && count < 52) {
+        current.setDate(current.getDate() + freqDays);
         
-        // Approximate calculation (15 days per payment)
-        for (let i = 0; i < this.term; i++) {
-          const interest = balance * dailyRate * 15;
-          totalInterest += interest;
-          balance -= principal;
+        // Push only dates before dec 31
+        if (current <= limitDate) {
+           dates.push({
+             value: current.toISOString().split('T')[0],
+             label: current.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })
+           });
         }
-        
-        this.totalInterest = totalInterest;
-        this.totalToPay = this.amount + totalInterest;
-        this.paymentAmount = this.totalToPay / this.term;
-      } else if (this.amount > 0 && this.term > 0 && this.interestMethod === 'compuesto') {
-        // Compound interest (single payment)
-        const dailyRate = (this.interestRate / 100) / 365;
-        const days = this.term * 15; // Approximate
-        this.totalToPay = this.amount * Math.pow(1 + dailyRate, days);
-        this.totalInterest = this.totalToPay - this.amount;
-        this.paymentAmount = this.totalToPay; // Single payment
+        count++;
       }
+      return dates;
+    },
+    
+    calculateSimulation() {
+      // Basic compound simulation for parts
+      let totalToPay = 0;
+      let totalInterest = 0;
+      const dailyRate = (this.interestRate / 100) / 365;
+
+      for (const [id, source] of Object.entries(this.incomeSources)) {
+        if (source.amount > 0) {
+          if (source.isPeriodic && source.lastDate) {
+            // estimate term in days
+            const today = new Date();
+            const lastDate = new Date(source.lastDate);
+            const days = Math.max(0, (lastDate - today) / (1000 * 60 * 60 * 24));
+            const periods = source.freq > 0 ? Math.max(1, Math.ceil(days / source.freq)) : 1;
+            
+            const principal = source.amount / periods;
+            let balance = source.amount;
+            let currentInterest = 0;
+            
+            for (let i = 0; i < periods; i++) {
+              currentInterest += balance * dailyRate * source.freq;
+              balance -= principal;
+            }
+            totalInterest += currentInterest;
+            totalToPay += source.amount + currentInterest;
+          } else if (!source.isPeriodic) {
+             // compound
+             const days = Math.max(1, (new Date(new Date().getFullYear(), 11, 15) - new Date()) / (1000 * 60 * 60 * 24));
+             const payForComp = source.amount * Math.pow(1 + dailyRate, days);
+             totalInterest += (payForComp - source.amount);
+             totalToPay += payForComp;
+          }
+        }
+      }
+      this.totalInterest = totalInterest;
+      this.totalToPay = totalToPay;
     },
     
     formatCurrency(value) {
@@ -475,7 +456,11 @@ function loanApplication() {
     },
     
     handleSubmit(event) {
-      // Form validation happens automatically
+      if (this.remainingAmount !== 0) {
+         event.preventDefault();
+         alert('El monto distribuido debe igualar exactamente al monto solicitado.');
+         return;
+      }
     }
   }
 }
