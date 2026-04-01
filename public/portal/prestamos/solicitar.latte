@@ -171,7 +171,7 @@
                               <label class="form-label small required">Fecha de último pago (estimada)</label>
                               <select class="form-select form-select-sm" name="income_last_dates[{$type->income_type_id}]" x-model="incomeSources[{$type->income_type_id}].lastDate" @change="calculateSimulation">
                                 <option value="">Seleccione una fecha...</option>
-                                <template x-for="date in generatePaymentDates({$type->frequency_days})" :key="date.value">
+                                <template x-for="date in generatePaymentDates({$type->frequency_days}, {$type->tentative_payment_month ?? 'null'}, {$type->tentative_payment_day ?? 'null'})" :key="date.value">
                                   <option :value="date.value" x-text="date.label"></option>
                                 </template>
                               </select>
@@ -385,22 +385,29 @@ function loanApplication() {
       return (Number(this.amount) || 0) - this.totalDistributed;
     },
 
-    generatePaymentDates(freqDays) {
+    generatePaymentDates(freqDays, limitMonth, limitDay) {
       if (!freqDays) return [];
       const dates = [];
       let current = new Date();
       const endYear = current.getFullYear();
+      
+      // Default to end of year if limit is not provided
+      let endDate = new Date(endYear, limitMonth ? limitMonth - 1 : 11, limitDay || 31);
+      // In case limits map to an earlier date in current year
+      if (endDate < current) {
+          endDate.setFullYear(endYear + 1);
+      }
       
       if (freqDays === 15) {
         // Para frecuencia quincenal, generamos los días 15 y el último día de cada mes
         let month = current.getMonth();
         let year = current.getFullYear();
         
-        while (year === endYear && month <= 11) {
+        // Loop months until we hit the endDate
+        while (new Date(year, month, 1) <= endDate) {
           // Día 15
           let d15 = new Date(year, month, 15);
-          // Asegurar de no modificar la hora y comparar solo fechas
-          if (d15 > current || (d15.getDate() === current.getDate() && d15.getMonth() === current.getMonth())) {
+          if (d15 > current && d15 <= endDate) {
              dates.push({
                value: d15.toISOString().split('T')[0],
                label: d15.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -409,7 +416,7 @@ function loanApplication() {
           
           // Último día del mes
           let lastDay = new Date(year, month + 1, 0);
-          if (lastDay > current || (lastDay.getDate() === current.getDate() && lastDay.getMonth() === current.getMonth())) {
+          if (lastDay > current && lastDay <= endDate) {
              dates.push({
                value: lastDay.toISOString().split('T')[0],
                label: lastDay.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -417,17 +424,18 @@ function loanApplication() {
           }
           
           month++;
+          if (month > 11) {
+            month = 0;
+            year++;
+          }
         }
       } else {
-        // limit until end of year
-        let limitDate = new Date(endYear, 11, 31); // Dec 31
-        
         let count = 0;
-        while (current <= limitDate && count < 52) {
+        while (current <= endDate && count < 52) {
           current.setDate(current.getDate() + freqDays);
           
-          // Push only dates before dec 31
-          if (current <= limitDate) {
+          // Push only dates before end date
+          if (current <= endDate) {
              dates.push({
                value: current.toISOString().split('T')[0],
                label: current.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })
