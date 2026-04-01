@@ -52,9 +52,9 @@
           <div class="row align-items-center">
             <div class="col-md-6">
               <h6 class="mb-2">Solicitante</h6>
-              <p class="mb-0"><strong>{$user->nombre} {$user->apellido_paterno} {$user->apellido_materno}</strong></p>
+              <p class="mb-0"><strong>{$user->name}</strong></p>
               <p class="text-muted mb-0 small">
-                Rol: <span class="badge bg-primary">{$user->role}</span>
+                Rol: <span class="badge bg-primary">{$user->role->value}</span>
                 {if $is_saver}
                   <span class="badge bg-success ms-1"><i class="bi bi-piggy-bank me-1"></i>Ahorrador</span>
                 {/if}
@@ -66,9 +66,9 @@
                   <i class="bi bi-percent me-1"></i>
                   Tasa de interés aplicable: 
                   <strong>
-                    {if $user->role == 'agremiado' && $is_saver}
+                    {if $user->role->value == 'agremiado' && $is_saver}
                       6%
-                    {elseif $user->role == 'agremiado'}
+                    {elseif $user->role->value == 'agremiado'}
                       7.5%
                     {elseif $is_saver}
                       8%
