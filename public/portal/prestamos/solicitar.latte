@@ -16,54 +16,60 @@
 
       {* Success Message *}
       {if $success}
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-          <i class="bi bi-check-circle me-2"></i>
-          <strong>Solicitud guardada exitosamente</strong>
-          {if $loan_id}
-            {if isset($old_input['save_draft']) && $old_input['save_draft'] == '1'}
-              Su borrador ha sido guardado. Puede completarlo y enviarlo más tarde.
-            {else}
-              Su solicitud de préstamo ha sido enviada para revisión. Folio de seguimiento: <strong>#{$loan_id}</strong>
+        <div class="alert alert-success border-0 shadow-sm rounded-4 d-flex align-items-center gap-3 mb-4" role="alert">
+          <i class="bi bi-check-circle-fill fs-4 text-success"></i>
+          <div>
+            <strong>Solicitud guardada exitosamente</strong>
+            {if $loan_id}
+              <div class="small mt-1">
+                {if isset($old_input['save_draft']) && $old_input['save_draft'] == '1'}
+                  Su borrador ha sido guardado. Puede completarlo y enviarlo más tarde.
+                {else}
+                  Su solicitud de préstamo ha sido enviada para revisión. Folio de seguimiento: <strong>#{$loan_id}</strong>
+                {/if}
+              </div>
             {/if}
-          {/if}
-          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
         </div>
       {/if}
 
       {* Error Messages *}
       {if count($errors) > 0}
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-          <i class="bi bi-exclamation-triangle me-2"></i>
-          <strong>Se encontraron los siguientes errores:</strong>
-          <ul class="mb-0 mt-2">
-            {foreach $errors as $error}
-              <li>{$error}</li>
-            {/foreach}
-          </ul>
-          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <div class="alert alert-danger border-0 shadow-sm rounded-4 d-flex align-items-start gap-3 mb-4" role="alert">
+          <i class="bi bi-exclamation-triangle-fill fs-4 text-danger flex-shrink-0 mt-1"></i>
+          <div>
+            <strong>Se encontraron los siguientes errores:</strong>
+            <ul class="mb-0 mt-2 small">
+              {foreach $errors as $error}
+                <li>{$error}</li>
+              {/foreach}
+            </ul>
+          </div>
         </div>
       {/if}
 
       {* User Info Card *}
-      <div class="card mb-4 shadow-sm">
-        <div class="card-body">
+      <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
           <div class="row align-items-center">
             <div class="col-md-6">
-              <h6 class="mb-2">Solicitante</h6>
+              <h6 class="mb-3 fw-semibold">
+                <i class="bi bi-person-circle me-2 text-primary"></i>Solicitante
+              </h6>
               <p class="mb-0"><strong>{$user->name}</strong></p>
               <p class="text-muted mb-0 small">
-                Rol: <span class="badge bg-primary">{$user->role->value}</span>
+                Rol: <span class="badge bg-primary-subtle text-primary rounded-pill">{$user->role->value}</span>
                 {if $is_saver}
-                  <span class="badge bg-success ms-1"><i class="bi bi-piggy-bank me-1"></i>Ahorrador</span>
+                  <span class="badge bg-success-subtle text-success rounded-pill ms-2"><i class="bi bi-piggy-bank me-1"></i>Ahorrador</span>
                 {/if}
               </p>
             </div>
             <div class="col-md-6 text-md-end mt-3 mt-md-0">
               <div class="text-muted small">
                 <p class="mb-1">
-                  <i class="bi bi-percent me-1"></i>
-                  Tasa de interés aplicable: 
-                  <strong>
+                  <i class="bi bi-percent me-1 text-primary"></i>
+                  Tasa de interés: 
+                  <strong class="text-primary">
                     {if $user->role->value == 'agremiado' && $is_saver}
                       6%
                     {elseif $user->role->value == 'agremiado'}
@@ -76,11 +82,11 @@
                   </strong> anual
                 </p>
                 <p class="mb-0 text-info">
-                  <i class="bi bi-info-circle me-1"></i>
+                  <i class="bi bi-lightbulb me-1"></i>
                   {if !$is_saver}
-                    Ahorra para obtener una mejor tasa de interés
+                    <em>Ahorra para obtener mejor tasa</em>
                   {else}
-                    Beneficio por ser ahorrador
+                    <em>Beneficio por ser ahorrador</em>
                   {/if}
                 </p>
               </div>
@@ -94,21 +100,21 @@
         <div class="row">
           {* Left Column - Basic Info *}
           <div class="col-lg-7">
-            <div class="card shadow-sm mb-4">
-              <div class="card-header bg-primary text-white">
-                <h5 class="mb-0"><i class="bi bi-calculator me-2"></i>Datos del Préstamo</h5>
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+              <div class="card-header bg-gradient bg-primary text-white border-0 rounded-top-4">
+                <h5 class="mb-0 fw-semibold"><i class="bi bi-calculator me-2"></i>Datos del Préstamo</h5>
               </div>
-              <div class="card-body">
+              <div class="card-body p-4">
                 {* Requested Amount *}
                 <div class="mb-3">
                   <label for="requested_amount" class="form-label required">
                     Monto Solicitado <span class="text-danger">*</span>
                   </label>
                   <div class="input-group">
-                    <span class="input-group-text">$</span>
+                    <span class="input-group-text rounded-start-3">$</span>
                     <input 
                       type="number" 
-                      class="form-control" 
+                      class="form-control rounded-end-3" 
                       id="requested_amount"
                       name="requested_amount"
                       x-model="amount"
@@ -120,7 +126,7 @@
                       placeholder="Ej: 10000.00"
                       value="{$old_input['requested_amount'] ?? ''}"
                     >
-                    <span class="input-group-text">MXN</span>
+                    <span class="input-group-text rounded-end-3">MXN</span>
                   </div>
                   <div class="form-text">Monto entre $100.00 y $1,000,000.00</div>
                 </div>
@@ -132,7 +138,7 @@
                   </label>
                   <input 
                     type="number" 
-                    class="form-control" 
+                    class="form-control rounded-3" 
                     id="term"
                     name="term"
                     x-model="term"
@@ -155,7 +161,7 @@
                     Método de Interés <span class="text-danger">*</span>
                   </label>
                   <select 
-                    class="form-select" 
+                    class="form-select rounded-3" 
                     id="interest_method"
                     name="interest_method"
                     x-model="interestMethod"
@@ -180,7 +186,7 @@
                 <div class="mb-3">
                   <label for="payment_frequency" class="form-label">Frecuencia de Pago</label>
                   <select 
-                    class="form-select" 
+                    class="form-select rounded-3" 
                     id="payment_frequency"
                     name="payment_frequency"
                     disabled
@@ -196,7 +202,7 @@
                     Día de Pago <span class="text-danger">*</span>
                   </label>
                   <select 
-                    class="form-select" 
+                    class="form-select rounded-3" 
                     id="payment_day"
                     name="payment_day"
                     required
@@ -210,11 +216,11 @@
             </div>
 
             {* Dates Card *}
-            <div class="card shadow-sm mb-4">
-              <div class="card-header bg-secondary text-white">
-                <h5 class="mb-0"><i class="bi bi-calendar3 me-2"></i>Fechas</h5>
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+              <div class="card-header bg-gradient bg-secondary text-white border-0 rounded-top-4">
+                <h5 class="mb-0 fw-semibold"><i class="bi bi-calendar3 me-2"></i>Fechas</h5>
               </div>
-              <div class="card-body">
+              <div class="card-body p-4">
                 {* Disbursement Date *}
                 <div class="mb-3">
                   <label for="disbursement_date" class="form-label required">
@@ -222,7 +228,7 @@
                   </label>
                   <input 
                     type="date" 
-                    class="form-control" 
+                    class="form-control rounded-3" 
                     id="disbursement_date"
                     name="disbursement_date"
                     min="{$today}"
@@ -240,7 +246,7 @@
                   </label>
                   <input 
                     type="date" 
-                    class="form-control" 
+                    class="form-control rounded-3" 
                     id="first_payment_date"
                     name="first_payment_date"
                     min="{$today}"
@@ -257,15 +263,15 @@
             </div>
 
             {* Notes Card *}
-            <div class="card shadow-sm mb-4">
-              <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-chat-left-text me-2"></i>Notas Adicionales</h5>
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+              <div class="card-header bg-light border-0 rounded-top-4">
+                <h5 class="mb-0 fw-semibold"><i class="bi bi-chat-left-text me-2 text-primary"></i>Notas Adicionales</h5>
               </div>
-              <div class="card-body">
+              <div class="card-body p-4">
                 <div class="mb-0">
                   <label for="notes" class="form-label">Comentarios u Observaciones</label>
                   <textarea 
-                    class="form-control" 
+                    class="form-control rounded-3" 
                     id="notes"
                     name="notes"
                     rows="3"
@@ -278,11 +284,11 @@
 
           {* Right Column - Simulation *}
           <div class="col-lg-5">
-            <div class="card shadow-sm mb-4 sticky-top" style="top: 20px;">
-              <div class="card-header bg-success text-white">
-                <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Simulación</h5>
+            <div class="card border-0 shadow-sm rounded-4 mb-4 sticky-top" style="top: 65px;">
+              <div class="card-header bg-gradient bg-success text-white border-0 rounded-top-4">
+                <h5 class="mb-0 fw-semibold"><i class="bi bi-graph-up me-2"></i>Simulación</h5>
               </div>
-              <div class="card-body" x-show="amount > 0 && term > 0">
+              <div class="card-body p-4" x-show="amount > 0 && term > 0">
                 {* Simulation will be shown here via Alpine.js *}
                 <div class="mb-3">
                   <div class="d-flex justify-content-between align-items-center mb-2">
@@ -328,8 +334,8 @@
         {* Form Actions *}
         <div class="row">
           <div class="col-12">
-            <div class="card shadow-sm">
-              <div class="card-body">
+            <div class="card border-0 shadow-sm rounded-4">
+              <div class="card-body p-4">
                 <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center">
                   <div class="form-check">
                     <input 
@@ -347,7 +353,7 @@
                       type="submit" 
                       name="save_draft" 
                       value="1"
-                      class="btn btn-outline-secondary"
+                      class="btn btn-outline-secondary rounded-pill px-4"
                     >
                       <i class="bi bi-save me-1"></i>Guardar Borrador
                     </button>
@@ -355,7 +361,7 @@
                       type="submit" 
                       name="save_draft" 
                       value="0"
-                      class="btn btn-primary"
+                      class="btn btn-primary rounded-pill px-5 shadow-sm"
                     >
                       <i class="bi bi-send me-1"></i>Enviar Solicitud
                     </button>
