@@ -96,7 +96,7 @@
       </div>
 
       {* Loan Application Form *}
-      <form method="POST" action="" x-data="loanApplication()" @submit="handleSubmit">
+      <form method="POST" action="" enctype="multipart/form-data" x-data="loanApplication()" @submit="handleSubmit">
         <div class="row">
           {* Left Column - Basic Info *}
           <div class="col-lg-7">
