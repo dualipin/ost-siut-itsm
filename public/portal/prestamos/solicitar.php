@@ -115,11 +115,8 @@ if ($request->method() === "POST") {
             $simulation = $result['amortization_schedule'];
             $success = true;
 
-            // Redirect to loan details or show success message
-            if (!$saveDraft) {
-                header("Location: /portal/prestamos/detalle.php?id={$loanId}&success=1");
-                exit;
-            }
+            // Mostrar el mensaje de éxito directamente en la vista
+
         }
     } catch (InvalidLoanStatusException $e) {
         $errors[] = $e->getMessage();
