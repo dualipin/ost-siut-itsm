@@ -4,7 +4,8 @@
 <div class="container-fluid py-4">
   <div class="row">
     <div class="col-12">
-      {include '../../../templates/components/header-page.latte', title: 'Solicitar Préstamo', description: 'Complete el formulario para solicitar un nuevo préstamo', icon: 'bi-file-earmark-text'}
+      {include '../../../templates/components/header-page.latte', title: 'Solicitar Préstamo', description: 'Complete el
+      formulario para solicitar un nuevo préstamo', icon: 'bi-file-earmark-text'}
 
       <div class="row mb-4">
         <div class="col-12">
@@ -16,36 +17,36 @@
 
       {* Success Message *}
       {if $success}
-        <div class="alert alert-success border-0 shadow-sm rounded-4 d-flex align-items-center gap-3 mb-4" role="alert">
-          <i class="bi bi-check-circle-fill fs-4 text-success"></i>
-          <div>
-            <strong>Solicitud guardada exitosamente</strong>
-            {if $loan_id}
-              <div class="small mt-1">
-                {if isset($old_input['save_draft']) && $old_input['save_draft'] == '1'}
-                  Su borrador ha sido guardado. Puede completarlo y enviarlo más tarde.
-                {else}
-                  Su solicitud de préstamo ha sido enviada para revisión. Folio de seguimiento: <strong>#{$loan_id}</strong>
-                {/if}
-              </div>
+      <div class="alert alert-success border-0 shadow-sm rounded-4 d-flex align-items-center gap-3 mb-4" role="alert">
+        <i class="bi bi-check-circle-fill fs-4 text-success"></i>
+        <div>
+          <strong>Solicitud guardada exitosamente</strong>
+          {if $loan_id}
+          <div class="small mt-1">
+            {if isset($old_input['save_draft']) && $old_input['save_draft'] == '1'}
+            Su borrador ha sido guardado. Puede completarlo y enviarlo más tarde.
+            {else}
+            Su solicitud de préstamo ha sido enviada para revisión. Folio de seguimiento: <strong>#{$loan_id}</strong>
             {/if}
           </div>
+          {/if}
         </div>
+      </div>
       {/if}
 
       {* Error Messages *}
       {if count($errors) > 0}
-        <div class="alert alert-danger border-0 shadow-sm rounded-4 d-flex align-items-start gap-3 mb-4" role="alert">
-          <i class="bi bi-exclamation-triangle-fill fs-4 text-danger flex-shrink-0 mt-1"></i>
-          <div>
-            <strong>Se encontraron los siguientes errores:</strong>
-            <ul class="mb-0 mt-2 small">
-              {foreach $errors as $error}
-                <li>{$error}</li>
-              {/foreach}
-            </ul>
-          </div>
+      <div class="alert alert-danger border-0 shadow-sm rounded-4 d-flex align-items-start gap-3 mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill fs-4 text-danger flex-shrink-0 mt-1"></i>
+        <div>
+          <strong>Se encontraron los siguientes errores:</strong>
+          <ul class="mb-0 mt-2 small">
+            {foreach $errors as $error}
+            <li>{$error}</li>
+            {/foreach}
+          </ul>
         </div>
+      </div>
       {/if}
 
       {* User Info Card *}
@@ -60,7 +61,8 @@
               <p class="text-muted mb-0 small">
                 Rol: <span class="badge bg-primary-subtle text-primary rounded-pill">{$user->role->value}</span>
                 {if $is_saver}
-                  <span class="badge bg-success-subtle text-success rounded-pill ms-2"><i class="bi bi-piggy-bank me-1"></i>Ahorrador</span>
+                <span class="badge bg-success-subtle text-success rounded-pill ms-2"><i
+                    class="bi bi-piggy-bank me-1"></i>Ahorrador</span>
                 {/if}
               </p>
             </div>
@@ -68,25 +70,25 @@
               <div class="text-muted small">
                 <p class="mb-1">
                   <i class="bi bi-percent me-1 text-primary"></i>
-                  Tasa de interés: 
+                  Tasa de interés:
                   <strong class="text-primary">
                     {if $user->role->value == 'agremiado' && $is_saver}
-                      6%
+                    6%
                     {elseif $user->role->value == 'agremiado'}
-                      7.5%
+                    7.5%
                     {elseif $is_saver}
-                      8%
+                    8%
                     {else}
-                      9.5%
+                    9.5%
                     {/if}
                   </strong> anual
                 </p>
                 <p class="mb-0 text-info">
                   <i class="bi bi-lightbulb me-1"></i>
                   {if !$is_saver}
-                    <em>Ahorra para obtener mejor tasa</em>
+                  <em>Ahorra para obtener mejor tasa</em>
                   {else}
-                    <em>Beneficio por ser ahorrador</em>
+                  <em>Beneficio por ser ahorrador</em>
                   {/if}
                 </p>
               </div>
@@ -112,20 +114,9 @@
                   </label>
                   <div class="input-group">
                     <span class="input-group-text rounded-start-3">$</span>
-                    <input 
-                      type="number" 
-                      class="form-control rounded-end-3" 
-                      id="requested_amount"
-                      name="requested_amount"
-                      x-model.number="amount"
-                      @input="calculateSimulation"
-                      step="0.01"
-                      min="100"
-                      max="1000000"
-                      required
-                      placeholder="Ej: 10000.00"
-                      value="{$old_input['requested_amount'] ?? ''}"
-                    >
+                    <input type="number" class="form-control rounded-end-3" id="requested_amount"
+                      name="requested_amount" x-model.number="amount" @input="calculateSimulation" step="0.01" min="100"
+                      max="1000000" required placeholder="Ej: 10000.00" value="{$old_input['requested_amount'] ?? ''}">
                     <span class="input-group-text rounded-end-3">MXN</span>
                   </div>
                   <div class="form-text">Monto entre $100.00 y $1,000,000.00</div>
@@ -134,68 +125,84 @@
                 {* Income Types / Deduction Forms *}
                 <div class="mb-3">
                   <label class="form-label fw-bold">Formas de Descuento</label>
-                  <div class="form-text mb-3">Distribuya el monto solicitado en una o más formas de pago (El total debe igualar el Monto Solicitado).</div>
-                  
+                  <div class="form-text mb-3">Distribuya el monto solicitado en una o más formas de pago (El total debe
+                    igualar el Monto Solicitado).</div>
+
                   <div class="accordion" id="accordionIncomeTypes">
                     {foreach $income_types as $index => $type}
                     <div class="accordion-item mb-2 border rounded-3 overflow-hidden shadow-sm">
                       <h2 class="accordion-header" id="heading{$type->income_type_id}">
-                        <button class="accordion-button collapsed bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{$type->income_type_id}" aria-expanded="false" aria-controls="collapse{$type->income_type_id}">
+                        <button class="accordion-button collapsed bg-light" type="button" data-bs-toggle="collapse"
+                          data-bs-target="#collapse{$type->income_type_id}" aria-expanded="false"
+                          aria-controls="collapse{$type->income_type_id}">
                           <div class="d-flex w-100 justify-content-between align-items-center me-3">
                             <span class="fw-semibold">{$type->name}</span>
-                            <span class="badge bg-primary rounded-pill badge-amount" x-show="incomeSources[{$type->income_type_id}]?.amount > 0" x-text="formatCurrency(incomeSources[{$type->income_type_id}].amount)"></span>
+                            <span class="badge bg-primary rounded-pill badge-amount"
+                              x-show="incomeSources[{$type->income_type_id}]?.amount > 0"
+                              x-text="formatCurrency(incomeSources[{$type->income_type_id}].amount)"></span>
                           </div>
                         </button>
                       </h2>
-                      <div id="collapse{$type->income_type_id}" class="accordion-collapse collapse" aria-labelledby="heading{$type->income_type_id}" data-bs-parent="#accordionIncomeTypes">
+                      <div id="collapse{$type->income_type_id}" class="accordion-collapse collapse"
+                        aria-labelledby="heading{$type->income_type_id}" data-bs-parent="#accordionIncomeTypes">
                         <div class="accordion-body">
                           <p class="small text-muted">{$type->description}</p>
-                          
+
                           <div class="row g-3">
                             <div class="col-md-6">
                               <label class="form-label small">Monto a cubrir con {$type->name}</label>
                               <div class="input-group input-group-sm">
                                 <span class="input-group-text">$</span>
-                                <input type="number" class="form-control" name="income_amounts[{$type->income_type_id}]" x-model.number="incomeSources[{$type->income_type_id}].amount" @input="calculateSimulation" step="0.01" min="0" placeholder="0.00">
+                                <input type="number" class="form-control" name="income_amounts[{$type->income_type_id}]"
+                                  x-model.number="incomeSources[{$type->income_type_id}].amount"
+                                  @input="calculateSimulation" step="0.01" min="0" placeholder="0.00">
                               </div>
                             </div>
-                            
+
                             <div class="col-md-6">
                               <label class="form-label small">Comprobante (Estado de cuenta/Recibo)</label>
-                              <input type="file" class="form-control form-control-sm" name="income_documents[{$type->income_type_id}]" accept=".pdf,.jpg,.jpeg,.png">
+                              <input type="file" class="form-control form-control-sm"
+                                name="income_documents[{$type->income_type_id}]" accept=".pdf,.jpg,.jpeg,.png">
                             </div>
-                            
+
                             {if $type->is_periodic}
                             <!-- Para pagos periódicos, seleccionar fecha de último pago -->
                             <div class="col-12" x-show="incomeSources[{$type->income_type_id}]?.amount > 0">
                               <label class="form-label small required">Fecha de último pago (estimada)</label>
-                              <select class="form-select form-select-sm" name="income_last_dates[{$type->income_type_id}]" x-model="incomeSources[{$type->income_type_id}].lastDate" @change="calculateSimulation">
+                              <select class="form-select form-select-sm"
+                                name="income_last_dates[{$type->income_type_id}]"
+                                x-model="incomeSources[{$type->income_type_id}].lastDate" @change="calculateSimulation">
                                 <option value="">Seleccione una fecha...</option>
-                                <template x-for="date in generatePaymentDates({$type->frequency_days}, {$type->tentative_payment_month ?? 'null'}, {$type->tentative_payment_day ?? 'null'})" :key="date.value">
+                                <template
+                                  x-for="date in generatePaymentDates({$type->frequency_days}, {$type->tentative_payment_month ?? 'null'}, {$type->tentative_payment_day ?? 'null'})"
+                                  :key="date.value">
                                   <option :value="date.value" x-text="date.label"></option>
                                 </template>
                               </select>
                             </div>
                             {else}
                             <div class="col-12" x-show="incomeSources[{$type->income_type_id}]?.amount > 0">
-                                <div class="alert alert-secondary small py-2 mb-0">
-                                  <i class="bi bi-info-circle me-1"></i>
-                                  Pago único estimado para el mes {$type->tentative_payment_month}
-                                </div>
+                              <div class="alert alert-secondary small py-2 mb-0">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Pago único estimado para el mes {$type->tentative_payment_month}
+                              </div>
                             </div>
                             {/if}
                           </div>
-                          
+
                         </div>
                       </div>
                     </div>
                     {/foreach}
                   </div>
-                  
-                  <div class="alert mt-3 py-2 px-3 small border-0" :class="remainingAmount === 0 ? 'bg-success-subtle text-success' : (remainingAmount < 0 ? 'bg-danger-subtle text-danger' : 'bg-warning-subtle text-warning')">
+
+                  <div class="alert mt-3 py-2 px-3 small border-0"
+                    :class="remainingAmount === 0 ? 'bg-success-subtle text-success' : (remainingAmount < 0 ? 'bg-danger-subtle text-danger' : 'bg-warning-subtle text-warning')">
                     <div class="d-flex justify-content-between align-items-center">
-                      <span><strong>Total Distribuido:</strong> <span x-text="formatCurrency(totalDistributed)"></span></span>
-                      <span><strong>Restante:</strong> <span x-text="formatCurrency(Math.abs(remainingAmount))"></span> <span x-show="remainingAmount < 0">(Excedente)</span></span>
+                      <span><strong>Total Distribuido:</strong> <span
+                          x-text="formatCurrency(totalDistributed)"></span></span>
+                      <span><strong>Restante:</strong> <span x-text="formatCurrency(Math.abs(remainingAmount))"></span>
+                        <span x-show="remainingAmount < 0">(Excedente)</span></span>
                     </div>
                   </div>
                 </div>
@@ -205,18 +212,14 @@
             {* Notes Card *}
             <div class="card border-0 shadow-sm rounded-4 mb-4">
               <div class="card-header bg-light border-0 rounded-top-4">
-                <h5 class="mb-0 fw-semibold"><i class="bi bi-chat-left-text me-2 text-primary"></i>Notas Adicionales</h5>
+                <h5 class="mb-0 fw-semibold"><i class="bi bi-chat-left-text me-2 text-primary"></i>Notas Adicionales
+                </h5>
               </div>
               <div class="card-body p-4">
                 <div class="mb-0">
                   <label for="notes" class="form-label">Comentarios u Observaciones</label>
-                  <textarea 
-                    class="form-control rounded-3" 
-                    id="notes"
-                    name="notes"
-                    rows="3"
-                    placeholder="Agregue cualquier comentario o información adicional..."
-                  >{$old_input['notes'] ?? ''}</textarea>
+                  <textarea class="form-control rounded-3" id="notes" name="notes" rows="3"
+                    placeholder="Agregue cualquier comentario o información adicional...">{$old_input['notes'] ?? ''}</textarea>
                 </div>
               </div>
             </div>
@@ -237,7 +240,8 @@
                   </div>
                   <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="text-muted">Distribuido:</span>
-                    <strong :class="remainingAmount === 0 ? 'text-success' : 'text-warning'" x-text="formatCurrency(totalDistributed)"></strong>
+                    <strong :class="remainingAmount === 0 ? 'text-success' : 'text-warning'"
+                      x-text="formatCurrency(totalDistributed)"></strong>
                   </div>
                   <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="text-muted">Tasa de Interés:</span>
@@ -256,7 +260,8 @@
 
                 <div class="alert alert-info small mb-0">
                   <i class="bi bi-info-circle me-1"></i>
-                  Esta es una simulación aproximada. Los valores exactos y fechas finales se calcularán al aprobar el préstamo.
+                  Esta es una simulación aproximada. Los valores exactos y fechas finales se calcularán al aprobar el
+                  préstamo.
                 </div>
               </div>
               <div class="card-body text-center text-muted" x-show="!amount">
@@ -274,31 +279,19 @@
               <div class="card-body p-4">
                 <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center">
                   <div class="form-check">
-                    <input 
-                      class="form-check-input" 
-                      type="checkbox" 
-                      id="terms_accepted"
-                      required
-                    >
+                    <input class="form-check-input" type="checkbox" id="terms_accepted" required>
                     <label class="form-check-label" for="terms_accepted">
-                      Acepto los <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">términos y condiciones</a>
+                      Acepto los <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">términos y
+                        condiciones</a>
                     </label>
                   </div>
                   <div class="d-flex gap-2">
-                    <button 
-                      type="submit" 
-                      name="save_draft" 
-                      value="1"
-                      class="btn btn-outline-secondary rounded-pill px-4"
-                    >
+                    <button type="submit" name="save_draft" value="1"
+                      class="btn btn-outline-secondary rounded-pill px-4">
                       <i class="bi bi-save me-1"></i>Guardar Borrador
                     </button>
-                    <button 
-                      type="submit" 
-                      name="save_draft" 
-                      value="0"
-                      class="btn btn-primary rounded-pill px-5 shadow-sm"
-                    >
+                    <button type="submit" name="save_draft" value="0"
+                      class="btn btn-primary rounded-pill px-5 shadow-sm">
                       <i class="bi bi-send me-1"></i>Enviar Solicitud
                     </button>
                   </div>
@@ -312,60 +305,9 @@
   </div>
 </div>
 
-{* Terms Modal *}
-<div class="modal fade" id="termsModal" tabindex="-1">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Términos y Condiciones del Préstamo</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <h6>1. Condiciones Generales</h6>
-        <p>El préstamo otorgado por el Sindicato está sujeto a las siguientes condiciones:</p>
-        <ul>
-          <li>El préstamo debe ser liquidado antes del 31 de diciembre del año en curso</li>
-          <li>Los pagos se realizan de forma quincenal mediante descuento de nómina</li>
-          <li>La tasa de interés depende del rol del solicitante y su condición de ahorrador</li>
-        </ul>
-
-        <h6>2. Tasas de Interés Anuales</h6>
-        <ul>
-          <li><strong>Agremiado Ahorrador:</strong> 6%</li>
-          <li><strong>Agremiado No Ahorrador:</strong> 7.5%</li>
-          <li><strong>No Agremiado Ahorrador:</strong> 8%</li>
-          <li><strong>No Agremiado No Ahorrador:</strong> 9.5%</li>
-        </ul>
-
-        <h6>3. Pagos y Picos</h6>
-        <p>
-          Si no se realiza un pago en la fecha establecida (pico), se aplicará un interés moratorio 
-          del 2% anual sobre el saldo pendiente, y se regenerará la tabla de amortización.
-        </p>
-
-        <h6>4. Documentación Requerida</h6>
-        <p>Una vez aprobado el préstamo, deberá presentar:</p>
-        <ul>
-          <li>Pagaré firmado</li>
-          <li>Anuencia de descuento firmada</li>
-        </ul>
-
-        <h6>5. Aceptación</h6>
-        <p>
-          Al enviar esta solicitud, el solicitante acepta todos los términos y condiciones establecidos, 
-          así como las políticas del sindicato respecto a préstamos.
-        </p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 {* Alpine.js Script *}
 <script>
-function loanApplication() {
+  function loanApplication() {
   return {
     amount: 0,
     incomeSources: {
@@ -502,4 +444,62 @@ function loanApplication() {
   }
 }
 </script>
+{/block}
+
+
+
+
+{block modals}
+
+
+{* Terms Modal *}
+<div class="modal fade" id="termsModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Términos y Condiciones del Préstamo</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <h6>1. Condiciones Generales</h6>
+        <p>El préstamo otorgado por el Sindicato está sujeto a las siguientes condiciones:</p>
+        <ul>
+          <li>El préstamo debe ser liquidado antes del 31 de diciembre del año en curso</li>
+          <li>Los pagos se realizan de forma quincenal mediante descuento de nómina</li>
+          <li>La tasa de interés depende del rol del solicitante y su condición de ahorrador</li>
+        </ul>
+
+        <h6>2. Tasas de Interés Anuales</h6>
+        <ul>
+          <li><strong>Agremiado Ahorrador:</strong> 6%</li>
+          <li><strong>Agremiado No Ahorrador:</strong> 7.5%</li>
+          <li><strong>No Agremiado Ahorrador:</strong> 8%</li>
+          <li><strong>No Agremiado No Ahorrador:</strong> 9.5%</li>
+        </ul>
+
+        <h6>3. Pagos y Picos</h6>
+        <p>
+          Si no se realiza un pago en la fecha establecida (pico), se aplicará un interés moratorio
+          del 2% anual sobre el saldo pendiente, y se regenerará la tabla de amortización.
+        </p>
+
+        <h6>4. Documentación Requerida</h6>
+        <p>Una vez aprobado el préstamo, deberá presentar:</p>
+        <ul>
+          <li>Pagaré firmado</li>
+          <li>Anuencia de descuento firmada</li>
+        </ul>
+
+        <h6>5. Aceptación</h6>
+        <p>
+          Al enviar esta solicitud, el solicitante acepta todos los términos y condiciones establecidos,
+          así como las políticas del sindicato respecto a préstamos.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
 {/block}
