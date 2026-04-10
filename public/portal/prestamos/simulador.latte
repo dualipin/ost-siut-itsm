@@ -1,6 +1,7 @@
 {extends ../../../templates/@portal.latte}
 
 {varType App\Module\Prestamo\Entity\CategoriaTipoIngreso[] $categoriasTipoIngreso}
+{varType string $prestamistaNombre}
 
 {block main}
   {include
@@ -13,12 +14,52 @@
   <div x-data="simuladorData()">
     <form class="needs-validation" method="POST">
 
+      <div class="row mb-3">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Nombre del Prestamista / Solicitante</label>
+          <input type="text" name="prestamista_nombre" class="form-control" value="{$prestamistaNombre}" readonly>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Monto del Préstamo</label>
+          <div class="input-group">
+            <span class="input-group-text">$</span>
+            <input type="number" name="monto_prestamo" x-model.number="montoPrestamo" class="form-control" min="1" step="0.01" required>
+          </div>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Fecha de Otorgamiento</label>
+          <input type="date" name="fecha_otorgamiento" x-model="fechaOtorgamiento" class="form-control" required>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Meses a Pagar</label>
+          <input type="number" name="meses_pagar" class="form-control" min="1" required placeholder="Ej. 11">
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Días Adicionales</label>
+          <input type="number" name="dias_adicionales" class="form-control" min="0" value="0" placeholder="Ej. 5">
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Perfil (Tasa de Interés)</label>
+          <select class="form-select" @change="onPerfilChange($event.target.value)">
+            <option value="" disabled selected>Selecciona un perfil...</option>
+            <option value="6.0">Agremiado y ahorrador (6%)</option>
+            <option value="7.5">Agremiado y no ahorrador (7.5%)</option>
+            <option value="8.0">No agremiado y ahorrador (Externo) (8%)</option>
+            <option value="9.5">No agremiado y no ahorrador (Externo) (9.5%)</option>
+          </select>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Tasa Mensual (%)</label>
+          <input type="number" name="tasa_interes" x-model="tasaInteresMensual" class="form-control" step="0.1" required>
+        </div>
+      </div>
+
       <!-- Total solicitado (grande) -->
       <div class="text-center mb-4 position-sticky bg-body py-3"
            style="z-index: 10; border-bottom: 1px solid #dee2e6; top: 2.6em">
-        <div class="fw-bold text-primary" x-text="formatCurrency(totalSolicitado)"
+        <div class="fw-bold text-primary" x-text="formatCurrency(montoPrestamo)"
              style="font-size: clamp(1.5rem, 6vw, 3rem);"></div>
-        <div class="small text-muted">Total solicitado</div>
+        <div class="small text-muted">Monto del Préstamo</div>
         <div class="mt-2">
           <small class="text-muted d-block">Fecha actual</small>
           <span class="badge bg-secondary" x-text="localize(currentDate)"></span>
@@ -182,7 +223,18 @@
       })
 
       return {
-        monto: 0,
+        montoPrestamo: 0,
+        tasaInteresMensual: 0,
+        fechaOtorgamiento: (function () {
+          const d = new Date()
+          const y = d.getFullYear()
+          const m = String(d.getMonth() + 1).padStart(2, '0')
+          const day = String(d.getDate()).padStart(2, '0')
+          return y + '-' + m + '-' + day
+        })(),
+        onPerfilChange(val) {
+            this.tasaInteresMensual = parseFloat(val);
+        },
         /**
          * @type { TipoPrestamo[] }
          */
