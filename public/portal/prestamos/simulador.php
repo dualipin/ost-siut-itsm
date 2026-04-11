@@ -100,6 +100,8 @@ if ($form->method() == "POST") {
     $resumenAnual = [];
     $formasPago = [];
     $prestacionesNoPeriodicas = [];
+    $corridaPrestaciones = [];
+    $acumuladoPrestaciones = [];
 
     foreach ($descuentos as $desc) {
         $tipoId = (int)($desc['tipoId'] ?? 0);
@@ -137,6 +139,30 @@ if ($form->method() == "POST") {
                 'cantidad' => $cantidad,
                 'diaTentativo' => $diaPago,
             ];
+
+            $fechaPrimerPeriodo = $fechaBase->setDate(
+                (int)$fechaBase->format('Y'),
+                (int)$fechaBase->format('m'),
+                $diaPago
+            );
+
+            if ($fechaPrimerPeriodo <= $fechaBase) {
+                $fechaPrimerPeriodo = $fechaPrimerPeriodo->modify("+{$frecuenciaDias} days");
+            }
+
+            for ($periodo = 1; $periodo <= $cantidad; $periodo++) {
+                $fechaPeriodo = $fechaPrimerPeriodo->modify('+' . (($periodo - 1) * $frecuenciaDias) . ' days');
+                $acumuladoPrestaciones[$nombre] = ($acumuladoPrestaciones[$nombre] ?? 0.0) + $monto;
+
+                $corridaPrestaciones[] = [
+                    'prestacion' => $nombre,
+                    'tipo' => 'periodico',
+                    'periodo' => $periodo . '/' . $cantidad,
+                    'fecha' => $fechaPeriodo->format('Y-m-d'),
+                    'monto' => $monto,
+                    'acumulado' => $acumuladoPrestaciones[$nombre],
+                ];
+            }
             continue;
         }
 
@@ -163,7 +189,22 @@ if ($form->method() == "POST") {
             'monto' => $monto,
             'fechaPago' => $fechaPrestacion->format('Y-m-d'),
         ];
+
+        $acumuladoPrestaciones[$nombre] = ($acumuladoPrestaciones[$nombre] ?? 0.0) + $monto;
+        $corridaPrestaciones[] = [
+            'prestacion' => $nombre,
+            'tipo' => 'no_periodico',
+            'periodo' => '1/1',
+            'fecha' => $fechaPrestacion->format('Y-m-d'),
+            'monto' => $monto,
+            'acumulado' => $acumuladoPrestaciones[$nombre],
+        ];
     }
+
+    usort(
+        $corridaPrestaciones,
+        static fn (array $a, array $b): int => strcmp((string)$a['fecha'], (string)$b['fecha'])
+    );
 
     if ($plazoDias <= 0) {
         $plazoDias = ($mesesPagar * 30) + $diasAdicionales;
@@ -264,6 +305,7 @@ if ($form->method() == "POST") {
             'fechaOtorgamiento' => $fechaOtorgamiento,
             'formasPago' => $formasPago,
             'resumenAnual' => $resumenAnual,
+            'corridaPrestaciones' => $corridaPrestaciones,
             'corrida' => $corrida,
             'resumen' => $resumen,
             'fecha_simulacion' => (new DateTimeImmutable())->format('d/m/Y H:i'),
@@ -292,6 +334,7 @@ if ($form->method() == "POST") {
         "corrida" => $corrida,
         "resumenAnual" => $resumenAnual,
         "formasPago" => $formasPago,
+        "corridaPrestaciones" => $corridaPrestaciones,
     ]);
 } else {
     $renderer->render("./simulador.latte", [

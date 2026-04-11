@@ -72,6 +72,34 @@
   </table>
   {/if}
 
+  {if count($corridaPrestaciones) > 0}
+  <h4 style="margin: 0 0 8px 0; font-size: 12px;">Corrida financiera de prestaciones</h4>
+  <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 9px;">
+    <thead>
+    <tr>
+      <th style="border: 1px solid #ced4da; padding: 6px; text-align: left;">Prestación</th>
+      <th style="border: 1px solid #ced4da; padding: 6px; text-align: left;">Tipo</th>
+      <th style="border: 1px solid #ced4da; padding: 6px; text-align: center;">Periodo</th>
+      <th style="border: 1px solid #ced4da; padding: 6px; text-align: center;">Fecha</th>
+      <th style="border: 1px solid #ced4da; padding: 6px; text-align: right;">Monto</th>
+      <th style="border: 1px solid #ced4da; padding: 6px; text-align: right;">Acumulado</th>
+    </tr>
+    </thead>
+    <tbody>
+    {foreach $corridaPrestaciones as $row}
+      <tr>
+        <td style="border: 1px solid #ced4da; padding: 6px;">{$row['prestacion']}</td>
+        <td style="border: 1px solid #ced4da; padding: 6px;">{if $row['tipo'] === 'periodico'}Periódico{else}No periódico{/if}</td>
+        <td style="border: 1px solid #ced4da; padding: 6px; text-align: center;">{$row['periodo']}</td>
+        <td style="border: 1px solid #ced4da; padding: 6px; text-align: center;">{$row['fecha']}</td>
+        <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($row['monto'], 2)}</td>
+        <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($row['acumulado'], 2)}</td>
+      </tr>
+    {/foreach}
+    </tbody>
+  </table>
+  {/if}
+
   <h4 style="margin: 0 0 8px 0; font-size: 12px;">Tabla de corrida financiera quincenal</h4>
   <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 9px;">
     <thead>
