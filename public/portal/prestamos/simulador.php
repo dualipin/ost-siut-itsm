@@ -131,6 +131,94 @@ if ($form->method() == "POST") {
         return $opciones;
     };
 
+    $buildGermanSimpleSchedule = static function (DateTimeImmutable $fechaBase, array $prestacion, float $tasaMensual): array {
+        $monto = max(0.0, (float)($prestacion['monto'] ?? 0));
+        $cantidad = max(1, (int)($prestacion['cantidad'] ?? 1));
+        $frecuenciaDias = max(1, (int)($prestacion['frecuenciaDias'] ?? 15));
+        $fechas = is_array($prestacion['fechas'] ?? null) ? $prestacion['fechas'] : [];
+
+        if ($monto <= 0) {
+            return [];
+        }
+
+        $tasaPeriodoSimple = ($tasaMensual / 100) * ($frecuenciaDias / 30);
+        $capitalFijo = $monto / $cantidad;
+        $saldo = $monto;
+        $rows = [];
+
+        for ($i = 1; $i <= $cantidad; $i++) {
+            $fecha = $fechas[$i - 1] ?? null;
+            if (!is_string($fecha) || trim($fecha) === '') {
+                $fecha = $fechaBase->modify('+' . ($frecuenciaDias * $i) . ' days')->format('Y-m-d');
+            }
+
+            $interes = $saldo * $tasaPeriodoSimple;
+            $capital = min($capitalFijo, $saldo);
+            $pago = $capital + $interes;
+            $saldo -= $capital;
+            if ($saldo < 0) {
+                $saldo = 0;
+            }
+
+            $rows[] = [
+                'periodo' => $i,
+                'capital' => $capital,
+                'interes' => $interes,
+                'pago' => $pago,
+                'saldo' => $saldo,
+                'fecha' => $fecha,
+            ];
+        }
+
+        return $rows;
+    };
+
+    $buildCompoundSchedule = static function (DateTimeImmutable $fechaBase, array $prestacion, float $tasaMensual): array {
+        $monto = max(0.0, (float)($prestacion['monto'] ?? 0));
+        $fechaObjetivo = DateTimeImmutable::createFromFormat('Y-m-d', (string)($prestacion['fecha'] ?? '')) ?: $fechaBase;
+
+        if ($monto <= 0) {
+            return [];
+        }
+
+        $dias = max(0, (int)$fechaBase->diff($fechaObjetivo)->days);
+        $numQuincenas = max(1, (int)ceil($dias / 15));
+        $tasaQuincenalCompuesta = pow(1 + ($tasaMensual / 100), 0.5) - 1;
+
+        $saldo = $monto;
+        $rows = [];
+
+        for ($i = 1; $i <= $numQuincenas; $i++) {
+            $interes = $saldo * $tasaQuincenalCompuesta;
+            $saldoCapitalizado = $saldo + $interes;
+
+            $capital = 0.0;
+            $pago = 0.0;
+            if ($i === $numQuincenas) {
+                $capital = $saldoCapitalizado;
+                $pago = $capital;
+                $saldo = 0.0;
+            } else {
+                $saldo = $saldoCapitalizado;
+            }
+
+            $fechaPago = $i === $numQuincenas
+                ? $fechaObjetivo->format('Y-m-d')
+                : $fechaBase->modify('+' . ($i * 15) . ' days')->format('Y-m-d');
+
+            $rows[] = [
+                'periodo' => $i,
+                'capital' => $capital,
+                'interes' => $interes,
+                'pago' => $pago,
+                'saldo' => $saldo,
+                'fecha' => $fechaPago,
+            ];
+        }
+
+        return $rows;
+    };
+
     $res = $form->input("descuentos_json");
     $descuentos = json_decode($res, true) ?? [];
 
@@ -150,6 +238,7 @@ if ($form->method() == "POST") {
     $prestacionesNoPeriodicas = [];
     $corridaPrestaciones = [];
     $acumuladoPrestaciones = [];
+    $prestacionesParaCorrida = [];
 
     foreach ($descuentos as $desc) {
         $tipoId = (int)($desc['tipoId'] ?? 0);
@@ -199,6 +288,15 @@ if ($form->method() == "POST") {
                 'diaTentativo' => (int)$fechaUltimoPeriodo->format('d'),
             ];
 
+            $prestacionesParaCorrida[] = [
+                'nombre' => $nombre,
+                'tipo' => 'periodico',
+                'monto' => $monto,
+                'frecuenciaDias' => $frecuenciaDias,
+                'cantidad' => $cantidad,
+                'fechas' => $opcionesSeleccionadas,
+            ];
+
             $acumuladoPrestaciones[$nombre] = ($acumuladoPrestaciones[$nombre] ?? 0.0) + $monto;
 
             $corridaPrestaciones[] = [
@@ -234,6 +332,13 @@ if ($form->method() == "POST") {
             'nombre' => $nombre,
             'monto' => $monto,
             'fechaPago' => $fechaPrestacion->format('Y-m-d'),
+        ];
+
+        $prestacionesParaCorrida[] = [
+            'nombre' => $nombre,
+            'tipo' => 'no_periodico',
+            'monto' => $monto,
+            'fecha' => $fechaPrestacion->format('Y-m-d'),
         ];
 
         $acumuladoPrestaciones[$nombre] = ($acumuladoPrestaciones[$nombre] ?? 0.0) + $monto;
@@ -335,11 +440,45 @@ if ($form->method() == "POST") {
         }
     }
 
+    $corridasPorTipo = [];
+    $interesTotalGlobal = 0.0;
+    $pagoTotalGlobal = 0.0;
+
+    foreach ($prestacionesParaCorrida as $prestacion) {
+        $esPeriodico = (string)($prestacion['tipo'] ?? '') === 'periodico';
+        $corridaTipo = $esPeriodico
+            ? $buildGermanSimpleSchedule($fechaBase, $prestacion, $tasaInteresMensual)
+            : $buildCompoundSchedule($fechaBase, $prestacion, $tasaInteresMensual);
+
+        if ($corridaTipo === []) {
+            continue;
+        }
+
+        $interesTotal = array_reduce($corridaTipo, static fn (float $sum, array $row): float => $sum + (float) $row['interes'], 0.0);
+        $pagoTotal = array_reduce($corridaTipo, static fn (float $sum, array $row): float => $sum + (float) $row['pago'], 0.0);
+
+        $interesTotalGlobal += $interesTotal;
+        $pagoTotalGlobal += $pagoTotal;
+
+        $corridasPorTipo[] = [
+            'prestacion' => (string)($prestacion['nombre'] ?? 'Prestación'),
+            'tipo' => (string)($prestacion['tipo'] ?? 'no_periodico'),
+            'metodo' => $esPeriodico ? 'Interés simple - Método Alemán' : 'Interés compuesto',
+            'montoBase' => (float)($prestacion['monto'] ?? 0.0),
+            'corrida' => $corridaTipo,
+            'resumen' => [
+                'interesTotal' => $interesTotal,
+                'pagoTotal' => $pagoTotal,
+                'saldoFinal' => (float)$corridaTipo[count($corridaTipo) - 1]['saldo'],
+            ],
+        ];
+    }
+
     if ($salidaPdf) {
         $resumen = [
             'montoTotal' => $montoPrestamo,
-            'interesTotal' => array_reduce($corrida, static fn (float $sum, array $row): float => $sum + (float) $row['interes'], 0.0),
-            'pagoTotal' => array_reduce($corrida, static fn (float $sum, array $row): float => $sum + (float) $row['pago'], 0.0),
+            'interesTotal' => $interesTotalGlobal,
+            'pagoTotal' => $pagoTotalGlobal,
         ];
 
         $html = $renderer->renderToString('./pdf-simulados.latte', [
@@ -352,7 +491,7 @@ if ($form->method() == "POST") {
             'formasPago' => $formasPago,
             'resumenAnual' => $resumenAnual,
             'corridaPrestaciones' => $corridaPrestaciones,
-            'corrida' => $corrida,
+            'corridasPorTipo' => $corridasPorTipo,
             'resumen' => $resumen,
             'fecha_simulacion' => (new DateTimeImmutable())->format('d/m/Y H:i'),
         ]);

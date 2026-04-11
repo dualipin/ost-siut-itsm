@@ -133,6 +133,94 @@ $buildPeriodicOptions = static function (DateTimeImmutable $inicio, array $cat):
     return $opciones;
 };
 
+$buildGermanSimpleSchedule = static function (DateTimeImmutable $fechaBase, array $prestacion, float $tasaMensual): array {
+    $monto = max(0.0, (float)($prestacion['monto'] ?? 0));
+    $cantidad = max(1, (int)($prestacion['cantidad'] ?? 1));
+    $frecuenciaDias = max(1, (int)($prestacion['frecuenciaDias'] ?? 15));
+    $fechas = is_array($prestacion['fechas'] ?? null) ? $prestacion['fechas'] : [];
+
+    if ($monto <= 0) {
+        return [];
+    }
+
+    $tasaPeriodoSimple = ($tasaMensual / 100) * ($frecuenciaDias / 30);
+    $capitalFijo = $monto / $cantidad;
+    $saldo = $monto;
+    $rows = [];
+
+    for ($i = 1; $i <= $cantidad; $i++) {
+        $fecha = $fechas[$i - 1] ?? null;
+        if (!is_string($fecha) || trim($fecha) === '') {
+            $fecha = $fechaBase->modify('+' . ($frecuenciaDias * $i) . ' days')->format('Y-m-d');
+        }
+
+        $interes = $saldo * $tasaPeriodoSimple;
+        $capital = min($capitalFijo, $saldo);
+        $pago = $capital + $interes;
+        $saldo -= $capital;
+        if ($saldo < 0) {
+            $saldo = 0;
+        }
+
+        $rows[] = [
+            'periodo' => $i,
+            'capital' => $capital,
+            'interes' => $interes,
+            'pago' => $pago,
+            'saldo' => $saldo,
+            'fecha' => $fecha,
+        ];
+    }
+
+    return $rows;
+};
+
+$buildCompoundSchedule = static function (DateTimeImmutable $fechaBase, array $prestacion, float $tasaMensual): array {
+    $monto = max(0.0, (float)($prestacion['monto'] ?? 0));
+    $fechaObjetivo = DateTimeImmutable::createFromFormat('Y-m-d', (string)($prestacion['fecha'] ?? '')) ?: $fechaBase;
+
+    if ($monto <= 0) {
+        return [];
+    }
+
+    $dias = max(0, (int)$fechaBase->diff($fechaObjetivo)->days);
+    $numQuincenas = max(1, (int)ceil($dias / 15));
+    $tasaQuincenalCompuesta = pow(1 + ($tasaMensual / 100), 0.5) - 1;
+
+    $saldo = $monto;
+    $rows = [];
+
+    for ($i = 1; $i <= $numQuincenas; $i++) {
+        $interes = $saldo * $tasaQuincenalCompuesta;
+        $saldoCapitalizado = $saldo + $interes;
+
+        $capital = 0.0;
+        $pago = 0.0;
+        if ($i === $numQuincenas) {
+            $capital = $saldoCapitalizado;
+            $pago = $capital;
+            $saldo = 0.0;
+        } else {
+            $saldo = $saldoCapitalizado;
+        }
+
+        $fechaPago = $i === $numQuincenas
+            ? $fechaObjetivo->format('Y-m-d')
+            : $fechaBase->modify('+' . ($i * 15) . ' days')->format('Y-m-d');
+
+        $rows[] = [
+            'periodo' => $i,
+            'capital' => $capital,
+            'interes' => $interes,
+            'pago' => $pago,
+            'saldo' => $saldo,
+            'fecha' => $fechaPago,
+        ];
+    }
+
+    return $rows;
+};
+
 $montoPrestamo = max(0.0, (float)($_POST['monto_prestamo'] ?? $_GET['monto_prestamo'] ?? 0));
 if ($montoPrestamo <= 0) {
     $montoPrestamo = array_reduce(
@@ -156,6 +244,7 @@ $formasPago = [];
 $prestacionesNoPeriodicas = [];
 $corridaPrestaciones = [];
 $acumuladoPrestaciones = [];
+$prestacionesParaCorrida = [];
 
 foreach ($descuentos as $desc) {
     $tipoId = (int)($desc['tipoId'] ?? 0);
@@ -205,6 +294,15 @@ foreach ($descuentos as $desc) {
             'diaTentativo' => (int)$fechaUltimoPeriodo->format('d'),
         ];
 
+        $prestacionesParaCorrida[] = [
+            'nombre' => $nombre,
+            'tipo' => 'periodico',
+            'monto' => $monto,
+            'frecuenciaDias' => $frecuenciaDias,
+            'cantidad' => $cantidad,
+            'fechas' => $opcionesSeleccionadas,
+        ];
+
         $acumuladoPrestaciones[$nombre] = ($acumuladoPrestaciones[$nombre] ?? 0.0) + $monto;
 
         $corridaPrestaciones[] = [
@@ -242,6 +340,13 @@ foreach ($descuentos as $desc) {
         'fechaPago' => $fechaPrestacion->format('Y-m-d'),
     ];
 
+    $prestacionesParaCorrida[] = [
+        'nombre' => $nombre,
+        'tipo' => 'no_periodico',
+        'monto' => $monto,
+        'fecha' => $fechaPrestacion->format('Y-m-d'),
+    ];
+
     $acumuladoPrestaciones[$nombre] = ($acumuladoPrestaciones[$nombre] ?? 0.0) + $monto;
     $corridaPrestaciones[] = [
         'prestacion' => $nombre,
@@ -264,81 +369,41 @@ if ($plazoDias <= 0) {
 
 $mesesPagar = intdiv($plazoDias, 30);
 $diasAdicionales = $plazoDias % 30;
+$corridasPorTipo = [];
+$interesTotalGlobal = 0.0;
+$pagoTotalGlobal = 0.0;
 
-$tasaQuincenal = ($tasaInteresMensual / 100) / 2;
-$tasaDiaria = ($tasaInteresMensual / 100) / 30;
+foreach ($prestacionesParaCorrida as $prestacion) {
+    $esPeriodico = (string)($prestacion['tipo'] ?? '') === 'periodico';
+    $corrida = $esPeriodico
+        ? $buildGermanSimpleSchedule($fechaBase, $prestacion, $tasaInteresMensual)
+        : $buildCompoundSchedule($fechaBase, $prestacion, $tasaInteresMensual);
 
-$numQuincenas = max(1, ($mesesPagar * 2) + (int)ceil($diasAdicionales / 15));
-$capitalFijo = $numQuincenas > 0 ? $montoPrestamo / $numQuincenas : 0;
-$saldo = $montoPrestamo;
-
-$corrida = [];
-$fechaActual = DateTime::createFromFormat('Y-m-d', $fechaOtorgamiento) ?: new DateTime();
-$fechaActual->modify("+{$diasAdicionales} days");
-
-$pagoExtraordinarioPorFecha = [];
-foreach ($prestacionesNoPeriodicas as $prestacion) {
-    $fechaKey = $prestacion['fecha']->format('Y-m-d');
-    if (!isset($pagoExtraordinarioPorFecha[$fechaKey])) {
-        $pagoExtraordinarioPorFecha[$fechaKey] = 0.0;
-    }
-    $pagoExtraordinarioPorFecha[$fechaKey] += (float)$prestacion['monto'];
-}
-
-for ($i = 1; $i <= $numQuincenas; $i++) {
-    $day = (int)$fechaActual->format('d');
-    if ($day <= 15) {
-        $fechaActual->setDate((int)$fechaActual->format('Y'), (int)$fechaActual->format('m'), 15);
-    } else {
-        $fechaActual->modify('last day of this month');
+    if ($corrida === []) {
+        continue;
     }
 
-    $fechaPagoStr = $fechaActual->format('Y-m-d');
-    $interesQuincenal = $saldo * $tasaQuincenal;
+    $interesTotal = array_reduce($corrida, static fn(float $sum, array $row): float => $sum + (float)$row['interes'], 0.0);
+    $pagoTotal = array_reduce($corrida, static fn(float $sum, array $row): float => $sum + (float)$row['pago'], 0.0);
 
-    if ($i === 1 && $diasAdicionales > 0) {
-        $interesQuincenal += ($montoPrestamo * $tasaDiaria * $diasAdicionales);
-    }
+    $interesTotalGlobal += $interesTotal;
+    $pagoTotalGlobal += $pagoTotal;
 
-    $pagoExtraordinario = 0.0;
-    if (isset($pagoExtraordinarioPorFecha[$fechaPagoStr])) {
-        $pagoExtraordinario = (float)$pagoExtraordinarioPorFecha[$fechaPagoStr];
-        unset($pagoExtraordinarioPorFecha[$fechaPagoStr]);
-    }
-
-    $capitalAbono = $capitalFijo + $pagoExtraordinario;
-    if ($capitalAbono > $saldo) {
-        $capitalAbono = $saldo;
-    }
-
-    $pagoTotal = $capitalAbono + $interesQuincenal;
-    $saldo -= $capitalAbono;
-    if ($saldo < 0) {
-        $saldo = 0;
-    }
-
-    $corrida[] = [
-        'quincena' => $i,
-        'capital' => $capitalAbono,
-        'interes' => $interesQuincenal,
-        'pago' => $pagoTotal,
-        'saldo' => $saldo,
-        'fecha' => $fechaPagoStr,
+    $corridasPorTipo[] = [
+        'prestacion' => (string)($prestacion['nombre'] ?? 'Prestación'),
+        'tipo' => (string)($prestacion['tipo'] ?? 'no_periodico'),
+        'metodo' => $esPeriodico ? 'Interés simple - Método Alemán' : 'Interés compuesto',
+        'montoBase' => (float)($prestacion['monto'] ?? 0.0),
+        'corrida' => $corrida,
+        'resumen' => [
+            'interesTotal' => $interesTotal,
+            'pagoTotal' => $pagoTotal,
+            'saldoFinal' => (float)$corrida[count($corrida) - 1]['saldo'],
+        ],
     ];
-
-    if ($saldo <= 0) {
-        break;
-    }
-
-    if ((int)$fechaActual->format('d') === 15) {
-        $fechaActual->modify('last day of this month');
-    } else {
-        $fechaActual->modify('first day of next month');
-        $fechaActual->modify('+14 days');
-    }
 }
 
-if (empty($corrida)) {
+if ($corridasPorTipo === []) {
     header('HTTP/1.1 400 Bad Request');
     echo 'No hay simulaciones para generar el PDF.';
     exit;
@@ -346,8 +411,8 @@ if (empty($corrida)) {
 
 $resumen = [
     'montoTotal' => $montoPrestamo,
-    'interesTotal' => array_reduce($corrida, static fn(float $sum, array $row): float => $sum + (float)$row['interes'], 0.0),
-    'pagoTotal' => array_reduce($corrida, static fn(float $sum, array $row): float => $sum + (float)$row['pago'], 0.0),
+    'interesTotal' => $interesTotalGlobal,
+    'pagoTotal' => $pagoTotalGlobal,
 ];
 
 // Renderizar HTML usando la plantilla .latte
@@ -361,7 +426,7 @@ $html = $latte->renderToString('./pdf-simulados.latte', [
     'formasPago' => $formasPago,
     'resumenAnual' => $resumenAnual,
     'corridaPrestaciones' => $corridaPrestaciones,
-    'corrida' => $corrida,
+    'corridasPorTipo' => $corridasPorTipo,
     'resumen' => $resumen,
     "fecha_simulacion" => (new \DateTimeImmutable())->format('d/m/Y H:i'),
 ]);
