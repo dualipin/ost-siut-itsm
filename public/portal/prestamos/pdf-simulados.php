@@ -85,6 +85,54 @@ $resolvePagoDate = static function (DateTimeImmutable $baseDate, int $month, int
     return $date;
 };
 
+$buildPeriodicOptions = static function (DateTimeImmutable $inicio, array $cat): array {
+    if (empty($cat['esPeriodico'])) {
+        return [];
+    }
+
+    $frecuencia = max(1, (int)($cat['frecuenciaDias'] ?? 30));
+    $diaPago = max(1, (int)($cat['diasPagoTentativo'] ?? 15));
+    $fechaMaxima = new DateTimeImmutable(date('Y') . '-11-15');
+
+    if ($inicio > $fechaMaxima) {
+        return [];
+    }
+
+    $opciones = [];
+    $cursor = $inicio->setDate((int)$inicio->format('Y'), (int)$inicio->format('m'), 1);
+    $guard = 0;
+
+    while ($cursor <= $fechaMaxima && $guard < 36) {
+        $year = (int)$cursor->format('Y');
+        $month = (int)$cursor->format('m');
+        $totalDiasMes = (int)$cursor->format('t');
+
+        $fraccionMensual = $frecuencia / $totalDiasMes;
+        $vecesEnMes = $fraccionMensual > 0 ? max(1, (int)round(1 / $fraccionMensual)) : 1;
+        $diaBase = min(max(1, $diaPago), $totalDiasMes);
+        $saltoDias = max(1, (int)round($totalDiasMes / $vecesEnMes));
+
+        for ($i = 0; $i < $vecesEnMes; $i++) {
+            $diaCandidato = $diaBase + ($i * $saltoDias);
+            if ($diaCandidato > $totalDiasMes) {
+                break;
+            }
+
+            $fechaPago = $cursor->setDate($year, $month, $diaCandidato);
+            if ($fechaPago < $inicio || $fechaPago > $fechaMaxima) {
+                continue;
+            }
+
+            $opciones[] = $fechaPago->format('Y-m-d');
+        }
+
+        $cursor = $cursor->modify('first day of next month');
+        $guard++;
+    }
+
+    return $opciones;
+};
+
 $montoPrestamo = max(0.0, (float)($_POST['monto_prestamo'] ?? $_GET['monto_prestamo'] ?? 0));
 if ($montoPrestamo <= 0) {
     $montoPrestamo = array_reduce(
@@ -106,6 +154,8 @@ $plazoDias = ($mesesPagar * 30) + $diasAdicionales;
 $resumenAnual = [];
 $formasPago = [];
 $prestacionesNoPeriodicas = [];
+$corridaPrestaciones = [];
+$acumuladoPrestaciones = [];
 
 foreach ($descuentos as $desc) {
     $tipoId = (int)($desc['tipoId'] ?? 0);
@@ -123,16 +173,28 @@ foreach ($descuentos as $desc) {
 
     if (!empty($cat['esPeriodico'])) {
         $frecuenciaDias = max(1, (int)($cat['frecuenciaDias'] ?? 15));
-        $cantidad = max(1, (int)($desc['cantidad'] ?? 1));
-        
-        // Calcular el plazo considerando:
-        // 1. Días hasta el primer pago (desde otorgamiento hasta primera fecha de pago)
-        // 2. Períodos completos restantes
-        $diaPago = max(1, (int)($cat['diasPagoTentativo'] ?? 15));
-        $diasAlPrimerpago = min($diaPago, $frecuenciaDias) - 1;
-        
-        $totalDias = $diasAlPrimerpago + (($cantidad - 1) * $frecuenciaDias);
-        $plazoDias = max($plazoDias, $totalDias);
+        $cantidadSolicitada = max(1, (int)($desc['cantidad'] ?? 1));
+        $opcionesFechas = $buildPeriodicOptions($fechaBase, $cat);
+        if ($opcionesFechas === []) {
+            continue;
+        }
+
+        $fechaSeleccionada = !empty($desc['fechaPago']) && is_string($desc['fechaPago'])
+            ? (string)$desc['fechaPago']
+            : $opcionesFechas[0];
+
+        $indiceSeleccionado = array_search($fechaSeleccionada, $opcionesFechas, true);
+        if ($indiceSeleccionado === false) {
+            $indiceSeleccionado = min($cantidadSolicitada - 1, count($opcionesFechas) - 1);
+        }
+
+        $cantidad = $indiceSeleccionado + 1;
+        $opcionesSeleccionadas = array_slice($opcionesFechas, 0, $cantidad);
+        $fechaUltimaStr = $opcionesSeleccionadas[count($opcionesSeleccionadas) - 1];
+        $fechaUltimoPeriodo = DateTimeImmutable::createFromFormat('Y-m-d', $fechaUltimaStr) ?: $fechaBase;
+
+        $diasHastaPrestacion = max(0, (int)$fechaBase->diff($fechaUltimoPeriodo)->days);
+        $plazoDias = max($plazoDias, $diasHastaPrestacion);
 
         $formasPago[] = [
             'tipo' => 'periodico',
@@ -140,8 +202,22 @@ foreach ($descuentos as $desc) {
             'monto' => $monto,
             'frecuenciaDias' => $frecuenciaDias,
             'cantidad' => $cantidad,
-            'diaTentativo' => $diaPago,
+            'diaTentativo' => (int)$fechaUltimoPeriodo->format('d'),
         ];
+
+        foreach ($opcionesSeleccionadas as $indexPeriodo => $fechaPeriodoStr) {
+            $periodo = $indexPeriodo + 1;
+            $acumuladoPrestaciones[$nombre] = ($acumuladoPrestaciones[$nombre] ?? 0.0) + $monto;
+
+            $corridaPrestaciones[] = [
+                'prestacion' => $nombre,
+                'tipo' => 'periodico',
+                'periodo' => $periodo . '/' . $cantidad,
+                'fecha' => $fechaPeriodoStr,
+                'monto' => $monto,
+                'acumulado' => $acumuladoPrestaciones[$nombre],
+            ];
+        }
         continue;
     }
 
@@ -168,7 +244,22 @@ foreach ($descuentos as $desc) {
         'monto' => $monto,
         'fechaPago' => $fechaPrestacion->format('Y-m-d'),
     ];
+
+    $acumuladoPrestaciones[$nombre] = ($acumuladoPrestaciones[$nombre] ?? 0.0) + $monto;
+    $corridaPrestaciones[] = [
+        'prestacion' => $nombre,
+        'tipo' => 'no_periodico',
+        'periodo' => '1/1',
+        'fecha' => $fechaPrestacion->format('Y-m-d'),
+        'monto' => $monto,
+        'acumulado' => $acumuladoPrestaciones[$nombre],
+    ];
 }
+
+usort(
+    $corridaPrestaciones,
+    static fn (array $a, array $b): int => strcmp((string)$a['fecha'], (string)$b['fecha'])
+);
 
 if ($plazoDias <= 0) {
     $plazoDias = ($mesesPagar * 30) + $diasAdicionales;
@@ -272,6 +363,7 @@ $html = $latte->renderToString('./pdf-simulados.latte', [
     'fechaOtorgamiento' => $fechaOtorgamiento,
     'formasPago' => $formasPago,
     'resumenAnual' => $resumenAnual,
+    'corridaPrestaciones' => $corridaPrestaciones,
     'corrida' => $corrida,
     'resumen' => $resumen,
     "fecha_simulacion" => (new \DateTimeImmutable())->format('d/m/Y H:i'),
