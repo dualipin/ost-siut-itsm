@@ -22,7 +22,7 @@
         </div>
         <div class="col-md-3">
           <p class="text-muted mb-1">Plazo</p>
-          <p class="fw-bold">{$mesesPagar} Meses</p>
+          <p class="fw-bold">{$mesesPagar} Meses {ifset $diasAdicionales}+ {$diasAdicionales} días{/ifset}</p>
         </div>
         <div class="col-md-3">
           <p class="text-muted mb-1">Tasa Mensual</p>
@@ -31,6 +31,48 @@
       </div>
     </div>
   </div>
+
+  {if isset($formasPago) && count($formasPago) > 0}
+  <div class="card mb-4 border-primary">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0">Formas de descuento aplicadas al préstamo</h5>
+    </div>
+    <div class="card-body p-0 table-responsive">
+      <table class="table table-sm table-striped mb-0">
+        <thead>
+          <tr>
+            <th>Prestación</th>
+            <th>Tipo</th>
+            <th>Detalle</th>
+            <th class="text-end">Monto</th>
+          </tr>
+        </thead>
+        <tbody>
+          {foreach $formasPago as $forma}
+          <tr>
+            <td>{$forma['nombre']}</td>
+            <td>
+              {if $forma['tipo'] === 'periodico'}
+                Periódico
+              {else}
+                No periódico
+              {/if}
+            </td>
+            <td>
+              {if $forma['tipo'] === 'periodico'}
+                Cada {$forma['frecuenciaDias']} días, {$forma['cantidad']} periodos{if !empty($forma['diaTentativo'])}, día tentativo {$forma['diaTentativo']}{/if}
+              {else}
+                Pago tentativo: {$forma['fechaPago']}
+              {/if}
+            </td>
+            <td class="text-end">${number_format($forma['monto'], 2)}</td>
+          </tr>
+          {/foreach}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {/if}
 
   {if count($resumenAnual) > 0}
   <div class="card mb-4 border-info">

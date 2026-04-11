@@ -14,6 +14,14 @@ $userContext = $container->get(UserContextInterface::class);
 
 $user = $userContext->get();
 $prestamistaNombre = $user ? $user->name : "Usuario Anónimo";
+$rolUsuario = 'agremiado';
+if ($user && isset($user->role)) {
+    $rolRaw = is_object($user->role) && isset($user->role->value)
+        ? (string)$user->role->value
+        : (string)$user->role;
+    $rolUsuario = strtolower($rolRaw);
+}
+$isNoAgremiado = $rolUsuario === 'no_agremiado';
 
 $form = new FormRequest();
 
@@ -42,55 +50,136 @@ foreach ($categoriasTipoIngreso as &$cat) {
 unset($cat);
 
 if ($form->method() == "POST") {
+    $findCategoriaById = static function (array $categorias, int $tipoId): ?array {
+        foreach ($categorias as $categoria) {
+            if ((int)($categoria['id'] ?? 0) === $tipoId) {
+                return $categoria;
+            }
+        }
+
+        return null;
+    };
+
+    $resolvePagoDate = static function (DateTimeImmutable $baseDate, int $month, int $day): DateTimeImmutable {
+        $year = (int)$baseDate->format('Y');
+        $month = min(12, max(1, $month));
+        $day = min(31, max(1, $day));
+
+        $date = DateTimeImmutable::createFromFormat('Y-n-j', sprintf('%d-%d-%d', $year, $month, $day));
+        if (!$date) {
+            $date = $baseDate;
+        }
+
+        if ($date <= $baseDate) {
+            $nextYear = $year + 1;
+            $next = DateTimeImmutable::createFromFormat('Y-n-j', sprintf('%d-%d-%d', $nextYear, $month, $day));
+            if ($next) {
+                $date = $next;
+            }
+        }
+
+        return $date;
+    };
+
     $res = $form->input("descuentos_json");
     $descuentos = json_decode($res, true) ?? [];
-    
+
     // Additional parameters from the user
     $prestamistaNombre = $form->input("prestamista_nombre", $prestamistaNombre); // Keep as fallback
-    $montoPrestamo = (float) $form->input("monto_prestamo", 0);
+    $montoPrestamo = max(0.0, (float) $form->input("monto_prestamo", 0));
     $fechaOtorgamiento = $form->input("fecha_otorgamiento", date('Y-m-d'));
-    $mesesPagar = (int) $form->input("meses_pagar", 0);
-    $diasAdicionales = (int) $form->input("dias_adicionales", 0);
+    $mesesPagar = max(0, (int) $form->input("meses_pagar", 0));
+    $diasAdicionales = max(0, (int) $form->input("dias_adicionales", 0));
     $tasaInteresMensual = (float) $form->input("tasa_interes", 0);
-    
+
+    $fechaBase = DateTimeImmutable::createFromFormat('Y-m-d', $fechaOtorgamiento) ?: new DateTimeImmutable();
+
+    $plazoDias = ($mesesPagar * 30) + $diasAdicionales;
+    $resumenAnual = [];
+    $formasPago = [];
+    $prestacionesNoPeriodicas = [];
+
+    foreach ($descuentos as $desc) {
+        $tipoId = (int)($desc['tipoId'] ?? 0);
+        $monto = (float)($desc['monto'] ?? 0);
+        if ($tipoId <= 0 || $monto <= 0) {
+            continue;
+        }
+
+        $cat = $findCategoriaById($categoriasTipoIngreso, $tipoId);
+        if ($cat === null) {
+            continue;
+        }
+
+        $nombre = (string)($cat['nombre'] ?? 'Prestación');
+
+        if (!empty($cat['esPeriodico'])) {
+            $frecuenciaDias = max(1, (int)($cat['frecuenciaDias'] ?? 15));
+            $cantidad = max(1, (int)($desc['cantidad'] ?? 1));
+            $diasProgramados = $frecuenciaDias * $cantidad;
+            $plazoDias = max($plazoDias, $diasProgramados);
+
+            $formasPago[] = [
+                'tipo' => 'periodico',
+                'nombre' => $nombre,
+                'monto' => $monto,
+                'frecuenciaDias' => $frecuenciaDias,
+                'cantidad' => $cantidad,
+                'diaTentativo' => (int)($cat['diasPagoTentativo'] ?? 0),
+            ];
+            continue;
+        }
+
+        $mesTentativo = max(1, (int)($cat['mesPagoTentativo'] ?? 12));
+        $diaTentativo = max(1, (int)($cat['diasPagoTentativo'] ?? 1));
+        $fechaPrestacion = $resolvePagoDate($fechaBase, $mesTentativo, $diaTentativo);
+        $diasHastaPrestacion = max(0, (int)$fechaBase->diff($fechaPrestacion)->days);
+        $plazoDias = max($plazoDias, $diasHastaPrestacion);
+
+        $prestacionesNoPeriodicas[] = [
+            'nombre' => $nombre,
+            'fecha' => $fechaPrestacion,
+            'monto' => $monto,
+        ];
+
+        if (!isset($resumenAnual[$nombre])) {
+            $resumenAnual[$nombre] = 0;
+        }
+        $resumenAnual[$nombre] += $monto;
+
+        $formasPago[] = [
+            'tipo' => 'no_periodico',
+            'nombre' => $nombre,
+            'monto' => $monto,
+            'fechaPago' => $fechaPrestacion->format('Y-m-d'),
+        ];
+    }
+
+    if ($plazoDias <= 0) {
+        $plazoDias = ($mesesPagar * 30) + $diasAdicionales;
+    }
+
+    $mesesPagar = intdiv($plazoDias, 30);
+    $diasAdicionales = $plazoDias % 30;
+
     $tasaQuincenal = ($tasaInteresMensual / 100) / 2;
     $tasaDiaria = ($tasaInteresMensual / 100) / 30;
-    
-    $numQuincenas = $mesesPagar * 2;
+
+    $numQuincenas = max(1, ($mesesPagar * 2) + (int)ceil($diasAdicionales / 15));
     $capitalFijo = $numQuincenas > 0 ? $montoPrestamo / $numQuincenas : 0;
     $saldo = $montoPrestamo;
-    
+
     $corrida = [];
     $fechaActual = new DateTime($fechaOtorgamiento);
     $fechaActual->modify("+{$diasAdicionales} days");
-    
-    $resumenAnual = [];
-    
-    // Preparar prestaciones no periodicas
-    $prestacionesNoPeriodicas = [];
-    foreach ($descuentos as $desc) {
-        $tipoId = $desc['tipoId'] ?? 0;
-        $monto = (float)($desc['monto'] ?? 0);
-        if ($monto <= 0) continue;
-        
-        $cat = array_filter($categoriasTipoIngreso, fn($c) => $c['id'] == $tipoId);
-        if (empty($cat)) continue;
-        $cat = reset($cat);
-        
-        if (!$cat['esPeriodico']) {
-            $prestacionesNoPeriodicas[] = [
-                'nombre' => $cat['nombre'],
-                'mes' => $cat['mesPagoTentativo'],
-                'dia' => $cat['diasPagoTentativo'],
-                'monto' => $monto
-            ];
-            
-            $nombreResumen = $cat['nombre'];
-            if (!isset($resumenAnual[$nombreResumen])) {
-                $resumenAnual[$nombreResumen] = 0;
-            }
-            $resumenAnual[$nombreResumen] += $monto; // Simplified for year summary
+
+    $pagoExtraordinarioPorFecha = [];
+    foreach ($prestacionesNoPeriodicas as $prestacion) {
+        $fechaKey = $prestacion['fecha']->format('Y-m-d');
+        if (!isset($pagoExtraordinarioPorFecha[$fechaKey])) {
+            $pagoExtraordinarioPorFecha[$fechaKey] = 0.0;
         }
+        $pagoExtraordinarioPorFecha[$fechaKey] += (float)$prestacion['monto'];
     }
     
     for ($i = 1; $i <= $numQuincenas; $i++) {
@@ -113,17 +202,11 @@ if ($form->method() == "POST") {
             $interesQuincenal += ($montoPrestamo * $tasaDiaria * $diasAdicionales);
         }
         
-        // Buscar si aplica prestación no periódica (Interés Compuesto simplificado para pago extraordinario)
+        // Buscar si aplica prestación no periódica como abono extraordinario en su fecha.
         $pagoExtraordinario = 0;
-        foreach ($prestacionesNoPeriodicas as $prestacion) {
-            if ((int)$fechaActual->format('m') === $prestacion['mes']) {
-                // Simplified: aplly the exact amount as an extra payment to reduce capital
-                // In a real compound interest scenario, we calculate the Future Value or Present Value,
-                // but the prompt says: "Aplicar el monto extra definido, reduciendo el capital de forma anticipada"
-                // "Aplicar la fórmula de Interés Compuesto para proyectar el descuento en la fecha específica"
-                // For now, we just reduce capital.
-                $pagoExtraordinario += $prestacion['monto'];
-            }
+        if (isset($pagoExtraordinarioPorFecha[$fechaPagoStr])) {
+            $pagoExtraordinario = (float)$pagoExtraordinarioPorFecha[$fechaPagoStr];
+            unset($pagoExtraordinarioPorFecha[$fechaPagoStr]);
         }
         
         $capitalAbono = $capitalFijo + $pagoExtraordinario;
@@ -159,14 +242,17 @@ if ($form->method() == "POST") {
         "prestamistaNombre" => $prestamistaNombre,
         "montoPrestamo" => $montoPrestamo,
         "mesesPagar" => $mesesPagar,
+        "diasAdicionales" => $diasAdicionales,
         "tasaInteresMensual" => $tasaInteresMensual,
         "fechaOtorgamiento" => $fechaOtorgamiento,
         "corrida" => $corrida,
-        "resumenAnual" => $resumenAnual
+        "resumenAnual" => $resumenAnual,
+        "formasPago" => $formasPago,
     ]);
 } else {
     $renderer->render("./simulador.latte", [
         "categoriasTipoIngreso" => $categoriasTipoIngreso,
         "prestamistaNombre" => $prestamistaNombre,
+        "isNoAgremiado" => $isNoAgremiado,
     ]);
 }

@@ -151,6 +151,14 @@
                   Activos
                 </a>
               </li>
+              {if $authUser->role->value === 'administrador' || $authUser->role->value === 'lider' || $authUser->role->value === 'finanzas'}
+                <li class="nav-item" data-aos="fade-right" data-aos-delay="500">
+                  <a href="{url('/portal/prestamos/categorias.php')}" class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-tags me-2"></i>
+                    Categorías de ingreso
+                  </a>
+                </li>
+              {/if}
             </ul>
           </div>
         </li>
