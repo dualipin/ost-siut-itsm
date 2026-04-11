@@ -82,9 +82,9 @@
                     <div class="col-12 col-sm-4">
                       <label class="form-label mb-1 small">Fecha de descuento</label>
                       <select x-model="item.fechaPago" @change="onFechaPagoChange(index)" class="form-select"
-                              :disabled="obtenerOpcionesFechasPago(categoriasTipoIngreso.find(c => c.id === item.tipoId)).length === 0">
+                              :disabled="obtenerOpcionesParaItem(index).length === 0">
                         <option value="">Seleccione una fecha...</option>
-                        <template x-for="op in obtenerOpcionesFechasPago(categoriasTipoIngreso.find(c => c.id === item.tipoId))">
+                        <template x-for="op in obtenerOpcionesParaItem(index)">
                           <option :value="op.value" x-text="op.label"></option>
                         </template>
                       </select>
@@ -92,7 +92,7 @@
                     <div class="col-6 col-sm-4">
                       <label class="form-label mb-1 small">Unidad</label>
                       <div class="form-control-plaintext small"
-                           x-text="`Cada ${ categoriasTipoIngreso.find(c => c . id === item . tipoId)?.frecuenciaDias } dias`">
+                           x-text="`Cada ${ categoriasTipoIngreso.find(c => c.id === item.tipoId)?.frecuenciaDias } dias`">
                       </div>
                     </div>
                     <div class="col-6 col-sm-4">
@@ -338,6 +338,18 @@
           const opciones = this.obtenerOpcionesFechasPago(cat)
           const idx = opciones.findIndex(op => op.value === item.fechaPago)
           item.cantidad = idx >= 0 ? idx + 1 : 0
+        },
+        /**
+         * Obtiene las opciones de fecha de pago para un item específico
+         * @param { number } index
+         * @returns { { value: string, label: string }[] }
+         */
+        obtenerOpcionesParaItem (index) {
+          const item = this.descuentos[index]
+          if (!item || !item.tipoId) return []
+          const cat = this.categoriasTipoIngreso.find(c => c.id === Number(item.tipoId))
+          if (!cat || !cat.esPeriodico) return []
+          return this.obtenerOpcionesFechasPago(cat)
         },
         /**
          * Calcula el próximo día de pago a partir de hoy para un tipo de ingreso
