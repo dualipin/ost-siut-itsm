@@ -199,16 +199,25 @@ if ($form->method() == "POST") {
                 'diaTentativo' => (int)$fechaUltimoPeriodo->format('d'),
             ];
 
+            $montoPeriodoBase = round($monto / $cantidad, 2);
+            $montoPeriodoAcumulado = 0.0;
+
             foreach ($opcionesSeleccionadas as $indexPeriodo => $fechaPeriodoStr) {
                 $periodo = $indexPeriodo + 1;
-                $acumuladoPrestaciones[$nombre] = ($acumuladoPrestaciones[$nombre] ?? 0.0) + $monto;
+                $montoPeriodo = $montoPeriodoBase;
+                if ($periodo === $cantidad) {
+                    $montoPeriodo = round($monto - $montoPeriodoAcumulado, 2);
+                }
+                $montoPeriodoAcumulado += $montoPeriodo;
+
+                $acumuladoPrestaciones[$nombre] = ($acumuladoPrestaciones[$nombre] ?? 0.0) + $montoPeriodo;
 
                 $corridaPrestaciones[] = [
                     'prestacion' => $nombre,
                     'tipo' => 'periodico',
                     'periodo' => $periodo . '/' . $cantidad,
                     'fecha' => $fechaPeriodoStr,
-                    'monto' => $monto,
+                    'monto' => $montoPeriodo,
                     'acumulado' => $acumuladoPrestaciones[$nombre],
                 ];
             }
