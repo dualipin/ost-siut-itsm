@@ -4,6 +4,7 @@ use App\Bootstrap;
 use App\Http\Request\FormRequest;
 use App\Infrastructure\Templating\RendererInterface;
 use App\Shared\Context\UserContextInterface;
+use Dompdf\Dompdf;
 
 require_once __DIR__ . "/../../../bootstrap.php";
 
@@ -24,6 +25,7 @@ if ($user && isset($user->role)) {
 $isNoAgremiado = $rolUsuario === 'no_agremiado';
 
 $form = new FormRequest();
+$salidaPdf = $form->input('output', 'html') === 'pdf';
 
 // Fetch categories for the form
 $stmt = $pdo->query("SELECT 
@@ -244,6 +246,40 @@ if ($form->method() == "POST") {
             $fechaActual->modify('first day of next month');
             $fechaActual->modify('+14 days'); // goes to 15th
         }
+    }
+
+    if ($salidaPdf) {
+        $resumen = [
+            'montoTotal' => $montoPrestamo,
+            'interesTotal' => array_reduce($corrida, static fn (float $sum, array $row): float => $sum + (float) $row['interes'], 0.0),
+            'pagoTotal' => array_reduce($corrida, static fn (float $sum, array $row): float => $sum + (float) $row['pago'], 0.0),
+        ];
+
+        $html = $renderer->renderToString('./pdf-simulados.latte', [
+            'prestamistaNombre' => $prestamistaNombre,
+            'montoPrestamo' => $montoPrestamo,
+            'mesesPagar' => $mesesPagar,
+            'diasAdicionales' => $diasAdicionales,
+            'tasaInteresMensual' => $tasaInteresMensual,
+            'fechaOtorgamiento' => $fechaOtorgamiento,
+            'formasPago' => $formasPago,
+            'resumenAnual' => $resumenAnual,
+            'corrida' => $corrida,
+            'resumen' => $resumen,
+            'fecha_simulacion' => (new DateTimeImmutable())->format('d/m/Y H:i'),
+        ]);
+
+        $pdf = new Dompdf();
+        $pdf->loadHtml($html);
+        $pdf->setPaper('Letter');
+        $options = $pdf->getOptions();
+        $options->setIsRemoteEnabled(true);
+        $options->setIsHtml5ParserEnabled(true);
+        $pdf->setOptions($options);
+        $pdf->render();
+
+        $pdf->stream('simulacion-prestamos.pdf', ['Attachment' => true]);
+        exit;
     }
     
     $renderer->render("./simulador_reporte.latte", [

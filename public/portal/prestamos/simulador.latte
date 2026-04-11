@@ -141,6 +141,11 @@
         <div class="flex-fill">
           <button class="btn btn-primary btn-lg w-100" type="submit">Simular</button>
         </div>
+        <div class="flex-fill">
+          <button class="btn btn-outline-danger btn-lg w-100" type="submit" name="output" value="pdf">
+            Descargar PDF
+          </button>
+        </div>
       </div>
     </form>
   </div>
@@ -352,23 +357,12 @@
           return this.obtenerOpcionesFechasPago(cat)
         },
         /**
-         * Calcula el próximo día de pago a partir de hoy para un tipo de ingreso
-         * @param { TipoPrestamo } cat - Categoría de tipo de ingreso
-         * @returns { Date } - Fecha del próximo pago
+         * @param { number } year
+         * @param { number } monthIndex
+         * @returns { number }
          */
-        obtenerProximoPago (cat) {
-          if (!cat || !cat.esPeriodico) return new Date()
-
-          const base = new Date(this.fechaOtorgamiento + 'T00:00:00')
-          const frecuencia = Number(cat.frecuenciaDias) || 30
-          const diaPago = Number(cat.diasPagoTentativo) || 15
-
-          // Primera fecha de pago: base + diaPago días
-          // (dentro del primer período de frecuencia)
-          const proximoPago = new Date(base.getTime())
-          proximoPago.setDate(proximoPago.getDate() + Math.min(diaPago, frecuencia))
-
-          return proximoPago
+        diasEnMes (year, monthIndex) {
+          return new Date(year, monthIndex + 1, 0).getDate()
         },
         /**
          * @param { TipoPrestamo | undefined } cat
@@ -386,29 +380,35 @@
 
           const opciones = []
 
-          // Generar períodos desde la fecha de otorgamiento
-          // Cada período es de 'frecuencia' días
-          // El pago se hace en el día 'diaPago' dentro del período (o al final si diaPago > frecuencia)
-          let periodoNum = 1
-          let fechaInicioPeriodo = new Date(inicio.getTime())
+          let cursor = new Date(inicio.getFullYear(), inicio.getMonth(), 1)
+          let guard = 0
 
-          while (periodoNum <= 36) { // Máximo 36 períodos (3 años, por seguridad)
-            // Calcular fecha de pago: inicio del período + min(diaPago, frecuencia) días
-            const diasAlPago = Math.min(diaPago, frecuencia)
-            const fechaPago = new Date(fechaInicioPeriodo.getTime())
-            fechaPago.setDate(fechaPago.getDate() + diasAlPago - 1)
+          while (cursor <= fechaMaxima && guard < 36) {
+            const year = cursor.getFullYear()
+            const monthIndex = cursor.getMonth()
+            const totalDiasMes = this.diasEnMes(year, monthIndex)
 
-            // Si la fecha de pago supera la máxima, detener generación
-            if (fechaPago > fechaMaxima) break
+            // Regla requerida: veces en el mes = frequency_days / total de días del mes.
+            const fraccionMensual = frecuencia / totalDiasMes
+            const vecesEnMes = fraccionMensual > 0 ? Math.max(1, Math.round(1 / fraccionMensual)) : 1
+            const diaBase = Math.min(Math.max(1, diaPago), totalDiasMes)
+            const saltoDias = Math.max(1, Math.round(totalDiasMes / vecesEnMes))
 
-            opciones.push({
-              value: this.toIsoDate(fechaPago),
-              label: this.toDisplayDate(fechaPago),
-            })
+            for (let i = 0; i < vecesEnMes; i++) {
+              const diaCandidato = diaBase + (i * saltoDias)
+              if (diaCandidato > totalDiasMes) break
 
-            // Avanzar al siguiente período
-            fechaInicioPeriodo.setDate(fechaInicioPeriodo.getDate() + frecuencia)
-            periodoNum++
+              const fechaPago = new Date(year, monthIndex, diaCandidato)
+              if (fechaPago < inicio || fechaPago > fechaMaxima) continue
+
+              opciones.push({
+                value: this.toIsoDate(fechaPago),
+                label: this.toDisplayDate(fechaPago),
+              })
+            }
+
+            cursor = new Date(year, monthIndex + 1, 1)
+            guard++
           }
 
           return opciones
@@ -429,15 +429,12 @@
         calcularFechaFin (cat, cantidad) {
           if (!cat || !cat.esPeriodico || !(Number(cantidad) > 0)) return '-'
 
-          const freq = Number(cat.frecuenciaDias) || 30
           const numCuotas = Math.max(1, Number(cantidad))
+          const opciones = this.obtenerOpcionesFechasPago(cat)
+          if (opciones.length === 0) return '-'
 
-          // Obtener el próximo pago
-          const proximoPago = this.obtenerProximoPago(cat)
-
-          // Calcular la fecha final: próximo pago + (numCuotas - 1) períodos
-          const fechaFin = new Date(proximoPago.getTime())
-          fechaFin.setDate(fechaFin.getDate() + (numCuotas - 1) * freq)
+          const idx = Math.min(opciones.length, numCuotas) - 1
+          const fechaFin = new Date(opciones[idx].value + 'T00:00:00')
 
           // Verificar que no supere la fecha máxima anual
           const fechaMaxima = this.obtenerFechaMaximaAnual()
@@ -458,9 +455,14 @@
             if (!cat) return
 
             if (cat.esPeriodico) {
-              const frecuencia = Number(cat.frecuenciaDias) || 15
-              const cantidad = Math.max(1, Number(d.cantidad) || 1)
-              maxDias = Math.max(maxDias, frecuencia * cantidad)
+              const base = new Date(this.fechaOtorgamiento + 'T00:00:00')
+              const opciones = this.obtenerOpcionesFechasPago(cat)
+              const fechaSeleccionada = d.fechaPago || (opciones[0] ? opciones[0].value : '')
+              if (!fechaSeleccionada) return
+
+              const target = new Date(fechaSeleccionada + 'T00:00:00')
+              const diff = Math.max(0, Math.floor((target - base) / 86400000))
+              maxDias = Math.max(maxDias, diff)
               return
             }
 
