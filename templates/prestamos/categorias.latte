@@ -121,12 +121,28 @@
                                         <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#editIncomeTypeModal-{$incomeType->income_type_id}">
                                             <i class="bi bi-pencil me-1"></i>Editar
                                         </button>
-                                        <form action="{url('/portal/prestamos/categorias/delete.php')}" method="POST" class="d-inline" onsubmit="return confirm('Esta acción desactivará la categoría. ¿Deseas continuar?');">
-                                            <input type="hidden" name="income_type_id" value="{$incomeType->income_type_id}">
-                                            <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
-                                                <i class="bi bi-slash-circle me-1"></i>Desactivar
-                                            </button>
-                                        </form>
+                                        {if $incomeType->active}
+                                            <form action="{url('/portal/prestamos/categorias/delete.php')}" method="POST" class="d-inline" onsubmit="return confirm('Esta acción desactivará la categoría. ¿Deseas continuar?');">
+                                                <input type="hidden" name="income_type_id" value="{$incomeType->income_type_id}">
+                                                <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+                                                    <i class="bi bi-slash-circle me-1"></i>Desactivar
+                                                </button>
+                                            </form>
+                                        {else}
+                                            <form action="{url('/portal/prestamos/categorias/update.php')}" method="POST" class="d-inline">
+                                                <input type="hidden" name="income_type_id" value="{$incomeType->income_type_id}">
+                                                <input type="hidden" name="name" value="{$incomeType->name}">
+                                                <input type="hidden" name="description" value="{$incomeType->description}">
+                                                <input type="hidden" name="is_periodic" value="{$incomeType->is_periodic ? 1 : 0}">
+                                                <input type="hidden" name="frequency_days" value="{$incomeType->frequency_days}">
+                                                <input type="hidden" name="tentative_payment_month" value="{$incomeType->tentative_payment_month}">
+                                                <input type="hidden" name="tentative_payment_day" value="{$incomeType->tentative_payment_day}">
+                                                <input type="hidden" name="active" value="1">
+                                                <button type="submit" class="btn btn-outline-success btn-sm rounded-pill px-3">
+                                                    <i class="bi bi-check-circle me-1"></i>Activar
+                                                </button>
+                                            </form>
+                                        {/if}
                                     </div>
                                 </td>
                             </tr>
