@@ -359,55 +359,14 @@
         obtenerProximoPago (cat) {
           if (!cat || !cat.esPeriodico) return new Date()
 
-          const hoy = new Date(this.fechaOtorgamiento + 'T00:00:00')
-          const freq = Number(cat.frecuenciaDias) || 30
-          const diaPago = Number(cat.diasPagoTentativo) || 20
-          const mesPago = Number(cat.mesPagoTentativo) || null // null significa pago cada período
+          const base = new Date(this.fechaOtorgamiento + 'T00:00:00')
+          const frecuencia = Number(cat.frecuenciaDias) || 30
+          const diaPago = Number(cat.diasPagoTentativo) || 15
 
-          /**
-           * @param { number } y
-           * @param { number } mIndex
-           * @returns { number }
-           */
-          function daysInMonth (y, mIndex) {
-            return new Date(y, mIndex + 1, 0).getDate()
-          }
-
-          let proximoPago = new Date()
-
-          if (mesPago) {
-            // Pago en mes específico (ej: Aguinaldo en diciembre)
-            let year = hoy.getFullYear()
-            const mesIndex = mesPago - 1 // Convertir a 0-indexed
-            const diaMesActual = Math.min(diaPago, daysInMonth(year, mesIndex))
-            let candidate = new Date(year, mesIndex, diaMesActual)
-
-            if (candidate <= hoy) {
-              year += 1
-              candidate = new Date(year, mesIndex, Math.min(diaPago, daysInMonth(year, mesIndex)))
-            }
-            proximoPago = candidate
-          } else {
-            // Pago periódico (quincena, mensuales)
-            let mesActual = hoy.getMonth()
-            let yearActual = hoy.getFullYear()
-            const diaActual = hoy.getDate()
-            const diaMesActual = Math.min(diaPago, daysInMonth(yearActual, mesActual))
-
-            let candidate = new Date(yearActual, mesActual, diaMesActual)
-
-            // Si ya pasó el día de pago este mes, ir al próximo
-            if (candidate <= hoy) {
-              mesActual++
-              if (mesActual > 11) {
-                mesActual = 0
-                yearActual++
-              }
-              const diaProximoMes = Math.min(diaPago, daysInMonth(yearActual, mesActual))
-              candidate = new Date(yearActual, mesActual, diaProximoMes)
-            }
-            proximoPago = candidate
-          }
+          // Primera fecha de pago: base + diaPago días
+          // (dentro del primer período de frecuencia)
+          const proximoPago = new Date(base.getTime())
+          proximoPago.setDate(proximoPago.getDate() + Math.min(diaPago, frecuencia))
 
           return proximoPago
         },
@@ -418,46 +377,38 @@
         obtenerOpcionesFechasPago (cat) {
           if (!cat || !cat.esPeriodico) return []
 
+          const frecuencia = Number(cat.frecuenciaDias) || 30
+          const diaPago = Number(cat.diasPagoTentativo) || 15
           const inicio = new Date(this.fechaOtorgamiento + 'T00:00:00')
           const fechaMaxima = this.obtenerFechaMaximaAnual()
+
           if (inicio > fechaMaxima) return []
 
           const opciones = []
-          const frecuencia = Number(cat.frecuenciaDias) || 30
-          const diaPago = Number(cat.diasPagoTentativo) || 15
 
-          if (frecuencia === 15 && diaPago === 15) {
-            let y = inicio.getFullYear()
-            let m = inicio.getMonth()
+          // Generar períodos desde la fecha de otorgamiento
+          // Cada período es de 'frecuencia' días
+          // El pago se hace en el día 'diaPago' dentro del período (o al final si diaPago > frecuencia)
+          let periodoNum = 1
+          let fechaInicioPeriodo = new Date(inicio.getTime())
 
-            while (true) {
-              const quince = new Date(y, m, 15)
-              const ultimo = new Date(y, m + 1, 0)
+          while (periodoNum <= 36) { // Máximo 36 períodos (3 años, por seguridad)
+            // Calcular fecha de pago: inicio del período + min(diaPago, frecuencia) días
+            const diasAlPago = Math.min(diaPago, frecuencia)
+            const fechaPago = new Date(fechaInicioPeriodo.getTime())
+            fechaPago.setDate(fechaPago.getDate() + diasAlPago - 1)
 
-              if (quince >= inicio && quince <= fechaMaxima) {
-                opciones.push({ value: this.toIsoDate(quince), label: this.toDisplayDate(quince) })
-              }
+            // Si la fecha de pago supera la máxima, detener generación
+            if (fechaPago > fechaMaxima) break
 
-              if (ultimo >= inicio && ultimo <= fechaMaxima) {
-                opciones.push({ value: this.toIsoDate(ultimo), label: this.toDisplayDate(ultimo) })
-              }
+            opciones.push({
+              value: this.toIsoDate(fechaPago),
+              label: this.toDisplayDate(fechaPago),
+            })
 
-              const siguienteMes = new Date(y, m + 1, 1)
-              if (siguienteMes > fechaMaxima) break
-              y = siguienteMes.getFullYear()
-              m = siguienteMes.getMonth()
-            }
-
-            return opciones
-          }
-
-          let fecha = this.obtenerProximoPago(cat)
-          while (fecha <= fechaMaxima) {
-            if (fecha >= inicio) {
-              opciones.push({ value: this.toIsoDate(fecha), label: this.toDisplayDate(fecha) })
-            }
-            fecha = new Date(fecha.getTime())
-            fecha.setDate(fecha.getDate() + frecuencia)
+            // Avanzar al siguiente período
+            fechaInicioPeriodo.setDate(fechaInicioPeriodo.getDate() + frecuencia)
+            periodoNum++
           }
 
           return opciones

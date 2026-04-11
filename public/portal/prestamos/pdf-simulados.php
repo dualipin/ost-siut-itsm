@@ -124,8 +124,15 @@ foreach ($descuentos as $desc) {
     if (!empty($cat['esPeriodico'])) {
         $frecuenciaDias = max(1, (int)($cat['frecuenciaDias'] ?? 15));
         $cantidad = max(1, (int)($desc['cantidad'] ?? 1));
-        $diasProgramados = $frecuenciaDias * $cantidad;
-        $plazoDias = max($plazoDias, $diasProgramados);
+        
+        // Calcular el plazo considerando:
+        // 1. Días hasta el primer pago (desde otorgamiento hasta primera fecha de pago)
+        // 2. Períodos completos restantes
+        $diaPago = max(1, (int)($cat['diasPagoTentativo'] ?? 15));
+        $diasAlPrimerpago = min($diaPago, $frecuenciaDias) - 1;
+        
+        $totalDias = $diasAlPrimerpago + (($cantidad - 1) * $frecuenciaDias);
+        $plazoDias = max($plazoDias, $totalDias);
 
         $formasPago[] = [
             'tipo' => 'periodico',
@@ -133,7 +140,7 @@ foreach ($descuentos as $desc) {
             'monto' => $monto,
             'frecuenciaDias' => $frecuenciaDias,
             'cantidad' => $cantidad,
-            'diaTentativo' => (int)($cat['diasPagoTentativo'] ?? 0),
+            'diaTentativo' => $diaPago,
         ];
         continue;
     }
