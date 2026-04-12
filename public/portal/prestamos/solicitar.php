@@ -133,6 +133,7 @@ $nextMonth = date('Y-m-d', strtotime('+1 month'));
 $db = $container->get(\PDO::class);
 $incomeTypesStmt = $db->query("SELECT * FROM cat_income_types WHERE active = 1");
 $incomeTypes = $incomeTypesStmt->fetchAll(\PDO::FETCH_OBJ);
+$incomeTypesJson = json_encode($incomeTypes, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
 $renderer->render("./solicitar.latte", [
     'user' => $currentUser,
@@ -145,4 +146,5 @@ $renderer->render("./solicitar.latte", [
     'next_month' => $nextMonth,
     'old_input' => $request->all(),
     'income_types' => $incomeTypes,
+    'income_types_json' => $incomeTypesJson,
 ]);

@@ -108,7 +108,7 @@
             <span class="badge bg-secondary" x-text="localize(currentDate)"></span>
           </div>
           <div class="mt-1">
-            <small class="text-muted" x-text="`Plazo estimado: ${ mesesEstimados } mes(es) + ${ diasEstimados } día(s)`"></small>
+            <small class="text-muted" x-text="'Plazo estimado: ' + mesesEstimados + ' mes(es) + ' + diasEstimados + ' día(s)'"></small>
           </div>
         </div>
 
@@ -138,7 +138,7 @@
 
                   <div class="col-12 col-md-4">
                     <label class="form-label mb-1 small">Comprobante</label>
-                    <input type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" :name="`income_documents[${Number(item.tipoId) || 0}]`" :disabled="!Number(item.tipoId)">
+                    <input type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" :name="'income_documents[' + (Number(item.tipoId) || 0) + ']'" :disabled="!Number(item.tipoId)">
                   </div>
 
                   <div class="col-12" x-show="item.tipoId && (categoriasTipoIngreso.find(c => c.id === item.tipoId)?.esPeriodico)">
@@ -154,7 +154,7 @@
                       </div>
                       <div class="col-6 col-sm-4">
                         <label class="form-label mb-1 small">Unidad</label>
-                        <div class="form-control-plaintext small" x-text="`Cada ${ categoriasTipoIngreso.find(c => c.id === item.tipoId)?.frecuenciaDias } días`"></div>
+                        <div class="form-control-plaintext small" x-text="'Cada ' + (categoriasTipoIngreso.find(c => c.id === item.tipoId)?.frecuenciaDias || 0) + ' días'"></div>
                       </div>
                       <div class="col-6 col-sm-4">
                         <label class="form-label mb-1 small">Períodos</label>
@@ -174,13 +174,13 @@
           </div>
         </template>
 
-        <template x-for="(item, index) in descuentos" :key="`hidden-${ index }`">
+        <template x-for="(item, index) in descuentos" :key="'hidden-' + index">
           <div>
             <template x-if="Number(item.tipoId) > 0 && Number(item.monto) > 0">
-              <input type="hidden" :name="`income_amounts[${Number(item.tipoId)}]`" :value="Number(item.monto)">
+              <input type="hidden" :name="'income_amounts[' + Number(item.tipoId) + ']'" :value="Number(item.monto)">
             </template>
             <template x-if="Number(item.tipoId) > 0 && item.fechaPago">
-              <input type="hidden" :name="`income_last_dates[${Number(item.tipoId)}]`" :value="item.fechaPago">
+              <input type="hidden" :name="'income_last_dates[' + Number(item.tipoId) + ']'" :value="item.fechaPago">
             </template>
           </div>
         </template>
@@ -230,207 +230,211 @@
     </div>
   </div>
 </div>
+{/block}
 
+{block scripts}
+{include parent}
+<script id="incomeTypesData" type="application/json">{$income_types_json|noescape}</script>
 <script>
-  function loanApplication () {
-    const data = {= json_encode($income_types)}
-    const parsed = typeof data === 'string' ? JSON.parse(data) : data
-    const tipos = Array.isArray(parsed) ? parsed.map((item) => ({
-      id: Number(item.income_type_id),
-      nombre: item.name,
-      descripcion: item.description || '',
-      esPeriodico: Boolean(Number(item.is_periodic)),
-      frecuenciaDias: Number(item.frequency_days) || 0,
-      mesPagoTentativo: Number(item.tentative_payment_month) || 12,
-      diasPagoTentativo: Number(item.tentative_payment_day) || 15,
-      activo: Boolean(Number(item.active)),
-    })) : []
+  window.loanApplication = function loanApplication () {
+      const dataNode = document.getElementById('incomeTypesData')
+      const raw = dataNode ? dataNode.textContent : '[]'
+      const parsed = JSON.parse(raw || '[]')
+      const tipos = Array.isArray(parsed) ? parsed.map((item) => ({
+        id: Number(item.income_type_id),
+        nombre: item.name,
+        descripcion: item.description || '',
+        esPeriodico: Boolean(Number(item.is_periodic)),
+        frecuenciaDias: Number(item.frequency_days) || 0,
+        mesPagoTentativo: Number(item.tentative_payment_month) || 12,
+        diasPagoTentativo: Number(item.tentative_payment_day) || 15,
+        activo: Boolean(Number(item.active)),
+      })) : []
 
-    const defaultRate = {if $user->role->value == 'agremiado' && $is_saver}6{elseif $user->role->value == 'agremiado'}7.5{elseif $is_saver}8{else}9.5{/if}
+      const defaultRate = {if $user->role->value == 'agremiado' && $is_saver}6{elseif $user->role->value == 'agremiado'}7.5{elseif $is_saver}8{else}9.5{/if}
 
-    const buildDescuento = () => ({
-      monto: 0,
-      tipoId: 0,
-      cantidad: 0,
-      fechaPago: '',
-    })
+      const buildDescuento = () => ({
+        monto: 0,
+        tipoId: 0,
+        cantidad: 0,
+        fechaPago: '',
+      })
 
-    return {
-      interestRate: defaultRate,
-      descuentos: [buildDescuento()],
-      categoriasTipoIngreso: tipos,
-      currentDate: (new Date()).toISOString().slice(0, 10),
-
-      onPerfilChange (val) {
-        this.interestRate = Number(val) || this.interestRate
-      },
-      get selectedTipoIds () {
-        return this.descuentos.map(d => Number(d.tipoId)).filter(Boolean)
-      },
-      tipoEstaSeleccionado (tipoId, currentTipoId) {
-        return this.selectedTipoIds.includes(Number(tipoId)) && Number(currentTipoId) !== Number(tipoId)
-      },
-      agregar () {
-        const disponible = this.categoriasTipoIngreso.find(c => c.activo && !this.selectedTipoIds.includes(c.id))
-        if (disponible) this.descuentos.push(buildDescuento())
-      },
-      eliminar (index) {
-        this.descuentos.splice(index, 1)
-        if (this.descuentos.length === 0) this.descuentos.push(buildDescuento())
-      },
-      onTipoChange (index) {
-        const id = Number(this.descuentos[index].tipoId)
-        const cat = this.categoriasTipoIngreso.find(c => c.id === id)
-        if (cat && cat.esPeriodico) {
-          const opciones = this.obtenerOpcionesFechasPago(cat)
-          this.descuentos[index].fechaPago = opciones.length > 0 ? opciones[0].value : ''
-          this.descuentos[index].cantidad = opciones.length > 0 ? 1 : 0
-          return
-        }
-
-        this.descuentos[index].fechaPago = ''
-        this.descuentos[index].cantidad = 0
-      },
-      onFechaPagoChange (index) {
-        const item = this.descuentos[index]
-        const cat = this.categoriasTipoIngreso.find(c => c.id === Number(item.tipoId))
-        if (!cat || !cat.esPeriodico) return
-        const opciones = this.obtenerOpcionesFechasPago(cat)
-        const pos = opciones.findIndex(op => op.value === item.fechaPago)
-        item.cantidad = pos >= 0 ? pos + 1 : 0
-      },
-      obtenerFechaMaximaAnual () {
-        const hoy = new Date()
-        return new Date(hoy.getFullYear(), 10, 15)
-      },
-      toIsoDate (date) {
-        const y = date.getFullYear()
-        const m = String(date.getMonth() + 1).padStart(2, '0')
-        const d = String(date.getDate()).padStart(2, '0')
-        return `${ y }-${ m }-${ d }`
-      },
-      toDisplayDate (date) {
-        return date.toLocaleDateString('es-MX')
-      },
-      diasEnMes (year, monthIndex) {
-        return new Date(year, monthIndex + 1, 0).getDate()
-      },
-      obtenerOpcionesFechasPago (cat) {
-        if (!cat || !cat.esPeriodico) return []
-
-        const frecuencia = Number(cat.frecuenciaDias) || 30
-        const diaPago = Number(cat.diasPagoTentativo) || 15
-        const inicio = new Date(this.currentDate + 'T00:00:00')
-        const fechaMaxima = this.obtenerFechaMaximaAnual()
-        if (inicio > fechaMaxima) return []
-
-        const opciones = []
-        let cursor = new Date(inicio.getFullYear(), inicio.getMonth(), 1)
-        let guard = 0
-
-        while (cursor <= fechaMaxima && guard < 36) {
-          const year = cursor.getFullYear()
-          const monthIndex = cursor.getMonth()
-          const totalDiasMes = this.diasEnMes(year, monthIndex)
-          const fraccionMensual = frecuencia / totalDiasMes
-          const vecesEnMes = fraccionMensual > 0 ? Math.max(1, Math.round(1 / fraccionMensual)) : 1
-          const diaBase = Math.min(Math.max(1, diaPago), totalDiasMes)
-          const saltoDias = Math.max(1, Math.round(totalDiasMes / vecesEnMes))
-
-          for (let i = 0; i < vecesEnMes; i++) {
-            const diaCandidato = diaBase + (i * saltoDias)
-            if (diaCandidato > totalDiasMes) break
-
-            const fechaPago = new Date(year, monthIndex, diaCandidato)
-            if (fechaPago < inicio || fechaPago > fechaMaxima) continue
-
-            opciones.push({
-              value: this.toIsoDate(fechaPago),
-              label: this.toDisplayDate(fechaPago),
-            })
-          }
-
-          cursor = new Date(year, monthIndex + 1, 1)
-          guard++
-        }
-
-        return opciones
-      },
-      obtenerOpcionesParaItem (index) {
-        const item = this.descuentos[index]
-        if (!item || !item.tipoId) return []
-        const cat = this.categoriasTipoIngreso.find(c => c.id === Number(item.tipoId))
-        if (!cat || !cat.esPeriodico) return []
-        return this.obtenerOpcionesFechasPago(cat)
-      },
-      calcularMaxPeriodos (cat) {
-        if (!cat || !cat.esPeriodico) return 0
-        return this.obtenerOpcionesFechasPago(cat).length
-      },
-      get totalSolicitado () {
-        return this.descuentos.reduce((s, d) => s + (Number(d.monto) || 0), 0)
-      },
-      get plazoDiasEstimado () {
-        let maxDias = 0
-        this.descuentos.forEach((d) => {
-          const cat = this.categoriasTipoIngreso.find(c => c.id === Number(d.tipoId))
-          if (!cat) return
-
-          if (cat.esPeriodico && d.fechaPago) {
-            const base = new Date(this.currentDate + 'T00:00:00')
-            const target = new Date(d.fechaPago + 'T00:00:00')
-            const diff = Math.max(0, Math.floor((target - base) / 86400000))
-            maxDias = Math.max(maxDias, diff)
+      return {
+        interestRate: defaultRate,
+        descuentos: [buildDescuento()],
+        categoriasTipoIngreso: tipos,
+        currentDate: (new Date()).toISOString().slice(0, 10),
+        onPerfilChange (val) {
+          this.interestRate = Number(val) || this.interestRate
+        },
+        get selectedTipoIds () {
+          return this.descuentos.map(d => Number(d.tipoId)).filter(Boolean)
+        },
+        tipoEstaSeleccionado (tipoId, currentTipoId) {
+          return this.selectedTipoIds.includes(Number(tipoId)) && Number(currentTipoId) !== Number(tipoId)
+        },
+        agregar () {
+          const disponible = this.categoriasTipoIngreso.find(c => c.activo && !this.selectedTipoIds.includes(c.id))
+          if (disponible) this.descuentos.push(buildDescuento())
+        },
+        eliminar (index) {
+          this.descuentos.splice(index, 1)
+          if (this.descuentos.length === 0) this.descuentos.push(buildDescuento())
+        },
+        onTipoChange (index) {
+          const id = Number(this.descuentos[index].tipoId)
+          const cat = this.categoriasTipoIngreso.find(c => c.id === id)
+          if (cat && cat.esPeriodico) {
+            const opciones = this.obtenerOpcionesFechasPago(cat)
+            this.descuentos[index].fechaPago = opciones.length > 0 ? opciones[0].value : ''
+            this.descuentos[index].cantidad = opciones.length > 0 ? 1 : 0
             return
           }
 
-          const base = new Date(this.currentDate + 'T00:00:00')
-          let target = new Date(base.getFullYear(), Number(cat.mesPagoTentativo) - 1, Number(cat.diasPagoTentativo) || 1)
-          if (target <= base) target = new Date(base.getFullYear() + 1, Number(cat.mesPagoTentativo) - 1, Number(cat.diasPagoTentativo) || 1)
-          const diff = Math.max(0, Math.floor((target - base) / 86400000))
-          maxDias = Math.max(maxDias, diff)
-        })
-        return maxDias
-      },
-      get mesesEstimados () {
-        return Math.floor(this.plazoDiasEstimado / 30)
-      },
-      get diasEstimados () {
-        return this.plazoDiasEstimado % 30
-      },
-      get puedeAgregar () {
-        return this.categoriasTipoIngreso.some(c => c.activo && !this.selectedTipoIds.includes(c.id))
-      },
-      formatCurrency (v) {
-        return '$' + Number(v || 0).toLocaleString(undefined, {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })
-      },
-      localize (dateStr) {
-        if (!dateStr) return ''
-        const p = String(dateStr).split('-')
-        if (p.length !== 3) return dateStr
-        return `${ p[2] }/${ p[1] }/${ p[0] }`
-      },
-      handleSubmit (event) {
-        const validItems = this.descuentos.filter(item => Number(item.tipoId) > 0 && Number(item.monto) > 0)
-        if (validItems.length === 0) {
-          event.preventDefault()
-          alert('Debe asignar al menos una forma de descuento con monto.')
-          return
-        }
-
-        const periodicWithoutDate = validItems.some((item) => {
+          this.descuentos[index].fechaPago = ''
+          this.descuentos[index].cantidad = 0
+        },
+        onFechaPagoChange (index) {
+          const item = this.descuentos[index]
           const cat = this.categoriasTipoIngreso.find(c => c.id === Number(item.tipoId))
-          return cat && cat.esPeriodico && !item.fechaPago
-        })
-        if (periodicWithoutDate) {
-          event.preventDefault()
-          alert('Los descuentos periódicos requieren fecha estimada de último pago.')
-        }
-      },
-    }
+          if (!cat || !cat.esPeriodico) return
+          const opciones = this.obtenerOpcionesFechasPago(cat)
+          const pos = opciones.findIndex(op => op.value === item.fechaPago)
+          item.cantidad = pos >= 0 ? pos + 1 : 0
+        },
+        obtenerFechaMaximaAnual () {
+          const hoy = new Date()
+          return new Date(hoy.getFullYear(), 10, 15)
+        },
+        toIsoDate (date) {
+          const y = date.getFullYear()
+          const m = String(date.getMonth() + 1).padStart(2, '0')
+          const d = String(date.getDate()).padStart(2, '0')
+          return `${ y }-${ m }-${ d }`
+        },
+        toDisplayDate (date) {
+          return date.toLocaleDateString('es-MX')
+        },
+        diasEnMes (year, monthIndex) {
+          return new Date(year, monthIndex + 1, 0).getDate()
+        },
+        obtenerOpcionesFechasPago (cat) {
+          if (!cat || !cat.esPeriodico) return []
+
+          const frecuencia = Number(cat.frecuenciaDias) || 30
+          const diaPago = Number(cat.diasPagoTentativo) || 15
+          const inicio = new Date(this.currentDate + 'T00:00:00')
+          const fechaMaxima = this.obtenerFechaMaximaAnual()
+          if (inicio > fechaMaxima) return []
+
+          const opciones = []
+          let cursor = new Date(inicio.getFullYear(), inicio.getMonth(), 1)
+          let guard = 0
+
+          while (cursor <= fechaMaxima && guard < 36) {
+            const year = cursor.getFullYear()
+            const monthIndex = cursor.getMonth()
+            const totalDiasMes = this.diasEnMes(year, monthIndex)
+            const fraccionMensual = frecuencia / totalDiasMes
+            const vecesEnMes = fraccionMensual > 0 ? Math.max(1, Math.round(1 / fraccionMensual)) : 1
+            const diaBase = Math.min(Math.max(1, diaPago), totalDiasMes)
+            const saltoDias = Math.max(1, Math.round(totalDiasMes / vecesEnMes))
+
+            for (let i = 0; i < vecesEnMes; i++) {
+              const diaCandidato = diaBase + (i * saltoDias)
+              if (diaCandidato > totalDiasMes) break
+
+              const fechaPago = new Date(year, monthIndex, diaCandidato)
+              if (fechaPago < inicio || fechaPago > fechaMaxima) continue
+
+              opciones.push({
+                value: this.toIsoDate(fechaPago),
+                label: this.toDisplayDate(fechaPago),
+              })
+            }
+
+            cursor = new Date(year, monthIndex + 1, 1)
+            guard++
+          }
+
+          return opciones
+        },
+        obtenerOpcionesParaItem (index) {
+          const item = this.descuentos[index]
+          if (!item || !item.tipoId) return []
+          const cat = this.categoriasTipoIngreso.find(c => c.id === Number(item.tipoId))
+          if (!cat || !cat.esPeriodico) return []
+          return this.obtenerOpcionesFechasPago(cat)
+        },
+        calcularMaxPeriodos (cat) {
+          if (!cat || !cat.esPeriodico) return 0
+          return this.obtenerOpcionesFechasPago(cat).length
+        },
+        get totalSolicitado () {
+          return this.descuentos.reduce((s, d) => s + (Number(d.monto) || 0), 0)
+        },
+        get plazoDiasEstimado () {
+          let maxDias = 0
+          this.descuentos.forEach((d) => {
+            const cat = this.categoriasTipoIngreso.find(c => c.id === Number(d.tipoId))
+            if (!cat) return
+
+            if (cat.esPeriodico && d.fechaPago) {
+              const base = new Date(this.currentDate + 'T00:00:00')
+              const target = new Date(d.fechaPago + 'T00:00:00')
+              const diff = Math.max(0, Math.floor((target - base) / 86400000))
+              maxDias = Math.max(maxDias, diff)
+              return
+            }
+
+            const base = new Date(this.currentDate + 'T00:00:00')
+            let target = new Date(base.getFullYear(), Number(cat.mesPagoTentativo) - 1, Number(cat.diasPagoTentativo) || 1)
+            if (target <= base) target = new Date(base.getFullYear() + 1, Number(cat.mesPagoTentativo) - 1, Number(cat.diasPagoTentativo) || 1)
+            const diff = Math.max(0, Math.floor((target - base) / 86400000))
+            maxDias = Math.max(maxDias, diff)
+          })
+          return maxDias
+        },
+        get mesesEstimados () {
+          return Math.floor(this.plazoDiasEstimado / 30)
+        },
+        get diasEstimados () {
+          return this.plazoDiasEstimado % 30
+        },
+        get puedeAgregar () {
+          return this.categoriasTipoIngreso.some(c => c.activo && !this.selectedTipoIds.includes(c.id))
+        },
+        formatCurrency (v) {
+          return '$' + Number(v || 0).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })
+        },
+        localize (dateStr) {
+          if (!dateStr) return ''
+          const p = String(dateStr).split('-')
+          if (p.length !== 3) return dateStr
+          return `${ p[2] }/${ p[1] }/${ p[0] }`
+        },
+        handleSubmit (event) {
+          const validItems = this.descuentos.filter(item => Number(item.tipoId) > 0 && Number(item.monto) > 0)
+          if (validItems.length === 0) {
+            event.preventDefault()
+            alert('Debe asignar al menos una forma de descuento con monto.')
+            return
+          }
+
+          const periodicWithoutDate = validItems.some((item) => {
+            const cat = this.categoriasTipoIngreso.find(c => c.id === Number(item.tipoId))
+            return cat && cat.esPeriodico && !item.fechaPago
+          })
+          if (periodicWithoutDate) {
+            event.preventDefault()
+            alert('Los descuentos periódicos requieren fecha estimada de último pago.')
+          }
+        },
+      }
   }
 </script>
 {/block}
