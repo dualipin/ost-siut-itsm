@@ -1,0 +1,185 @@
+{extends ../../../templates/@portal.latte}
+
+{block main}
+<div class="container-fluid py-4">
+	{include '../../../templates/components/header-page.latte',
+		title: 'Cola de revisión',
+		description: 'Solicitudes pendientes de análisis y resolución por parte del comité.',
+		icon: 'bi-clipboard2-check'
+	}
+
+	{{-- KPI Cards --}}
+	<div class="row g-3 mb-4">
+		<div class="col-6 col-lg-3">
+			<div class="card border-0 shadow-sm rounded-4 h-100">
+				<div class="card-body p-4">
+					<div class="text-muted small text-uppercase fw-semibold mb-1">Total en cola</div>
+					<div class="display-6 fw-bold text-primary mb-0">{$summary['total']}</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-6 col-lg-3">
+			<div class="card border-0 shadow-sm rounded-4 h-100">
+				<div class="card-body p-4">
+					<div class="text-muted small text-uppercase fw-semibold mb-1">Solicitados</div>
+					<div class="display-6 fw-bold text-warning mb-0">{$summary['solicitado']}</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-6 col-lg-3">
+			<div class="card border-0 shadow-sm rounded-4 h-100">
+				<div class="card-body p-4">
+					<div class="text-muted small text-uppercase fw-semibold mb-1">En espera</div>
+					<div class="display-6 fw-bold text-secondary mb-0">{$summary['en_espera']}</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-6 col-lg-3">
+			<div class="card border-0 shadow-sm rounded-4 h-100">
+				<div class="card-body p-4">
+					<div class="text-muted small text-uppercase fw-semibold mb-1">Docs. pendientes</div>
+					<div class="display-6 fw-bold text-danger mb-0">{$summary['con_docs_pendientes']}</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	{{-- Filters --}}
+	<div class="card border-0 shadow-sm rounded-4 mb-4">
+		<div class="card-body p-4">
+			<form method="GET" class="row g-3 align-items-end">
+				<div class="col-12 col-lg-4">
+					<label class="form-label fw-semibold small text-uppercase text-muted">Buscar</label>
+					<input type="text" name="search" class="form-control rounded-3"
+						value="{$search}" placeholder="Folio, nombre o correo">
+				</div>
+				<div class="col-12 col-lg-2">
+					<label class="form-label fw-semibold small text-uppercase text-muted">Estatus</label>
+					<select name="status" class="form-select rounded-3">
+						<option value="todos"      {if $statusFilter === 'todos'}selected{/if}>Todos en cola</option>
+						<option value="solicitado" {if $statusFilter === 'solicitado'}selected{/if}>Solicitado</option>
+						<option value="en_espera"  {if $statusFilter === 'en_espera'}selected{/if}>En espera</option>
+					</select>
+				</div>
+				<div class="col-12 col-lg-2">
+					<label class="form-label fw-semibold small text-uppercase text-muted">Desde</label>
+					<input type="date" name="fecha_desde" class="form-control rounded-3" value="{$fechaDesde}">
+				</div>
+				<div class="col-12 col-lg-2">
+					<label class="form-label fw-semibold small text-uppercase text-muted">Hasta</label>
+					<input type="date" name="fecha_hasta" class="form-control rounded-3" value="{$fechaHasta}">
+				</div>
+				<div class="col-12 col-lg-2 d-flex gap-2">
+					<button type="submit" class="btn btn-primary rounded-3 flex-grow-1">
+						<i class="bi bi-funnel me-1"></i>Filtrar
+					</button>
+					<a href="{url('/portal/prestamos/revision.php')}"
+						class="btn btn-outline-secondary rounded-3 px-3 d-flex align-items-center justify-content-center">
+						<i class="bi bi-x-lg"></i>
+					</a>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	{{-- Loan table --}}
+	<div class="card border-0 shadow-sm rounded-4">
+		<div class="table-responsive">
+			<table class="table table-hover align-middle mb-0">
+				<thead class="bg-light text-uppercase small text-muted">
+					<tr>
+						<th class="px-4 py-3 border-0">Folio / Fecha</th>
+						<th class="py-3 border-0">Solicitante</th>
+						<th class="py-3 border-0">Estatus</th>
+						<th class="py-3 border-0">Monto solicitado</th>
+						<th class="py-3 border-0">Plazo</th>
+						<th class="py-3 border-0">Documentos</th>
+						<th class="py-3 border-0">Días en espera</th>
+						<th class="py-3 border-0 text-end pe-4">Acción</th>
+					</tr>
+				</thead>
+				<tbody>
+					{foreach $loans as $loan}
+					<tr>
+						<td class="px-4 py-3">
+							<div class="fw-semibold text-dark">
+								{if $loan['folio']}{$loan['folio']}{else}<span class="text-muted fst-italic">Sin folio</span>{/if}
+							</div>
+							<div class="small text-muted">{$loan['application_date_label']}</div>
+							{if $loan['is_restructuring']}
+							<span class="badge bg-primary-subtle text-primary rounded-pill small mt-1">
+								<i class="bi bi-arrow-repeat me-1"></i>Reestructuración
+							</span>
+							{/if}
+						</td>
+						<td class="py-3">
+							<div class="fw-semibold text-dark">{$loan['borrower_name']}</div>
+							<div class="small text-muted">{$loan['borrower_email']}</div>
+							{if $loan['borrower_department']}
+							<div class="small text-muted">{$loan['borrower_department']}</div>
+							{/if}
+						</td>
+						<td class="py-3">
+							<span class="badge {$loan['status_badge']} px-3 py-2 rounded-pill">
+								{$loan['status_label']}
+							</span>
+						</td>
+						<td class="py-3">
+							<div class="fw-semibold">{$loan['requested_amount_label']}</div>
+							<div class="small text-muted">{$loan['applied_interest_rate']}% anual</div>
+						</td>
+						<td class="py-3">
+							{if $loan['term_fortnights']}
+							<div class="fw-semibold">{$loan['term_fortnights']} quincenas</div>
+							{else}
+							<div class="text-muted">—</div>
+							{/if}
+						</td>
+						<td class="py-3">
+							{if (int) $loan['total_configs'] > 0}
+								{if (int) $loan['pending_docs'] > 0}
+								<span class="badge bg-danger-subtle text-danger px-2 py-1 rounded-pill">
+									<i class="bi bi-exclamation-circle me-1"></i>{$loan['pending_docs']} pendiente(s)
+								</span>
+								{else}
+								<span class="badge bg-success-subtle text-success px-2 py-1 rounded-pill">
+									<i class="bi bi-check-circle me-1"></i>Completos
+								</span>
+								{/if}
+							{else}
+							<span class="text-muted small">Sin configurar</span>
+							{/if}
+						</td>
+						<td class="py-3">
+							{var $days = (int) $loan['days_elapsed']}
+							{if $days >= 7}
+							<span class="fw-semibold text-danger">{$days} días</span>
+							{elseif $days >= 3}
+							<span class="fw-semibold text-warning">{$days} días</span>
+							{else}
+							<span class="text-muted">{$days} días</span>
+							{/if}
+						</td>
+						<td class="py-3 text-end pe-4">
+							<a href="{url('/portal/prestamos/detalle.php')}?id={$loan['loan_id']}"
+								class="btn btn-sm btn-primary rounded-3 px-3">
+								<i class="bi bi-search me-1"></i>Revisar
+							</a>
+						</td>
+					</tr>
+					{/foreach}
+
+					{if count($loans) === 0}
+					<tr>
+						<td colspan="8" class="text-center py-5 text-muted">
+							<i class="bi bi-inbox display-6 d-block mb-2 opacity-25"></i>
+							No hay solicitudes pendientes de revisión.
+						</td>
+					</tr>
+					{/if}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+{/block}

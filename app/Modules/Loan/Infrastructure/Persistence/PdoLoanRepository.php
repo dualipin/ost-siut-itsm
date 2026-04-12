@@ -154,6 +154,32 @@ final class PdoLoanRepository extends PdoBaseRepository implements LoanRepositor
         return (int) $stmt->fetchColumn();
     }
 
+    public function findDetailById(int $loanId): ?array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT
+                l.*,
+                CONCAT(u.name, ' ', u.surnames)   AS borrower_name,
+                u.name                             AS borrower_first_name,
+                u.surnames                         AS borrower_surnames,
+                u.email                            AS borrower_email,
+                u.curp                             AS borrower_curp,
+                u.department                       AS borrower_department,
+                u.category                         AS borrower_category,
+                u.salary                           AS borrower_salary,
+                u.phone                            AS borrower_phone,
+                DATEDIFF(NOW(), l.application_date) AS days_elapsed
+            FROM loans l
+            INNER JOIN users u ON u.user_id = l.user_id
+            WHERE l.loan_id = :loan_id
+              AND l.deletion_date IS NULL
+        ");
+        $stmt->execute(['loan_id' => $loanId]);
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        return $row ?: null;
+    }
+
     private function hydrate(array $row): Loan
     {
         return new Loan(

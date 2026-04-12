@@ -9,6 +9,7 @@ use App\Modules\Loan\Application\Service\FolioGenerator;
 use App\Modules\Loan\Application\Service\LoanEventLogger;
 use App\Modules\Loan\Application\Service\PdfGeneratorInterface;
 use App\Modules\Loan\Application\UseCase\GenerateAccountStatementUseCase;
+use App\Modules\Loan\Application\UseCase\GetLoanDetailUseCase;
 use App\Modules\Loan\Application\UseCase\RegisterExtraordinaryPaymentUseCase;
 use App\Modules\Loan\Application\UseCase\RegisterPaymentUseCase;
 use App\Modules\Loan\Application\UseCase\RegisterPicoUseCase;
@@ -58,6 +59,7 @@ final class LoanModule extends AbstractModule
 
     protected const array USE_CASES = [
         SubmitLoanApplicationUseCase::class,
+        GetLoanDetailUseCase::class,
         ReviewLoanApplicationUseCase::class,
         ValidateSignedDocumentsUseCase::class,
         RegisterPaymentUseCase::class,

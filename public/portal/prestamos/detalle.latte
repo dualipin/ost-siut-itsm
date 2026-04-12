@@ -1,0 +1,774 @@
+{extends ../../../templates/@portal.latte}
+
+{block main}
+<div class="container-fluid py-4">
+	{include '../../../templates/components/header-page.latte',
+		title: 'Detalle de solicitud',
+		description: 'Revisión, análisis y resolución de la solicitud de préstamo.',
+		icon: 'bi-file-earmark-text'
+	}
+
+	{{-- Alerts --}}
+	{if !empty($errors)}
+	<div class="alert alert-danger rounded-4 d-flex align-items-start gap-2 mb-4" role="alert">
+		<i class="bi bi-exclamation-triangle-fill fs-5 flex-shrink-0 mt-1"></i>
+		<div>
+			{foreach $errors as $err}<div>{$err}</div>{/foreach}
+		</div>
+	</div>
+	{/if}
+
+	{if $success !== null}
+	<div class="alert alert-success rounded-4 d-flex align-items-center gap-2 mb-4" role="alert">
+		<i class="bi bi-check-circle-fill fs-5 flex-shrink-0"></i>
+		{$success}
+	</div>
+	{/if}
+
+	<div class="row g-4" x-data="loanDetail()">
+
+		{{-- ================================================================ --}}
+		{{-- COLUMNA PRINCIPAL                                                 --}}
+		{{-- ================================================================ --}}
+		<div class="col-12 col-lg-8">
+
+			{{-- ============================================================ --}}
+			{{-- SECCIÓN 1 · Encabezado de Identificación y Estado            --}}
+			{{-- ============================================================ --}}
+			<div class="card border-0 shadow-sm rounded-4 mb-4">
+				<div class="card-body p-4">
+					<div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
+						<div>
+							<h2 class="h4 fw-bold mb-1">
+								{if $loan['folio']}
+									{$loan['folio']}
+								{else}
+									<span class="text-muted fst-italic">Sin folio asignado</span>
+								{/if}
+							</h2>
+							<span class="badge {$statusBadge} px-3 py-2 rounded-pill fs-6">
+								{$statusLabel}
+							</span>
+						</div>
+						<a href="{url('/portal/prestamos/revision.php')}"
+							class="btn btn-outline-secondary btn-sm rounded-3">
+							<i class="bi bi-arrow-left me-1"></i>Volver a la cola
+						</a>
+					</div>
+
+					{{-- Reestructuring alert --}}
+					{if $loan['original_loan_id'] || $loan['requires_restructuring']}
+					<div class="alert alert-primary rounded-3 d-flex align-items-center gap-2 mb-3 py-2">
+						<i class="bi bi-arrow-repeat fs-5"></i>
+						<strong>Esta solicitud es una reestructuración</strong> del préstamo
+						{if $loan['original_loan_id']}
+							<a href="{url('/portal/prestamos/detalle.php')}?id={$loan['original_loan_id']}"
+								class="alert-link ms-1">#{$loan['original_loan_id']}</a>
+						{/if}
+					</div>
+					{/if}
+
+					<div class="row g-3">
+						<div class="col-6 col-md-3">
+							<div class="text-muted small text-uppercase fw-semibold mb-1">Solicitante</div>
+							<div class="fw-semibold">{$loan['borrower_name']}</div>
+							<div class="small text-muted">{$loan['borrower_email']}</div>
+						</div>
+						<div class="col-6 col-md-3">
+							<div class="text-muted small text-uppercase fw-semibold mb-1">Departamento</div>
+							<div class="fw-semibold">{$loan['borrower_department'] ?? '—'}</div>
+							<div class="small text-muted">{$loan['borrower_category'] ?? '—'}</div>
+						</div>
+						<div class="col-6 col-md-3">
+							<div class="text-muted small text-uppercase fw-semibold mb-1">Fecha solicitud</div>
+							<div class="fw-semibold">{date('d/m/Y', strtotime($loan['application_date']))}</div>
+							<div class="small text-muted">{date('H:i', strtotime($loan['application_date']))}</div>
+						</div>
+						<div class="col-6 col-md-3">
+							<div class="text-muted small text-uppercase fw-semibold mb-1">Días en proceso</div>
+							<div class="fw-semibold {if (int) $loan['days_elapsed'] >= 7}text-danger{/if}">
+								{$loan['days_elapsed']} día(s)
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			{{-- ============================================================ --}}
+			{{-- SECCIÓN 2 · Financiera (Solicitud vs. Aprobación)            --}}
+			{{-- ============================================================ --}}
+			<div class="card border-0 shadow-sm rounded-4 mb-4">
+				<div class="card-header bg-transparent border-0 px-4 pt-4 pb-0">
+					<h3 class="h5 fw-bold mb-0">
+						<i class="bi bi-currency-dollar me-2 text-primary"></i>Análisis Financiero
+					</h3>
+				</div>
+				<div class="card-body p-4">
+					<div class="row g-4">
+						{{-- Requested col --}}
+						<div class="col-12 col-md-6">
+							<p class="text-muted small text-uppercase fw-semibold mb-3">Solicitado por el empleado</p>
+							<div class="d-flex justify-content-between mb-2">
+								<span class="text-muted">Monto solicitado</span>
+								<span class="fw-semibold">${number_format((float) $loan['requested_amount'], 2)}</span>
+							</div>
+							<div class="d-flex justify-content-between mb-2">
+								<span class="text-muted">Tasa de interés</span>
+								<span class="fw-semibold">{$loan['applied_interest_rate']}% anual</span>
+							</div>
+							<div class="d-flex justify-content-between mb-2">
+								<span class="text-muted">Plazo</span>
+								<span class="fw-semibold">
+									{if $loan['term_fortnights']}{$loan['term_fortnights']} quincenas{else}—{/if}
+								</span>
+							</div>
+							<div class="d-flex justify-content-between">
+								<span class="text-muted">Tasa moratoria diaria</span>
+								<span class="fw-semibold text-danger">
+									{if $loan['daily_default_rate']}{$loan['daily_default_rate']}%{else}—{/if}
+								</span>
+							</div>
+						</div>
+
+						{{-- Approval form col --}}
+						<div class="col-12 col-md-6">
+							<p class="text-muted small text-uppercase fw-semibold mb-3">A autorizar (editable)</p>
+							<div class="mb-3">
+								<label for="input-approved-amount"
+									class="form-label fw-semibold small">Monto a aprobar (MXN)</label>
+								<div class="input-group">
+									<span class="input-group-text">$</span>
+									<input type="number" id="input-approved-amount"
+										class="form-control rounded-end"
+										step="0.01" min="1"
+										x-model.number="approvedAmount"
+										value="{$loan['approved_amount'] ?? $loan['requested_amount']}"
+										{if !$canReview}disabled{/if}>
+								</div>
+							</div>
+							<div class="mb-3">
+								<label for="input-interest-rate"
+									class="form-label fw-semibold small">Tasa de interés (%)</label>
+								<input type="number" id="input-interest-rate"
+									class="form-control"
+									step="0.01" min="0"
+									x-model.number="interestRate"
+									value="{$loan['applied_interest_rate']}"
+									{if !$canReview}disabled{/if}>
+							</div>
+							<div class="mb-3">
+								<label for="input-term" class="form-label fw-semibold small">Plazo (quincenas)</label>
+								<input type="number" id="input-term"
+									class="form-control"
+									min="1"
+									x-model.number="termFortnights"
+									value="{$loan['term_fortnights'] ?? 24}"
+									{if !$canReview}disabled{/if}>
+							</div>
+							<div class="d-flex justify-content-between align-items-end">
+								<span class="text-muted small">Total estimado a pagar</span>
+								<span class="fw-bold fs-5 text-primary" x-text="formatMXN(estimatedTotal)">
+									{if $loan['estimated_total_to_pay']}
+										${number_format((float) $loan['estimated_total_to_pay'], 2)}
+									{else}—{/if}
+								</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			{{-- ============================================================ --}}
+			{{-- SECCIÓN 3 · Configuración de Fuentes de Ingreso              --}}
+			{{-- ============================================================ --}}
+			<div class="card border-0 shadow-sm rounded-4 mb-4">
+				<div class="card-header bg-transparent border-0 px-4 pt-4 pb-0">
+					<h3 class="h5 fw-bold mb-0">
+						<i class="bi bi-wallet2 me-2 text-success"></i>Fuentes de Pago y Documentos Probatorios
+					</h3>
+				</div>
+				<div class="card-body p-4">
+					{if count($detail['payment_configs']) === 0}
+					<p class="text-muted fst-italic mb-0">No hay configuraciones de pago registradas.</p>
+					{else}
+					<div class="table-responsive">
+						<table class="table align-middle mb-0">
+							<thead class="text-uppercase small text-muted">
+								<tr>
+									<th class="py-2 border-0">Fuente de ingreso</th>
+									<th class="py-2 border-0">Total a descontar</th>
+									<th class="py-2 border-0">Parcialidades</th>
+									<th class="py-2 border-0">Por parcialidad</th>
+									<th class="py-2 border-0">Método</th>
+									<th class="py-2 border-0">Documento</th>
+									<th class="py-2 border-0">Validación</th>
+								</tr>
+							</thead>
+							<tbody>
+								{foreach $detail['payment_configs'] as $config}
+								<tr x-data="docValidator({paymentConfigId: {$config['payment_config_id']}, initialStatus: '{$config['document_status']}'})">
+									<td class="py-3">
+										<div class="fw-semibold">{$config['income_type_name']}</div>
+										{if $config['income_is_periodic']}
+										<span class="badge bg-info-subtle text-info small">Periódico</span>
+										{else}
+										<span class="badge bg-secondary-subtle text-secondary small">Prestación</span>
+										{/if}
+									</td>
+									<td class="py-3 fw-semibold">
+										${number_format((float) $config['total_amount_to_deduct'], 2)}
+									</td>
+									<td class="py-3">{$config['number_of_installments']}</td>
+									<td class="py-3">
+										{if $config['amount_per_installment']}
+										${number_format((float) $config['amount_per_installment'], 2)}
+										{else}—{/if}
+									</td>
+									<td class="py-3">
+										<span class="badge bg-light text-dark border small">
+											{$config['interest_method']}
+										</span>
+									</td>
+									<td class="py-3">
+										{if $config['supporting_document_path']}
+										<a href="{$config['supporting_document_path']}" target="_blank"
+											class="btn btn-outline-secondary btn-sm rounded-3 px-2 py-1">
+											<i class="bi bi-file-earmark-arrow-down me-1"></i>Ver
+										</a>
+										{else}
+										<span class="text-muted small">Sin documento</span>
+										{/if}
+									</td>
+									<td class="py-3">
+										{if $config['supporting_document_path'] && $canReview}
+										<div class="d-flex gap-1 flex-wrap">
+											<button type="button"
+												class="btn btn-sm rounded-3"
+												:class="status === 'validado' ? 'btn-success' : 'btn-outline-success'"
+												@click="validate('validado')"
+												:disabled="loading" title="Validar documento">
+												<i class="bi bi-check-lg"></i>
+											</button>
+											<button type="button"
+												class="btn btn-sm rounded-3"
+												:class="status === 'rechazado' ? 'btn-danger' : 'btn-outline-danger'"
+												@click="validate('rechazado')"
+												:disabled="loading" title="Rechazar documento">
+												<i class="bi bi-x-lg"></i>
+											</button>
+											<button type="button"
+												class="btn btn-sm rounded-3"
+												:class="status === 'pendiente' ? 'btn-warning' : 'btn-outline-warning'"
+												@click="validate('pendiente')"
+												:disabled="loading" title="Marcar pendiente">
+												<i class="bi bi-clock"></i>
+											</button>
+										</div>
+										<div class="small mt-1" x-show="status !== 'pendiente'">
+											<span x-text="status === 'validado' ? '✓ Validado' : '✗ Rechazado'"
+												:class="status === 'validado' ? 'text-success' : 'text-danger'">
+											</span>
+										</div>
+										{else}
+										<span class="badge
+											{if $config['document_status'] === 'validado'}bg-success-subtle text-success
+											{elseif $config['document_status'] === 'rechazado'}bg-danger-subtle text-danger
+											{else}bg-warning-subtle text-warning{/if}
+											px-2 py-1 rounded-pill small">
+											{ucfirst($config['document_status'])}
+										</span>
+										{/if}
+									</td>
+								</tr>
+								{{-- Observations row --}}
+								{if $config['document_observations']}
+								<tr class="bg-light-subtle">
+									<td colspan="7" class="py-2 px-3">
+										<span class="text-muted small">
+											<i class="bi bi-chat-left-text me-1"></i>
+											<strong>Observaciones:</strong> {$config['document_observations']}
+										</span>
+									</td>
+								</tr>
+								{/if}
+								{/foreach}
+							</tbody>
+						</table>
+					</div>
+					{/if}
+				</div>
+			</div>
+
+			{{-- ============================================================ --}}
+			{{-- SECCIÓN 4 · Tabla de Amortización                            --}}
+			{{-- ============================================================ --}}
+			<div class="card border-0 shadow-sm rounded-4 mb-4">
+				<div class="card-header bg-transparent border-0 px-4 pt-4 pb-0">
+					<h3 class="h5 fw-bold mb-0">
+						<i class="bi bi-table me-2 text-info"></i>Tabla de Amortización
+						{if count($detail['amortization']) > 0}
+						<span class="badge bg-info-subtle text-info ms-2 small">
+							{count($detail['amortization'])} pagos
+						</span>
+						{/if}
+					</h3>
+				</div>
+				<div class="card-body p-4">
+					{if count($detail['amortization']) === 0}
+					<div class="text-center py-4 text-muted">
+						<i class="bi bi-hourglass-split fs-3 d-block mb-2 opacity-25"></i>
+						<p class="mb-0">La tabla de amortización se generará al aprobar el préstamo.</p>
+					</div>
+					{else}
+					<div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+						<table class="table table-sm align-middle mb-0">
+							<thead class="text-uppercase small text-muted sticky-top bg-white">
+								<tr>
+									<th class="py-2 border-0">#</th>
+									<th class="py-2 border-0">Fecha programada</th>
+									<th class="py-2 border-0">Saldo inicial</th>
+									<th class="py-2 border-0">Capital</th>
+									<th class="py-2 border-0">Interés</th>
+									<th class="py-2 border-0 fw-bold">Total pago</th>
+									<th class="py-2 border-0">Saldo final</th>
+								</tr>
+							</thead>
+							<tbody>
+								{foreach $detail['amortization'] as $row}
+								<tr>
+									<td class="py-2 text-muted">{$row['payment_number']}</td>
+									<td class="py-2">{date('d/m/Y', strtotime($row['scheduled_date']))}</td>
+									<td class="py-2">${number_format((float) $row['initial_balance'], 2)}</td>
+									<td class="py-2">${number_format((float) $row['principal'], 2)}</td>
+									<td class="py-2 text-warning">${number_format((float) $row['ordinary_interest'], 2)}</td>
+									<td class="py-2 fw-semibold text-primary">${number_format((float) $row['total_scheduled_payment'], 2)}</td>
+									<td class="py-2 text-muted">${number_format((float) $row['final_balance'], 2)}</td>
+								</tr>
+								{/foreach}
+							</tbody>
+							<tfoot class="fw-bold bg-light">
+								<tr>
+									<td colspan="3" class="py-2 text-uppercase small text-muted">Totales</td>
+									{var $totalPrincipal = array_sum(array_column($detail['amortization'], 'principal'))}
+									{var $totalInterest = array_sum(array_column($detail['amortization'], 'ordinary_interest'))}
+									{var $totalPayment = array_sum(array_column($detail['amortization'], 'total_scheduled_payment'))}
+									<td class="py-2">${number_format($totalPrincipal, 2)}</td>
+									<td class="py-2 text-warning">${number_format($totalInterest, 2)}</td>
+									<td class="py-2 text-primary">${number_format($totalPayment, 2)}</td>
+									<td></td>
+								</tr>
+							</tfoot>
+						</table>
+					</div>
+					{/if}
+				</div>
+			</div>
+
+			{{-- ============================================================ --}}
+			{{-- SECCIÓN 5 · Documentos Legales                               --}}
+			{{-- ============================================================ --}}
+			<div class="card border-0 shadow-sm rounded-4 mb-4">
+				<div class="card-header bg-transparent border-0 px-4 pt-4 pb-0">
+					<h3 class="h5 fw-bold mb-0">
+						<i class="bi bi-file-earmark-lock2 me-2 text-secondary"></i>Documentos Legales
+					</h3>
+				</div>
+				<div class="card-body p-4">
+					{if count($detail['legal_docs']) === 0}
+					<div class="text-center py-4 text-muted">
+						<i class="bi bi-folder2-open fs-3 d-block mb-2 opacity-25"></i>
+						<p class="mb-0">No se han generado documentos legales aún.</p>
+					</div>
+					{else}
+					<div class="d-flex flex-column gap-3">
+						{foreach $detail['legal_docs'] as $doc}
+						<div class="d-flex align-items-center justify-content-between p-3 rounded-3 border">
+							<div class="d-flex align-items-center gap-3">
+								<i class="bi bi-file-earmark-pdf text-danger fs-4"></i>
+								<div>
+									<div class="fw-semibold">
+										{match($doc['document_type']){
+											'pagare' => 'Pagaré',
+											'formulario_solicitud' => 'Formulario de Solicitud',
+											'contrato_consentimiento' => 'Contrato de Consentimiento',
+											default => ucfirst($doc['document_type'])
+										}}
+									</div>
+									<div class="small text-muted">Versión {$doc['version']} · Generado {$doc['generation_date']}</div>
+								</div>
+							</div>
+							<div class="d-flex align-items-center gap-3">
+								{{-- Firma del usuario --}}
+								{if $doc['requires_user_signature']}
+								<div class="text-center small">
+									<div class="text-muted mb-1">Firma empleado</div>
+									{if $doc['user_signature_date']}
+									<span class="badge bg-success-subtle text-success px-2 rounded-pill">
+										<i class="bi bi-check me-1"></i>{$doc['user_signature_date']}
+									</span>
+									{else}
+									<span class="badge bg-warning-subtle text-warning px-2 rounded-pill">
+										<i class="bi bi-clock me-1"></i>Pendiente
+									</span>
+									{/if}
+								</div>
+								{/if}
+								{{-- Validación Finanzas --}}
+								{if $doc['requires_finance_validation']}
+								<div class="text-center small">
+									<div class="text-muted mb-1">Validado Finanzas</div>
+									{if $doc['validated_by_finance']}
+									<span class="badge bg-success-subtle text-success px-2 rounded-pill">
+										<i class="bi bi-check me-1"></i>{$doc['validation_date']}
+									</span>
+									{else}
+									<span class="badge bg-warning-subtle text-warning px-2 rounded-pill">
+										<i class="bi bi-clock me-1"></i>Pendiente
+									</span>
+									{/if}
+								</div>
+								{/if}
+								{{-- Download link --}}
+								<a href="{$doc['file_path']}" target="_blank"
+									class="btn btn-outline-secondary btn-sm rounded-3 px-3">
+									<i class="bi bi-download me-1"></i>Descargar
+								</a>
+							</div>
+						</div>
+						{/foreach}
+					</div>
+					{/if}
+				</div>
+			</div>
+
+			{{-- ============================================================ --}}
+			{{-- SECCIÓN 6 · Historial de Reestructuración (condicional)      --}}
+			{{-- ============================================================ --}}
+			{if $detail['restructuring'] !== null}
+			<div class="card border-0 shadow-sm rounded-4 border-start border-4 border-primary mb-4">
+				<div class="card-header bg-transparent border-0 px-4 pt-4 pb-0">
+					<h3 class="h5 fw-bold mb-0 text-primary">
+						<i class="bi bi-arrow-repeat me-2"></i>Historial de Reestructuración
+					</h3>
+				</div>
+				<div class="card-body p-4">
+					{var $r = $detail['restructuring']}
+					<div class="row g-3">
+						<div class="col-6 col-md-4">
+							<div class="text-muted small text-uppercase fw-semibold mb-1">Motivo</div>
+							<div class="fw-semibold">{$r->reason ?? '—'}</div>
+						</div>
+						<div class="col-6 col-md-4">
+							<div class="text-muted small text-uppercase fw-semibold mb-1">Saldo insoluto anterior</div>
+							<div class="fw-semibold text-danger">
+								${number_format((float) ($r->original_outstanding_balance ?? 0), 2)}
+							</div>
+						</div>
+						<div class="col-6 col-md-4">
+							<div class="text-muted small text-uppercase fw-semibold mb-1">Interés pendiente</div>
+							<div class="fw-semibold text-warning">
+								${number_format((float) ($r->pending_interest ?? 0), 2)}
+							</div>
+						</div>
+						<div class="col-6 col-md-4">
+							<div class="text-muted small text-uppercase fw-semibold mb-1">Interés moratorio pendiente</div>
+							<div class="fw-semibold text-danger">
+								${number_format((float) ($r->pending_default_interest ?? 0), 2)}
+							</div>
+						</div>
+						<div class="col-6 col-md-4">
+							<div class="text-muted small text-uppercase fw-semibold mb-1">Nuevo monto total</div>
+							<div class="fw-semibold">
+								${number_format((float) ($r->new_total_amount ?? 0), 2)}
+							</div>
+						</div>
+						<div class="col-6 col-md-4">
+							<div class="text-muted small text-uppercase fw-semibold mb-1">Fecha de reestructuración</div>
+							<div class="fw-semibold">
+								{if isset($r->restructuring_date)}
+									{date('d/m/Y', strtotime($r->restructuring_date))}
+								{else}—{/if}
+							</div>
+						</div>
+					</div>
+					{if !empty($r->observations)}
+					<div class="mt-3 p-3 bg-light rounded-3">
+						<div class="small text-muted fw-semibold mb-1">Observaciones</div>
+						<div>{$r->observations}</div>
+					</div>
+					{/if}
+					{if $detail['original_loan'] !== null}
+					<div class="mt-3">
+						<a href="{url('/portal/prestamos/detalle.php')}?id={$detail['original_loan']['loan_id']}"
+							class="btn btn-outline-primary btn-sm rounded-3">
+							<i class="bi bi-box-arrow-up-right me-1"></i>
+							Ver préstamo original ({$detail['original_loan']['folio'] ?? '#'.$detail['original_loan']['loan_id']})
+						</a>
+					</div>
+					{/if}
+				</div>
+			</div>
+			{/if}
+
+		</div>
+		{{-- END columna principal --}}
+
+
+		{{-- ================================================================ --}}
+		{{-- PANEL LATERAL STICKY — Resolución                                --}}
+		{{-- ================================================================ --}}
+		<div class="col-12 col-lg-4">
+			<div class="sticky-top" style="top: 80px;">
+
+				{{-- Observaciones --}}
+				<div class="card border-0 shadow-sm rounded-4 mb-3">
+					<div class="card-body p-4">
+						<h3 class="h6 fw-bold mb-3 text-uppercase text-muted">
+							<i class="bi bi-lock-fill me-1"></i>Observaciones internas
+						</h3>
+						<textarea id="internal_observations" name="internal_observations" rows="3"
+							class="form-control rounded-3 mb-3"
+							placeholder="Notas privadas del comité (no visibles al empleado)…">{$loan['internal_observations'] ?? ''}</textarea>
+
+						<h3 class="h6 fw-bold mb-3 text-uppercase text-muted">
+							<i class="bi bi-chat-dots me-1"></i>Observaciones para el empleado
+						</h3>
+						<textarea id="admin_observations" name="admin_observations" rows="3"
+							class="form-control rounded-3"
+							placeholder="Mensaje visible para el solicitante…">{$loan['admin_observations'] ?? ''}</textarea>
+					</div>
+				</div>
+
+				{{-- Action panel --}}
+				{if $canReview}
+				<div class="card border-0 shadow-sm rounded-4">
+					<div class="card-body p-4">
+						<h3 class="h6 fw-bold mb-4 text-uppercase text-muted">
+							<i class="bi bi-clipboard2-check me-1"></i>Resolución
+						</h3>
+
+						{{-- APPROVE form --}}
+						<form method="POST"
+							action="{url('/portal/prestamos/detalle.php')}?id={$loan['loan_id']}"
+							id="form-aprobar">
+							<input type="hidden" name="action" value="aprobar">
+							<input type="hidden" name="approved_amount"
+								:value="approvedAmount">
+							<input type="hidden" name="applied_interest_rate"
+								:value="interestRate">
+							<input type="hidden" name="term_fortnights"
+								:value="termFortnights">
+							<input type="hidden" name="daily_default_rate"
+								value="{$loan['daily_default_rate'] ?? '0'}">
+							<textarea name="admin_observations" class="d-none"
+								id="obs-aprobar"></textarea>
+
+							<button type="submit" form="form-aprobar"
+								class="btn btn-success w-100 rounded-3 mb-2 py-2"
+								id="btn-aprobar"
+								onclick="syncObs()">
+								<i class="bi bi-check-circle me-2"></i>Aprobar préstamo
+							</button>
+						</form>
+
+						{{-- HOLD form --}}
+						<form method="POST"
+							action="{url('/portal/prestamos/detalle.php')}?id={$loan['loan_id']}"
+							id="form-espera">
+							<input type="hidden" name="action" value="en_espera">
+							<input type="hidden" name="hold_reason"
+								id="hold-reason-input">
+							<button type="button"
+								class="btn btn-outline-secondary w-100 rounded-3 mb-2 py-2"
+								data-bs-toggle="modal"
+								data-bs-target="#modal-espera"
+								id="btn-espera">
+								<i class="bi bi-pause-circle me-2"></i>Poner en espera
+							</button>
+						</form>
+
+						{{-- REJECT button --}}
+						<button type="button"
+							class="btn btn-outline-danger w-100 rounded-3 py-2"
+							data-bs-toggle="modal"
+							data-bs-target="#modal-rechazo"
+							id="btn-rechazar">
+							<i class="bi bi-x-circle me-2"></i>Rechazar solicitud
+						</button>
+					</div>
+				</div>
+				{else}
+				{{-- Read-only status panel --}}
+				<div class="card border-0 shadow-sm rounded-4">
+					<div class="card-body p-4 text-center">
+						<i class="bi bi-lock fs-2 text-muted d-block mb-2 opacity-50"></i>
+						<p class="text-muted mb-0">
+							Esta solicitud está en estado
+							<span class="badge {$statusBadge} px-2">{$statusLabel}</span>
+							y no puede ser modificada en este momento.
+						</p>
+					</div>
+				</div>
+				{/if}
+
+			</div>
+		</div>
+		{{-- END panel lateral --}}
+
+	</div>
+</div>
+
+{{-- ================================================================ --}}
+{{-- MODAL · Rechazar solicitud                                       --}}
+{{-- ================================================================ --}}
+<div class="modal fade" id="modal-rechazo" tabindex="-1"
+	aria-labelledby="modal-rechazo-label" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content rounded-4 border-0 shadow">
+			<div class="modal-header border-0 pb-0">
+				<h4 class="modal-title h5 fw-bold text-danger" id="modal-rechazo-label">
+					<i class="bi bi-x-circle me-2"></i>Rechazar solicitud
+				</h4>
+				<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+			</div>
+			<form method="POST"
+				action="{url('/portal/prestamos/detalle.php')}?id={$loan['loan_id']}"
+				id="form-rechazo">
+				<input type="hidden" name="action" value="rechazar">
+				<div class="modal-body px-4 py-3">
+					<div class="alert alert-danger rounded-3 small">
+						Esta acción es <strong>definitiva</strong>. El empleado recibirá el motivo de rechazo.
+					</div>
+					<label for="rejection_reason" class="form-label fw-semibold">
+						Motivo de rechazo <span class="text-danger">*</span>
+					</label>
+					<textarea id="rejection_reason" name="rejection_reason"
+						class="form-control rounded-3" rows="4"
+						placeholder="Explica detalladamente el motivo…"
+						required></textarea>
+				</div>
+				<div class="modal-footer border-0 pt-0">
+					<button type="button" class="btn btn-outline-secondary rounded-3"
+						data-bs-dismiss="modal">Cancelar</button>
+					<button type="submit" class="btn btn-danger rounded-3" id="btn-confirm-rechazo">
+						<i class="bi bi-x-circle me-1"></i>Confirmar rechazo
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+{{-- ================================================================ --}}
+{{-- MODAL · Poner en espera                                          --}}
+{{-- ================================================================ --}}
+<div class="modal fade" id="modal-espera" tabindex="-1"
+	aria-labelledby="modal-espera-label" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content rounded-4 border-0 shadow">
+			<div class="modal-header border-0 pb-0">
+				<h4 class="modal-title h5 fw-bold" id="modal-espera-label">
+					<i class="bi bi-pause-circle me-2 text-secondary"></i>Poner en espera
+				</h4>
+				<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+			</div>
+			<div class="modal-body px-4 py-3">
+				<p class="text-muted">Indica el motivo por el que la solicitud quedará en espera.</p>
+				<label for="hold-reason-text" class="form-label fw-semibold">Motivo (opcional)</label>
+				<textarea id="hold-reason-text" class="form-control rounded-3" rows="3"
+					placeholder="Ej. Se solicitó documentación adicional…"></textarea>
+			</div>
+			<div class="modal-footer border-0 pt-0">
+				<button type="button" class="btn btn-outline-secondary rounded-3"
+					data-bs-dismiss="modal">Cancelar</button>
+				<button type="button" class="btn btn-secondary rounded-3" id="btn-confirm-espera">
+					<i class="bi bi-pause-circle me-1"></i>Confirmar
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+{/block}
+
+{block scripts}
+<script>
+// Sync shared textarea values to hidden fields before submit
+function syncObs() {
+    const obsEl = document.getElementById('admin_observations');
+    document.getElementById('obs-aprobar').value = obsEl ? obsEl.value : '';
+}
+
+// Hold modal confirm
+document.getElementById('btn-confirm-espera')?.addEventListener('click', function () {
+    const reason = document.getElementById('hold-reason-text')?.value ?? '';
+    document.getElementById('hold-reason-input').value = reason;
+    document.getElementById('form-espera').submit();
+});
+
+// Alpine.js main data
+function loanDetail() {
+    return {
+        approvedAmount: {$loan['approved_amount'] ?? $loan['requested_amount']},
+        interestRate: {$loan['applied_interest_rate']},
+        termFortnights: {$loan['term_fortnights'] ?? 24},
+        get estimatedTotal() {
+            const P = parseFloat(this.approvedAmount) || 0;
+            const r = (parseFloat(this.interestRate) / 100) / 24; // fortnight rate
+            const n = parseInt(this.termFortnights) || 1;
+            if (r === 0) return P;
+            // German simple: constant principal + decreasing interest
+            const principal = P / n;
+            let total = 0;
+            let balance = P;
+            for (let i = 0; i < n; i++) {
+                total += principal + (balance * r);
+                balance -= principal;
+            }
+            return total;
+        },
+        formatMXN(val) {
+            return '$' + parseFloat(val).toLocaleString('es-MX', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+    }
+}
+
+// Alpine.js per-row document validator
+function docValidator({ paymentConfigId, initialStatus }) {
+    return {
+        configId: paymentConfigId,
+        status: initialStatus,
+        loading: false,
+        async validate(newStatus) {
+            if (this.loading) return;
+            this.loading = true;
+            try {
+                const formData = new FormData();
+                formData.append('config_id', this.configId);
+                formData.append('status', newStatus);
+                const res = await fetch('{url('/portal/prestamos/ajax/validar-documento.php')}', {
+                    method: 'POST',
+                    body: formData
+                });
+                const json = await res.json();
+                if (json.ok) {
+                    this.status = newStatus;
+                    Alpine.store('toast')?.show({
+                        type: newStatus === 'validado' ? 'success' : (newStatus === 'rechazado' ? 'danger' : 'warning'),
+                        message: 'Documento marcado como ' + newStatus
+                    });
+                } else {
+                    Alpine.store('toast')?.show({ type: 'danger', message: json.error ?? 'Error al actualizar' });
+                }
+            } catch(e) {
+                Alpine.store('toast')?.show({ type: 'danger', message: 'Error de red' });
+            } finally {
+                this.loading = false;
+            }
+        }
+    }
+}
+</script>
+{/block}

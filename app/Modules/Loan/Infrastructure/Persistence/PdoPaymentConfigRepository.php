@@ -15,6 +15,25 @@ final class PdoPaymentConfigRepository extends PdoBaseRepository implements Paym
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
+    public function findByLoanIdWithIncomeType(int $loanId): array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT
+                lpc.*,
+                cit.name                    AS income_type_name,
+                cit.is_periodic             AS income_is_periodic,
+                cit.tentative_payment_month AS income_payment_month,
+                cit.tentative_payment_day   AS income_payment_day
+            FROM loan_payment_configuration lpc
+            INNER JOIN cat_income_types cit ON cit.income_type_id = lpc.income_type_id
+            WHERE lpc.loan_id = :loan_id
+            ORDER BY lpc.payment_config_id ASC
+        ");
+        $stmt->execute(['loan_id' => $loanId]);
+        
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
     public function save(array $config): int
     {
         $stmt = $this->pdo->prepare("
@@ -41,6 +60,23 @@ final class PdoPaymentConfigRepository extends PdoBaseRepository implements Paym
         ");
         
         $stmt->execute(array_merge($data, ['config_id' => $configId]));
+    }
+
+    public function updateDocumentStatus(int $configId, string $status, ?string $observations): void
+    {
+        $stmt = $this->pdo->prepare("
+            UPDATE loan_payment_configuration SET
+                document_status           = :document_status,
+                document_observations     = :document_observations,
+                document_validation_date  = NOW()
+            WHERE payment_config_id = :config_id
+        ");
+
+        $stmt->execute([
+            'config_id'            => $configId,
+            'document_status'      => $status,
+            'document_observations' => $observations,
+        ]);
     }
 
     public function deleteByLoanId(int $loanId): void

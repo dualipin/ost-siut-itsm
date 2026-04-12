@@ -23,4 +23,12 @@ interface LoanRepositoryInterface
     public function getLastFolioForYear(int $year): ?Folio;
 
     public function countByUserAndStatus(int $userId, LoanStatusEnum $status): int;
+
+    /**
+     * Returns a flat array with all loan fields + borrower user data
+     * (name, surnames, email, curp, department, category, salary)
+     * plus computed fields: days_elapsed.
+     * Returns null if not found.
+     */
+    public function findDetailById(int $loanId): ?array;
 }
