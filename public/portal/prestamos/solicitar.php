@@ -136,6 +136,11 @@ if ($request->method() === "POST") {
             );
 
             $loanId = $result['loan_id'];
+
+            if (!$saveDraft) {
+                $submitLoanUseCase->submit($loanId);
+            }
+
             $simulation = $result['amortization_schedule'];
             $success = true;
 

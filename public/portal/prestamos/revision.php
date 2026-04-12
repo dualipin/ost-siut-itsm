@@ -22,10 +22,10 @@ $currentUser = $userContext->get();
 $db          = $container->get(\PDO::class);
 
 // Filters
-$allowedStatuses = ['solicitado', 'en_espera', 'todos'];
-$statusFilter    = trim((string) ($_GET['status'] ?? 'solicitado'));
+$allowedStatuses = ['solicitado', 'en_espera', 'borrador', 'todos'];
+$statusFilter    = trim((string) ($_GET['status'] ?? 'todos'));
 if (!in_array($statusFilter, $allowedStatuses, true)) {
-    $statusFilter = 'solicitado';
+    $statusFilter = 'todos';
 }
 
 $search     = trim((string) ($_GET['search'] ?? ''));
@@ -36,7 +36,7 @@ $where  = ['l.deletion_date IS NULL'];
 $params = [];
 
 if ($statusFilter === 'todos') {
-    $where[] = "l.status IN ('solicitado', 'en_espera')";
+    $where[] = "l.status IN ('borrador', 'solicitado', 'en_espera')";
 } else {
     $where[] = 'l.status = :status';
     $params['status'] = $statusFilter;
@@ -91,16 +91,19 @@ $loans = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
 // Status badge and label maps
 $statusLabels = [
+    'borrador'   => 'Borrador',
     'solicitado' => 'Solicitado',
     'en_espera'  => 'En espera',
 ];
 $statusBadges = [
+    'borrador'   => 'bg-secondary-subtle text-secondary',
     'solicitado' => 'bg-warning-subtle text-warning',
     'en_espera'  => 'bg-dark-subtle text-secondary',
 ];
 
 // Summary counts
 $summary = [
+    'borrador'   => 0,
     'solicitado' => 0,
     'en_espera'  => 0,
     'total'      => count($loans),
