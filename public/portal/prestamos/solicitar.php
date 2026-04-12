@@ -35,6 +35,7 @@ $loanId = null;
 $simulation = null;
 $draftState = null;
 $isDraftEdit = false;
+$saveDraft = false;
 
 $draftId = filter_var($_GET['draft_id'] ?? $_POST['draft_id'] ?? '', FILTER_VALIDATE_INT);
 if ($draftId !== false && $draftId > 0) {
@@ -296,6 +297,11 @@ if ($request->method() === "POST") {
     } catch (\Exception $e) {
         $errors[] = "Error al procesar la solicitud: " . $e->getMessage();
     }
+}
+
+if ($success && !$saveDraft) {
+    header('Location: /portal/prestamos/activos.php');
+    exit;
 }
 
 // Get current date for defaults
