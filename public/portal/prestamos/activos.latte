@@ -90,6 +90,7 @@
 						<th class="py-3 border-0">Saldo</th>
 						<th class="py-3 border-0">Fecha de referencia</th>
 						<th class="py-3 border-0">Mora</th>
+						<th class="py-3 border-0 text-end pe-4">Acciones</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -131,12 +132,17 @@
 									<span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill">Al corriente</span>
 								{/if}
 							</td>
+							<td class="py-3 pe-4 text-end">
+								<a href="{url('/portal/prestamos/activo-detalle.php')}?id={$loan['loan_id']}" class="btn btn-sm btn-outline-primary rounded-3">
+									<i class="bi bi-eye me-1"></i>Ver detalle
+								</a>
+							</td>
 						</tr>
 					{/foreach}
 
 					{if count($loans) === 0}
 						<tr>
-							<td colspan="7" class="text-center py-5 text-muted">
+							<td colspan="8" class="text-center py-5 text-muted">
 								No se encontraron préstamos con esos filtros.
 							</td>
 						</tr>
