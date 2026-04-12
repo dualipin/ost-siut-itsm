@@ -4,6 +4,7 @@ use App\Bootstrap;
 use App\Http\Middleware\MiddlewareFactory;
 use App\Http\Middleware\MiddlewareRunner;
 use App\Infrastructure\Templating\RendererInterface;
+use App\Shared\Context\UserContextInterface;
 
 require_once __DIR__ . "/../../../bootstrap.php";
 
@@ -14,6 +15,8 @@ $runner = $container->get(MiddlewareRunner::class);
 $runner->runOrRedirect($middleware->auth());
 
 $renderer = $container->get(RendererInterface::class);
+$userContext = $container->get(UserContextInterface::class);
+$currentUser = $userContext->get();
 $db = $container->get(\PDO::class);
 
 $allowedStatuses = [
@@ -39,8 +42,10 @@ $filters = [
 	'fecha_hasta' => trim((string) ($_GET['fecha_hasta'] ?? '')),
 ];
 
-$where = ['l.deletion_date IS NULL'];
-$params = [];
+$where = ['l.deletion_date IS NULL', 'l.user_id = :current_user_id'];
+$params = [
+	'current_user_id' => (int) ($currentUser?->id ?? 0),
+];
 
 if ($filters['status'] !== 'all') {
 	if ($filters['status'] === 'activo') {
