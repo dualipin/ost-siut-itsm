@@ -431,11 +431,6 @@ $html = $latte->renderToString('./pdf-simulados.latte', [
     "fecha_simulacion" => (new \DateTimeImmutable())->format('d/m/Y H:i'),
 ]);
 
-$html .= sprintf(
-    '<div style="margin-top:16px; padding-top:8px; border-top:1px solid #ced4da; font-size:12px; text-align:right;"><strong>Monto final a pagar: $%s</strong></div>',
-    number_format((float)$resumen['pagoTotal'], 2)
-);
-
 // Generar PDF
 $pdf = new Dompdf();
 $pdf->loadHtml($html);
