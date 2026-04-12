@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Module\Auth\Enum\RoleEnum;
+use App\Shared\Domain\Enum\RoleEnum;
 use App\Shared\Context\UserContext;
 
 /**

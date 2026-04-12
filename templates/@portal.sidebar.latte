@@ -152,6 +152,12 @@
                 </a>
               </li>
               {if $authUser->role->value === 'administrador' || $authUser->role->value === 'lider' || $authUser->role->value === 'finanzas'}
+                <li class="nav-item" data-aos="fade-right" data-aos-delay="450">
+                  <a href="{url('/portal/prestamos/revision.php')}" class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-clipboard2-check me-2"></i>
+                    Cola de revisión
+                  </a>
+                </li>
                 <li class="nav-item" data-aos="fade-right" data-aos-delay="500">
                   <a href="{url('/portal/prestamos/categorias.php')}" class="nav-link text-white px-3 mb-1">
                     <i class="bi bi-tags me-2"></i>
