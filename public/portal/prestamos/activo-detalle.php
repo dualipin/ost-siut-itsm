@@ -5,6 +5,7 @@ use App\Http\Middleware\MiddlewareFactory;
 use App\Http\Middleware\MiddlewareRunner;
 use App\Infrastructure\Templating\RendererInterface;
 use App\Modules\Loan\Application\UseCase\GetLoanDetailUseCase;
+use App\Modules\Loan\Application\UseCase\SubmitLoanApplicationUseCase;
 use App\Shared\Context\UserContextInterface;
 
 require_once __DIR__ . '/../../../bootstrap.php';
@@ -42,6 +43,27 @@ $isPrivileged = in_array($currentUser->role->value, $privilegedRoles, true);
 if (!$isPrivileged && (int) ($loan['user_id'] ?? 0) !== (int) $currentUser->id) {
     header('Location: /portal/acceso-denegado.php');
     exit;
+}
+
+$isOwner = (int) ($loan['user_id'] ?? 0) === (int) $currentUser->id;
+$canDraftActions = $isOwner && (string) ($loan['status'] ?? '') === 'borrador';
+$draftActionError = null;
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $canDraftActions) {
+    $action = trim((string) ($_POST['action'] ?? ''));
+
+    if ($action === 'submit_draft') {
+        try {
+            /** @var SubmitLoanApplicationUseCase $submitLoanUseCase */
+            $submitLoanUseCase = $container->get(SubmitLoanApplicationUseCase::class);
+            $submitLoanUseCase->submit((int) $loan['loan_id']);
+
+            header('Location: /portal/prestamos/activo-detalle.php?id=' . (int) $loan['loan_id'] . '&submitted=1');
+            exit;
+        } catch (\Throwable $e) {
+            $draftActionError = 'No fue posible enviar el borrador. ' . $e->getMessage();
+        }
+    }
 }
 
 $statusLabels = [
@@ -117,6 +139,23 @@ foreach ($amortization as &$row) {
 }
 unset($row);
 
+$paymentConfigs = $detail['payment_configs'] ?? [];
+foreach ($paymentConfigs as &$config) {
+    $path = trim((string) ($config['supporting_document_path'] ?? ''));
+    $config['supporting_document_url'] = null;
+
+    if ($path !== '') {
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            $config['supporting_document_url'] = $path;
+        } else {
+            $relativePath = ltrim($path, '/');
+            $config['supporting_document_url'] = '/descargar.php?path=' . urlencode($relativePath);
+        }
+    }
+}
+unset($config);
+$detail['payment_configs'] = $paymentConfigs;
+
 $totals['principal_label'] = '$' . number_format($totals['principal'], 2);
 $totals['interest_label'] = '$' . number_format($totals['interest'], 2);
 $totals['payment_label'] = '$' . number_format($totals['payment'], 2);
@@ -144,4 +183,7 @@ $renderer->render(__DIR__ . '/activo-detalle.latte', [
     'amortization' => $amortization,
     'totals' => $totals,
     'summary' => $summary,
+    'can_draft_actions' => $canDraftActions,
+    'draft_action_error' => $draftActionError,
+    'draft_action_success' => isset($_GET['submitted']) && $_GET['submitted'] === '1',
 ]);

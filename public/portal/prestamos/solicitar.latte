@@ -6,6 +6,16 @@
     <div class="col-12">
       {include '../../../templates/components/header-page.latte', title: 'Solicitar Préstamo', description: 'Complete el formulario para solicitar un nuevo préstamo', icon: 'bi-file-earmark-text'}
 
+      {if $is_draft_edit}
+      <div class="alert alert-info border-0 shadow-sm rounded-4 d-flex align-items-center gap-3 mb-4" role="alert">
+        <i class="bi bi-pencil-square fs-4 text-info"></i>
+        <div>
+          <strong>Editando borrador</strong>
+          <div class="small mt-1">Los cambios se guardarán sobre la solicitud #{$draft_id}.</div>
+        </div>
+      </div>
+      {/if}
+
       <div class="row mb-4">
         <div class="col-12">
           <a href="/portal/prestamos/activos.php" class="btn btn-outline-secondary">
@@ -18,7 +28,7 @@
       <div class="alert alert-success border-0 shadow-sm rounded-4 d-flex align-items-center gap-3 mb-4" role="alert">
         <i class="bi bi-check-circle-fill fs-4 text-success"></i>
         <div>
-          <strong>Solicitud guardada exitosamente</strong>
+          <strong>{if $is_draft_edit}Borrador actualizado exitosamente{else}Solicitud guardada exitosamente{/if}</strong>
           {if $loan_id}
           <div class="small mt-1">
             {if isset($old_input['save_draft']) && $old_input['save_draft'] == '1'}
@@ -83,6 +93,10 @@
       </div>
 
       <form method="POST" action="" enctype="multipart/form-data" class="needs-validation" @submit="handleSubmit">
+        {if $is_draft_edit && $draft_id}
+        <input type="hidden" name="draft_id" value="{$draft_id}">
+        {/if}
+
         <div class="row mb-3">
           <div class="col-md-6 mb-3">
             <label class="form-label">Perfil (Tasa de Interés)</label>
@@ -235,11 +249,15 @@
 {block scripts}
 {include parent}
 <script id="incomeTypesData" type="application/json">{$income_types_json|noescape}</script>
+<script id="draftInitialData" type="application/json">{if $draft_initial_json !== null}{$draft_initial_json|noescape}{else}null{/if}</script>
 <script>
   window.loanApplication = function loanApplication () {
       const dataNode = document.getElementById('incomeTypesData')
       const raw = dataNode ? dataNode.textContent : '[]'
       const parsed = JSON.parse(raw || '[]')
+      const draftNode = document.getElementById('draftInitialData')
+      const rawDraft = draftNode ? draftNode.textContent : 'null'
+      const draftInitial = JSON.parse(rawDraft || 'null')
       const tipos = Array.isArray(parsed) ? parsed.map((item) => ({
         id: Number(item.income_type_id),
         nombre: item.name,
@@ -260,11 +278,33 @@
         fechaPago: '',
       })
 
+      const initialDiscounts = Array.isArray(draftInitial?.discounts) && draftInitial.discounts.length > 0
+        ? draftInitial.discounts.map((item) => ({
+          monto: Number(item.monto) || 0,
+          tipoId: Number(item.tipoId) || 0,
+          cantidad: Number(item.cantidad) || 0,
+          fechaPago: item.fechaPago || '',
+        }))
+        : [buildDescuento()]
+
       return {
-        interestRate: defaultRate,
-        descuentos: [buildDescuento()],
+        interestRate: Number(draftInitial?.interestRate) || defaultRate,
+        descuentos: initialDiscounts,
         categoriasTipoIngreso: tipos,
         currentDate: (new Date()).toISOString().slice(0, 10),
+        init () {
+          this.descuentos.forEach((item, index) => {
+            const cat = this.categoriasTipoIngreso.find(c => c.id === Number(item.tipoId))
+            if (!cat || !cat.esPeriodico || item.fechaPago) return
+
+            const options = this.obtenerOpcionesParaItem(index)
+            if (options.length === 0) return
+
+            const targetIndex = Math.min(Math.max((Number(item.cantidad) || 1) - 1, 0), options.length - 1)
+            item.fechaPago = options[targetIndex].value
+            item.cantidad = targetIndex + 1
+          })
+        },
         onPerfilChange (val) {
           this.interestRate = Number(val) || this.interestRate
         },

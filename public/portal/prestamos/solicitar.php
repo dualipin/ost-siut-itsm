@@ -20,6 +20,7 @@ $runner->runOrRedirect($middleware->auth());
 
 $renderer = $container->get(RendererInterface::class);
 $userContext = $container->get(UserContextInterface::class);
+$db = $container->get(\PDO::class);
 
 $currentUser = $userContext->get();
 $request = new FormRequest();
@@ -32,6 +33,35 @@ $errors = [];
 $success = false;
 $loanId = null;
 $simulation = null;
+$draftState = null;
+$isDraftEdit = false;
+
+$draftId = filter_var($_GET['draft_id'] ?? $_POST['draft_id'] ?? '', FILTER_VALIDATE_INT);
+if ($draftId !== false && $draftId > 0) {
+    $draftStmt = $db->prepare(
+        'SELECT loan_id, user_id, status, requested_amount, applied_interest_rate
+         FROM loans
+         WHERE loan_id = :loan_id
+           AND user_id = :user_id
+           AND deletion_date IS NULL'
+    );
+    $draftStmt->execute([
+        'loan_id' => $draftId,
+        'user_id' => (int) $currentUser->id,
+    ]);
+
+    $draftState = $draftStmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+
+    if ($draftState === null) {
+        $errors[] = 'No se encontró el borrador solicitado.';
+    } elseif ((string) ($draftState['status'] ?? '') !== 'borrador') {
+        $errors[] = 'Solo se pueden editar solicitudes en estatus borrador.';
+        $draftState = null;
+    } else {
+        $isDraftEdit = true;
+        $loanId = (int) $draftState['loan_id'];
+    }
+}
 
 if ($request->method() === "POST") {
     try {
@@ -45,13 +75,29 @@ if ($request->method() === "POST") {
         $saveDraft = $request->input('save_draft') === '1';
 
         // Get income types from DB to calculate fortnights
-        $db = $container->get(\PDO::class);
         $incomeTypesStmt = $db->query("SELECT * FROM cat_income_types WHERE active = 1");
         $allIncomeTypes = $incomeTypesStmt->fetchAll(\PDO::FETCH_ASSOC);
         $incomeTypesMap = array_column($allIncomeTypes, null, 'income_type_id');
 
         $paymentConfigs = [];
         $totalDistributed = 0;
+
+        $existingDraftDocsByType = [];
+        if ($isDraftEdit && $draftState !== null) {
+            $existingDocsStmt = $db->prepare(
+                'SELECT income_type_id, supporting_document_path
+                 FROM loan_payment_configuration
+                 WHERE loan_id = :loan_id'
+            );
+            $existingDocsStmt->execute(['loan_id' => (int) $draftState['loan_id']]);
+            foreach ($existingDocsStmt->fetchAll(\PDO::FETCH_ASSOC) as $existingDocRow) {
+                $existingTypeId = (int) ($existingDocRow['income_type_id'] ?? 0);
+                $existingPath = trim((string) ($existingDocRow['supporting_document_path'] ?? ''));
+                if ($existingTypeId > 0 && $existingPath !== '') {
+                    $existingDraftDocsByType[$existingTypeId] = $existingPath;
+                }
+            }
+        }
 
         $startDate = new \DateTimeImmutable();
         $yearEnd = new \DateTimeImmutable($startDate->format('Y') . '-12-31');
@@ -78,6 +124,8 @@ if ($request->method() === "POST") {
                     if (move_uploaded_file($_FILES['income_documents']['tmp_name'][$typeId], $uploadDir . $filename)) {
                         $documentPath = '/uploads/solicitudes/' . $filename;
                     }
+                } elseif (isset($existingDraftDocsByType[(int) $typeId])) {
+                    $documentPath = $existingDraftDocsByType[(int) $typeId];
                 }
 
                 $typeInfo = $incomeTypesMap[$typeId] ?? null;
@@ -128,24 +176,120 @@ if ($request->method() === "POST") {
         }
 
         if (empty($errors)) {
-            $result = $submitLoanUseCase->execute(
-                $currentUser->id,
-                $currentUser->role,
-                new \App\Modules\Loan\Domain\ValueObject\Money($requestedAmount),
-                $paymentConfigs
-            );
+            if ($isDraftEdit && $draftState !== null) {
+                $db->beginTransaction();
+                try {
+                    $termFortnights = (int) array_sum(array_column($paymentConfigs, 'fortnights'));
 
-            $loanId = $result['loan_id'];
+                    $updateDraftStmt = $db->prepare(
+                        'UPDATE loans
+                         SET requested_amount = :requested_amount,
+                             term_fortnights = :term_fortnights
+                         WHERE loan_id = :loan_id
+                           AND user_id = :user_id
+                           AND status = :status
+                           AND deletion_date IS NULL'
+                    );
+                    $updateDraftStmt->execute([
+                        'requested_amount' => $requestedAmount,
+                        'term_fortnights' => $termFortnights,
+                        'loan_id' => (int) $draftState['loan_id'],
+                        'user_id' => (int) $currentUser->id,
+                        'status' => 'borrador',
+                    ]);
 
-            if (!$saveDraft) {
-                $submitLoanUseCase->submit($loanId);
+                    if ($updateDraftStmt->rowCount() === 0) {
+                        $verifyDraftStmt = $db->prepare(
+                            'SELECT 1
+                             FROM loans
+                             WHERE loan_id = :loan_id
+                               AND user_id = :user_id
+                               AND status = :status
+                               AND deletion_date IS NULL'
+                        );
+                        $verifyDraftStmt->execute([
+                            'loan_id' => (int) $draftState['loan_id'],
+                            'user_id' => (int) $currentUser->id,
+                            'status' => 'borrador',
+                        ]);
+
+                        if ($verifyDraftStmt->fetchColumn() === false) {
+                            throw new RuntimeException('No fue posible actualizar el borrador.');
+                        }
+                    }
+
+                    $deleteConfigsStmt = $db->prepare('DELETE FROM loan_payment_configuration WHERE loan_id = :loan_id');
+                    $deleteConfigsStmt->execute(['loan_id' => (int) $draftState['loan_id']]);
+
+                    $insertConfigStmt = $db->prepare(
+                        'INSERT INTO loan_payment_configuration (
+                            loan_id,
+                            income_type_id,
+                            total_amount_to_deduct,
+                            number_of_installments,
+                            amount_per_installment,
+                            interest_method,
+                            supporting_document_path,
+                            document_status
+                        ) VALUES (
+                            :loan_id,
+                            :income_type_id,
+                            :total_amount_to_deduct,
+                            :number_of_installments,
+                            :amount_per_installment,
+                            :interest_method,
+                            :supporting_document_path,
+                            :document_status
+                        )'
+                    );
+
+                    foreach ($paymentConfigs as $config) {
+                        $installments = max(1, (int) $config['fortnights']);
+                        $totalAmount = (float) $config['amount'];
+
+                        $insertConfigStmt->execute([
+                            'loan_id' => (int) $draftState['loan_id'],
+                            'income_type_id' => (int) $config['income_type_id'],
+                            'total_amount_to_deduct' => $totalAmount,
+                            'number_of_installments' => $installments,
+                            'amount_per_installment' => $totalAmount / $installments,
+                            'interest_method' => (string) ($config['interest_method'] ?? 'simple_aleman'),
+                            'supporting_document_path' => $config['document_path'] ?? null,
+                            'document_status' => 'pendiente',
+                        ]);
+                    }
+
+                    $db->commit();
+                    $loanId = (int) $draftState['loan_id'];
+                } catch (\Throwable $e) {
+                    if ($db->inTransaction()) {
+                        $db->rollBack();
+                    }
+                    throw $e;
+                }
+
+                if (!$saveDraft) {
+                    $submitLoanUseCase->submit($loanId);
+                }
+
+                $success = true;
+            } else {
+                $result = $submitLoanUseCase->execute(
+                    $currentUser->id,
+                    $currentUser->role,
+                    new \App\Modules\Loan\Domain\ValueObject\Money($requestedAmount),
+                    $paymentConfigs
+                );
+
+                $loanId = $result['loan_id'];
+
+                if (!$saveDraft) {
+                    $submitLoanUseCase->submit($loanId);
+                }
+
+                $simulation = $result['amortization_schedule'];
+                $success = true;
             }
-
-            $simulation = $result['amortization_schedule'];
-            $success = true;
-
-            // Mostrar el mensaje de éxito directamente en la vista
-
         }
     } catch (InvalidLoanStatusException $e) {
         $errors[] = $e->getMessage();
@@ -159,10 +303,36 @@ $today = date('Y-m-d');
 $nextMonth = date('Y-m-d', strtotime('+1 month'));
 
 // Get income types
-$db = $container->get(\PDO::class);
 $incomeTypesStmt = $db->query("SELECT * FROM cat_income_types WHERE active = 1");
 $incomeTypes = $incomeTypesStmt->fetchAll(\PDO::FETCH_OBJ);
 $incomeTypesJson = json_encode($incomeTypes, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+$draftInitialJson = null;
+if ($isDraftEdit && $draftState !== null) {
+    $draftConfigsStmt = $db->prepare(
+        'SELECT income_type_id, total_amount_to_deduct, number_of_installments
+         FROM loan_payment_configuration
+         WHERE loan_id = :loan_id
+         ORDER BY payment_config_id ASC'
+    );
+    $draftConfigsStmt->execute(['loan_id' => (int) $draftState['loan_id']]);
+    $draftConfigs = $draftConfigsStmt->fetchAll(\PDO::FETCH_ASSOC);
+
+    $draftDiscounts = [];
+    foreach ($draftConfigs as $config) {
+        $draftDiscounts[] = [
+            'monto' => (float) ($config['total_amount_to_deduct'] ?? 0),
+            'tipoId' => (int) ($config['income_type_id'] ?? 0),
+            'cantidad' => (int) ($config['number_of_installments'] ?? 0),
+            'fechaPago' => '',
+        ];
+    }
+
+    $draftInitialJson = json_encode([
+        'interestRate' => (float) ($draftState['applied_interest_rate'] ?? 0),
+        'discounts' => $draftDiscounts,
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+}
 
 $renderer->render("./solicitar.latte", [
     'user' => $currentUser,
@@ -176,4 +346,7 @@ $renderer->render("./solicitar.latte", [
     'old_input' => $request->all(),
     'income_types' => $incomeTypes,
     'income_types_json' => $incomeTypesJson,
+    'is_draft_edit' => $isDraftEdit,
+    'draft_id' => $isDraftEdit ? (int) $draftState['loan_id'] : null,
+    'draft_initial_json' => $draftInitialJson,
 ]);
