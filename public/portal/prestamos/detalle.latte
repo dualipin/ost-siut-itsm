@@ -8,7 +8,7 @@
 		icon: 'bi-file-earmark-text'
 	}
 
-	{{-- Alerts --}}
+	{* Alerts *}
 	{if !empty($errors)}
 	<div class="alert alert-danger rounded-4 d-flex align-items-start gap-2 mb-4" role="alert">
 		<i class="bi bi-exclamation-triangle-fill fs-5 flex-shrink-0 mt-1"></i>
@@ -27,14 +27,14 @@
 
 	<div class="row g-4" x-data="loanDetail()">
 
-		{{-- ================================================================ --}}
-		{{-- COLUMNA PRINCIPAL                                                 --}}
-		{{-- ================================================================ --}}
+		{* ================================================================ *}
+		{* COLUMNA PRINCIPAL                                                 *}
+		{* ================================================================ *}
 		<div class="col-12 col-lg-8">
 
-			{{-- ============================================================ --}}
-			{{-- SECCIÓN 1 · Encabezado de Identificación y Estado            --}}
-			{{-- ============================================================ --}}
+			{* ============================================================ *}
+			{* SECCIÓN 1 · Encabezado de Identificación y Estado            *}
+			{* ============================================================ *}
 			<div class="card border-0 shadow-sm rounded-4 mb-4">
 				<div class="card-body p-4">
 					<div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
@@ -56,7 +56,7 @@
 						</a>
 					</div>
 
-					{{-- Reestructuring alert --}}
+					{* Reestructuring alert *}
 					{if $loan['original_loan_id'] || $loan['requires_restructuring']}
 					<div class="alert alert-primary rounded-3 d-flex align-items-center gap-2 mb-3 py-2">
 						<i class="bi bi-arrow-repeat fs-5"></i>
@@ -94,9 +94,9 @@
 				</div>
 			</div>
 
-			{{-- ============================================================ --}}
-			{{-- SECCIÓN 2 · Financiera (Solicitud vs. Aprobación)            --}}
-			{{-- ============================================================ --}}
+			{* ============================================================ *}
+			{* SECCIÓN 2 · Financiera (Solicitud vs. Aprobación)            *}
+			{* ============================================================ *}
 			<div class="card border-0 shadow-sm rounded-4 mb-4">
 				<div class="card-header bg-transparent border-0 px-4 pt-4 pb-0">
 					<h3 class="h5 fw-bold mb-0">
@@ -105,7 +105,7 @@
 				</div>
 				<div class="card-body p-4">
 					<div class="row g-4">
-						{{-- Requested col --}}
+						{* Requested col *}
 						<div class="col-12 col-md-6">
 							<p class="text-muted small text-uppercase fw-semibold mb-3">Solicitado por el empleado</p>
 							<div class="d-flex justify-content-between mb-2">
@@ -130,7 +130,7 @@
 							</div>
 						</div>
 
-						{{-- Approval form col --}}
+						{* Approval form col *}
 						<div class="col-12 col-md-6">
 							<p class="text-muted small text-uppercase fw-semibold mb-3">A autorizar (editable)</p>
 							<div class="mb-3">
@@ -178,9 +178,9 @@
 				</div>
 			</div>
 
-			{{-- ============================================================ --}}
-			{{-- SECCIÓN 3 · Configuración de Fuentes de Ingreso              --}}
-			{{-- ============================================================ --}}
+			{* ============================================================ *}
+			{* SECCIÓN 3 · Configuración de Fuentes de Ingreso              *}
+			{* ============================================================ *}
 			<div class="card border-0 shadow-sm rounded-4 mb-4">
 				<div class="card-header bg-transparent border-0 px-4 pt-4 pb-0">
 					<h3 class="h5 fw-bold mb-0">
@@ -206,7 +206,7 @@
 							</thead>
 							<tbody>
 								{foreach $detail['payment_configs'] as $config}
-								<tr x-data="docValidator({paymentConfigId: {$config['payment_config_id']}, initialStatus: '{$config['document_status']}'})">
+								<tr x-data="docValidator({$config['payment_config_id']}, '{$config['document_status']}')">
 									<td class="py-3">
 										<div class="fw-semibold">{$config['income_type_name']}</div>
 										{if $config['income_is_periodic']}
@@ -280,7 +280,7 @@
 										{/if}
 									</td>
 								</tr>
-								{{-- Observations row --}}
+								{* Observations row *}
 								{if $config['document_observations']}
 								<tr class="bg-light-subtle">
 									<td colspan="7" class="py-2 px-3">
@@ -299,9 +299,9 @@
 				</div>
 			</div>
 
-			{{-- ============================================================ --}}
-			{{-- SECCIÓN 4 · Tabla de Amortización                            --}}
-			{{-- ============================================================ --}}
+			{* ============================================================ *}
+			{* SECCIÓN 4 · Tabla de Amortización                            *}
+			{* ============================================================ *}
 			<div class="card border-0 shadow-sm rounded-4 mb-4">
 				<div class="card-header bg-transparent border-0 px-4 pt-4 pb-0">
 					<h3 class="h5 fw-bold mb-0">
@@ -364,9 +364,9 @@
 				</div>
 			</div>
 
-			{{-- ============================================================ --}}
-			{{-- SECCIÓN 5 · Documentos Legales                               --}}
-			{{-- ============================================================ --}}
+			{* ============================================================ *}
+			{* SECCIÓN 5 · Documentos Legales                               *}
+			{* ============================================================ *}
 			<div class="card border-0 shadow-sm rounded-4 mb-4">
 				<div class="card-header bg-transparent border-0 px-4 pt-4 pb-0">
 					<h3 class="h5 fw-bold mb-0">
@@ -398,7 +398,7 @@
 								</div>
 							</div>
 							<div class="d-flex align-items-center gap-3">
-								{{-- Firma del usuario --}}
+								{* Firma del usuario *}
 								{if $doc['requires_user_signature']}
 								<div class="text-center small">
 									<div class="text-muted mb-1">Firma empleado</div>
@@ -413,7 +413,7 @@
 									{/if}
 								</div>
 								{/if}
-								{{-- Validación Finanzas --}}
+								{* Validación Finanzas *}
 								{if $doc['requires_finance_validation']}
 								<div class="text-center small">
 									<div class="text-muted mb-1">Validado Finanzas</div>
@@ -428,7 +428,7 @@
 									{/if}
 								</div>
 								{/if}
-								{{-- Download link --}}
+								{* Download link *}
 								<a href="{$doc['file_path']}" target="_blank"
 									class="btn btn-outline-secondary btn-sm rounded-3 px-3">
 									<i class="bi bi-download me-1"></i>Descargar
@@ -441,9 +441,9 @@
 				</div>
 			</div>
 
-			{{-- ============================================================ --}}
-			{{-- SECCIÓN 6 · Historial de Reestructuración (condicional)      --}}
-			{{-- ============================================================ --}}
+			{* ============================================================ *}
+			{* SECCIÓN 6 · Historial de Reestructuración (condicional)      *}
+			{* ============================================================ *}
 			{if $detail['restructuring'] !== null}
 			<div class="card border-0 shadow-sm rounded-4 border-start border-4 border-primary mb-4">
 				<div class="card-header bg-transparent border-0 px-4 pt-4 pb-0">
@@ -511,16 +511,16 @@
 			{/if}
 
 		</div>
-		{{-- END columna principal --}}
+		{* END columna principal *}
 
 
-		{{-- ================================================================ --}}
-		{{-- PANEL LATERAL STICKY — Resolución                                --}}
-		{{-- ================================================================ --}}
+		{* ================================================================ *}
+		{* PANEL LATERAL STICKY — Resolución                                *}
+		{* ================================================================ *}
 		<div class="col-12 col-lg-4">
 			<div class="sticky-top" style="top: 80px;">
 
-				{{-- Observaciones --}}
+				{* Observaciones *}
 				<div class="card border-0 shadow-sm rounded-4 mb-3">
 					<div class="card-body p-4">
 						<h3 class="h6 fw-bold mb-3 text-uppercase text-muted">
@@ -539,7 +539,7 @@
 					</div>
 				</div>
 
-				{{-- Action panel --}}
+				{* Action panel *}
 				{if $canReview}
 				<div class="card border-0 shadow-sm rounded-4">
 					<div class="card-body p-4">
@@ -547,7 +547,7 @@
 							<i class="bi bi-clipboard2-check me-1"></i>Resolución
 						</h3>
 
-						{{-- APPROVE form --}}
+						{* APPROVE form *}
 						<form method="POST"
 							action="{url('/portal/prestamos/detalle.php')}?id={$loan['loan_id']}"
 							id="form-aprobar">
@@ -571,7 +571,7 @@
 							</button>
 						</form>
 
-						{{-- HOLD form --}}
+						{* HOLD form *}
 						<form method="POST"
 							action="{url('/portal/prestamos/detalle.php')}?id={$loan['loan_id']}"
 							id="form-espera">
@@ -587,7 +587,7 @@
 							</button>
 						</form>
 
-						{{-- REJECT button --}}
+						{* REJECT button *}
 						<button type="button"
 							class="btn btn-outline-danger w-100 rounded-3 py-2"
 							data-bs-toggle="modal"
@@ -598,7 +598,7 @@
 					</div>
 				</div>
 				{else}
-				{{-- Read-only status panel --}}
+				{* Read-only status panel *}
 				<div class="card border-0 shadow-sm rounded-4">
 					<div class="card-body p-4 text-center">
 						<i class="bi bi-lock fs-2 text-muted d-block mb-2 opacity-50"></i>
@@ -613,14 +613,14 @@
 
 			</div>
 		</div>
-		{{-- END panel lateral --}}
+		{* END panel lateral *}
 
 	</div>
 </div>
 
-{{-- ================================================================ --}}
-{{-- MODAL · Rechazar solicitud                                       --}}
-{{-- ================================================================ --}}
+{* ================================================================ *}
+{* MODAL · Rechazar solicitud                                       *}
+{* ================================================================ *}
 <div class="modal fade" id="modal-rechazo" tabindex="-1"
 	aria-labelledby="modal-rechazo-label" aria-hidden="true">
 	<div class="modal-dialog modal-dialog-centered">
@@ -659,9 +659,9 @@
 	</div>
 </div>
 
-{{-- ================================================================ --}}
-{{-- MODAL · Poner en espera                                          --}}
-{{-- ================================================================ --}}
+{* ================================================================ *}
+{* MODAL · Poner en espera                                          *}
+{* ================================================================ *}
 <div class="modal fade" id="modal-espera" tabindex="-1"
 	aria-labelledby="modal-espera-label" aria-hidden="true">
 	<div class="modal-dialog modal-dialog-centered">
@@ -736,7 +736,7 @@ function loanDetail() {
 }
 
 // Alpine.js per-row document validator
-function docValidator({ paymentConfigId, initialStatus }) {
+function docValidator(paymentConfigId, initialStatus) {
     return {
         configId: paymentConfigId,
         status: initialStatus,
@@ -748,7 +748,7 @@ function docValidator({ paymentConfigId, initialStatus }) {
                 const formData = new FormData();
                 formData.append('config_id', this.configId);
                 formData.append('status', newStatus);
-                const res = await fetch('{url('/portal/prestamos/ajax/validar-documento.php')}', {
+				const res = await fetch({=json_encode(url('/portal/prestamos/ajax/validar-documento.php'))}, {
                     method: 'POST',
                     body: formData
                 });
