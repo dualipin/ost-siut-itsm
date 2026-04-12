@@ -5,6 +5,7 @@ use App\Http\Request\FormRequest;
 use App\Http\Middleware\MiddlewareFactory;
 use App\Http\Middleware\MiddlewareRunner;
 use App\Infrastructure\Templating\RendererInterface;
+use App\Modules\Loan\Application\Service\AmortizationCalculator;
 use App\Modules\Loan\Application\UseCase\SubmitLoanApplicationUseCase;
 use App\Modules\Loan\Domain\Repository\SaverUserRepositoryInterface;
 use App\Modules\Loan\Domain\Exception\InvalidLoanStatusException;
@@ -35,6 +36,7 @@ $simulation = null;
 if ($request->method() === "POST") {
     try {
         $submitLoanUseCase = $container->get(SubmitLoanApplicationUseCase::class);
+        $amortizationCalculator = $container->get(AmortizationCalculator::class);
         
         $requestedAmount = (float) $request->input('requested_amount');
         $incomeAmounts = $_POST['income_amounts'] ?? [];
@@ -50,6 +52,19 @@ if ($request->method() === "POST") {
 
         $paymentConfigs = [];
         $totalDistributed = 0;
+
+        $startDate = new \DateTimeImmutable();
+        $yearEnd = new \DateTimeImmutable($startDate->format('Y') . '-12-31');
+        $maxFortnightsThisYear = 1;
+
+        // Keep the same deadline logic used in the use case (must finish by Dec 31).
+        for ($candidateFortnights = 1; $candidateFortnights <= 48; $candidateFortnights++) {
+            $candidateLastDate = $amortizationCalculator->calculateLastPaymentDate($startDate, $candidateFortnights);
+            if ($candidateLastDate > $yearEnd) {
+                break;
+            }
+            $maxFortnightsThisYear = $candidateFortnights;
+        }
 
         foreach ($incomeAmounts as $typeId => $amount) {
             $amount = (float)$amount;
@@ -67,17 +82,26 @@ if ($request->method() === "POST") {
 
                 $typeInfo = $incomeTypesMap[$typeId] ?? null;
                 $isPeriodic = $typeInfo && $typeInfo['is_periodic'];
-                $freqDays = $typeInfo ? ($typeInfo['frequency_days'] ?: 0) : 0;
                 
                 $fortnights = 1;
                 $interestMethod = 'compuesto'; // default for unique payment
                 
                 if ($isPeriodic && !empty($incomeLastDates[$typeId])) {
-                     // calculate approximate periods (fortnights)
-                     $lastDate = new \DateTime($incomeLastDates[$typeId]);
-                     $today = new \DateTime();
-                     $diff = $today->diff($lastDate)->days;
-                     $fortnights = $freqDays > 0 ? max(1, ceil($diff / $freqDays)) : 1;
+                     // Convert selected estimated last payment date to fortnight count,
+                     // then cap it to the maximum allowed before Dec 31.
+                     try {
+                         $estimatedLastPaymentDate = new \DateTimeImmutable($incomeLastDates[$typeId]);
+                         if ($estimatedLastPaymentDate <= $startDate) {
+                             $estimatedFortnights = 1;
+                         } else {
+                             $daysUntilEstimatedLastPayment = (int) $startDate->diff($estimatedLastPaymentDate)->days;
+                             $estimatedFortnights = max(1, (int) ceil(($daysUntilEstimatedLastPayment + 1) / 15));
+                         }
+
+                         $fortnights = min($estimatedFortnights, $maxFortnightsThisYear);
+                     } catch (\Exception) {
+                         $fortnights = 1;
+                     }
                      $interestMethod = 'simple_aleman';
                 }
 
