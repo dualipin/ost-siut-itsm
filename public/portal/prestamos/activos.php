@@ -31,9 +31,9 @@ $allowedStatuses = [
 	'reestructurado',
 ];
 
-$statusFilter = trim((string) ($_GET['status'] ?? 'activo'));
+$statusFilter = trim((string) ($_GET['status'] ?? 'all'));
 if (!in_array($statusFilter, $allowedStatuses, true)) {
-	$statusFilter = 'activo';
+	$statusFilter = 'all';
 }
 
 $filters = [
