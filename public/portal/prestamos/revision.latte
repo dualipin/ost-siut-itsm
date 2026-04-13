@@ -56,10 +56,15 @@
 				<div class="col-12 col-lg-2">
 					<label class="form-label fw-semibold small text-uppercase text-muted">Estatus</label>
 					<select name="status" class="form-select rounded-3">
-						<option value="todos"      {if $statusFilter === 'todos'}selected{/if}>Todos en cola</option>
+						<option value="todos"      {if $statusFilter === 'todos'}selected{/if}>Todos</option>
 						<option value="borrador"   {if $statusFilter === 'borrador'}selected{/if}>Borrador</option>
 						<option value="solicitado" {if $statusFilter === 'solicitado'}selected{/if}>Solicitado</option>
 						<option value="en_espera"  {if $statusFilter === 'en_espera'}selected{/if}>En espera</option>
+						<option value="aprobado"   {if $statusFilter === 'aprobado'}selected{/if}>Aprobado</option>
+						<option value="rechazado"  {if $statusFilter === 'rechazado'}selected{/if}>Rechazado</option>
+						<option value="activo"     {if $statusFilter === 'activo'}selected{/if}>Activo</option>
+						<option value="liquidado"  {if $statusFilter === 'liquidado'}selected{/if}>Liquidado</option>
+						<option value="reestructurado" {if $statusFilter === 'reestructurado'}selected{/if}>Reestructurado</option>
 					</select>
 				</div>
 				<div class="col-12 col-lg-2">

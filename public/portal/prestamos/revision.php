@@ -22,7 +22,7 @@ $currentUser = $userContext->get();
 $db          = $container->get(\PDO::class);
 
 // Filters
-$allowedStatuses = ['solicitado', 'en_espera', 'borrador', 'todos'];
+$allowedStatuses = ['solicitado', 'en_espera', 'borrador', 'aprobado', 'rechazado', 'activo', 'liquidado', 'reestructurado', 'todos'];
 $statusFilter    = trim((string) ($_GET['status'] ?? 'todos'));
 if (!in_array($statusFilter, $allowedStatuses, true)) {
     $statusFilter = 'todos';
@@ -36,7 +36,7 @@ $where  = ['l.deletion_date IS NULL'];
 $params = [];
 
 if ($statusFilter === 'todos') {
-    $where[] = "l.status IN ('borrador', 'solicitado', 'en_espera')";
+    $where[] = "l.status IN ('borrador', 'solicitado', 'en_espera', 'aprobado', 'rechazado', 'activo', 'liquidado', 'reestructurado')";
 } else {
     $where[] = 'l.status = :status';
     $params['status'] = $statusFilter;
@@ -94,11 +94,21 @@ $statusLabels = [
     'borrador'   => 'Borrador',
     'solicitado' => 'Solicitado',
     'en_espera'  => 'En espera',
+    'aprobado'   => 'Aprobado',
+    'rechazado'  => 'Rechazado',
+    'activo'     => 'Activo',
+    'liquidado'  => 'Liquidado',
+    'reestructurado' => 'Reestructurado',
 ];
 $statusBadges = [
     'borrador'   => 'bg-secondary-subtle text-secondary',
     'solicitado' => 'bg-warning-subtle text-warning',
     'en_espera'  => 'bg-dark-subtle text-secondary',
+    'aprobado'   => 'bg-info-subtle text-info',
+    'rechazado'  => 'bg-danger-subtle text-danger',
+    'activo'     => 'bg-success-subtle text-success',
+    'liquidado'  => 'bg-secondary-subtle text-secondary',
+    'reestructurado' => 'bg-primary-subtle text-primary',
 ];
 
 // Summary counts
