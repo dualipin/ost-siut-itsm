@@ -39,7 +39,13 @@ $buildDownloadUrl = static function (?string $path): ?string {
     if ($uploadsPosition !== false) {
         $normalizedPath = substr($normalizedPath, $uploadsPosition);
     } else {
-        $normalizedPath = ltrim($normalizedPath, '/');
+        $normalizedPath = 'uploads/' . ltrim($normalizedPath, '/');
+    }
+
+    $normalizedPath = ltrim($normalizedPath, '/');
+
+    if (!str_starts_with($normalizedPath, 'uploads/')) {
+        $normalizedPath = 'uploads/' . $normalizedPath;
     }
 
     return '/descargar.php?path=' . rawurlencode($normalizedPath);
