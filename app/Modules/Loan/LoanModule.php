@@ -34,6 +34,7 @@ use App\Modules\Loan\Infrastructure\Persistence\PdoLoanRestructuringRepository;
 use App\Modules\Loan\Infrastructure\Persistence\PdoPaymentConfigRepository;
 use App\Modules\Loan\Infrastructure\Persistence\PdoReceiptRepository;
 use App\Modules\Loan\Infrastructure\Persistence\PdoSaverUserRepository;
+use App\Modules\Loan\Infrastructure\Service\DompdfLoanPdfGenerator;
 
 final class LoanModule extends AbstractModule
 {
@@ -46,6 +47,7 @@ final class LoanModule extends AbstractModule
         SaverUserRepositoryInterface::class => PdoSaverUserRepository::class,
         ExtraordinaryPaymentRepositoryInterface::class => PdoExtraordinaryPaymentRepository::class,
         LoanRestructuringRepositoryInterface::class => PdoLoanRestructuringRepository::class,
+        PdfGeneratorInterface::class => DompdfLoanPdfGenerator::class,
     ];
 
     protected const array SERVICES = [
@@ -54,7 +56,6 @@ final class LoanModule extends AbstractModule
         FolioGenerator::class,
         ElectronicSignatureService::class,
         LoanEventLogger::class,
-        // PdfGeneratorInterface implementation will be added in Phase 7
     ];
 
     protected const array USE_CASES = [
