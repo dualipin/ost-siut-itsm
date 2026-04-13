@@ -230,8 +230,8 @@
 										</span>
 									</td>
 									<td class="py-3">
-										{if $config['supporting_document_path']}
-										<a href="{$config['supporting_document_path']}" target="_blank"
+										{if $config['supporting_document_url']}
+										<a href="{$config['supporting_document_url']}" target="_blank"
 											class="btn btn-outline-secondary btn-sm rounded-3 px-2 py-1">
 											<i class="bi bi-file-earmark-arrow-down me-1"></i>Ver
 										</a>
@@ -429,7 +429,7 @@
 								</div>
 								{/if}
 								{* Download link *}
-								<a href="{$doc['file_path']}" target="_blank"
+								<a href="{$doc['download_url']}" target="_blank"
 									class="btn btn-outline-secondary btn-sm rounded-3 px-3">
 									<i class="bi bi-download me-1"></i>Descargar
 								</a>

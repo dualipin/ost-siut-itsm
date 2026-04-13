@@ -27,11 +27,34 @@ $userContext = $container->get(UserContextInterface::class);
 $currentUser = $userContext->get();
 $db          = $container->get(\PDO::class);
 
+$buildDownloadUrl = static function (?string $path): ?string {
+    $path = trim((string) $path);
+
+    if ($path === '') {
+        return null;
+    }
+
+    if (preg_match('~^https?://~i', $path) === 1) {
+        return $path;
+    }
+
+    $normalizedPath = str_replace('\\', '/', $path);
+    $uploadsPosition = strpos($normalizedPath, 'uploads/');
+
+    if ($uploadsPosition !== false) {
+        $normalizedPath = substr($normalizedPath, $uploadsPosition);
+    } else {
+        $normalizedPath = ltrim($normalizedPath, '/');
+    }
+
+    return '/descargar.php?path=' . rawurlencode($normalizedPath);
+};
+
 // --- Validate loan ID ---
 $loanId = filter_var($_GET['id'] ?? '', FILTER_VALIDATE_INT);
 if ($loanId === false || $loanId <= 0) {
     http_response_code(400);
-    header('Location: ' . url('/portal/prestamos/revision.php'));
+    header('Location: /portal/prestamos/revision.php');
     exit;
 }
 
@@ -144,6 +167,24 @@ if ($detail === null) {
     ]);
     exit;
 }
+
+$detail['payment_configs'] = array_map(
+    static function (array $config) use ($buildDownloadUrl): array {
+        $config['supporting_document_url'] = $buildDownloadUrl($config['supporting_document_path'] ?? null);
+
+        return $config;
+    },
+    $detail['payment_configs']
+);
+
+$detail['legal_docs'] = array_map(
+    static function (array $doc) use ($buildDownloadUrl): array {
+        $doc['download_url'] = $buildDownloadUrl($doc['file_path'] ?? null);
+
+        return $doc;
+    },
+    $detail['legal_docs']
+);
 
 // Status labels & badge classes
 $statusLabels = [
