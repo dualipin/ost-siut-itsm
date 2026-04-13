@@ -104,6 +104,121 @@ final readonly class AmortizationCalculator
     }
 
     /**
+     * Build final amortization rows using each payment configuration.
+     * - simple_aleman: fortnightly rows
+     * - compuesto: single row at benefit payment date
+     *
+     * @param array<int, array<string, mixed>> $paymentConfigurations
+     * @return AmortizationRow[]
+     */
+    public function calculateByPaymentConfigurations(
+        Money $amount,
+        InterestRate $rate,
+        DateTimeImmutable $validationDate,
+        array $paymentConfigurations
+    ): array {
+        if ($amount->isNegativeOrZero() || $paymentConfigurations === []) {
+            return [];
+        }
+
+        $rows = [];
+        $runningBalance = $amount->amount();
+        $paymentNumber = 1;
+
+        foreach ($paymentConfigurations as $config) {
+            $configAmount = (float) ($config['total_amount_to_deduct'] ?? 0);
+            if ($configAmount <= 0) {
+                continue;
+            }
+
+            $incomeTypeId = (int) ($config['income_type_id'] ?? 1);
+            $interestMethod = (string) ($config['interest_method'] ?? 'simple_aleman');
+
+            if ($interestMethod === 'compuesto') {
+                $paymentDate = $this->resolveBenefitPaymentDate($validationDate, $config);
+                $totalAmount = $this->calculateCompound(
+                    Money::fromFloat($configAmount),
+                    $rate,
+                    $validationDate,
+                    $paymentDate
+                )->amount();
+
+                $interest = max(0, $totalAmount - $configAmount);
+                $endingBalance = max(0, $runningBalance - $configAmount);
+
+                $rows[] = new AmortizationRow(
+                    amortizationId: null,
+                    loanId: 0,
+                    paymentNumber: $paymentNumber,
+                    incomeTypeId: $incomeTypeId,
+                    scheduledDate: $paymentDate,
+                    initialBalance: Money::fromFloat($runningBalance),
+                    principal: Money::fromFloat($configAmount),
+                    ordinaryInterest: Money::fromFloat($interest),
+                    totalScheduledPayment: Money::fromFloat($totalAmount),
+                    finalBalance: Money::fromFloat($endingBalance),
+                    paymentStatus: PaymentStatusEnum::Pending,
+                    actualPaymentDate: null,
+                    actualPaidAmount: Money::zero(),
+                    daysOverdue: 0,
+                    generatedDefaultInterest: Money::zero(),
+                    paidBy: null,
+                    paymentReceipt: null,
+                    tableVersion: 1,
+                    active: true
+                );
+
+                $runningBalance = $endingBalance;
+                $paymentNumber++;
+                continue;
+            }
+
+            $installments = max(1, (int) ($config['number_of_installments'] ?? 1));
+            $simpleRows = $this->calculateGermanSimple(
+                Money::fromFloat($configAmount),
+                $rate,
+                $installments,
+                $validationDate,
+                $incomeTypeId
+            );
+
+            foreach ($simpleRows as $simpleRow) {
+                $principal = min($runningBalance, $simpleRow->principal()->amount());
+                $interest = $simpleRow->ordinaryInterest()->amount();
+                $total = $principal + $interest;
+                $endingBalance = max(0, $runningBalance - $principal);
+
+                $rows[] = new AmortizationRow(
+                    amortizationId: null,
+                    loanId: 0,
+                    paymentNumber: $paymentNumber,
+                    incomeTypeId: $simpleRow->incomeTypeId(),
+                    scheduledDate: $simpleRow->scheduledDate(),
+                    initialBalance: Money::fromFloat($runningBalance),
+                    principal: Money::fromFloat($principal),
+                    ordinaryInterest: Money::fromFloat($interest),
+                    totalScheduledPayment: Money::fromFloat($total),
+                    finalBalance: Money::fromFloat($endingBalance),
+                    paymentStatus: PaymentStatusEnum::Pending,
+                    actualPaymentDate: null,
+                    actualPaidAmount: Money::zero(),
+                    daysOverdue: 0,
+                    generatedDefaultInterest: Money::zero(),
+                    paidBy: null,
+                    paymentReceipt: null,
+                    tableVersion: 1,
+                    active: true
+                );
+
+                $runningBalance = $endingBalance;
+                $paymentNumber++;
+            }
+        }
+
+        return $rows;
+    }
+
+    /**
      * Calculate default interest (interés moratorio)
      */
     public function calculateDefaultInterest(
@@ -195,5 +310,32 @@ final readonly class AmortizationCalculator
     private function calculateDaysBetween(DateTimeImmutable $start, DateTimeImmutable $end): int
     {
         return (int) $start->diff($end)->days;
+    }
+
+    /**
+     * Resolve the next payment date for a benefit (prestacion) config.
+     * Falls back to validation date month/day when config has no tentative date.
+     *
+     * @param array<string, mixed> $config
+     */
+    private function resolveBenefitPaymentDate(DateTimeImmutable $validationDate, array $config): DateTimeImmutable
+    {
+        $month = (int) ($config['income_payment_month'] ?? $validationDate->format('n'));
+        $day = (int) ($config['income_payment_day'] ?? $validationDate->format('d'));
+
+        if ($month < 1 || $month > 12) {
+            $month = (int) $validationDate->format('n');
+        }
+
+        $year = (int) $validationDate->format('Y');
+        $baseDate = new DateTimeImmutable(sprintf('%04d-%02d-01', $year, $month));
+        $safeDay = max(1, min($day, (int) $baseDate->format('t')));
+        $paymentDate = $baseDate->setDate($year, $month, $safeDay);
+
+        if ($paymentDate < $validationDate) {
+            $paymentDate = $paymentDate->add(new DateInterval('P1Y'));
+        }
+
+        return $paymentDate;
     }
 }

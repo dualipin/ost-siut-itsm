@@ -6,6 +6,7 @@ use App\Http\Middleware\MiddlewareRunner;
 use App\Infrastructure\Templating\RendererInterface;
 use App\Modules\Loan\Application\UseCase\GetLoanDetailUseCase;
 use App\Modules\Loan\Application\UseCase\ReviewLoanApplicationUseCase;
+use App\Modules\Loan\Application\UseCase\ValidateSignedDocumentsUseCase;
 use App\Modules\Loan\Domain\Exception\InvalidLoanStatusException;
 use App\Modules\Loan\Domain\Exception\LoanNotFoundException;
 use App\Modules\Loan\Domain\ValueObject\InterestRate;
@@ -137,6 +138,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 break;
             }
 
+            case 'validar_legal_doc': {
+                $legalDocId = filter_var($_POST['legal_doc_id'] ?? '', FILTER_VALIDATE_INT);
+                $validationStatus = trim((string) ($_POST['validation_status'] ?? ''));
+                $validationObservations = trim((string) ($_POST['validation_observations'] ?? '')) ?: null;
+
+                if ($legalDocId === false || $legalDocId <= 0) {
+                    $errors[] = 'ID de documento legal invalido.';
+                    break;
+                }
+
+                if (!in_array($validationStatus, ['validado', 'rechazado'], true)) {
+                    $errors[] = 'Estado de validacion no permitido.';
+                    break;
+                }
+
+                /** @var ValidateSignedDocumentsUseCase $validateUseCase */
+                $validateUseCase = $container->get(ValidateSignedDocumentsUseCase::class);
+                $result = $validateUseCase->reviewSignedDocument(
+                    loanId: $loanId,
+                    legalDocId: (int) $legalDocId,
+                    reviewerId: $currentUser->id,
+                    validationStatus: $validationStatus,
+                    observations: $validationObservations,
+                );
+
+                $success = $result['message'];
+                break;
+            }
+
             default:
                 $errors[] = 'Acción no reconocida.';
         }
@@ -180,6 +210,7 @@ $detail['payment_configs'] = array_map(
 $detail['legal_docs'] = array_map(
     static function (array $doc) use ($buildDownloadUrl): array {
         $doc['download_url'] = $buildDownloadUrl($doc['file_path'] ?? null);
+        $doc['signed_download_url'] = $buildDownloadUrl($doc['user_signature_url'] ?? null);
 
         return $doc;
     },
@@ -223,4 +254,5 @@ $renderer->render(__DIR__ . '/detalle.latte', [
     'success'       => $success,
     'canReview'     => $currentStatus === 'solicitado',
     'canHold'       => $currentStatus === 'solicitado',
+    'canValidateDocs' => $currentStatus === 'aprobado',
 ]);

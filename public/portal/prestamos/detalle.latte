@@ -389,15 +389,21 @@
 									<div class="fw-semibold">
 										{match($doc['document_type']){
 											'pagare' => 'Pagaré',
-											'formulario_solicitud' => 'Formulario de Solicitud',
-											'contrato_consentimiento' => 'Contrato de Consentimiento',
+											'solicitud' => 'Formato de Solicitud',
+											'anuencia' => 'Anuencia de Descuento',
 											default => ucfirst($doc['document_type'])
 										}}
 									</div>
 									<div class="small text-muted">Versión {$doc['version']} · Generado {$doc['generation_date']}</div>
+									{if $doc['validation_observations']}
+									<div class="small text-danger mt-1">
+										<i class="bi bi-chat-left-text me-1"></i>{$doc['validation_observations']}
+									</div>
+									{/if}
 								</div>
 							</div>
-							<div class="d-flex align-items-center gap-3">
+							<div class="d-flex flex-column align-items-end gap-2">
+								<div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
 								{* Firma del usuario *}
 								{if $doc['requires_user_signature']}
 								<div class="text-center small">
@@ -428,11 +434,40 @@
 									{/if}
 								</div>
 								{/if}
+								{if $doc['signed_download_url']}
+								<a href="{$doc['signed_download_url']}" target="_blank"
+									class="btn btn-outline-success btn-sm rounded-3 px-3">
+									<i class="bi bi-file-earmark-check me-1"></i>Firmado
+								</a>
+								{/if}
 								{* Download link *}
 								<a href="{$doc['download_url']}" target="_blank"
 									class="btn btn-outline-secondary btn-sm rounded-3 px-3">
 									<i class="bi bi-download me-1"></i>Descargar
 								</a>
+								</div>
+
+								{if $canValidateDocs && $doc['requires_finance_validation']}
+									{if !$doc['user_signature_date']}
+									<div class="small text-warning">
+										<i class="bi bi-clock me-1"></i>Esperando documento firmado por el prestador.
+									</div>
+									{else}
+									<form method="POST" action="{url('/portal/prestamos/detalle.php')}?id={$loan['loan_id']}" class="w-100">
+										<input type="hidden" name="action" value="validar_legal_doc">
+										<input type="hidden" name="legal_doc_id" value="{$doc['legal_doc_id']}">
+										<div class="input-group input-group-sm">
+											<input type="text" name="validation_observations" class="form-control" placeholder="Observaciones (obligatorias para rechazo)">
+											<button type="submit" name="validation_status" value="validado" class="btn btn-outline-success">
+												<i class="bi bi-check-lg"></i>
+											</button>
+											<button type="submit" name="validation_status" value="rechazado" class="btn btn-outline-danger">
+												<i class="bi bi-x-lg"></i>
+											</button>
+										</div>
+									</form>
+									{/if}
+								{/if}
 							</div>
 						</div>
 						{/foreach}

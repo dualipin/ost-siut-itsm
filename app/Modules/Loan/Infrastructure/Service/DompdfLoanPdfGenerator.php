@@ -46,14 +46,30 @@ final readonly class DompdfLoanPdfGenerator implements PdfGeneratorInterface
 
     public function generateApplicationForm(Loan $loan, array $userData, array $paymentConfigs): string
     {
+        $lines = [
+            'Prestamo: ' . (string) ($loan->loanId() ?? 0),
+            'Usuario: ' . (string) ($userData['name'] ?? 'N/D'),
+            'Banco para deposito: ' . (trim((string) ($userData['bank_name'] ?? '')) !== '' ? (string) $userData['bank_name'] : 'N/D'),
+            'CLABE interbancaria: ' . (trim((string) ($userData['interbank_code'] ?? '')) !== '' ? (string) $userData['interbank_code'] : 'N/D'),
+            'Numero de cuenta: ' . (trim((string) ($userData['bank_account'] ?? '')) !== '' ? (string) $userData['bank_account'] : 'N/D'),
+            'Configuraciones de pago: ' . (string) count($paymentConfigs),
+        ];
+
+        foreach ($paymentConfigs as $index => $paymentConfig) {
+            $lines[] = sprintf(
+                'Forma de pago %d: %s | metodo: %s | total: $%0.2f | parcialidades: %d',
+                $index + 1,
+                (string) ($paymentConfig['income_type_name'] ?? ('Ingreso #' . (string) ($paymentConfig['income_type_id'] ?? 'N/D'))),
+                (string) ($paymentConfig['interest_method'] ?? 'simple_aleman'),
+                (float) ($paymentConfig['total_amount_to_deduct'] ?? 0),
+                (int) ($paymentConfig['number_of_installments'] ?? 1)
+            );
+        }
+
         return $this->renderAndStore(
             'Formato de Solicitud',
             'solicitud',
-            [
-                'Prestamo: ' . (string) ($loan->loanId() ?? 0),
-                'Usuario: ' . (string) ($userData['name'] ?? 'N/D'),
-                'Configuraciones de pago: ' . (string) count($paymentConfigs),
-            ],
+            $lines,
         );
     }
 

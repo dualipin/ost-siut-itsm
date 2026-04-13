@@ -3,9 +3,11 @@
 use App\Bootstrap;
 use App\Http\Middleware\MiddlewareFactory;
 use App\Http\Middleware\MiddlewareRunner;
+use App\Infrastructure\Config\AppConfig;
 use App\Infrastructure\Templating\RendererInterface;
 use App\Modules\Loan\Application\UseCase\GetLoanDetailUseCase;
 use App\Modules\Loan\Application\UseCase\SubmitLoanApplicationUseCase;
+use App\Modules\Loan\Application\UseCase\ValidateSignedDocumentsUseCase;
 use App\Shared\Context\UserContextInterface;
 
 require_once __DIR__ . '/../../../bootstrap.php';
@@ -19,6 +21,29 @@ $renderer    = $container->get(RendererInterface::class);
 $userContext = $container->get(UserContextInterface::class);
 $currentUser = $userContext->get();
 $db          = $container->get(\PDO::class);
+
+$buildDownloadUrl = static function (?string $path): ?string {
+    $path = trim((string) $path);
+
+    if ($path === '') {
+        return null;
+    }
+
+    if (preg_match('~^https?://~i', $path) === 1) {
+        return $path;
+    }
+
+    $normalizedPath = str_replace('\\', '/', $path);
+    $uploadsPosition = strpos($normalizedPath, 'uploads/');
+
+    if ($uploadsPosition !== false) {
+        $normalizedPath = substr($normalizedPath, $uploadsPosition);
+    } else {
+        $normalizedPath = ltrim($normalizedPath, '/');
+    }
+
+    return '/descargar.php?path=' . rawurlencode($normalizedPath);
+};
 
 $loanId = filter_var($_GET['id'] ?? '', FILTER_VALIDATE_INT);
 if ($loanId === false || $loanId <= 0) {
@@ -47,12 +72,95 @@ if (!$isPrivileged && (int) ($loan['user_id'] ?? 0) !== (int) $currentUser->id) 
 
 $isOwner = (int) ($loan['user_id'] ?? 0) === (int) $currentUser->id;
 $canDraftActions = $isOwner && (string) ($loan['status'] ?? '') === 'borrador';
+$canUploadSignedDocs = $isOwner && (string) ($loan['status'] ?? '') === 'aprobado';
 $draftActionError = null;
+$signedDocumentError = null;
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $canDraftActions) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = trim((string) ($_POST['action'] ?? ''));
 
-    if ($action === 'submit_draft') {
+    if ($action === 'upload_signed_doc' && $canUploadSignedDocs) {
+        try {
+            $legalDocId = filter_var($_POST['legal_doc_id'] ?? '', FILTER_VALIDATE_INT);
+            if ($legalDocId === false || $legalDocId <= 0) {
+                throw new RuntimeException('Documento legal invalido.');
+            }
+
+            $document = null;
+            foreach (($detail['legal_docs'] ?? []) as $legalDoc) {
+                if ((int) ($legalDoc['legal_doc_id'] ?? 0) === (int) $legalDocId) {
+                    $document = $legalDoc;
+                    break;
+                }
+            }
+
+            if ($document === null) {
+                throw new RuntimeException('No se encontro el documento legal seleccionado.');
+            }
+
+            if (empty($document['requires_user_signature'])) {
+                throw new RuntimeException('El documento seleccionado no requiere firma del prestador.');
+            }
+
+            if (!isset($_FILES['signed_document'])) {
+                throw new RuntimeException('Debes seleccionar un archivo PDF firmado.');
+            }
+
+            $file = $_FILES['signed_document'];
+            if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+                throw new RuntimeException('No fue posible subir el archivo firmado.');
+            }
+
+            $fileSize = (int) ($file['size'] ?? 0);
+            if ($fileSize <= 0 || $fileSize > (5 * 1024 * 1024)) {
+                throw new RuntimeException('El archivo debe ser PDF y no exceder 5MB.');
+            }
+
+            $extension = strtolower((string) pathinfo((string) ($file['name'] ?? ''), PATHINFO_EXTENSION));
+            if ($extension !== 'pdf') {
+                throw new RuntimeException('Solo se permiten archivos PDF firmados.');
+            }
+
+            /** @var AppConfig $appConfig */
+            $appConfig = $container->get(AppConfig::class);
+            $targetDirectory = rtrim($appConfig->upload->privateDir, DIRECTORY_SEPARATOR)
+                . DIRECTORY_SEPARATOR
+                . 'loans'
+                . DIRECTORY_SEPARATOR
+                . 'signed';
+
+            if (!is_dir($targetDirectory) && !mkdir($targetDirectory, 0775, true) && !is_dir($targetDirectory)) {
+                throw new RuntimeException('No se pudo crear el directorio para documentos firmados.');
+            }
+
+            $fileName = sprintf(
+                'signed_%d_%d_%s.pdf',
+                (int) $loan['loan_id'],
+                (int) $legalDocId,
+                bin2hex(random_bytes(4))
+            );
+            $storedPath = $targetDirectory . DIRECTORY_SEPARATOR . $fileName;
+
+            if (!move_uploaded_file((string) $file['tmp_name'], $storedPath)) {
+                throw new RuntimeException('No se pudo almacenar el archivo firmado.');
+            }
+
+            /** @var ValidateSignedDocumentsUseCase $validateDocumentsUseCase */
+            $validateDocumentsUseCase = $container->get(ValidateSignedDocumentsUseCase::class);
+            $validateDocumentsUseCase->uploadSignedDocument(
+                loanId: (int) $loan['loan_id'],
+                legalDocId: (int) $legalDocId,
+                signedFilePath: $storedPath,
+            );
+
+            header('Location: /portal/prestamos/activo-detalle.php?id=' . (int) $loan['loan_id'] . '&signed_uploaded=1');
+            exit;
+        } catch (\Throwable $e) {
+            $signedDocumentError = 'No fue posible subir el documento firmado. ' . $e->getMessage();
+        }
+    }
+
+    if ($action === 'submit_draft' && $canDraftActions) {
         try {
             /** @var SubmitLoanApplicationUseCase $submitLoanUseCase */
             $submitLoanUseCase = $container->get(SubmitLoanApplicationUseCase::class);
@@ -141,20 +249,20 @@ unset($row);
 
 $paymentConfigs = $detail['payment_configs'] ?? [];
 foreach ($paymentConfigs as &$config) {
-    $path = trim((string) ($config['supporting_document_path'] ?? ''));
-    $config['supporting_document_url'] = null;
-
-    if ($path !== '') {
-        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
-            $config['supporting_document_url'] = $path;
-        } else {
-            $relativePath = ltrim($path, '/');
-            $config['supporting_document_url'] = '/descargar.php?path=' . urlencode($relativePath);
-        }
-    }
+    $config['supporting_document_url'] = $buildDownloadUrl($config['supporting_document_path'] ?? null);
 }
 unset($config);
 $detail['payment_configs'] = $paymentConfigs;
+
+$detail['legal_docs'] = array_map(
+    static function (array $doc) use ($buildDownloadUrl): array {
+        $doc['download_url'] = $buildDownloadUrl($doc['file_path'] ?? null);
+        $doc['signed_download_url'] = $buildDownloadUrl($doc['user_signature_url'] ?? null);
+
+        return $doc;
+    },
+    $detail['legal_docs'] ?? []
+);
 
 $totals['principal_label'] = '$' . number_format($totals['principal'], 2);
 $totals['interest_label'] = '$' . number_format($totals['interest'], 2);
@@ -186,4 +294,7 @@ $renderer->render(__DIR__ . '/activo-detalle.latte', [
     'can_draft_actions' => $canDraftActions,
     'draft_action_error' => $draftActionError,
     'draft_action_success' => isset($_GET['submitted']) && $_GET['submitted'] === '1',
+    'can_upload_signed_docs' => $canUploadSignedDocs,
+    'signed_upload_error' => $signedDocumentError,
+    'signed_upload_success' => isset($_GET['signed_uploaded']) && $_GET['signed_uploaded'] === '1',
 ]);

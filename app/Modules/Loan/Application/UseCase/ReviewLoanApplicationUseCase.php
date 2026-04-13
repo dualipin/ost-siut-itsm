@@ -15,6 +15,7 @@ use App\Modules\Loan\Domain\Exception\InvalidLoanStatusException;
 use App\Modules\Loan\Domain\Exception\LoanNotFoundException;
 use App\Modules\Loan\Domain\Repository\LegalDocRepositoryInterface;
 use App\Modules\Loan\Domain\Repository\LoanRepositoryInterface;
+use App\Modules\Loan\Domain\Repository\PaymentConfigRepositoryInterface;
 use App\Modules\Loan\Domain\ValueObject\InterestRate;
 use App\Modules\Loan\Domain\ValueObject\Money;
 use DateTimeImmutable;
@@ -28,7 +29,8 @@ final readonly class ReviewLoanApplicationUseCase
         private ElectronicSignatureService $signatureService,
         private PdfGeneratorInterface $pdfGenerator,
         private LoanEventLogger $eventLogger,
-        private AmortizationCalculator $amortizationCalculator
+        private AmortizationCalculator $amortizationCalculator,
+        private PaymentConfigRepositoryInterface $paymentConfigRepository
     ) {}
 
     /**
@@ -116,14 +118,18 @@ final readonly class ReviewLoanApplicationUseCase
         
         $this->loanRepository->update($approvedLoan);
         
-        // TODO: Get user data from repository
+        $loanDetail = $this->loanRepository->findDetailById($loanId) ?? [];
+
         $userData = [
             'user_id' => $loan->userId(),
-            'name' => 'Usuario',
-            'curp' => $lenderSignatoryCurp
+            'name' => trim((string) ($loanDetail['borrower_name'] ?? 'Usuario')),
+            'curp' => (string) ($loanDetail['borrower_curp'] ?? $lenderSignatoryCurp),
+            'bank_name' => (string) ($loanDetail['borrower_bank_name'] ?? ''),
+            'interbank_code' => (string) ($loanDetail['borrower_interbank_code'] ?? ''),
+            'bank_account' => (string) ($loanDetail['borrower_bank_account'] ?? ''),
         ];
-        
-        $paymentConfigs = []; // TODO: Get from payment config repository
+
+        $paymentConfigs = $this->paymentConfigRepository->findByLoanIdWithIncomeType($loanId);
         
         // Generate legal documents
         $this->generateLegalDocument(
