@@ -162,10 +162,10 @@
 
         <div class="header">
           <p>
-            No. 1. Bueno por $10000
+            No. {$loan_id}. Bueno por {$approved_amount_label}
           </p>
           <p>
-            En Macuspana, Tabasco a {date('Y-m-d')|date: 'd \d\e m \d\e\l\ Y'}.
+            En Macuspana, Tabasco a {$approval_date_long}.
           </p>
         </div>
 
@@ -177,24 +177,23 @@
           Debe(mos) y pagare(mos) incondicionalmente por este Pagaré a la orden de
           <span class="bold underline"> Sindicato Único de Trabajadores de Instituto Tecnológico Superior de
         Macuspana</span>
-          en <span class="underline bold">Macuspana, Tabasco</span> el <span class="underline" style="padding: 0 100px">
-      </span>
+          en <span class="underline bold">Macuspana, Tabasco</span> el <span class="underline" style="padding: 0 100px">{$last_payment_date}</span>
         </p>
         <p>
           La cantidad de:
         </p>
         <p class="box">
-
+          {$approved_amount_label}
         </p>
         <p>
           Valor recibido a mi (nuestra) entera satisfacción. Este pagaré forma parte de una serie numerada de 1 al <span
-                  class="underline" style="padding: 0 20px"> </span> y todos están sujetos a la condición de que, al no
+                  class="underline" style="padding: 0 20px">{$term_fortnights}</span> y todos están sujetos a la condición de que, al no
           pagarse
           cualquiera de ellos a su vencimiento, serán exigibles todos los que le sigan en número, además de los ya
           vencidos,
           desde la fecha de vencimiento de este documento hasta el día de su liquidación, causará intereses moratorios
           al
-          tipo de <span class="underline" style="padding: 0 20px"> </span>% mensual, pagadero en esta ciudad juntamente
+          tipo de <span class="underline" style="padding: 0 20px">{$interest_rate}</span>% mensual, pagadero en esta ciudad juntamente
           con
           el
           principal.
@@ -212,17 +211,17 @@
               </tr>
               <tr>
                 <td class="cell-underline">
-                  Nombre:
+                  Nombre: {$borrower_name}
                 </td>
               </tr>
               <tr>
                 <td class="cell-underline">
-                  Dirección:
+                  Dirección: {$borrower_address}
                 </td>
               </tr>
               <tr>
                 <td class="cell-underline">
-                  Teléfono:
+                  Teléfono: {$borrower_phone}
                 </td>
               </tr>
             </table>
@@ -239,7 +238,7 @@
                 <td class="cell-space"></td>
               </tr>
               <tr>
-                <td class="cell-underline cell-space"></td>
+                <td class="cell-underline cell-space">{$borrower_name}</td>
               </tr>
               <tr>
                 <td class="text-center">

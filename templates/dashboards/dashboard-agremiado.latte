@@ -9,7 +9,6 @@
       <div class="flex-grow-1">
         <h5 class="alert-heading mb-2 fw-bold">Documento Pendiente de Firma</h5>
         <p class="mb-2 text-black-50">Tienes {count($pendingSignatures)} documento{count($pendingSignatures) != 1 ? 's' : ''} pendiente{count($pendingSignatures) != 1 ? 's' : ''} de firma: {foreach $pendingSignatures as $sig}<strong>{$sig['document_type']}</strong>{if !$iterator->last}, {/if}{/foreach}</p>
-        <a href="#pendingSignatures" class="btn btn-sm btn-warning">Ir a Firmar</a>
       </div>
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
     </div>

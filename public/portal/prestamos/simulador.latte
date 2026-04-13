@@ -1,6 +1,8 @@
 {extends ../../../templates/@portal.latte}
 
 {varType App\Module\Prestamo\Entity\CategoriaTipoIngreso[] $categoriasTipoIngreso}
+{varType string $prestamistaNombre}
+{varType bool $isNoAgremiado}
 
 {block main}
   {include
@@ -13,15 +15,38 @@
   <div x-data="simuladorData()">
     <form class="needs-validation" method="POST">
 
+      <div class="row mb-3">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Perfil (Tasa de Interés)</label>
+          <select class="form-select" @change="onPerfilChange($event.target.value)">
+            <option value="" disabled selected>Selecciona un perfil...</option>
+            {if $isNoAgremiado}
+              <option value="8.0">No agremiado y ahorrador (Externo) (8%)</option>
+              <option value="9.5">No agremiado y no ahorrador (Externo) (9.5%)</option>
+            {else}
+              <option value="6.0">Agremiado y ahorrador (6%)</option>
+              <option value="7.5">Agremiado y no ahorrador (7.5%)</option>
+            {/if}
+          </select>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Tasa Mensual (%)</label>
+          <input type="number" name="tasa_interes" x-model="tasaInteresMensual" class="form-control" step="0.1" required>
+        </div>
+      </div>
+
       <!-- Total solicitado (grande) -->
       <div class="text-center mb-4 position-sticky bg-body py-3"
            style="z-index: 10; border-bottom: 1px solid #dee2e6; top: 2.6em">
         <div class="fw-bold text-primary" x-text="formatCurrency(totalSolicitado)"
              style="font-size: clamp(1.5rem, 6vw, 3rem);"></div>
-        <div class="small text-muted">Total solicitado</div>
+        <div class="small text-muted">Monto del Préstamo</div>
         <div class="mt-2">
           <small class="text-muted d-block">Fecha actual</small>
           <span class="badge bg-secondary" x-text="localize(currentDate)"></span>
+        </div>
+        <div class="mt-1">
+          <small class="text-muted" x-text="`Plazo estimado: ${ mesesEstimados } mes(es) + ${ diasEstimados } día(s)`"></small>
         </div>
       </div>
 
@@ -54,29 +79,33 @@
                 <div class="col-12"
                      x-show="item.tipoId && (categoriasTipoIngreso.find(c => c.id === item.tipoId)?.esPeriodico)">
                   <div class="row g-2">
-                    <div class="col-6 col-sm-3">
-                      <label class="form-label mb-1 small">Cantidad</label>
-                      <input x-model.number="item.cantidad" type="number" min="1"
-                             :max="calcularMaxPeriodos(categoriasTipoIngreso.find(c => c.id === item.tipoId))"
-                             :disabled="calcularMaxPeriodos(categoriasTipoIngreso.find(c => c.id === item.tipoId)) === 0"
-                             class="form-control">
-                      <div class="small text-muted mt-1 d-sm-none">Máx: <span
-                                x-text="calcularMaxPeriodos(categoriasTipoIngreso.find(c => c.id === item.tipoId))"></span>
-                      </div>
+                    <div class="col-12 col-sm-4">
+                      <label class="form-label mb-1 small">Fecha de descuento</label>
+                      <select x-model="item.fechaPago" @change="onFechaPagoChange(index)" class="form-select"
+                              :disabled="obtenerOpcionesParaItem(index).length === 0">
+                        <option value="">Seleccione una fecha...</option>
+                        <template x-for="op in obtenerOpcionesParaItem(index)">
+                          <option :value="op.value" x-text="op.label"></option>
+                        </template>
+                      </select>
                     </div>
-                    <div class="col-6 col-sm-3">
+                    <div class="col-6 col-sm-4">
                       <label class="form-label mb-1 small">Unidad</label>
                       <div class="form-control-plaintext small"
-                           x-text="`Cada ${ categoriasTipoIngreso.find(c => c . id === item . tipoId)?.frecuenciaDias } dias`">
+                           x-text="`Cada ${ categoriasTipoIngreso.find(c => c.id === item.tipoId)?.frecuenciaDias } dias`">
                       </div>
                     </div>
-                    <div class="col-12 col-sm-6">
+                    <div class="col-6 col-sm-4">
+                      <label class="form-label mb-1 small">Períodos</label>
+                      <div class="form-control-plaintext fw-semibold" x-text="item.cantidad || 0"></div>
+                      <div class="small text-muted">Máx períodos: <span
+                                x-text="calcularMaxPeriodos(categoriasTipoIngreso.find(c => c.id === item.tipoId))"></span>
+                      </div>
+                    </div>
+                    <div class="col-12">
                       <label class="form-label mb-1 small">Fecha aproximada de terminación</label>
                       <div class="form-control-plaintext fw-semibold"
-                           x-text="calcularFechaFin(categoriasTipoIngreso.find(c => c.id === item.tipoId), item.cantidad)">
-                      </div>
-                      <div class="small text-muted d-none d-sm-block">Máx períodos: <span
-                                x-text="calcularMaxPeriodos(categoriasTipoIngreso.find(c => c.id === item.tipoId))"></span>
+                           x-text="item.fechaPago ? localize(item.fechaPago) : '-'">
                       </div>
                     </div>
                   </div>
@@ -96,6 +125,11 @@
 
       <!-- Campo oculto con JSON de descuentos -->
       <input type="hidden" name="descuentos_json" :value="JSON.stringify(descuentos)">
+      <input type="hidden" name="prestamista_nombre" :value="prestamistaNombre">
+      <input type="hidden" name="monto_prestamo" :value="totalSolicitado">
+      <input type="hidden" name="fecha_otorgamiento" :value="fechaOtorgamiento">
+      <input type="hidden" name="meses_pagar" :value="mesesEstimados">
+      <input type="hidden" name="dias_adicionales" :value="diasEstimados">
 
       <div class="d-grid gap-2 d-sm-flex mb-3">
         <div class="me-sm-2" style="width:64px;">
@@ -105,7 +139,9 @@
           </button>
         </div>
         <div class="flex-fill">
-          <button class="btn btn-primary btn-lg w-100" type="submit">Simular</button>
+          <button class="btn btn-outline-danger btn-lg w-100" type="submit" name="output" value="pdf">
+            Descargar PDF
+          </button>
         </div>
       </div>
     </form>
@@ -128,6 +164,7 @@
      * @property { number } monto
      * @property { string | number } tipoId
      * @property { number } cantidad
+      * @property { string } fechaPago
      * @property { string } unidad
      */
 
@@ -156,6 +193,7 @@
      * @returns { Object }
      */
     function simuladorData () {
+      const isNoAgremiado = {= $isNoAgremiado ? 'true' : 'false' }
       const data = {= json_encode($categoriasTipoIngreso)};
       /** @type { TipoPrestamoRaw[] } */
       const parsed = typeof data === 'string' ? JSON.parse(data) : data
@@ -178,11 +216,23 @@
         monto: 0,
         tipoId: 0,
         cantidad: 1,
+        fechaPago: '',
         unidad: 'meses',
       })
 
       return {
-        monto: 0,
+        prestamistaNombre: {= json_encode($prestamistaNombre)},
+        tasaInteresMensual: isNoAgremiado ? 9.5 : 7.5,
+        fechaOtorgamiento: (function () {
+          const d = new Date()
+          const y = d.getFullYear()
+          const m = String(d.getMonth() + 1).padStart(2, '0')
+          const day = String(d.getDate()).padStart(2, '0')
+          return y + '-' + m + '-' + day
+        })(),
+        onPerfilChange (val) {
+          this.tasaInteresMensual = parseFloat(val) || this.tasaInteresMensual
+        },
         /**
          * @type { TipoPrestamo[] }
          */
@@ -217,8 +267,25 @@
         obtenerFechaMaximaAnual () {
           const hoy = new Date()
           const anioActual = hoy.getFullYear()
-          // 20 de noviembre es aprox. cuando termina el año fiscal
-          return new Date(anioActual, 10, 20) // mes 10 = noviembre (0-indexed)
+          // Fecha límite operativa para opciones de pago periódico.
+          return new Date(anioActual, 10, 15) // 15 de noviembre
+        },
+        /**
+         * @param { Date } date
+         * @returns { string }
+         */
+        toIsoDate (date) {
+          const y = date.getFullYear()
+          const m = String(date.getMonth() + 1).padStart(2, '0')
+          const d = String(date.getDate()).padStart(2, '0')
+          return `${ y }-${ m }-${ d }`
+        },
+        /**
+         * @param { Date } date
+         * @returns { string }
+         */
+        toDisplayDate (date) {
+          return date.toLocaleDateString('es-MX')
         },
         get selectedTipoIds () {
           return this.descuentos.map(d => Number(d.tipoId)).filter(Boolean)
@@ -246,8 +313,10 @@
           const cat = this.categoriasTipoIngreso.find(c => c.id === id)
           if (cat && cat.esPeriodico) {
             this.descuentos[index].unidad = (cat.frecuenciaDias === 15 ? 'quincenas' : 'meses')
-            if (!this.descuentos[index].cantidad) this.descuentos[index].cantidad = 1
-            const maxPeriodos = this.calcularMaxPeriodos(cat)
+            const opciones = this.obtenerOpcionesFechasPago(cat)
+            this.descuentos[index].fechaPago = opciones.length > 0 ? opciones[0].value : ''
+            this.descuentos[index].cantidad = opciones.length > 0 ? 1 : 0
+            const maxPeriodos = opciones.length
             Alpine.store('toast').show({
               message: `Tipo periódico: ${ cat.nombre }. Máx períodos: ${ maxPeriodos }`,
               type: 'alert',
@@ -255,67 +324,91 @@
           } else {
             delete this.descuentos[index].unidad
             delete this.descuentos[index].cantidad
+            delete this.descuentos[index].fechaPago
           }
         },
         /**
-         * Calcula el próximo día de pago a partir de hoy para un tipo de ingreso
-         * @param { TipoPrestamo } cat - Categoría de tipo de ingreso
-         * @returns { Date } - Fecha del próximo pago
+         * @param { number } index
+         * @returns { void }
          */
-        obtenerProximoPago (cat) {
-          if (!cat || !cat.esPeriodico) return new Date()
+        onFechaPagoChange (index) {
+          const item = this.descuentos[index]
+          const id = Number(item.tipoId)
+          const cat = this.categoriasTipoIngreso.find(c => c.id === id)
+          if (!cat || !cat.esPeriodico) return
 
-          const hoy = new Date()
-          const freq = Number(cat.frecuenciaDias) || 30
-          const diaPago = Number(cat.diasPagoTentativo) || 20
-          const mesPago = Number(cat.mesPagoTentativo) || null // null significa pago cada período
+          const opciones = this.obtenerOpcionesFechasPago(cat)
+          const idx = opciones.findIndex(op => op.value === item.fechaPago)
+          item.cantidad = idx >= 0 ? idx + 1 : 0
+        },
+        /**
+         * Obtiene las opciones de fecha de pago para un item específico
+         * @param { number } index
+         * @returns { { value: string, label: string }[] }
+         */
+        obtenerOpcionesParaItem (index) {
+          const item = this.descuentos[index]
+          if (!item || !item.tipoId) return []
+          const cat = this.categoriasTipoIngreso.find(c => c.id === Number(item.tipoId))
+          if (!cat || !cat.esPeriodico) return []
+          return this.obtenerOpcionesFechasPago(cat)
+        },
+        /**
+         * @param { number } year
+         * @param { number } monthIndex
+         * @returns { number }
+         */
+        diasEnMes (year, monthIndex) {
+          return new Date(year, monthIndex + 1, 0).getDate()
+        },
+        /**
+         * @param { TipoPrestamo | undefined } cat
+         * @returns { { value: string, label: string }[] }
+         */
+        obtenerOpcionesFechasPago (cat) {
+          if (!cat || !cat.esPeriodico) return []
 
-          /**
-           * @param { number } y
-           * @param { number } mIndex
-           * @returns { number }
-           */
-          function daysInMonth (y, mIndex) {
-            return new Date(y, mIndex + 1, 0).getDate()
+          const frecuencia = Number(cat.frecuenciaDias) || 30
+          const diaPago = Number(cat.diasPagoTentativo) || 15
+          const inicio = new Date(this.fechaOtorgamiento + 'T00:00:00')
+          const fechaMaxima = this.obtenerFechaMaximaAnual()
+
+          if (inicio > fechaMaxima) return []
+
+          const opciones = []
+
+          let cursor = new Date(inicio.getFullYear(), inicio.getMonth(), 1)
+          let guard = 0
+
+          while (cursor <= fechaMaxima && guard < 36) {
+            const year = cursor.getFullYear()
+            const monthIndex = cursor.getMonth()
+            const totalDiasMes = this.diasEnMes(year, monthIndex)
+
+            // Regla requerida: veces en el mes = frequency_days / total de días del mes.
+            const fraccionMensual = frecuencia / totalDiasMes
+            const vecesEnMes = fraccionMensual > 0 ? Math.max(1, Math.round(1 / fraccionMensual)) : 1
+            const diaBase = Math.min(Math.max(1, diaPago), totalDiasMes)
+            const saltoDias = Math.max(1, Math.round(totalDiasMes / vecesEnMes))
+
+            for (let i = 0; i < vecesEnMes; i++) {
+              const diaCandidato = diaBase + (i * saltoDias)
+              if (diaCandidato > totalDiasMes) break
+
+              const fechaPago = new Date(year, monthIndex, diaCandidato)
+              if (fechaPago < inicio || fechaPago > fechaMaxima) continue
+
+              opciones.push({
+                value: this.toIsoDate(fechaPago),
+                label: this.toDisplayDate(fechaPago),
+              })
+            }
+
+            cursor = new Date(year, monthIndex + 1, 1)
+            guard++
           }
 
-          let proximoPago = new Date()
-
-          if (mesPago) {
-            // Pago en mes específico (ej: Aguinaldo en diciembre)
-            let year = hoy.getFullYear()
-            const mesIndex = mesPago - 1 // Convertir a 0-indexed
-            const diaMesActual = Math.min(diaPago, daysInMonth(year, mesIndex))
-            let candidate = new Date(year, mesIndex, diaMesActual)
-
-            if (candidate <= hoy) {
-              year += 1
-              candidate = new Date(year, mesIndex, Math.min(diaPago, daysInMonth(year, mesIndex)))
-            }
-            proximoPago = candidate
-          } else {
-            // Pago periódico (quincena, mensuales)
-            let mesActual = hoy.getMonth()
-            let yearActual = hoy.getFullYear()
-            const diaActual = hoy.getDate()
-            const diaMesActual = Math.min(diaPago, daysInMonth(yearActual, mesActual))
-
-            let candidate = new Date(yearActual, mesActual, diaMesActual)
-
-            // Si ya pasó el día de pago este mes, ir al próximo
-            if (candidate <= hoy) {
-              mesActual++
-              if (mesActual > 11) {
-                mesActual = 0
-                yearActual++
-              }
-              const diaProximoMes = Math.min(diaPago, daysInMonth(yearActual, mesActual))
-              candidate = new Date(yearActual, mesActual, diaProximoMes)
-            }
-            proximoPago = candidate
-          }
-
-          return proximoPago
+          return opciones
         },
         /**
          * @param { TipoPrestamo | undefined } cat
@@ -323,26 +416,7 @@
          */
         calcularMaxPeriodos (cat) {
           if (!cat || !cat.esPeriodico) return 0
-
-          const hoy = new Date()
-          const fechaMaxima = this.obtenerFechaMaximaAnual()
-
-          // Si ya pasamos la fecha máxima, no hay períodos disponibles
-          if (hoy >= fechaMaxima) return 0
-
-          const proximoPago = this.obtenerProximoPago(cat)
-          const freq = Number(cat.frecuenciaDias) || 30
-
-          let periodo = 0
-          let fechaActual = new Date(proximoPago.getTime())
-
-          // Contar cuántos períodos caben hasta la fecha máxima
-          while (fechaActual <= fechaMaxima) {
-            periodo++
-            fechaActual.setDate(fechaActual.getDate() + freq)
-          }
-
-          return Math.max(0, periodo - 1) // -1 porque el último no entra completo
+          return this.obtenerOpcionesFechasPago(cat).length
         },
         /**
          * @param { TipoPrestamo | undefined } cat
@@ -352,15 +426,12 @@
         calcularFechaFin (cat, cantidad) {
           if (!cat || !cat.esPeriodico || !(Number(cantidad) > 0)) return '-'
 
-          const freq = Number(cat.frecuenciaDias) || 30
           const numCuotas = Math.max(1, Number(cantidad))
+          const opciones = this.obtenerOpcionesFechasPago(cat)
+          if (opciones.length === 0) return '-'
 
-          // Obtener el próximo pago
-          const proximoPago = this.obtenerProximoPago(cat)
-
-          // Calcular la fecha final: próximo pago + (numCuotas - 1) períodos
-          const fechaFin = new Date(proximoPago.getTime())
-          fechaFin.setDate(fechaFin.getDate() + (numCuotas - 1) * freq)
+          const idx = Math.min(opciones.length, numCuotas) - 1
+          const fechaFin = new Date(opciones[idx].value + 'T00:00:00')
 
           // Verificar que no supere la fecha máxima anual
           const fechaMaxima = this.obtenerFechaMaximaAnual()
@@ -372,6 +443,42 @@
         },
         get totalSolicitado () {
           return this.descuentos.reduce((s, d) => s + (Number(d.monto) || 0), 0)
+        },
+        get plazoDiasEstimado () {
+          let maxDias = 0
+          this.descuentos.forEach((d) => {
+            const tipoId = Number(d.tipoId)
+            const cat = this.categoriasTipoIngreso.find(c => c.id === tipoId)
+            if (!cat) return
+
+            if (cat.esPeriodico) {
+              const base = new Date(this.fechaOtorgamiento + 'T00:00:00')
+              const opciones = this.obtenerOpcionesFechasPago(cat)
+              const fechaSeleccionada = d.fechaPago || (opciones[0] ? opciones[0].value : '')
+              if (!fechaSeleccionada) return
+
+              const target = new Date(fechaSeleccionada + 'T00:00:00')
+              const diff = Math.max(0, Math.floor((target - base) / 86400000))
+              maxDias = Math.max(maxDias, diff)
+              return
+            }
+
+            const mes = Number(cat.mesPagoTentativo) || 12
+            const dia = Number(cat.diasPagoTentativo) || 1
+            const base = new Date(this.fechaOtorgamiento + 'T00:00:00')
+            let target = new Date(base.getFullYear(), mes - 1, dia)
+            if (target <= base) target = new Date(base.getFullYear() + 1, mes - 1, dia)
+            const diff = Math.max(0, Math.floor((target - base) / 86400000))
+            maxDias = Math.max(maxDias, diff)
+          })
+
+          return maxDias
+        },
+        get mesesEstimados () {
+          return Math.floor(this.plazoDiasEstimado / 30)
+        },
+        get diasEstimados () {
+          return this.plazoDiasEstimado % 30
         },
         /**
          * @param { number } v

@@ -4,7 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Http\Exception\ForbiddenException;
 use App\Http\Exception\UnauthorizedException;
-use App\Module\Auth\Enum\RoleEnum;
+use App\Shared\Domain\Enum\RoleEnum;
 use App\Shared\Context\UserContext;
 
 /**
@@ -34,7 +34,7 @@ final class RoleMiddleware extends BaseMiddleware
             $this->deny("Debes iniciar sesión para acceder a este recurso.");
         }
 
-        if (!in_array($session->rol, $this->rolesPermitidos, strict: true)) {
+        if (!in_array($session->role, $this->rolesPermitidos, strict: true)) {
             throw new ForbiddenException(
                 "No tienes permisos para acceder a este recurso.",
             );
