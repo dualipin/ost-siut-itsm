@@ -1,4 +1,4 @@
-{extends ../../templates/@document.latte}
+{extends ../../@document.latte}
 
 
 {block content}
@@ -185,7 +185,7 @@
 
     <!-- Fecha -->
     <p class="fecha">
-      Macuspana, Tabasco a _________________ de ____________________ de 202___.
+      Macuspana, Tabasco a {$approval_date|date: 'd'} de {$approval_date|date: 'F'} de {$approval_date|date: 'Y'}.
     </p>
 
     <!-- Asunto -->
@@ -206,14 +206,14 @@
 
     <!-- Párrafo principal -->
     <p class="body-text">
-      Quien suscribe ________________________________________
+      Quien suscribe {$borrower_name}
       y de conformidad en lo establecido por el Artículo 110 fracción IV de la Ley Federal del Trabajo,
       y por medio del presente tengo a bien solicitarle se me descuente de mi nómina quincenal la cantidad de
-      $___________________________________
-      y a partir de la fecha ____________________ hasta pagar en su totalidad el presente adeudo que he contraído
+      {$installment_amount_label}
+      y a partir de la fecha {$first_payment_date} hasta pagar en su totalidad el presente adeudo que he contraído
       de manera voluntaria con la caja de ahorro de los Agremiados del Sindicato Único de Trabajadores del Instituto
-      tecnológico Superior de Macuspana por la cantidad total de este préstamo de $___________________
-      más el ____% de interés de manera mensual y de ser necesario se me descuente de las otras prestaciones
+      Tecnológico Superior de Macuspana por la cantidad total de este préstamo de {$approved_amount_label}
+      más el {$interest_rate}% de interés de manera mensual y de ser necesario se me descuente de las otras prestaciones
       dentro del año o de las prestaciones de fin de año de acuerdo a lo listado en la siguiente tabla, al igual
       que los otros posibles prestamos que pueda contraer de acuerdo a mi capacidad de pago con el SIUTITSM
       y que sean referenciados de esta misma forma.
@@ -234,27 +234,25 @@
         <th class="col-no"></th>
         <th class="col-obs"><strong>Observación</strong></th>
       </tr>
-      <tr>
-        <td class="col-num">&nbsp;</td>
-        <td class="col-prestacion">&nbsp;</td>
-        <td class="col-si">&nbsp;</td>
-        <td class="col-no">&nbsp;</td>
-        <td class="col-obs">&nbsp;</td>
-      </tr>
-      <tr>
-        <td class="col-num">&nbsp;</td>
-        <td class="col-prestacion">&nbsp;</td>
-        <td class="col-si">&nbsp;</td>
-        <td class="col-no">&nbsp;</td>
-        <td class="col-obs">&nbsp;</td>
-      </tr>
-      <tr>
-        <td class="col-num">&nbsp;</td>
-        <td class="col-prestacion">&nbsp;</td>
-        <td class="col-si">&nbsp;</td>
-        <td class="col-no">&nbsp;</td>
-        <td class="col-obs">&nbsp;</td>
-      </tr>
+      {if count($payment_configs) > 0}
+        {foreach $payment_configs as $index => $config}
+          <tr>
+            <td class="col-num">{$index + 1}</td>
+            <td class="col-prestacion">{$config['income_type_name']}</td>
+            <td class="col-si">{$config['installment_amount_label']}</td>
+            <td class="col-no">{$config['total_amount_label']}</td>
+            <td class="col-obs">{$config['number_of_installments']} parcialidades</td>
+          </tr>
+        {/foreach}
+      {else}
+        <tr>
+          <td class="col-num">1</td>
+          <td class="col-prestacion">Nómina quincenal</td>
+          <td class="col-si">{$installment_amount_label}</td>
+          <td class="col-no">{$approved_amount_label}</td>
+          <td class="col-obs">{$term_fortnights} parcialidades estimadas</td>
+        </tr>
+      {/if}
     </table>
 
     <!-- Párrafo irrevocabilidad -->
@@ -304,6 +302,7 @@
       <div class="firma-block">
         <p class="firma-label">Atentamente</p>
         <div class="firma-line"></div>
+        <p class="firma-desc">{$borrower_name}</p>
         <p class="firma-desc">
           Nombre, Firma y huella del Prestador a la Caja de Ahorro del SINDICATO ÚNICO DE TRABAJADORES
           DEL INSTITUTO TECNOLÓGICO SUPERIOR DE MACUSPANA.
@@ -314,6 +313,7 @@
       <div class="firma-block">
         <p class="firma-label">Atentamente</p>
         <div class="firma-line"></div>
+        <p class="firma-desc">Representación SIUTITSM</p>
         <p class="firma-desc">
           Nombre, Firma y huella del Otorgante del Préstamo de a la Caja de Ahorro del SINDICATO ÚNICO
           DE TRABAJADORES DEL INSTITUTO TECNOLÓGICO SUPERIOR DE MACUSPANA.

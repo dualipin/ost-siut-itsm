@@ -13,6 +13,7 @@ use App\Infrastructure\Session\SessionInterface;
 use App\Infrastructure\Templating\Latte\LatteExtension;
 use App\Infrastructure\Templating\Latte\LatteRenderer;
 use App\Infrastructure\Templating\RendererInterface;
+use App\Modules\Loan\Infrastructure\Service\DompdfLoanPdfGenerator;
 use App\Modules\Auth\Infrastructure\Mail\PasswordRecoveryMailer;
 use App\Modules\Auth\Domain\Service\PasswordRecoveryNotifierInterface;
 use App\Modules\Dashboard\Application\Service\AlertEvaluationService;
@@ -133,6 +134,16 @@ return function (ContainerBuilder $container) {
         },
 
         RendererInterface::class => autowire(LatteRenderer::class),
+        DompdfLoanPdfGenerator::class => function (
+            AppConfig $config,
+            RendererInterface $renderer,
+        ) {
+            return new DompdfLoanPdfGenerator(
+                $config,
+                $renderer,
+                dirname(__DIR__),
+            );
+        },
         EmailService::class => autowire(EmailService::class),
         PdoMailQueueRepository::class => autowire(PdoMailQueueRepository::class),
         MailQueueProcessor::class => autowire(MailQueueProcessor::class),
