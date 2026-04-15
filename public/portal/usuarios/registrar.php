@@ -74,9 +74,9 @@ function mapRegisterUserFormData(FormRequest $request): array
         'password_confirm' => (string) $request->input('password_confirm', ''),
         'role' => (string) $request->input('role', ''),
         'curp' => nullableInput($request, 'curp'),
-        'nss' => nullableInput($request, 'nss'),
+        'nss' => normalizeNssValue(nullableInput($request, 'nss')),
         'birthdate' => nullableInput($request, 'birthdate'),
-        'phone' => nullableInput($request, 'phone'),
+        'phone' => normalizePhoneValue(nullableInput($request, 'phone')),
         'address' => nullableInput($request, 'address'),
         'department' => nullableInput($request, 'department'),
         'category' => nullableInput($request, 'category'),
@@ -90,6 +90,31 @@ function nullableInput(FormRequest $request, string $key): ?string
     $value = (string) $request->input($key, '');
 
     return $value !== '' ? $value : null;
+}
+
+function normalizePhoneValue(?string $value): ?string
+{
+    return normalizeDigitsValue($value);
+}
+
+function normalizeNssValue(?string $value): ?string
+{
+    return normalizeDigitsValue($value);
+}
+
+function normalizeDigitsValue(?string $value): ?string
+{
+    if ($value === null) {
+        return null;
+    }
+
+    $digits = preg_replace('/\D+/', '', $value);
+
+    if ($digits === null || $digits === '') {
+        return null;
+    }
+
+    return $digits;
 }
 
 /**
@@ -152,6 +177,14 @@ function validateRegisterUserFormData(ContainerInterface $container, array $form
         $errors[] = 'El salario no puede ser negativo.';
     }
 
+    if (!isValidPhoneValue($formData['phone'])) {
+        $errors[] = 'El telefono debe tener 10 digitos.';
+    }
+
+    if (!isValidNssValue($formData['nss'])) {
+        $errors[] = 'El NSS debe tener 11 digitos.';
+    }
+
     if (
         filter_var($formData['email'], FILTER_VALIDATE_EMAIL)
         && userEmailAlreadyExists($container, $formData['email'])
@@ -160,6 +193,24 @@ function validateRegisterUserFormData(ContainerInterface $container, array $form
     }
 
     return $errors;
+}
+
+function isValidPhoneValue(?string $value): bool
+{
+    if ($value === null) {
+        return true;
+    }
+
+    return preg_match('/^\d{10}$/', $value) === 1;
+}
+
+function isValidNssValue(?string $value): bool
+{
+    if ($value === null) {
+        return true;
+    }
+
+    return preg_match('/^\d{11}$/', $value) === 1;
 }
 
 function isValidDateValue(?string $value): bool
