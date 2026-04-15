@@ -726,6 +726,8 @@
 {/block}
 
 {block scripts}
+{include parent}
+
 <script>
 // Sync shared textarea values to hidden fields before submit
 function syncObs() {
@@ -740,7 +742,8 @@ document.getElementById('btn-confirm-espera')?.addEventListener('click', functio
     document.getElementById('form-espera').submit();
 });
 
-document.getElementById('form-aprobar').addEventListener('submit', ()=>{});
+// document.getElementById('form-aprobar').addEventListener('submit', ()=>{});
+
 // Alpine.js main data
 function loanDetail() {
     return {
