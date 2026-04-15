@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Credencial SIUT-ITSM</title>
+  <style>
+    @page {
+      margin: 0;
+    }
+
+    body {
+      margin: 0;
+      font-family: DejaVu Sans, Arial, sans-serif;
+      color: #0f172a;
+    }
+
+    .card-page {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #ffffff;
+    }
+
+    .stripe-red {
+      position: absolute;
+      top: -26px;
+      right: -68px;
+      width: 235px;
+      height: 92px;
+      background: #c8102e;
+      border-radius: 0 0 0 140px;
+      z-index: 0;
+    }
+
+    .stripe-blue {
+      position: absolute;
+      bottom: -38px;
+      left: -74px;
+      width: 245px;
+      height: 100px;
+      background: #0a3d91;
+      border-radius: 0 150px 0 0;
+      z-index: 0;
+    }
+
+    .content {
+      position: relative;
+      z-index: 2;
+      padding: 12px;
+      height: calc(100% - 24px);
+    }
+
+    .logo-row {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 8px;
+    }
+
+    .logo-row td {
+      text-align: center;
+      vertical-align: middle;
+      width: 33.33%;
+      height: 30px;
+    }
+
+    .logo-row img {
+      max-height: 26px;
+      max-width: 66px;
+      object-fit: contain;
+    }
+
+    .holder-name {
+      margin: 2px 0 2px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #0a3d91;
+      text-transform: uppercase;
+      line-height: 1.15;
+    }
+
+    .holder-role {
+      margin: 0 0 8px;
+      text-align: center;
+      font-size: 8px;
+      color: #334155;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .avatar {
+      width: 84px;
+      height: 84px;
+      margin: 0 auto 8px;
+      border-radius: 999px;
+      border: 4px solid #0a3d91;
+      background: #f1f5f9;
+      overflow: hidden;
+      text-align: center;
+      line-height: 84px;
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .org {
+      margin: 0 auto 8px;
+      text-align: center;
+      font-size: 7px;
+      line-height: 1.25;
+      color: #1e293b;
+      width: 94%;
+    }
+
+    .imss {
+      margin: 0 auto 8px;
+      text-align: center;
+      font-size: 8px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .vigencia-front {
+      margin: 0 auto 8px;
+      text-align: center;
+      font-size: 8px;
+      font-weight: 700;
+      color: #0a3d91;
+    }
+
+    .qr {
+      width: 82px;
+      height: 82px;
+      margin: 0 auto 4px;
+      border: 2px solid #0f172a;
+      background: #ffffff;
+      text-align: center;
+      vertical-align: middle;
+      overflow: hidden;
+    }
+
+    .qr img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .qr-help {
+      margin: 0;
+      text-align: center;
+      font-size: 6.5px;
+      color: #334155;
+      line-height: 1.2;
+    }
+
+    .site {
+      margin: 3px 0 0;
+      text-align: center;
+      font-size: 7px;
+      color: #0a3d91;
+      font-weight: 700;
+    }
+
+    .back-title {
+      margin: 2px 0 8px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #0a3d91;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .back-text {
+      margin: 0 0 10px;
+      font-size: 7.5px;
+      line-height: 1.35;
+      color: #1e293b;
+      text-align: justify;
+    }
+
+    .vigencia-box {
+      margin: 0 0 10px;
+      padding: 6px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      text-align: center;
+      background: #f8fafc;
+    }
+
+    .vigencia-label {
+      margin: 0;
+      font-size: 7px;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .vigencia-value {
+      margin: 2px 0 0;
+      font-size: 12px;
+      font-weight: 700;
+      color: #0a3d91;
+    }
+
+    .sign-area {
+      border-top: 1px solid #94a3b8;
+      padding-top: 8px;
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    .sign-name {
+      margin: 0;
+      font-size: 8.5px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .sign-role {
+      margin: 2px 0 3px;
+      font-size: 7px;
+      color: #334155;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .sign-hash {
+      margin: 0;
+      font-size: 6px;
+      color: #1f2937;
+      word-break: break-all;
+      line-height: 1.25;
+    }
+
+    .meta {
+      margin-top: 8px;
+      font-size: 6.7px;
+      color: #334155;
+      line-height: 1.35;
+    }
+
+    .meta p {
+      margin: 0 0 3px;
+    }
+  </style>
+</head>
+
+<body>
+<section class="card-page">
+  <div class="stripe-red"></div>
+  <div class="stripe-blue"></div>
+
+  <div class="content">
+    <table class="logo-row">
+      <tr>
+        <td>
+          {if !empty($logos['tecnm'])}
+            <img src="{$logos['tecnm']|noescape}" alt="Logo TecNM">
+          {/if}
+        </td>
+        <td>
+          {if !empty($logos['itsm'])}
+            <img src="{$logos['itsm']|noescape}" alt="Logo ITSM">
+          {/if}
+        </td>
+        <td>
+          {if !empty($logos['siut'])}
+            <img src="{$logos['siut']|noescape}" alt="Logo SIUT">
+          {/if}
+        </td>
+      </tr>
+    </table>
+
+    <p class="holder-name">{$holder['fullName']}</p>
+    <p class="holder-role">{$holder['cargo']}</p>
+
+    <div class="avatar">
+      {if !empty($holder['photoSrc'])}
+        <img src="{$holder['photoSrc']|noescape}" alt="Foto de perfil">
+      {else}
+        SIN FOTO
+      {/if}
+    </div>
+
+    <p class="org">{$organization}</p>
+    <p class="imss">IMSS: {$holder['imss']}</p>
+    <p class="vigencia-front">{$holder['membershipLabel']}</p>
+
+    <div class="qr">
+      {if !empty($qrSrc)}
+        <img src="{$qrSrc|noescape}" alt="Codigo QR de verificacion">
+      {/if}
+    </div>
+
+    <p class="qr-help">Escanea para validar vigencia en linea.</p>
+    <p class="site">{$website}</p>
+  </div>
+</section>
+
+<div style="page-break-before: always;"></div>
+
+<section class="card-page">
+  <div class="stripe-red"></div>
+  <div class="stripe-blue"></div>
+
+  <div class="content">
+    <p class="back-title">Acreditacion</p>
+
+    <p class="back-text">
+      Se acredita que la persona titular de esta credencial pertenece al padron de afiliados del
+      Sindicato Unico de Trabajadores del Instituto Tecnologico Superior de Macuspana,
+      en Macuspana, Tabasco.
+    </p>
+
+    <div class="vigencia-box">
+      <p class="vigencia-label">Vigencia</p>
+      <p class="vigencia-value">{$holder['vigencia']}</p>
+    </div>
+
+    <div class="sign-area">
+      <p class="sign-name">{$signatory['name']}</p>
+      <p class="sign-role">{$signatory['role']}</p>
+      <p class="sign-hash">Firma digital (hash CURP): {$signatory['signatureHash']}</p>
+    </div>
+
+    <div class="meta">
+      <p><strong>Emision:</strong> {$issuedAt}</p>
+      <p><strong>Verificacion:</strong> {$verificationUrl}</p>
+      <p><strong>Domicilio:</strong> {$address}</p>
+      <p><strong>RFC:</strong> {$rfc}</p>
+    </div>
+  </div>
+</section>
+</body>
+
+</html>

@@ -10,8 +10,11 @@ use App\Modules\Setting\Application\UseCase\GetColorUseCase;
 use App\Modules\User\Domain\Enum\DocumentTypeEnum;
 use App\Modules\User\Domain\Repository\UserRepositoryInterface;
 use App\Shared\Context\UserProviderInterface;
+use App\Shared\Domain\Enum\RoleEnum;
+use App\Shared\Utils\CredentialCardHelper;
 use App\Shared\Utils\DocumentHelper;
 use Dompdf\Dompdf;
+use chillerlan\QRCode\QRCode;
 
 require_once __DIR__ . "/../../../bootstrap.php";
 
@@ -160,6 +163,33 @@ if ($profileUser === null) {
     exit;
 }
 
+$credentialMissingRequirements = CredentialCardHelper::resolveMissingRequirements($profileUser);
+$canGenerateCredential = CredentialCardHelper::canGenerate($profileUser);
+
+if (isset($_GET['credencial']) && $_GET['credencial'] === '1') {
+    if ($ownerId !== $user->id) {
+        http_response_code(403);
+        exit;
+    }
+
+    if (!$canGenerateCredential) {
+        $missingText = implode(', ', $credentialMissingRequirements);
+        $message = 'No es posible generar la credencial.';
+
+        if ($missingText !== '') {
+            $message .= ' Completa los siguientes datos: ' . $missingText . '.';
+        }
+
+        $redirector
+            ->to($requestPath, ['error' => $message])
+            ->send();
+
+        exit;
+    }
+
+    streamUserIdentificationCard($container, $userRepository, $profileUser);
+}
+
 if (isset($_GET['constancia']) && $_GET['constancia'] === '1') {
     streamProfileRegistrationCertificate($container, $profileUser);
 }
@@ -219,13 +249,12 @@ $renderer->render(__DIR__ . "/ver.latte", [
     "docStatuses" => $docStatuses,
 	"documentFields" => $documentFields,
 	"hasAnyDocument" => $hasAnyDocument,
+    "canGenerateCredential" => $canGenerateCredential,
+    "credentialMissingRequirements" => $credentialMissingRequirements,
 	"mensaje" => $mensaje,
 	"error" => $error,
 ]);
 
-/**
- * @return array<int, array{key: string, label: string}>
- */
 function normalizeNullableString(?string $value): ?string
 {
     if ($value === null) {
@@ -366,6 +395,82 @@ function streamProfileRegistrationCertificate($container, $profileUser): never
     exit;
 }
 
+function streamUserIdentificationCard(
+    $container,
+    UserRepositoryInterface $userRepository,
+    $profileUser,
+): never {
+    /** @var RendererInterface $renderer */
+    $renderer = $container->get(RendererInterface::class);
+    /** @var Dompdf $pdf */
+    $pdf = $container->get(Dompdf::class);
+    /** @var AppConfig $appConfig */
+    $appConfig = $container->get(AppConfig::class);
+
+    $verificationUrl = CredentialCardHelper::buildVerificationUrl($appConfig->baseUrl, $profileUser);
+    $vigencia = CredentialCardHelper::resolveVigencia($profileUser);
+    $membershipLabel = $vigencia === 'VIGENTE'
+        ? 'Miembro activo del padron'
+        : 'Membresia no vigente';
+
+    $qrDataUri = null;
+
+    try {
+        $qrDataUri = (new QRCode())->render($verificationUrl);
+    } catch (Throwable) {
+        // Si la libreria QR falla, se mantiene visible la URL de validacion.
+    }
+
+    $logos = resolveCredentialLogosDataUri(__DIR__ . '/../../assets/images/logo');
+    $photoDataUri = resolveUserPhotoDataUri($appConfig, $profileUser->personalInfo->photo);
+    $signatory = resolveLeaderSignatory($userRepository);
+
+    $html = $renderer->renderToString(
+        __DIR__ . '/../../../templates/documents/agremiado-id-card.latte',
+        [
+            'holder' => [
+                'fullName' => trim($profileUser->personalInfo->name . ' ' . $profileUser->personalInfo->surnames),
+                'cargo' => trim((string) $profileUser->workData->category) !== ''
+                    ? $profileUser->workData->category
+                    : 'No disponible',
+                'imss' => trim((string) $profileUser->workData->nss) !== ''
+                    ? $profileUser->workData->nss
+                    : 'No disponible',
+                'photoSrc' => $photoDataUri,
+                'vigencia' => $vigencia,
+                'membershipLabel' => $membershipLabel,
+                'isActive' => $profileUser->active,
+            ],
+            'signatory' => $signatory,
+            'verificationUrl' => $verificationUrl,
+            'qrSrc' => $qrDataUri,
+            'issuedAt' => (new DateTimeImmutable())->format('d/m/Y H:i'),
+            'website' => 'https://siutitsm.com.mx',
+            'organization' => 'Sindicato Unico de Trabajadores del Instituto Tecnologico Superior de Macuspana (SUTITSM)',
+            'address' => 'Av. Tecnologico S/N, Lerdo de Tejada 1ra. Seccion, Macuspana, Tabasco, C.P. 86719.',
+            'rfc' => 'SUT191121324',
+            'logos' => $logos,
+        ],
+    );
+
+    $options = $pdf->getOptions();
+    $options->setIsRemoteEnabled(true);
+    $pdf->setOptions($options);
+    $pdf->setPaper([0, 0, 252, 396]);
+
+    $pdf->loadHtml($html);
+    $pdf->render();
+
+    $safeName = preg_replace('/[^a-z0-9]+/i', '-', trim($profileUser->personalInfo->name . ' ' . $profileUser->personalInfo->surnames));
+    $safeName = $safeName !== null && $safeName !== '' ? trim($safeName, '-') : 'agremiado';
+
+    $filename = 'credencial-' . strtolower($safeName) . '-' . date('YmdHis') . '.pdf';
+
+    $pdf->stream($filename, ['Attachment' => true]);
+
+    exit;
+}
+
 function resolvePdfLogoDataUri(string $imagesDir): ?string
 {
     $candidates = [
@@ -392,4 +497,139 @@ function resolvePdfLogoDataUri(string $imagesDir): ?string
     }
 
     return null;
+}
+
+/**
+ * @return array{tecnm: ?string, itsm: ?string, siut: ?string}
+ */
+function resolveCredentialLogosDataUri(string $logosDir): array
+{
+    return [
+        'tecnm' => resolveImageDataUriByCandidates($logosDir, ['logo-tecnm.png']),
+        'itsm' => resolveImageDataUriByCandidates($logosDir, ['logo-itsm.jpg']),
+        'siut' => resolveImageDataUriByCandidates($logosDir, ['logo-siutitsm.jpg']),
+    ];
+}
+
+function resolveUserPhotoDataUri(AppConfig $appConfig, ?string $photoPath): ?string
+{
+    $relativePath = DocumentHelper::normalizeUploadPath($photoPath);
+
+    if ($relativePath === '') {
+        return null;
+    }
+
+    $publicPath = resolveSafePathFromRoot($appConfig->upload->publicDir, $relativePath);
+
+    if ($publicPath !== null) {
+        return resolveImageDataUriFromFile($publicPath);
+    }
+
+    $privatePath = resolveSafePathFromRoot($appConfig->upload->privateDir, $relativePath);
+
+    if ($privatePath !== null) {
+        return resolveImageDataUriFromFile($privatePath);
+    }
+
+    return null;
+}
+
+/**
+ * @return array{name: string, role: string, signatureHash: string}
+ */
+function resolveLeaderSignatory(UserRepositoryInterface $userRepository): array
+{
+    $default = [
+        'name' => 'Sin lider asignado',
+        'role' => 'Secretario General',
+        'signatureHash' => 'N/D',
+    ];
+
+    foreach ($userRepository->listado(true) as $summary) {
+        if ($summary->role !== RoleEnum::Lider) {
+            continue;
+        }
+
+        $leader = $userRepository->findById($summary->id);
+
+        if ($leader === null) {
+            continue;
+        }
+
+        $fullName = trim($leader->personalInfo->name . ' ' . $leader->personalInfo->surnames);
+        $curp = strtoupper(trim((string) $leader->personalInfo->curp));
+
+        return [
+            'name' => $fullName !== '' ? $fullName : 'Lider sin nombre',
+            'role' => 'Secretario General',
+            'signatureHash' => $curp !== '' ? hash('sha256', $curp) : 'N/D',
+        ];
+    }
+
+    return $default;
+}
+
+/**
+ * @param array<int, string> $candidateFiles
+ */
+function resolveImageDataUriByCandidates(string $dir, array $candidateFiles): ?string
+{
+    foreach ($candidateFiles as $candidateFile) {
+        $path = rtrim($dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $candidateFile;
+
+        if (!is_file($path)) {
+            continue;
+        }
+
+        $dataUri = resolveImageDataUriFromFile($path);
+
+        if ($dataUri !== null) {
+            return $dataUri;
+        }
+    }
+
+    return null;
+}
+
+function resolveImageDataUriFromFile(string $path): ?string
+{
+    if (!is_file($path) || !is_readable($path)) {
+        return null;
+    }
+
+    $data = file_get_contents($path);
+
+    if (!is_string($data) || $data === '') {
+        return null;
+    }
+
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+    $mimeType = (string) ($finfo->file($path) ?: 'application/octet-stream');
+
+    if (!str_starts_with($mimeType, 'image/')) {
+        return null;
+    }
+
+    return 'data:' . $mimeType . ';base64,' . base64_encode($data);
+}
+
+function resolveSafePathFromRoot(string $baseDir, string $relativePath): ?string
+{
+    $normalizedRelativePath = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, ltrim($relativePath, '/\\'));
+    $candidatePath = rtrim($baseDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $normalizedRelativePath;
+
+    $realBaseDir = realpath($baseDir);
+    $realCandidatePath = realpath($candidatePath);
+
+    if ($realBaseDir === false || $realCandidatePath === false) {
+        return null;
+    }
+
+    if (!str_starts_with($realCandidatePath, $realBaseDir . DIRECTORY_SEPARATOR)) {
+        return null;
+    }
+
+    return is_file($realCandidatePath) && is_readable($realCandidatePath)
+        ? $realCandidatePath
+        : null;
 }

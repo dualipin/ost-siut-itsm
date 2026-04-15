@@ -143,6 +143,16 @@
         {if $authUser->id === $perfil['id']}
         <div class="col-12 col-lg-auto text-lg-end text-center">
           <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center justify-content-lg-end">
+            {if $canGenerateCredential}
+              <a href="/portal/perfiles/ver.php?uid={$perfil['id']}&credencial=1" class="btn btn-outline-primary px-4">
+                <i class="bi bi-person-vcard me-2"></i>Generar credencial
+              </a>
+            {else}
+              <button type="button" class="btn btn-outline-secondary px-4" disabled>
+                <i class="bi bi-person-vcard me-2"></i>Generar credencial
+              </button>
+            {/if}
+
             <a href="/portal/perfiles/ver.php?uid={$perfil['id']}&constancia=1" class="btn btn-outline-primary px-4">
               <i class="bi bi-file-earmark-pdf me-2"></i>Generar constancia
             </a>
@@ -151,6 +161,12 @@
               <i class="bi bi-pencil-square me-2"></i>Editar perfil
             </button>
           </div>
+
+          {if !$canGenerateCredential}
+            <small class="d-block mt-2 text-body-secondary">
+              Para generar tu credencial completa estos datos: {implode(', ', $credentialMissingRequirements)}.
+            </small>
+          {/if}
         </div>
         {/if}
       </div>
