@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        @page { margin: 0.5cm; }
+        @page { margin: 0cm; }
 
         :root {
             --card-primary: {$theme['primary']};
@@ -22,7 +22,7 @@
             display: flex;
             justify-content: center;
             padding-top: 2cm;
-            background: var(--card-bg);
+            {* background: var(--card-bg); *}
             color: var(--card-text);
         }
 
@@ -112,7 +112,7 @@
         }
 
         .front-footer {
-            position: absolute;
+            {* position: absolute; *}
             left: 0;
             right: 0;
             bottom: 3mm;
@@ -236,7 +236,7 @@
             font-size: 6.1pt;
             text-align: justify;
             line-height: 1.2;
-            margin-bottom: 5mm;
+            margin-bottom: 2mm;
             padding: 0 4mm;
             color: var(--card-text);
         }
@@ -246,7 +246,7 @@
             border-radius: 2mm;
             padding: 1.5mm;
             width: 70%;
-            margin: 0 auto 4mm;
+            margin: 0 auto 2mm;
             background: var(--card-surface);
         }
 
@@ -294,10 +294,8 @@
         }
 
         .meta {
-            position: absolute;
-            bottom: 4mm;
-            width: calc(100% - 4mm);
-            left: 2mm;
+            {* position: absolute; *}
+            margin-top: 1mm;
             font-size: 4.8pt;
             color: var(--card-text);
             line-height: 1.2;
@@ -393,7 +391,7 @@
                 <div class="sign-area">
                     <p class="sign-name">{$signatory['name']}</p>
                     <p class="sign-role">{$signatory['role']}</p>
-                    <div class="hash">Firma digital (hash CURP): {$signatory['signatureHash']}</div>
+                    <div class="hash">Firma digital: {$signatory['signatureHash']}</div>
                 </div>
 
                 <div class="meta">
