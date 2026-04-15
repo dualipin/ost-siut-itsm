@@ -78,10 +78,16 @@
         }
 
         .content-front {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding-bottom: 18mm;
+            display: table;
+            width: 100%;
+            height: 100%;
+            padding: 0 3mm;
+        }
+
+        .front-main {
+            display: table-cell;
+            vertical-align: middle;
+            padding-bottom: 16mm;
         }
 
         .content-back {
@@ -112,7 +118,7 @@
         }
 
         .front-footer {
-            {* position: absolute; *}
+            position: absolute;
             left: 0;
             right: 0;
             bottom: 3mm;
@@ -140,8 +146,8 @@
         }
 
         .photo {
-            width: 21mm;
-            height: 21mm;
+            width: 24mm;
+            height: 24mm;
             margin: 0 auto 2mm;
             border: 1mm solid var(--card-primary);
             border-radius: 50%;
@@ -158,7 +164,7 @@
         .photo-fallback {
             font-size: 6pt;
             color: var(--card-muted);
-            line-height: 21mm;
+            line-height: 24mm;
             margin: 0;
         }
 
@@ -316,23 +322,24 @@
             <div class="arc-blue"></div>
             <div class="arc-red"></div>
             <div class="content content-front">
+                <div class="front-main">
+                    <div class="name">{$holder['fullName']}</div>
+                    <div class="role">{$holder['cargo']}</div>
 
-                <div class="name">{$holder['fullName']}</div>
-                <div class="role">{$holder['cargo']}</div>
+                    <div class="photo">
+                        {if !empty($holder['photoSrc'])}
+                            <img src="{$holder['photoSrc']|noescape}" alt="Foto">
+                        {else}
+                            <p class="photo-fallback">SIN FOTO</p>
+                        {/if}
+                    </div>
 
-                <div class="photo">
-                    {if !empty($holder['photoSrc'])}
-                        <img src="{$holder['photoSrc']|noescape}" alt="Foto">
-                    {else}
-                        <p class="photo-fallback">SIN FOTO</p>
-                    {/if}
-                </div>
+                    <div class="org">{$organization}</div>
 
-                <div class="org">{$organization}</div>
-
-                <div class="id-info">
-                    IMSS: {$holder['imss']}<br>
-                    Vigencia: {$holder['vigencia']}
+                    <div class="id-info">
+                        IMSS: {$holder['imss']}<br>
+                        Vigencia: {$holder['vigencia']}
+                    </div>
                 </div>
 
                 <div class="front-footer">
