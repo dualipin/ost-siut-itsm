@@ -84,9 +84,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $user->id;
 
         foreach ([$publicUserAbsoluteDir, $privateUserAbsoluteDir] as $uploadDir) {
-            if (!is_dir($uploadDir) &&
+            if (
+                !is_dir($uploadDir) &&
                 !mkdir($uploadDir, 0775, true) &&
-                !is_dir($uploadDir)) {
+                !is_dir($uploadDir)
+            ) {
                 throw new RuntimeException("No se pudo crear el directorio de carga.");
             }
         }
@@ -243,16 +245,16 @@ $error = is_string($_GET["error"] ?? null) ? $_GET["error"] : null;
 $renderer = $container->get(RendererInterface::class);
 
 $renderer->render(__DIR__ . "/ver.latte", [
-	"authUser" => $user,
-	"perfil" => $perfil,
-	"docs" => $docs,
+    "authUser" => $user,
+    "perfil" => $perfil,
+    "docs" => $docs,
     "docStatuses" => $docStatuses,
-	"documentFields" => $documentFields,
-	"hasAnyDocument" => $hasAnyDocument,
+    "documentFields" => $documentFields,
+    "hasAnyDocument" => $hasAnyDocument,
     "canGenerateCredential" => $canGenerateCredential,
     "credentialMissingRequirements" => $credentialMissingRequirements,
-	"mensaje" => $mensaje,
-	"error" => $error,
+    "mensaje" => $mensaje,
+    "error" => $error,
 ]);
 
 function normalizeNullableString(?string $value): ?string
@@ -267,67 +269,67 @@ function normalizeNullableString(?string $value): ?string
 }
 
 function uploadProfileFile(
-	?array $file,
-	string $absoluteDir,
-	string $relativeDir,
-	array $allowedMimeTypes,
-	int $maxSizeInBytes,
-	string $prefix,
+    ?array $file,
+    string $absoluteDir,
+    string $relativeDir,
+    array $allowedMimeTypes,
+    int $maxSizeInBytes,
+    string $prefix,
 ): ?string {
-	if ($file === null) {
-		return null;
-	}
+    if ($file === null) {
+        return null;
+    }
 
-	$error = (int) ($file["error"] ?? UPLOAD_ERR_NO_FILE);
+    $error = (int) ($file["error"] ?? UPLOAD_ERR_NO_FILE);
 
-	if ($error === UPLOAD_ERR_NO_FILE) {
-		return null;
-	}
+    if ($error === UPLOAD_ERR_NO_FILE) {
+        return null;
+    }
 
-	if ($error !== UPLOAD_ERR_OK) {
-		throw new RuntimeException("Error al subir el archivo.");
-	}
+    if ($error !== UPLOAD_ERR_OK) {
+        throw new RuntimeException("Error al subir el archivo.");
+    }
 
-	$tmpName = (string) ($file["tmp_name"] ?? "");
-	$originalName = (string) ($file["name"] ?? "archivo");
-	$size = (int) ($file["size"] ?? 0);
+    $tmpName = (string) ($file["tmp_name"] ?? "");
+    $originalName = (string) ($file["name"] ?? "archivo");
+    $size = (int) ($file["size"] ?? 0);
 
-	if ($tmpName === "" || !is_uploaded_file($tmpName)) {
-		throw new RuntimeException("No se detecto un archivo valido.");
-	}
+    if ($tmpName === "" || !is_uploaded_file($tmpName)) {
+        throw new RuntimeException("No se detecto un archivo valido.");
+    }
 
-	if ($size <= 0 || $size > $maxSizeInBytes) {
-		throw new RuntimeException("El archivo supera el limite permitido.");
-	}
+    if ($size <= 0 || $size > $maxSizeInBytes) {
+        throw new RuntimeException("El archivo supera el limite permitido.");
+    }
 
-	$finfo = new finfo(FILEINFO_MIME_TYPE);
-	$mimeType = (string) $finfo->file($tmpName);
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+    $mimeType = (string) $finfo->file($tmpName);
 
-	if (!in_array($mimeType, $allowedMimeTypes, true)) {
-		throw new RuntimeException("Tipo de archivo no permitido.");
-	}
+    if (!in_array($mimeType, $allowedMimeTypes, true)) {
+        throw new RuntimeException("Tipo de archivo no permitido.");
+    }
 
-	$extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+    $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
 
-	if ($extension === "") {
-		$extension = match ($mimeType) {
-			"image/jpeg" => "jpg",
-			"image/png" => "png",
-			"image/webp" => "webp",
-			"application/pdf" => "pdf",
-			default => "bin",
-		};
-	}
+    if ($extension === "") {
+        $extension = match ($mimeType) {
+            "image/jpeg" => "jpg",
+            "image/png" => "png",
+            "image/webp" => "webp",
+            "application/pdf" => "pdf",
+            default => "bin",
+        };
+    }
 
-	$safePrefix = preg_replace('/[^a-z0-9_\-]/i', "", $prefix) ?: "archivo";
-	$fileName = $safePrefix . "_" . bin2hex(random_bytes(8)) . "." . $extension;
-	$targetPath = rtrim($absoluteDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $fileName;
+    $safePrefix = preg_replace('/[^a-z0-9_\-]/i', "", $prefix) ?: "archivo";
+    $fileName = $safePrefix . "_" . bin2hex(random_bytes(8)) . "." . $extension;
+    $targetPath = rtrim($absoluteDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $fileName;
 
-	if (!move_uploaded_file($tmpName, $targetPath)) {
-		throw new RuntimeException("No se pudo guardar el archivo.");
-	}
+    if (!move_uploaded_file($tmpName, $targetPath)) {
+        throw new RuntimeException("No se pudo guardar el archivo.");
+    }
 
-	return trim($relativeDir, "/\\") . "/" . $fileName;
+    return trim($relativeDir, "/\\") . "/" . $fileName;
 }
 
 function streamProfileRegistrationCertificate($container, $profileUser): never
@@ -412,6 +414,7 @@ function streamUserIdentificationCard(
     $membershipLabel = $vigencia === 'VIGENTE'
         ? 'Miembro activo del padron'
         : 'Membresia no vigente';
+    $theme = resolveCredentialCardTheme($container);
 
     $qrDataUri = null;
 
@@ -450,14 +453,14 @@ function streamUserIdentificationCard(
             'address' => 'Av. Tecnologico S/N, Lerdo de Tejada 1ra. Seccion, Macuspana, Tabasco, C.P. 86719.',
             'rfc' => 'SUT191121324',
             'logos' => $logos,
+            'theme' => $theme,
         ],
     );
 
     $options = $pdf->getOptions();
     $options->setIsRemoteEnabled(true);
     $pdf->setOptions($options);
-    $pdf->setPaper([0, 0, 252, 396]);
-
+    $pdf->setPaper('letter', 'portrait');
     $pdf->loadHtml($html);
     $pdf->render();
 
@@ -466,7 +469,7 @@ function streamUserIdentificationCard(
 
     $filename = 'credencial-' . strtolower($safeName) . '-' . date('YmdHis') . '.pdf';
 
-    $pdf->stream($filename, ['Attachment' => true]);
+    $pdf->stream($filename, ['Attachment' => false]);
 
     exit;
 }
@@ -632,4 +635,96 @@ function resolveSafePathFromRoot(string $baseDir, string $relativePath): ?string
     return is_file($realCandidatePath) && is_readable($realCandidatePath)
         ? $realCandidatePath
         : null;
+}
+
+/**
+ * @return array{primary: string, secondary: string, text: string, muted: string, border: string, surface: string, background: string, onPrimary: string, onSecondary: string}
+ */
+function resolveCredentialCardTheme($container): array
+{
+    $theme = [
+        'primary' => '#611232',
+        'secondary' => '#a57f2c',
+        'text' => '#212529',
+        'muted' => '#475569',
+        'border' => '#cbd5e1',
+        'surface' => '#ffffff',
+        'background' => '#f8f9fa',
+    ];
+
+    try {
+        $colorConfig = $container->get(GetColorUseCase::class)->execute();
+
+        if ($colorConfig !== null) {
+            $theme['primary'] = normalizeHexColor($colorConfig->primary, $theme['primary']);
+            $theme['secondary'] = normalizeHexColor($colorConfig->secondary, $theme['secondary']);
+            $theme['text'] = normalizeHexColor($colorConfig->body, $theme['text']);
+            $theme['surface'] = normalizeHexColor($colorConfig->white, $theme['surface']);
+            $theme['background'] = normalizeHexColor($colorConfig->bodyBackground, $theme['background']);
+            $theme['muted'] = normalizeHexColor($colorConfig->dark, $theme['muted']);
+            $theme['border'] = normalizeHexColor($colorConfig->light, $theme['border']);
+        }
+    } catch (Throwable) {
+        // Mantener colores por defecto si la carga dinamica falla.
+    }
+
+    $theme['onPrimary'] = resolveAccessibleTextColor($theme['primary']);
+    $theme['onSecondary'] = resolveAccessibleTextColor($theme['secondary']);
+    $theme['muted'] = resolveMutedTextColor($theme['text'], $theme['surface']);
+    $theme['border'] = resolveBorderColor($theme['text'], $theme['surface']);
+
+    return $theme;
+}
+
+function normalizeHexColor(string $value, string $fallback): string
+{
+    return preg_match('/^#[0-9a-fA-F]{6}$/', $value) === 1
+        ? strtolower($value)
+        : strtolower($fallback);
+}
+
+function resolveAccessibleTextColor(string $hex): string
+{
+    [$r, $g, $b] = resolveHexToRgb($hex);
+    $luminance = (0.299 * $r + 0.587 * $g + 0.114 * $b) / 255;
+
+    return $luminance > 0.6 ? '#0f172a' : '#ffffff';
+}
+
+/**
+ * @return array{0: int, 1: int, 2: int}
+ */
+function resolveHexToRgb(string $hex): array
+{
+    $normalized = ltrim($hex, '#');
+
+    return [
+        hexdec(substr($normalized, 0, 2)),
+        hexdec(substr($normalized, 2, 2)),
+        hexdec(substr($normalized, 4, 2)),
+    ];
+}
+
+function resolveMutedTextColor(string $textHex, string $surfaceHex): string
+{
+    [$tr, $tg, $tb] = resolveHexToRgb($textHex);
+    [$sr, $sg, $sb] = resolveHexToRgb($surfaceHex);
+
+    $r = (int) round($tr * 0.62 + $sr * 0.38);
+    $g = (int) round($tg * 0.62 + $sg * 0.38);
+    $b = (int) round($tb * 0.62 + $sb * 0.38);
+
+    return sprintf('#%02x%02x%02x', $r, $g, $b);
+}
+
+function resolveBorderColor(string $textHex, string $surfaceHex): string
+{
+    [$tr, $tg, $tb] = resolveHexToRgb($textHex);
+    [$sr, $sg, $sb] = resolveHexToRgb($surfaceHex);
+
+    $r = (int) round($tr * 0.24 + $sr * 0.76);
+    $g = (int) round($tg * 0.24 + $sg * 0.76);
+    $b = (int) round($tb * 0.24 + $sb * 0.76);
+
+    return sprintf('#%02x%02x%02x', $r, $g, $b);
 }
