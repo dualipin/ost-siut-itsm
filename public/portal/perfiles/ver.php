@@ -477,7 +477,7 @@ function streamUserIdentificationCard(
 
     $filename = 'credencial-' . strtolower($safeName) . '-' . date('YmdHis') . '.pdf';
 
-    $pdf->stream($filename, ['Attachment' => false]);
+    $pdf->stream($filename, ['Attachment' => true]);
 
     exit;
 }

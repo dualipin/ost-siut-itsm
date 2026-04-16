@@ -69,8 +69,32 @@
             background-size: cover;
             background-position: center bottom;
             background-repeat: no-repeat;
-            transform: scaleY(-1);
+            transform: scaleY(-1) scaleX(-1);
             z-index: 2;
+        }
+
+        .watermark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.15;
+            z-index: 3;
+            pointer-events: none;
+            text-align: center;
+        }
+
+        .watermark img {
+            max-width: 30mm;
+            max-height: 30mm;
+            object-fit: contain;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin-top: -15mm;
+            margin-left: -15mm;
         }
 
         .content {
@@ -90,8 +114,8 @@
         .front-main {
             display: table-cell;
             vertical-align: middle;
-            padding-bottom: 16mm;
-            padding-top: 4mm;
+            padding-bottom: 8mm;
+            padding-top: 10mm;
         }
 
         .content-back {
@@ -117,7 +141,7 @@
 
         .logo-img {
             max-width: 13mm;
-            max-height: 9mm;
+            max-height: 10mm;
             border-radius: 50%;
             object-fit: cover;
         }
@@ -126,7 +150,7 @@
             position: absolute;
             left: 0;
             right: 0;
-            bottom: 3mm;
+            bottom: 5mm;
             padding: 0 2mm;
         }
 
@@ -251,6 +275,7 @@
             font-size: 6.1pt;
             text-align: justify;
             line-height: 1.2;
+            margin-top: 10mm;
             margin-bottom: 2mm;
             padding: 0 4mm;
             color: var(--card-text);
@@ -335,6 +360,11 @@
             <div class="arc-blue"></div>
             <div class="arc-red"></div>
             {/if}
+            {if !empty($logos['siut'])}
+            <div class="watermark">
+                <img src="{$logos['siut']|noescape}" alt="SIUT Watermark">
+            </div>
+            {/if}
             <div class="content content-front">
                 <div class="front-main">
                     <div class="photo">
@@ -349,10 +379,10 @@
 
 
                     <div class="org">{$organization}</div>
+                    <div class="org">REG. RS-033/2019.</div>
 
                     <div class="id-info">
                         IMSS: {$holder['imss']}<br>
-                        Vigencia: {$holder['vigencia']}
                     </div>
                 </div>
 
@@ -391,8 +421,12 @@
             <div class="arc-blue"></div>
             <div class="arc-red"></div>
             {/if}
+            {if !empty($logos['siut'])}
+            <div class="watermark">
+                <img src="{$logos['siut']|noescape}" alt="SIUT Watermark">
+            </div>
+            {/if}
             <div class="content content-back">
-                <div class="back-title">Acreditacion</div>
 
                 <div class="back-text">
                     Se acredita que la persona titular de esta credencial pertenece al padron de afiliados del
@@ -400,7 +434,6 @@
                 </div>
 
                 <div class="v-box">
-                    <p class="v-label">Vigencia</p>
                     <p class="v-value">{$holder['vigencia']}</p>
                 </div>
 
@@ -422,9 +455,9 @@
                 </div>
 
                 <div class="meta">
-                    Emision: {$issuedAt}<br>
                     {$address}<br>
-                    RFC: {$rfc}
+                    RFC: {$rfc} <br>
+                    Emision: {$issuedAt}<br>
                 </div>
             </div>
         </div>
