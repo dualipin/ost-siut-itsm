@@ -102,6 +102,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             "perfil",
         );
 
+        // Crop profile photo to 1:1 aspect ratio from center
+        if ($photoPath !== null) {
+            $fullPhotoPath = $publicUploadRootDir . DIRECTORY_SEPARATOR . $photoPath;
+            cropImageToSquare($fullPhotoPath);
+        }
+
         $addressInput = normalizeNullableString(
             is_string($_POST["direccion"] ?? null)
                 ? $_POST["direccion"]
@@ -426,11 +432,13 @@ function streamUserIdentificationCard(
 
     $logos = resolveCredentialLogosDataUri(__DIR__ . '/../../assets/images/logo');
     $photoDataUri = resolveUserPhotoDataUri($appConfig, $profileUser->personalInfo->photo);
+    $backgroundImage = resolveImageDataUriFromFile(__DIR__ . '/../../assets/images/background-id.png');
     $signatory = resolveLeaderSignatory($userRepository);
 
     $html = $renderer->renderToString(
         __DIR__ . '/../../../templates/documents/agremiado-id-card.latte',
         [
+            'backgroundImage' => $backgroundImage,
             'holder' => [
                 'fullName' => trim($profileUser->personalInfo->name . ' ' . $profileUser->personalInfo->surnames),
                 'cargo' => trim((string) $profileUser->workData->category) !== ''
@@ -727,4 +735,73 @@ function resolveBorderColor(string $textHex, string $surfaceHex): string
     $b = (int) round($tb * 0.24 + $sb * 0.76);
 
     return sprintf('#%02x%02x%02x', $r, $g, $b);
+}
+
+function cropImageToSquare(string $filePath): void
+{
+    if (!is_file($filePath) || !is_readable($filePath)) {
+        return;
+    }
+
+    try {
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mimeType = (string) ($finfo->file($filePath) ?: 'application/octet-stream');
+
+        $image = match ($mimeType) {
+            'image/jpeg' => imagecreatefromjpeg($filePath),
+            'image/png' => imagecreatefrompng($filePath),
+            'image/webp' => imagecreatefromwebp($filePath),
+            default => null,
+        };
+
+        if ($image === null || $image === false) {
+            return;
+        }
+
+        $width = (int) imagesx($image);
+        $height = (int) imagesy($image);
+        $squareSize = min($width, $height);
+
+        if ($squareSize <= 0) {
+            imagedestroy($image);
+            return;
+        }
+
+        // Calculate crop position to center the image
+        $offsetX = (int) (($width - $squareSize) / 2);
+        $offsetY = (int) (($height - $squareSize) / 2);
+
+        // Create new square image
+        $croppedImage = imagecreatetruecolor($squareSize, $squareSize);
+
+        if ($croppedImage === false) {
+            imagedestroy($image);
+            return;
+        }
+
+        // Preserve transparency for PNG/WebP
+        if ($mimeType === 'image/png' || $mimeType === 'image/webp') {
+            imagealphablending($croppedImage, false);
+            imagesavealpha($croppedImage, true);
+            $transparent = imagecolorallocatealpha($croppedImage, 0, 0, 0, 127);
+            imagefilledrectangle($croppedImage, 0, 0, $squareSize, $squareSize, $transparent);
+        }
+
+        // Copy the centered square portion
+        imagecopy($croppedImage, $image, 0, 0, $offsetX, $offsetY, $squareSize, $squareSize);
+
+        // Save the cropped image back
+        match ($mimeType) {
+            'image/jpeg' => imagejpeg($croppedImage, $filePath, 95),
+            'image/png' => imagepng($croppedImage, $filePath, 9),
+            'image/webp' => imagewebp($croppedImage, $filePath, 95),
+            default => true,
+        };
+
+        imagedestroy($croppedImage);
+        imagedestroy($image);
+    } catch (Throwable) {
+        // Silently fail if image processing fails
+        return;
+    }
 }

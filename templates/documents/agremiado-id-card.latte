@@ -50,23 +50,26 @@
 
         .arc-blue {
             position: absolute;
-            top: -15mm;
-            left: -10mm;
-            width: 45mm;
+            top: 0;
+            left: 0;
+            right: 0;
             height: 35mm;
-            background: var(--card-primary);
-            border-radius: 50%;
+            background-size: cover;
+            background-position: center top;
+            background-repeat: no-repeat;
             z-index: 1;
         }
 
         .arc-red {
             position: absolute;
-            top: -10mm;
-            right: -15mm;
-            width: 50mm;
-            height: 30mm;
-            background: var(--card-secondary);
-            border-radius: 50%;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 35mm;
+            background-size: cover;
+            background-position: center bottom;
+            background-repeat: no-repeat;
+            transform: scaleY(-1);
             z-index: 2;
         }
 
@@ -88,6 +91,7 @@
             display: table-cell;
             vertical-align: middle;
             padding-bottom: 16mm;
+            padding-top: 4mm;
         }
 
         .content-back {
@@ -113,8 +117,9 @@
 
         .logo-img {
             max-width: 13mm;
-            max-height: 6mm;
-            object-fit: contain;
+            max-height: 9mm;
+            border-radius: 50%;
+            object-fit: cover;
         }
 
         .front-footer {
@@ -152,13 +157,17 @@
             border: 1mm solid var(--card-primary);
             border-radius: 50%;
             overflow: hidden;
-            background: var(--card-surface);
+            background-color: var(--card-surface);
+            position: relative;
+            display: inline-block;
         }
 
         .photo img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            display: block;
+            min-width: 100%;
+            min-height: 100%;
         }
 
         .photo-fallback {
@@ -319,13 +328,15 @@
 
     <div class="card-wrapper">
         <div class="card">
+            {if !empty($backgroundImage)}
+            <div class="arc-blue" style="background-image: url('{$backgroundImage|noescape}');"></div>
+            <div class="arc-red" style="background-image: url('{$backgroundImage|noescape}');"></div>
+            {else}
             <div class="arc-blue"></div>
             <div class="arc-red"></div>
+            {/if}
             <div class="content content-front">
                 <div class="front-main">
-                    <div class="name">{$holder['fullName']}</div>
-                    <div class="role">{$holder['cargo']}</div>
-
                     <div class="photo">
                         {if !empty($holder['photoSrc'])}
                             <img src="{$holder['photoSrc']|noescape}" alt="Foto">
@@ -333,6 +344,9 @@
                             <p class="photo-fallback">SIN FOTO</p>
                         {/if}
                     </div>
+                    <div class="name">{$holder['fullName']}</div>
+                    <div class="role">{$holder['cargo']}</div>
+
 
                     <div class="org">{$organization}</div>
 
@@ -370,7 +384,13 @@
 
     <div class="card-wrapper">
         <div class="card">
-            <div class="arc-blue" style="top: auto; bottom: -18mm; left: -12mm;"></div>
+            {if !empty($backgroundImage)}
+            <div class="arc-blue" style="background-image: url('{$backgroundImage|noescape}');"></div>
+            <div class="arc-red" style="background-image: url('{$backgroundImage|noescape}');"></div>
+            {else}
+            <div class="arc-blue"></div>
+            <div class="arc-red"></div>
+            {/if}
             <div class="content content-back">
                 <div class="back-title">Acreditacion</div>
 
