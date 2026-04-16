@@ -457,7 +457,7 @@ function streamUserIdentificationCard(
             'qrSrc' => $qrDataUri,
             'issuedAt' => (new DateTimeImmutable())->format('d/m/Y H:i'),
             'website' => 'https://siutitsm.com.mx',
-            'organization' => 'Sindicato Unico de Trabajadores del Instituto Tecnologico Superior de Macuspana (SUTITSM)',
+            'organization' => 'Sindicato Unico de Trabajadores del Instituto Tecnologico Superior de Macuspana (SIUTITSM)',
             'address' => 'Av. Tecnologico S/N, Lerdo de Tejada 1ra. Seccion, Macuspana, Tabasco, C.P. 86719.',
             'rfc' => 'SUT191121324',
             'logos' => $logos,
