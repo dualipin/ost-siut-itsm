@@ -34,6 +34,9 @@ final readonly class AmortizationCalculator
         $rows = [];
         $balance = $amount->amount();
         $principalPerPeriod = $amount->amount() / $fortnights;
+        
+        // Round principal per period to 2 decimals for consistency
+        $roundedPrincipal = round($principalPerPeriod * 100) / 100;
 
         // Calculate first payment date (day 15 or last day of month)
         $firstPaymentDate = $this->calculateNextFortnightDate($disbursementDate);
@@ -54,11 +57,22 @@ final readonly class AmortizationCalculator
                 $interest = $balance * $rate->fortnightly() / 100;
             }
             
+            // Round interest to 2 decimals
+            $interest = round($interest * 100) / 100;
+            
             // Calculate principal (last payment adjusts for rounding)
-            $principal = ($i === $fortnights) ? $balance : $principalPerPeriod;
+            if ($i === $fortnights) {
+                // Last payment: principal is what remains to zero out the balance
+                $principal = round($balance * 100) / 100;
+            } else {
+                // Regular payments: use rounded principal
+                $principal = $roundedPrincipal;
+            }
             
             $totalPayment = $principal + $interest;
-            $newBalance = max(0, $balance - $principal);
+            // Ensure balance is properly rounded to avoid accumulation of floating point errors
+            $newBalance = round(($balance - $principal) * 100) / 100;
+            $newBalance = max(0, $newBalance);
             
             $rows[] = new AmortizationRow(
                 amortizationId: null,
