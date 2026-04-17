@@ -1,6 +1,6 @@
 {extends ../../../templates/@document.latte}
 
-{block title}Tabla de Amortización - {$loan['folio']}{/block}
+{block title}Tabla de Amortización - {$loan['folio'] ?: ('SIUT-FOLIO-' . $loan['loan_id'])}{/block}
 
 {block content}
 
@@ -13,9 +13,9 @@
 </div>
 
 <div style="border: 1px solid #ced4da; padding: 10px; margin-bottom: 12px; font-size: 10px;">
-  <div><strong>Folio:</strong> {$loan['folio']}</div>
+  <div><strong>Folio:</strong> {$loan['folio'] ?: ('SIUT-FOLIO-' . $loan['loan_id'])}</div>
   <div><strong>Solicitante:</strong> {$loan['borrower_name']}</div>
-  <div><strong>Monto aprobado:</strong> ${number_format($loan['approved_amount'], 2)}</div>
+  <div><strong>Monto aprobado:</strong> ${number_format((float) $loan['approved_amount'], 2)}</div>
   <div><strong>Tasa de interés:</strong> {$loan['applied_interest_rate']}%</div>
   <div><strong>Plazo:</strong> {$loan['term_fortnights']} quincena(s)</div>
   <div><strong>Fecha de otorgamiento:</strong> {date('d/m/Y', strtotime($loan['approval_date']))}</div>
@@ -54,9 +54,9 @@
     {var $totalPrincipal = array_sum(array_column($detail['amortization'], 'principal'))}
     {var $totalInterest = array_sum(array_column($detail['amortization'], 'ordinary_interest'))}
     {var $totalPayment = array_sum(array_column($detail['amortization'], 'total_scheduled_payment'))}
-    <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($totalPrincipal, 2)}</td>
-    <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($totalInterest, 2)}</td>
-    <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($totalPayment, 2)}</td>
+    <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format((float) $totalPrincipal, 2)}</td>
+    <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format((float) $totalInterest, 2)}</td>
+    <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format((float) $totalPayment, 2)}</td>
     <td style="border: 1px solid #ced4da; padding: 6px;"></td>
   </tr>
   </tfoot>

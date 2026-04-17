@@ -298,7 +298,12 @@ if ($form->input('output', 'html') === 'pdf' && !empty($detail['amortization']))
     $pdf->setOptions($options);
     $pdf->render();
 
-    $filename = 'amortizacion-' . (string)$loan['folio'] . '.pdf';
+    $loanFolio = trim((string) ($loan['folio'] ?? ''));
+    if ($loanFolio === '') {
+        $loanFolio = 'SIUT-FOLIO-' . (string) ($loan['loan_id'] ?? $loanId);
+    }
+
+    $filename = 'amortizacion-' . $loanFolio . '.pdf';
     $pdf->stream($filename, ['Attachment' => true]);
     exit;
 }

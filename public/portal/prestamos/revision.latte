@@ -109,7 +109,7 @@
 					<tr>
 						<td class="px-4 py-3">
 							<div class="fw-semibold text-dark">
-								{if $loan['folio']}{$loan['folio']}{else}<span class="text-muted fst-italic">Sin folio</span>{/if}
+								{$loan['folio'] ?: ('SIUT-FOLIO-' . $loan['loan_id'])}
 							</div>
 							<div class="small text-muted">{$loan['application_date_label']}</div>
 							{if $loan['is_restructuring']}

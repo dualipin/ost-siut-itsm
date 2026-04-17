@@ -45,6 +45,8 @@ final readonly class GetLoanDetailUseCase
             return null;
         }
 
+        $loan = $this->withComputedFolio($loan);
+
         // 2. Payment configurations with income type labels
         $paymentConfigs = $this->paymentConfigRepository->findByLoanIdWithIncomeType($loanId);
 
@@ -98,6 +100,9 @@ final readonly class GetLoanDetailUseCase
                 $restructuring = $restructuringResult;
             }
             $originalLoan = $this->loanRepository->findDetailById((int) $loan['original_loan_id']);
+            if ($originalLoan !== null) {
+                $originalLoan = $this->withComputedFolio($originalLoan);
+            }
         }
 
         return [
@@ -108,5 +113,20 @@ final readonly class GetLoanDetailUseCase
             'restructuring'   => $restructuring,
             'original_loan'   => $originalLoan,
         ];
+    }
+
+    private function withComputedFolio(array $loan): array
+    {
+        $folio = trim((string) ($loan['folio'] ?? ''));
+        if ($folio !== '') {
+            $loan['folio'] = $folio;
+
+            return $loan;
+        }
+
+        $loanId = (int) ($loan['loan_id'] ?? 0);
+        $loan['folio'] = $loanId > 0 ? 'SIUT-FOLIO-' . $loanId : '';
+
+        return $loan;
     }
 }

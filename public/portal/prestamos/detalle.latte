@@ -40,11 +40,7 @@
 					<div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
 						<div>
 							<h2 class="h4 fw-bold mb-1">
-								{if $loan['folio']}
-									{$loan['folio']}
-								{else}
-									<span class="text-muted fst-italic">Sin folio asignado</span>
-								{/if}
+								{$loan['folio'] ?: ('SIUT-FOLIO-' . $loan['loan_id'])}
 							</h2>
 							<span class="badge {$statusBadge} px-3 py-2 rounded-pill fs-6">
 								{$statusLabel}
@@ -544,7 +540,7 @@
 						<a href="{url('/portal/prestamos/detalle.php')}?id={$detail['original_loan']['loan_id']}"
 							class="btn btn-outline-primary btn-sm rounded-3">
 							<i class="bi bi-box-arrow-up-right me-1"></i>
-							Ver préstamo original ({$detail['original_loan']['folio'] ?? '#'.$detail['original_loan']['loan_id']})
+							Ver préstamo original ({$detail['original_loan']['folio'] ?: ('SIUT-FOLIO-' . $detail['original_loan']['loan_id'])})
 						</a>
 					</div>
 					{/if}

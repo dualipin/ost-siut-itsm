@@ -41,7 +41,7 @@
 			<div class="card border-0 shadow-sm rounded-4 h-100">
 				<div class="card-body p-4">
 					<div class="text-muted small text-uppercase fw-semibold mb-1">Folio</div>
-					<div class="h4 fw-bold mb-0">{$loan['folio'] ?: 'Sin folio'}</div>
+					<div class="h4 fw-bold mb-0">{$loan['folio'] ?: ('SIUT-FOLIO-' . $loan['loan_id'])}</div>
 				</div>
 			</div>
 		</div>
