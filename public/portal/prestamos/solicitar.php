@@ -83,6 +83,7 @@ if ($request->method() === "POST") {
 
         $paymentConfigs = [];
         $totalDistributed = 0;
+        $missingDocumentForDiscount = false;
 
         $existingDraftDocsByType = [];
         if ($isDraftEdit && $draftState !== null) {
@@ -168,7 +169,8 @@ if ($request->method() === "POST") {
             if ($amount > 0) {
                 // Determine document upload (mocked path for now or if file upload is implemented)
                 $documentPath = null;
-                if (isset($_FILES['income_documents']['tmp_name'][$typeId]) && $_FILES['income_documents']['error'][$typeId] === UPLOAD_ERR_OK) {
+                $uploadError = $_FILES['income_documents']['error'][$typeId] ?? UPLOAD_ERR_NO_FILE;
+                if (isset($_FILES['income_documents']['tmp_name'][$typeId]) && $uploadError === UPLOAD_ERR_OK) {
                     $uploadDir = __DIR__ . '/../../../uploads/solicitudes/';
                     if (!is_dir($uploadDir)) mkdir($uploadDir, 0775, true);
                     $filename = time() . '_' . basename($_FILES['income_documents']['name'][$typeId]);
@@ -177,6 +179,10 @@ if ($request->method() === "POST") {
                     }
                 } elseif (isset($existingDraftDocsByType[(int) $typeId])) {
                     $documentPath = $existingDraftDocsByType[(int) $typeId];
+                }
+
+                if ($documentPath === null || $documentPath === '') {
+                    $missingDocumentForDiscount = true;
                 }
 
                 $typeInfo = $incomeTypesMap[$typeId] ?? null;
@@ -235,6 +241,9 @@ if ($request->method() === "POST") {
         }
         if (round($totalDistributed, 2) !== round($requestedAmount, 2)) {
             $errors[] = "El monto distribuido debe coincidir exactamente con el monto solicitado.";
+        }
+        if ($missingDocumentForDiscount) {
+            $errors[] = "Todos los tipos de descuento deben incluir obligatoriamente su comprobante.";
         }
         if (empty($paymentConfigs)) {
             $errors[] = "Debe asignar el pago a al menos una forma de descuento.";

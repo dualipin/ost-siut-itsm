@@ -152,7 +152,7 @@
 
                   <div class="col-12 col-md-4">
                     <label class="form-label mb-1 small">Comprobante</label>
-                    <input type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" :name="'income_documents[' + (Number(item.tipoId) || 0) + ']'" :disabled="!Number(item.tipoId)">
+                    <input type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" :name="'income_documents[' + (Number(item.tipoId) || 0) + ']'" :disabled="!Number(item.tipoId)" :required="Number(item.tipoId) > 0 && Number(item.monto) > 0">
                   </div>
 
                   <div class="col-12" x-show="item.tipoId && (categoriasTipoIngreso.find(c => c.id === item.tipoId)?.esPeriodico)">
@@ -465,6 +465,25 @@
           if (validItems.length === 0) {
             event.preventDefault()
             alert('Debe asignar al menos una forma de descuento con monto.')
+            return
+          }
+
+          const form = event.target
+          const missingDocument = validItems.some((item) => {
+            const tipoId = Number(item.tipoId)
+            const fieldName = `income_documents[${ tipoId }]`
+            const input = form.elements.namedItem(fieldName)
+
+            if (!input || !('files' in input)) {
+              return true
+            }
+
+            return !input.files || input.files.length === 0
+          })
+
+          if (missingDocument) {
+            event.preventDefault()
+            alert('Todos los tipos de descuento deben incluir obligatoriamente su comprobante.')
             return
           }
 

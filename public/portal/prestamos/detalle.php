@@ -10,6 +10,7 @@ use App\Modules\Loan\Application\UseCase\ReviewLoanApplicationUseCase;
 use App\Modules\Loan\Application\UseCase\ValidateSignedDocumentsUseCase;
 use App\Modules\Loan\Domain\Exception\InvalidLoanStatusException;
 use App\Modules\Loan\Domain\Exception\LoanNotFoundException;
+use App\Modules\Loan\Domain\Repository\PaymentConfigRepositoryInterface;
 use App\Modules\Loan\Domain\ValueObject\InterestRate;
 use App\Modules\Loan\Domain\ValueObject\Money;
 use App\Shared\Context\UserContextInterface;
@@ -106,6 +107,94 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 }
                 if ($termFortnights === false || $termFortnights <= 0) {
                     $errors[] = "El plazo en quincenas debe ser mayor a cero.";
+                    break;
+                }
+
+                /** @var PaymentConfigRepositoryInterface $paymentConfigRepository */
+                $paymentConfigRepository = $container->get(
+                    PaymentConfigRepositoryInterface::class,
+                );
+                $paymentConfigs = $paymentConfigRepository->findByLoanIdWithIncomeType(
+                    $loanId,
+                );
+
+                if ($paymentConfigs === []) {
+                    $errors[] =
+                        "No se puede aprobar: no hay tipos de descuento registrados para validar recibos.";
+                    break;
+                }
+
+                $missingReceiptsByType = [];
+                $pendingValidationByType = [];
+                $rejectedReceiptsByType = [];
+
+                foreach ($paymentConfigs as $config) {
+                    $incomeTypeId = (int) ($config["income_type_id"] ?? 0);
+                    $incomeTypeName = trim(
+                        (string) ($config["income_type_name"] ?? ""),
+                    );
+
+                    if ($incomeTypeName === "") {
+                        $incomeTypeName =
+                            $incomeTypeId > 0
+                                ? "Tipo " . $incomeTypeId
+                                : "Tipo de descuento";
+                    }
+
+                    $documentPath = trim(
+                        (string) ($config["supporting_document_path"] ?? ""),
+                    );
+                    $documentStatus = strtolower(
+                        trim((string) ($config["document_status"] ?? "pendiente")),
+                    );
+
+                    if ($documentPath === "") {
+                        $missingReceiptsByType[] = $incomeTypeName;
+                        continue;
+                    }
+
+                    if ($documentStatus === "rechazado") {
+                        $rejectedReceiptsByType[] = $incomeTypeName;
+                        continue;
+                    }
+
+                    if ($documentStatus !== "validado") {
+                        $pendingValidationByType[] = $incomeTypeName;
+                    }
+                }
+
+                $missingReceiptsByType = array_values(
+                    array_unique($missingReceiptsByType),
+                );
+                $pendingValidationByType = array_values(
+                    array_unique($pendingValidationByType),
+                );
+                $rejectedReceiptsByType = array_values(
+                    array_unique($rejectedReceiptsByType),
+                );
+
+                if ($missingReceiptsByType !== []) {
+                    $errors[] =
+                        "No se puede aprobar: faltan recibos en " .
+                        implode(", ", $missingReceiptsByType) .
+                        ".";
+                }
+
+                if ($rejectedReceiptsByType !== []) {
+                    $errors[] =
+                        "No se puede aprobar: hay recibos rechazados en " .
+                        implode(", ", $rejectedReceiptsByType) .
+                        ".";
+                }
+
+                if ($pendingValidationByType !== []) {
+                    $errors[] =
+                        "No se puede aprobar: valida los recibos de " .
+                        implode(", ", $pendingValidationByType) .
+                        ".";
+                }
+
+                if ($errors !== []) {
                     break;
                 }
 
