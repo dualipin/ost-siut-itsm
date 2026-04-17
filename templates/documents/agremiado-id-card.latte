@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page { margin: 0cm; }
+
+        :root {
+            --card-primary: {$theme['primary']};
+            --card-secondary: {$theme['secondary']};
+            --card-text: {$theme['text']};
+            --card-muted: {$theme['muted']};
+            --card-border: {$theme['border']};
+            --card-surface: {$theme['surface']};
+            --card-bg: {$theme['background']};
+            --card-on-primary: {$theme['onPrimary']};
+            --card-on-secondary: {$theme['onSecondary']};
+        }
+
+        body {
+            font-family: Helvetica, sans-serif;
+            display: flex;
+            justify-content: center;
+            padding-top: 2cm;
+            {* background: var(--card-bg); *}
+            color: var(--card-text);
+        }
+
+        .print-container {
+            width: 100%;
+            text-align: center;
+        }
+
+        .card-wrapper {
+            display: inline-block;
+            margin: 10px;
+            vertical-align: top;
+        }
+
+        .card {
+            width: 54mm;
+            height: 85.6mm;
+            background: var(--card-surface);
+            position: relative;
+            overflow: hidden;
+            border: 0.5pt dashed var(--card-border);
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .arc-blue {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 35mm;
+            background-size: cover;
+            background-position: center top;
+            background-repeat: no-repeat;
+            z-index: 1;
+        }
+
+        .arc-red {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 35mm;
+            background-size: cover;
+            background-position: center bottom;
+            background-repeat: no-repeat;
+            transform: scaleY(-1) scaleX(-1);
+            z-index: 2;
+        }
+
+        .watermark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.15;
+            z-index: 3;
+            pointer-events: none;
+            text-align: center;
+        }
+
+        .watermark img {
+            max-width: 30mm;
+            max-height: 30mm;
+            object-fit: contain;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin-top: -15mm;
+            margin-left: -15mm;
+        }
+
+        .content {
+            position: relative;
+            z-index: 10;
+            padding: 5mm 3mm;
+            height: 100%;
+        }
+
+        .content-front {
+            display: table;
+            width: 100%;
+            height: 100%;
+            padding: 0 3mm;
+        }
+
+        .front-main {
+            display: table-cell;
+            vertical-align: middle;
+            padding-bottom: 8mm;
+            padding-top: 10mm;
+        }
+
+        .content-back {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-bottom: 16mm;
+        }
+
+        .logo-row {
+            display: table;
+            width: 100%;
+            margin: 0;
+        }
+
+        .logo-cell {
+            display: table-cell;
+            width: 33.33%;
+            height: 6mm;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .logo-img {
+            max-width: 13mm;
+            max-height: 10mm;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .front-footer {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 5mm;
+            padding: 0 2mm;
+        }
+
+        .name {
+            color: var(--card-primary);
+            font-size: 9pt;
+            font-weight: bold;
+            margin-top: 0;
+            text-transform: uppercase;
+            line-height: 1.15;
+            display: inline-block;
+            padding: 0.6mm 1.3mm;
+            border-radius: 1.2mm;
+            background: var(--card-surface);
+        }
+
+        .role {
+            font-size: 6.8pt;
+            color: var(--card-muted);
+            margin-bottom: 2mm;
+            text-transform: uppercase;
+        }
+
+        .photo {
+            width: 24mm;
+            height: 24mm;
+            margin: 0 auto 2mm;
+            border: 1mm solid var(--card-primary);
+            border-radius: 50%;
+            overflow: hidden;
+            background-color: var(--card-surface);
+            position: relative;
+            display: inline-block;
+        }
+
+        .photo img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            min-width: 100%;
+            min-height: 100%;
+        }
+
+        .photo-fallback {
+            font-size: 6pt;
+            color: var(--card-muted);
+            line-height: 24mm;
+            margin: 0;
+        }
+
+        .org {
+            font-size: 4.8pt;
+            font-weight: bold;
+            line-height: 1.1;
+            margin-bottom: 2mm;
+            padding: 0 2mm;
+            text-transform: uppercase;
+            color: var(--card-text);
+        }
+
+        .id-info {
+            font-size: 6.4pt;
+            font-weight: bold;
+            margin-bottom: 2mm;
+            line-height: 1.2;
+            color: var(--card-text);
+        }
+
+        .qr {
+            width: 13mm;
+            height: 13mm;
+            margin: 0 auto;
+            border: 0.25pt solid var(--card-border);
+            background: var(--card-surface);
+            overflow: hidden;
+        }
+
+        .qr img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .qr-fallback {
+            margin: 0;
+            font-size: 5pt;
+            color: var(--card-muted);
+            line-height: 13mm;
+        }
+
+        .web {
+            position: static;
+            width: 100%;
+            font-size: 5.5pt;
+            color: var(--card-primary);
+            font-weight: bold;
+            margin-top: 1mm;
+        }
+
+        .back-qr-wrap {
+            margin: 0 auto 2mm;
+            text-align: center;
+        }
+
+        .back-qr-label {
+            margin: 0 0 0.8mm;
+            font-size: 4.8pt;
+            color: var(--card-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.2pt;
+        }
+
+        .back-title {
+            font-size: 11pt;
+            font-weight: bold;
+            color: var(--card-primary);
+            margin-top: 0;
+            margin-bottom: 3mm;
+        }
+
+        .back-text {
+            font-size: 6.1pt;
+            text-align: justify;
+            line-height: 1.2;
+            margin-top: 10mm;
+            margin-bottom: 2mm;
+            padding: 0 4mm;
+            color: var(--card-text);
+        }
+
+        .v-box {
+            border: 0.3mm solid var(--card-border);
+            border-radius: 2mm;
+            padding: 1.5mm;
+            width: 70%;
+            margin: 0 auto 2mm;
+            background: var(--card-surface);
+        }
+
+        .v-label {
+            margin: 0;
+            font-size: 5pt;
+            color: var(--card-muted);
+        }
+
+        .v-value {
+            margin: 0;
+            font-size: 9pt;
+            font-weight: bold;
+            color: var(--card-primary);
+        }
+
+        .sign-area {
+            margin-top: 1mm;
+            background: var(--card-surface);
+            border-radius: 2mm;
+            padding: 1mm 1mm 0.8mm;
+            border: 0.25pt solid var(--card-border);
+        }
+
+        .sign-name {
+            font-size: 7.5pt;
+            font-weight: bold;
+            margin: 0;
+            color: var(--card-text);
+        }
+
+        .sign-role {
+            font-size: 5.5pt;
+            margin: 0;
+            color: var(--card-muted);
+        }
+
+        .hash {
+            font-size: 3.5pt;
+            color: var(--card-muted);
+            margin-top: 2pt;
+            word-break: break-all;
+            padding: 0 5mm;
+            line-height: 1.15;
+        }
+
+        .meta {
+            {* position: absolute; *}
+            margin-top: 1mm;
+            font-size: 4.8pt;
+            color: var(--card-text);
+            line-height: 1.2;
+            padding: 0.8mm 1.4mm;
+            border-radius: 1.6mm;
+            background: var(--card-surface);
+            border: 0.25pt solid var(--card-border);
+        }
+    </style>
+</head>
+<body>
+
+<div class="print-container">
+    <p style="font-size: 10pt; color: {$theme['muted']}; margin-bottom: 1cm;">Guia de impresion: recorte por la linea punteada.</p>
+
+    <div class="card-wrapper">
+        <div class="card">
+            {if !empty($backgroundImage)}
+            <div class="arc-blue" style="background-image: url('{$backgroundImage|noescape}');"></div>
+            <div class="arc-red" style="background-image: url('{$backgroundImage|noescape}');"></div>
+            {else}
+            <div class="arc-blue"></div>
+            <div class="arc-red"></div>
+            {/if}
+            {if !empty($logos['siut'])}
+            <div class="watermark">
+                <img src="{$logos['siut']|noescape}" alt="SIUT Watermark">
+            </div>
+            {/if}
+            <div class="content content-front">
+                <div class="front-main">
+                    <div class="photo">
+                        {if !empty($holder['photoSrc'])}
+                            <img src="{$holder['photoSrc']|noescape}" alt="Foto">
+                        {else}
+                            <p class="photo-fallback">SIN FOTO</p>
+                        {/if}
+                    </div>
+                    <div class="name">{$holder['fullName']}</div>
+                    <div class="role">{$holder['cargo']}</div>
+
+
+                    <div class="org">{$organization}</div>
+                    <div class="org">REG. RS-033/2019.</div>
+
+                    <div class="id-info">
+                        IMSS: {$holder['imss']}<br>
+                    </div>
+                </div>
+
+                <div class="front-footer">
+                    <div class="logo-row">
+                        <div class="logo-cell">
+                            {if !empty($logos['tecnm'])}
+                                <img src="{$logos['tecnm']|noescape}" alt="TecNM" class="logo-img">
+                            {/if}
+                        </div>
+                        <div class="logo-cell">
+                            {if !empty($logos['itsm'])}
+                                <img src="{$logos['itsm']|noescape}" alt="ITSM" class="logo-img">
+                            {/if}
+                        </div>
+                        <div class="logo-cell">
+                            {if !empty($logos['siut'])}
+                                <img src="{$logos['siut']|noescape}" alt="SIUT" class="logo-img">
+                            {/if}
+                        </div>
+                    </div>
+
+                    <div class="web">{$website}</div>
+                </div>
+            </div>
+        </div>
+        <p style="font-size: 8pt; color: {$theme['muted']};">Anverso</p>
+    </div>
+
+    <div class="card-wrapper">
+        <div class="card">
+            {if !empty($backgroundImage)}
+            <div class="arc-blue" style="background-image: url('{$backgroundImage|noescape}');"></div>
+            <div class="arc-red" style="background-image: url('{$backgroundImage|noescape}');"></div>
+            {else}
+            <div class="arc-blue"></div>
+            <div class="arc-red"></div>
+            {/if}
+            {if !empty($logos['siut'])}
+            <div class="watermark">
+                <img src="{$logos['siut']|noescape}" alt="SIUT Watermark">
+            </div>
+            {/if}
+            <div class="content content-back">
+
+                <div class="back-text">
+Se acredita que la persona titular de esta
+credencial pertenece al padron de
+afiliados del 
+                    <strong>{$organization}</strong>.
+                </div>
+
+                <div class="v-box">
+                    <p class="v-value">{$holder['vigencia']}</p>
+                </div>
+
+                <div class="back-qr-wrap">
+                    <p class="back-qr-label">Validacion en linea</p>
+                    <div class="qr">
+                        {if !empty($qrSrc)}
+                            <img src="{$qrSrc|noescape}" alt="QR">
+                        {else}
+                            <p class="qr-fallback">SIN QR</p>
+                        {/if}
+                    </div>
+                </div>
+
+                <div class="sign-area">
+                    <p class="sign-name">{$signatory['name']}</p>
+                    <p class="sign-role">{$signatory['role']}</p>
+                    <div class="hash">Firma digital: {$signatory['signatureHash']}</div>
+                </div>
+
+                <div class="meta">
+                    {$address}<br>
+                    RFC: {$rfc} <br>
+                    Emision: {$issuedAt}<br>
+                </div>
+            </div>
+        </div>
+        <p style="font-size: 8pt; color: {$theme['muted']};">Reverso</p>
+    </div>
+</div>
+
+</body>
+</html>

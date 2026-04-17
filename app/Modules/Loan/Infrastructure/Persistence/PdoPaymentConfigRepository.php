@@ -22,6 +22,7 @@ final class PdoPaymentConfigRepository extends PdoBaseRepository implements Paym
                 lpc.*,
                 cit.name                    AS income_type_name,
                 cit.is_periodic             AS income_is_periodic,
+                cit.frequency_days          AS income_frequency_days,
                 cit.tentative_payment_month AS income_payment_month,
                 cit.tentative_payment_day   AS income_payment_day
             FROM loan_payment_configuration lpc

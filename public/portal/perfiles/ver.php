@@ -10,8 +10,11 @@ use App\Modules\Setting\Application\UseCase\GetColorUseCase;
 use App\Modules\User\Domain\Enum\DocumentTypeEnum;
 use App\Modules\User\Domain\Repository\UserRepositoryInterface;
 use App\Shared\Context\UserProviderInterface;
+use App\Shared\Domain\Enum\RoleEnum;
+use App\Shared\Utils\CredentialCardHelper;
 use App\Shared\Utils\DocumentHelper;
 use Dompdf\Dompdf;
+use chillerlan\QRCode\QRCode;
 
 require_once __DIR__ . "/../../../bootstrap.php";
 
@@ -81,9 +84,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $user->id;
 
         foreach ([$publicUserAbsoluteDir, $privateUserAbsoluteDir] as $uploadDir) {
-            if (!is_dir($uploadDir) &&
+            if (
+                !is_dir($uploadDir) &&
                 !mkdir($uploadDir, 0775, true) &&
-                !is_dir($uploadDir)) {
+                !is_dir($uploadDir)
+            ) {
                 throw new RuntimeException("No se pudo crear el directorio de carga.");
             }
         }
@@ -96,6 +101,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             2 * 1024 * 1024,
             "perfil",
         );
+
+        // Crop profile photo to 1:1 aspect ratio from center
+        if ($photoPath !== null) {
+            $fullPhotoPath = $publicUploadRootDir . DIRECTORY_SEPARATOR . $photoPath;
+            cropImageToSquare($fullPhotoPath);
+        }
 
         $addressInput = normalizeNullableString(
             is_string($_POST["direccion"] ?? null)
@@ -160,6 +171,33 @@ if ($profileUser === null) {
     exit;
 }
 
+$credentialMissingRequirements = CredentialCardHelper::resolveMissingRequirements($profileUser);
+$canGenerateCredential = CredentialCardHelper::canGenerate($profileUser);
+
+if (isset($_GET['credencial']) && $_GET['credencial'] === '1') {
+    if ($ownerId !== $user->id) {
+        http_response_code(403);
+        exit;
+    }
+
+    if (!$canGenerateCredential) {
+        $missingText = implode(', ', $credentialMissingRequirements);
+        $message = 'No es posible generar la credencial.';
+
+        if ($missingText !== '') {
+            $message .= ' Completa los siguientes datos: ' . $missingText . '.';
+        }
+
+        $redirector
+            ->to($requestPath, ['error' => $message])
+            ->send();
+
+        exit;
+    }
+
+    streamUserIdentificationCard($container, $userRepository, $profileUser);
+}
+
 if (isset($_GET['constancia']) && $_GET['constancia'] === '1') {
     streamProfileRegistrationCertificate($container, $profileUser);
 }
@@ -213,19 +251,18 @@ $error = is_string($_GET["error"] ?? null) ? $_GET["error"] : null;
 $renderer = $container->get(RendererInterface::class);
 
 $renderer->render(__DIR__ . "/ver.latte", [
-	"authUser" => $user,
-	"perfil" => $perfil,
-	"docs" => $docs,
+    "authUser" => $user,
+    "perfil" => $perfil,
+    "docs" => $docs,
     "docStatuses" => $docStatuses,
-	"documentFields" => $documentFields,
-	"hasAnyDocument" => $hasAnyDocument,
-	"mensaje" => $mensaje,
-	"error" => $error,
+    "documentFields" => $documentFields,
+    "hasAnyDocument" => $hasAnyDocument,
+    "canGenerateCredential" => $canGenerateCredential,
+    "credentialMissingRequirements" => $credentialMissingRequirements,
+    "mensaje" => $mensaje,
+    "error" => $error,
 ]);
 
-/**
- * @return array<int, array{key: string, label: string}>
- */
 function normalizeNullableString(?string $value): ?string
 {
     if ($value === null) {
@@ -238,67 +275,67 @@ function normalizeNullableString(?string $value): ?string
 }
 
 function uploadProfileFile(
-	?array $file,
-	string $absoluteDir,
-	string $relativeDir,
-	array $allowedMimeTypes,
-	int $maxSizeInBytes,
-	string $prefix,
+    ?array $file,
+    string $absoluteDir,
+    string $relativeDir,
+    array $allowedMimeTypes,
+    int $maxSizeInBytes,
+    string $prefix,
 ): ?string {
-	if ($file === null) {
-		return null;
-	}
+    if ($file === null) {
+        return null;
+    }
 
-	$error = (int) ($file["error"] ?? UPLOAD_ERR_NO_FILE);
+    $error = (int) ($file["error"] ?? UPLOAD_ERR_NO_FILE);
 
-	if ($error === UPLOAD_ERR_NO_FILE) {
-		return null;
-	}
+    if ($error === UPLOAD_ERR_NO_FILE) {
+        return null;
+    }
 
-	if ($error !== UPLOAD_ERR_OK) {
-		throw new RuntimeException("Error al subir el archivo.");
-	}
+    if ($error !== UPLOAD_ERR_OK) {
+        throw new RuntimeException("Error al subir el archivo.");
+    }
 
-	$tmpName = (string) ($file["tmp_name"] ?? "");
-	$originalName = (string) ($file["name"] ?? "archivo");
-	$size = (int) ($file["size"] ?? 0);
+    $tmpName = (string) ($file["tmp_name"] ?? "");
+    $originalName = (string) ($file["name"] ?? "archivo");
+    $size = (int) ($file["size"] ?? 0);
 
-	if ($tmpName === "" || !is_uploaded_file($tmpName)) {
-		throw new RuntimeException("No se detecto un archivo valido.");
-	}
+    if ($tmpName === "" || !is_uploaded_file($tmpName)) {
+        throw new RuntimeException("No se detecto un archivo valido.");
+    }
 
-	if ($size <= 0 || $size > $maxSizeInBytes) {
-		throw new RuntimeException("El archivo supera el limite permitido.");
-	}
+    if ($size <= 0 || $size > $maxSizeInBytes) {
+        throw new RuntimeException("El archivo supera el limite permitido.");
+    }
 
-	$finfo = new finfo(FILEINFO_MIME_TYPE);
-	$mimeType = (string) $finfo->file($tmpName);
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+    $mimeType = (string) $finfo->file($tmpName);
 
-	if (!in_array($mimeType, $allowedMimeTypes, true)) {
-		throw new RuntimeException("Tipo de archivo no permitido.");
-	}
+    if (!in_array($mimeType, $allowedMimeTypes, true)) {
+        throw new RuntimeException("Tipo de archivo no permitido.");
+    }
 
-	$extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+    $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
 
-	if ($extension === "") {
-		$extension = match ($mimeType) {
-			"image/jpeg" => "jpg",
-			"image/png" => "png",
-			"image/webp" => "webp",
-			"application/pdf" => "pdf",
-			default => "bin",
-		};
-	}
+    if ($extension === "") {
+        $extension = match ($mimeType) {
+            "image/jpeg" => "jpg",
+            "image/png" => "png",
+            "image/webp" => "webp",
+            "application/pdf" => "pdf",
+            default => "bin",
+        };
+    }
 
-	$safePrefix = preg_replace('/[^a-z0-9_\-]/i', "", $prefix) ?: "archivo";
-	$fileName = $safePrefix . "_" . bin2hex(random_bytes(8)) . "." . $extension;
-	$targetPath = rtrim($absoluteDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $fileName;
+    $safePrefix = preg_replace('/[^a-z0-9_\-]/i', "", $prefix) ?: "archivo";
+    $fileName = $safePrefix . "_" . bin2hex(random_bytes(8)) . "." . $extension;
+    $targetPath = rtrim($absoluteDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $fileName;
 
-	if (!move_uploaded_file($tmpName, $targetPath)) {
-		throw new RuntimeException("No se pudo guardar el archivo.");
-	}
+    if (!move_uploaded_file($tmpName, $targetPath)) {
+        throw new RuntimeException("No se pudo guardar el archivo.");
+    }
 
-	return trim($relativeDir, "/\\") . "/" . $fileName;
+    return trim($relativeDir, "/\\") . "/" . $fileName;
 }
 
 function streamProfileRegistrationCertificate($container, $profileUser): never
@@ -366,6 +403,85 @@ function streamProfileRegistrationCertificate($container, $profileUser): never
     exit;
 }
 
+function streamUserIdentificationCard(
+    $container,
+    UserRepositoryInterface $userRepository,
+    $profileUser,
+): never {
+    /** @var RendererInterface $renderer */
+    $renderer = $container->get(RendererInterface::class);
+    /** @var Dompdf $pdf */
+    $pdf = $container->get(Dompdf::class);
+    /** @var AppConfig $appConfig */
+    $appConfig = $container->get(AppConfig::class);
+
+    $verificationUrl = CredentialCardHelper::buildVerificationUrl($appConfig->baseUrl, $profileUser);
+    $vigencia = CredentialCardHelper::resolveVigencia($profileUser);
+    $membershipLabel = $vigencia === 'VIGENTE'
+        ? 'Miembro activo del padron'
+        : 'Membresia no vigente';
+    $theme = resolveCredentialCardTheme($container);
+
+    $qrDataUri = null;
+
+    try {
+        $qrDataUri = (new QRCode())->render($verificationUrl);
+    } catch (Throwable) {
+        // Si la libreria QR falla, se mantiene visible la URL de validacion.
+    }
+
+    $logos = resolveCredentialLogosDataUri(__DIR__ . '/../../assets/images/logo');
+    $photoDataUri = resolveUserPhotoDataUri($appConfig, $profileUser->personalInfo->photo);
+    $backgroundImage = resolveImageDataUriFromFile(__DIR__ . '/../../assets/images/background-id.png');
+    $signatory = resolveLeaderSignatory($userRepository);
+
+    $html = $renderer->renderToString(
+        __DIR__ . '/../../../templates/documents/agremiado-id-card.latte',
+        [
+            'backgroundImage' => $backgroundImage,
+            'holder' => [
+                'fullName' => trim($profileUser->personalInfo->name . ' ' . $profileUser->personalInfo->surnames),
+                'cargo' => trim((string) $profileUser->workData->category) !== ''
+                    ? $profileUser->workData->category
+                    : 'No disponible',
+                'imss' => trim((string) $profileUser->workData->nss) !== ''
+                    ? $profileUser->workData->nss
+                    : 'No disponible',
+                'photoSrc' => $photoDataUri,
+                'vigencia' => $vigencia,
+                'membershipLabel' => $membershipLabel,
+                'isActive' => $profileUser->active,
+            ],
+            'signatory' => $signatory,
+            'verificationUrl' => $verificationUrl,
+            'qrSrc' => $qrDataUri,
+            'issuedAt' => (new DateTimeImmutable())->format('d/m/Y H:i'),
+            'website' => 'https://siutitsm.com.mx',
+            'organization' => 'Sindicato Unico de Trabajadores del Instituto Tecnologico Superior de Macuspana (SIUTITSM)',
+            'address' => 'Av. Tecnologico S/N, Lerdo de Tejada 1ra. Seccion, Macuspana, Tabasco, C.P. 86719.',
+            'rfc' => 'SUT191121324',
+            'logos' => $logos,
+            'theme' => $theme,
+        ],
+    );
+
+    $options = $pdf->getOptions();
+    $options->setIsRemoteEnabled(true);
+    $pdf->setOptions($options);
+    $pdf->setPaper('letter', 'portrait');
+    $pdf->loadHtml($html);
+    $pdf->render();
+
+    $safeName = preg_replace('/[^a-z0-9]+/i', '-', trim($profileUser->personalInfo->name . ' ' . $profileUser->personalInfo->surnames));
+    $safeName = $safeName !== null && $safeName !== '' ? trim($safeName, '-') : 'agremiado';
+
+    $filename = 'credencial-' . strtolower($safeName) . '-' . date('YmdHis') . '.pdf';
+
+    $pdf->stream($filename, ['Attachment' => true]);
+
+    exit;
+}
+
 function resolvePdfLogoDataUri(string $imagesDir): ?string
 {
     $candidates = [
@@ -392,4 +508,300 @@ function resolvePdfLogoDataUri(string $imagesDir): ?string
     }
 
     return null;
+}
+
+/**
+ * @return array{tecnm: ?string, itsm: ?string, siut: ?string}
+ */
+function resolveCredentialLogosDataUri(string $logosDir): array
+{
+    return [
+        'tecnm' => resolveImageDataUriByCandidates($logosDir, ['logo-tecnm.png']),
+        'itsm' => resolveImageDataUriByCandidates($logosDir, ['logo-itsm.jpg']),
+        'siut' => resolveImageDataUriByCandidates($logosDir, ['logo-siutitsm.jpg']),
+    ];
+}
+
+function resolveUserPhotoDataUri(AppConfig $appConfig, ?string $photoPath): ?string
+{
+    $relativePath = DocumentHelper::normalizeUploadPath($photoPath);
+
+    if ($relativePath === '') {
+        return null;
+    }
+
+    $publicPath = resolveSafePathFromRoot($appConfig->upload->publicDir, $relativePath);
+
+    if ($publicPath !== null) {
+        return resolveImageDataUriFromFile($publicPath);
+    }
+
+    $privatePath = resolveSafePathFromRoot($appConfig->upload->privateDir, $relativePath);
+
+    if ($privatePath !== null) {
+        return resolveImageDataUriFromFile($privatePath);
+    }
+
+    return null;
+}
+
+/**
+ * @return array{name: string, role: string, signatureHash: string}
+ */
+function resolveLeaderSignatory(UserRepositoryInterface $userRepository): array
+{
+    $default = [
+        'name' => 'Sin lider asignado',
+        'role' => 'Secretario General',
+        'signatureHash' => 'N/D',
+    ];
+
+    foreach ($userRepository->listado(true) as $summary) {
+        if ($summary->role !== RoleEnum::Lider) {
+            continue;
+        }
+
+        $leader = $userRepository->findById($summary->id);
+
+        if ($leader === null) {
+            continue;
+        }
+
+        $fullName = trim($leader->personalInfo->name . ' ' . $leader->personalInfo->surnames);
+        $curp = strtoupper(trim((string) $leader->personalInfo->curp));
+
+        return [
+            'name' => $fullName !== '' ? $fullName : 'Lider sin nombre',
+            'role' => 'Secretario General',
+            'signatureHash' => $curp !== '' ? hash('sha256', $curp) : 'N/D',
+        ];
+    }
+
+    return $default;
+}
+
+/**
+ * @param array<int, string> $candidateFiles
+ */
+function resolveImageDataUriByCandidates(string $dir, array $candidateFiles): ?string
+{
+    foreach ($candidateFiles as $candidateFile) {
+        $path = rtrim($dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $candidateFile;
+
+        if (!is_file($path)) {
+            continue;
+        }
+
+        $dataUri = resolveImageDataUriFromFile($path);
+
+        if ($dataUri !== null) {
+            return $dataUri;
+        }
+    }
+
+    return null;
+}
+
+function resolveImageDataUriFromFile(string $path): ?string
+{
+    if (!is_file($path) || !is_readable($path)) {
+        return null;
+    }
+
+    $data = file_get_contents($path);
+
+    if (!is_string($data) || $data === '') {
+        return null;
+    }
+
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+    $mimeType = (string) ($finfo->file($path) ?: 'application/octet-stream');
+
+    if (!str_starts_with($mimeType, 'image/')) {
+        return null;
+    }
+
+    return 'data:' . $mimeType . ';base64,' . base64_encode($data);
+}
+
+function resolveSafePathFromRoot(string $baseDir, string $relativePath): ?string
+{
+    $normalizedRelativePath = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, ltrim($relativePath, '/\\'));
+    $candidatePath = rtrim($baseDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $normalizedRelativePath;
+
+    $realBaseDir = realpath($baseDir);
+    $realCandidatePath = realpath($candidatePath);
+
+    if ($realBaseDir === false || $realCandidatePath === false) {
+        return null;
+    }
+
+    if (!str_starts_with($realCandidatePath, $realBaseDir . DIRECTORY_SEPARATOR)) {
+        return null;
+    }
+
+    return is_file($realCandidatePath) && is_readable($realCandidatePath)
+        ? $realCandidatePath
+        : null;
+}
+
+/**
+ * @return array{primary: string, secondary: string, text: string, muted: string, border: string, surface: string, background: string, onPrimary: string, onSecondary: string}
+ */
+function resolveCredentialCardTheme($container): array
+{
+    $theme = [
+        'primary' => '#611232',
+        'secondary' => '#a57f2c',
+        'text' => '#212529',
+        'muted' => '#475569',
+        'border' => '#cbd5e1',
+        'surface' => '#ffffff',
+        'background' => '#f8f9fa',
+    ];
+
+    try {
+        $colorConfig = $container->get(GetColorUseCase::class)->execute();
+
+        if ($colorConfig !== null) {
+            $theme['primary'] = normalizeHexColor($colorConfig->primary, $theme['primary']);
+            $theme['secondary'] = normalizeHexColor($colorConfig->secondary, $theme['secondary']);
+            $theme['text'] = normalizeHexColor($colorConfig->body, $theme['text']);
+            $theme['surface'] = normalizeHexColor($colorConfig->white, $theme['surface']);
+            $theme['background'] = normalizeHexColor($colorConfig->bodyBackground, $theme['background']);
+            $theme['muted'] = normalizeHexColor($colorConfig->dark, $theme['muted']);
+            $theme['border'] = normalizeHexColor($colorConfig->light, $theme['border']);
+        }
+    } catch (Throwable) {
+        // Mantener colores por defecto si la carga dinamica falla.
+    }
+
+    $theme['onPrimary'] = resolveAccessibleTextColor($theme['primary']);
+    $theme['onSecondary'] = resolveAccessibleTextColor($theme['secondary']);
+    $theme['muted'] = resolveMutedTextColor($theme['text'], $theme['surface']);
+    $theme['border'] = resolveBorderColor($theme['text'], $theme['surface']);
+
+    return $theme;
+}
+
+function normalizeHexColor(string $value, string $fallback): string
+{
+    return preg_match('/^#[0-9a-fA-F]{6}$/', $value) === 1
+        ? strtolower($value)
+        : strtolower($fallback);
+}
+
+function resolveAccessibleTextColor(string $hex): string
+{
+    [$r, $g, $b] = resolveHexToRgb($hex);
+    $luminance = (0.299 * $r + 0.587 * $g + 0.114 * $b) / 255;
+
+    return $luminance > 0.6 ? '#0f172a' : '#ffffff';
+}
+
+/**
+ * @return array{0: int, 1: int, 2: int}
+ */
+function resolveHexToRgb(string $hex): array
+{
+    $normalized = ltrim($hex, '#');
+
+    return [
+        hexdec(substr($normalized, 0, 2)),
+        hexdec(substr($normalized, 2, 2)),
+        hexdec(substr($normalized, 4, 2)),
+    ];
+}
+
+function resolveMutedTextColor(string $textHex, string $surfaceHex): string
+{
+    [$tr, $tg, $tb] = resolveHexToRgb($textHex);
+    [$sr, $sg, $sb] = resolveHexToRgb($surfaceHex);
+
+    $r = (int) round($tr * 0.62 + $sr * 0.38);
+    $g = (int) round($tg * 0.62 + $sg * 0.38);
+    $b = (int) round($tb * 0.62 + $sb * 0.38);
+
+    return sprintf('#%02x%02x%02x', $r, $g, $b);
+}
+
+function resolveBorderColor(string $textHex, string $surfaceHex): string
+{
+    [$tr, $tg, $tb] = resolveHexToRgb($textHex);
+    [$sr, $sg, $sb] = resolveHexToRgb($surfaceHex);
+
+    $r = (int) round($tr * 0.24 + $sr * 0.76);
+    $g = (int) round($tg * 0.24 + $sg * 0.76);
+    $b = (int) round($tb * 0.24 + $sb * 0.76);
+
+    return sprintf('#%02x%02x%02x', $r, $g, $b);
+}
+
+function cropImageToSquare(string $filePath): void
+{
+    if (!is_file($filePath) || !is_readable($filePath)) {
+        return;
+    }
+
+    try {
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mimeType = (string) ($finfo->file($filePath) ?: 'application/octet-stream');
+
+        $image = match ($mimeType) {
+            'image/jpeg' => imagecreatefromjpeg($filePath),
+            'image/png' => imagecreatefrompng($filePath),
+            'image/webp' => imagecreatefromwebp($filePath),
+            default => null,
+        };
+
+        if ($image === null || $image === false) {
+            return;
+        }
+
+        $width = (int) imagesx($image);
+        $height = (int) imagesy($image);
+        $squareSize = min($width, $height);
+
+        if ($squareSize <= 0) {
+            imagedestroy($image);
+            return;
+        }
+
+        // Calculate crop position to center the image
+        $offsetX = (int) (($width - $squareSize) / 2);
+        $offsetY = (int) (($height - $squareSize) / 2);
+
+        // Create new square image
+        $croppedImage = imagecreatetruecolor($squareSize, $squareSize);
+
+        if ($croppedImage === false) {
+            imagedestroy($image);
+            return;
+        }
+
+        // Preserve transparency for PNG/WebP
+        if ($mimeType === 'image/png' || $mimeType === 'image/webp') {
+            imagealphablending($croppedImage, false);
+            imagesavealpha($croppedImage, true);
+            $transparent = imagecolorallocatealpha($croppedImage, 0, 0, 0, 127);
+            imagefilledrectangle($croppedImage, 0, 0, $squareSize, $squareSize, $transparent);
+        }
+
+        // Copy the centered square portion
+        imagecopy($croppedImage, $image, 0, 0, $offsetX, $offsetY, $squareSize, $squareSize);
+
+        // Save the cropped image back
+        match ($mimeType) {
+            'image/jpeg' => imagejpeg($croppedImage, $filePath, 95),
+            'image/png' => imagepng($croppedImage, $filePath, 9),
+            'image/webp' => imagewebp($croppedImage, $filePath, 95),
+            default => true,
+        };
+
+        imagedestroy($croppedImage);
+        imagedestroy($image);
+    } catch (Throwable) {
+        // Silently fail if image processing fails
+        return;
+    }
 }

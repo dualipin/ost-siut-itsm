@@ -41,7 +41,7 @@
 			<div class="card border-0 shadow-sm rounded-4 h-100">
 				<div class="card-body p-4">
 					<div class="text-muted small text-uppercase fw-semibold mb-1">Folio</div>
-					<div class="h4 fw-bold mb-0">{$loan['folio'] ?: 'Sin folio'}</div>
+					<div class="h4 fw-bold mb-0">{$loan['folio'] ?: ('SIUT-FOLIO-' . $loan['loan_id'])}</div>
 				</div>
 			</div>
 		</div>
@@ -215,9 +215,16 @@
 
 	<div class="card border-0 shadow-sm rounded-4 mb-4">
 		<div class="card-header bg-transparent border-0 px-4 pt-4 pb-0">
-			<h2 class="h5 fw-bold mb-0">
-				<i class="bi bi-table me-2 text-info"></i>Calendario de pagos
-			</h2>
+			<div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+				<h2 class="h5 fw-bold mb-0">
+					<i class="bi bi-table me-2 text-info"></i>Calendario de pagos
+				</h2>
+				{if count($amortization) > 0}
+					<a href="?id={$loan['loan_id']}&output=pdf" class="btn btn-sm btn-outline-primary rounded-3" title="Descargar tabla de amortización en PDF">
+						<i class="bi bi-file-earmark-pdf me-1"></i>Descargar PDF
+					</a>
+				{/if}
+			</div>
 		</div>
 		<div class="card-body p-4">
 			{if count($amortization) === 0}

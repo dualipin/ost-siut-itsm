@@ -52,6 +52,8 @@ foreach ($categoriasTipoIngreso as &$cat) {
 unset($cat);
 
 if ($form->method() == "POST") {
+    $firstPaymentToleranceDays = 15;
+
     $findCategoriaById = static function (array $categorias, int $tipoId): ?array {
         foreach ($categorias as $categoria) {
             if ((int)($categoria['id'] ?? 0) === $tipoId) {
@@ -83,21 +85,22 @@ if ($form->method() == "POST") {
         return $date;
     };
 
-    $buildPeriodicOptions = static function (DateTimeImmutable $inicio, array $cat): array {
+    $buildPeriodicOptions = static function (DateTimeImmutable $inicio, array $cat) use ($firstPaymentToleranceDays): array {
         if (empty($cat['esPeriodico'])) {
             return [];
         }
 
+        $inicioElegible = $inicio->add(new DateInterval('P' . $firstPaymentToleranceDays . 'D'));
         $frecuencia = max(1, (int)($cat['frecuenciaDias'] ?? 30));
         $diaPago = max(1, (int)($cat['diasPagoTentativo'] ?? 15));
-        $fechaMaxima = new DateTimeImmutable(date('Y') . '-11-15');
+        $fechaMaxima = new DateTimeImmutable($inicioElegible->format('Y') . '-11-15');
 
-        if ($inicio > $fechaMaxima) {
+        if ($inicioElegible > $fechaMaxima) {
             return [];
         }
 
         $opciones = [];
-        $cursor = $inicio->setDate((int)$inicio->format('Y'), (int)$inicio->format('m'), 1);
+        $cursor = $inicioElegible->setDate((int)$inicioElegible->format('Y'), (int)$inicioElegible->format('m'), 1);
         $guard = 0;
 
         while ($cursor <= $fechaMaxima && $guard < 36) {
@@ -117,7 +120,7 @@ if ($form->method() == "POST") {
                 }
 
                 $fechaPago = $cursor->setDate($year, $month, $diaCandidato);
-                if ($fechaPago < $inicio || $fechaPago > $fechaMaxima) {
+                if ($fechaPago < $inicioElegible || $fechaPago > $fechaMaxima) {
                     continue;
                 }
 
@@ -231,6 +234,16 @@ if ($form->method() == "POST") {
     $tasaInteresMensual = (float) $form->input("tasa_interes", 0);
 
     $fechaBase = DateTimeImmutable::createFromFormat('Y-m-d', $fechaOtorgamiento) ?: new DateTimeImmutable();
+
+    $resolveNextFortnightDate = static function (DateTimeImmutable $date): DateTimeImmutable {
+        $day = (int)$date->format('d');
+
+        if ($day <= 15) {
+            return DateTimeImmutable::createFromFormat('Y-m-d', $date->format('Y-m-15')) ?: $date;
+        }
+
+        return new DateTimeImmutable($date->format('Y-m-t'));
+    };
 
     $plazoDias = ($mesesPagar * 30) + $diasAdicionales;
     $resumenAnual = [];
@@ -372,8 +385,11 @@ if ($form->method() == "POST") {
     $saldo = $montoPrestamo;
 
     $corrida = [];
-    $fechaActual = new DateTime($fechaOtorgamiento);
-    $fechaActual->modify("+{$diasAdicionales} days");
+    $fechaReferenciaPrimerPago = $fechaBase->add(new DateInterval('P' . $firstPaymentToleranceDays . 'D'));
+    $primerPago = $resolveNextFortnightDate($fechaReferenciaPrimerPago);
+    $diasTranscurridosPrimerPago = max(0, (int)$fechaBase->diff($primerPago)->days);
+    $diasExtraPrimeraQuincena = max(0, $diasTranscurridosPrimerPago - 15);
+    $fechaActual = new DateTime($primerPago->format('Y-m-d'));
 
     $pagoExtraordinarioPorFecha = [];
     foreach ($prestacionesNoPeriodicas as $prestacion) {
@@ -399,9 +415,9 @@ if ($form->method() == "POST") {
         // Interes quincenal base (Sistema Aleman)
         $interesQuincenal = $saldo * $tasaQuincenal;
         
-        // Días adicionales para la primera quincena
-        if ($i === 1 && $diasAdicionales > 0) {
-            $interesQuincenal += ($montoPrestamo * $tasaDiaria * $diasAdicionales);
+        // Días transcurridos extra hasta la primera quincena después de la tolerancia.
+        if ($i === 1 && $diasExtraPrimeraQuincena > 0) {
+            $interesQuincenal += ($montoPrestamo * $tasaDiaria * $diasExtraPrimeraQuincena);
         }
         
         // Buscar si aplica prestación no periódica como abono extraordinario en su fecha.

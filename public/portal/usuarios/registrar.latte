@@ -49,8 +49,8 @@
       </div>
       <div class="col-md-6">
         <label for="phone" class="form-label">Teléfono</label>
-        <input type="tel" class="form-control" id="phone" name="phone" maxlength="10" inputmode="numeric"
-               pattern="[0-9]{10}"
+        <input type="tel" class="form-control" id="phone" name="phone" maxlength="20" inputmode="tel"
+               placeholder="10 dígitos"
                value="{$old['phone'] ?? ''}">
       </div>
       <div class="col-12">
@@ -73,8 +73,8 @@
       </div>
       <div class="col-md-6">
         <label for="nss" class="form-label">NSS</label>
-        <input type="text" class="form-control" id="nss" name="nss" maxlength="11" inputmode="numeric"
-               pattern="[0-9]{11}"
+        <input type="text" class="form-control" id="nss" name="nss" maxlength="20" inputmode="numeric"
+               placeholder="11 dígitos"
                value="{$old['nss'] ?? ''}">
       </div>
       <div class="col-md-6">

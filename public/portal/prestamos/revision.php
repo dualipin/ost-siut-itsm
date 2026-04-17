@@ -43,7 +43,7 @@ if ($statusFilter === 'todos') {
 }
 
 if ($search !== '') {
-    $where[] = "(l.folio LIKE :search OR CONCAT(u.name, ' ', u.surnames) LIKE :search OR u.email LIKE :search)";
+    $where[] = "(COALESCE(NULLIF(TRIM(l.folio), ''), CONCAT('SIUT-FOLIO-', l.loan_id)) LIKE :search OR CAST(l.loan_id AS CHAR) LIKE :search OR CONCAT(u.name, ' ', u.surnames) LIKE :search OR u.email LIKE :search)";
     $params['search'] = '%' . $search . '%';
 }
 
@@ -60,7 +60,7 @@ if ($fechaHasta !== '') {
 $sql = "
     SELECT
         l.loan_id,
-        l.folio,
+        COALESCE(NULLIF(TRIM(l.folio), ''), CONCAT('SIUT-FOLIO-', l.loan_id)) AS folio,
         l.status,
         l.requested_amount,
         l.applied_interest_rate,
