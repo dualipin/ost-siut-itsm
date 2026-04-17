@@ -71,6 +71,7 @@ if ($request->method() === "POST") {
         
         $requestedAmount = (float) $request->input('requested_amount');
         $incomeAmounts = $_POST['income_amounts'] ?? [];
+        $incomeInstallments = $_POST['income_installments'] ?? [];
         $incomeLastDates = $_POST['income_last_dates'] ?? [];
         $notes = $request->input('notes', '');
         $saveDraft = $request->input('save_draft') === '1';
@@ -113,6 +114,55 @@ if ($request->method() === "POST") {
             $maxFortnightsThisYear = $candidateFortnights;
         }
 
+        $buildPeriodicOptions = static function (\DateTimeImmutable $inicio, array $tipoInfo): array {
+            $isPeriodic = (bool) ($tipoInfo['is_periodic'] ?? false);
+            if (!$isPeriodic) {
+                return [];
+            }
+
+            $frecuencia = max(1, (int) ($tipoInfo['frequency_days'] ?? 30));
+            $diaPago = max(1, (int) ($tipoInfo['tentative_payment_day'] ?? 15));
+            $fechaMaxima = new \DateTimeImmutable($inicio->format('Y') . '-11-15');
+
+            if ($inicio > $fechaMaxima) {
+                return [];
+            }
+
+            $opciones = [];
+            $cursor = $inicio->setDate((int) $inicio->format('Y'), (int) $inicio->format('m'), 1);
+            $guard = 0;
+
+            while ($cursor <= $fechaMaxima && $guard < 36) {
+                $year = (int) $cursor->format('Y');
+                $month = (int) $cursor->format('m');
+                $totalDiasMes = (int) $cursor->format('t');
+
+                $fraccionMensual = $frecuencia / $totalDiasMes;
+                $vecesEnMes = $fraccionMensual > 0 ? max(1, (int) round(1 / $fraccionMensual)) : 1;
+                $diaBase = min(max(1, $diaPago), $totalDiasMes);
+                $saltoDias = max(1, (int) round($totalDiasMes / $vecesEnMes));
+
+                for ($i = 0; $i < $vecesEnMes; $i++) {
+                    $diaCandidato = $diaBase + ($i * $saltoDias);
+                    if ($diaCandidato > $totalDiasMes) {
+                        break;
+                    }
+
+                    $fechaPago = $cursor->setDate($year, $month, $diaCandidato);
+                    if ($fechaPago < $inicio || $fechaPago > $fechaMaxima) {
+                        continue;
+                    }
+
+                    $opciones[] = $fechaPago->format('Y-m-d');
+                }
+
+                $cursor = $cursor->modify('first day of next month');
+                $guard++;
+            }
+
+            return $opciones;
+        };
+
         foreach ($incomeAmounts as $typeId => $amount) {
             $amount = (float)$amount;
             if ($amount > 0) {
@@ -136,22 +186,36 @@ if ($request->method() === "POST") {
                 $interestMethod = 'compuesto'; // default for unique payment
                 
                 if ($isPeriodic && !empty($incomeLastDates[$typeId])) {
-                     // Convert selected estimated last payment date to fortnight count,
-                     // then cap it to the maximum allowed before Dec 31.
-                     try {
-                         $estimatedLastPaymentDate = new \DateTimeImmutable($incomeLastDates[$typeId]);
-                         if ($estimatedLastPaymentDate <= $startDate) {
-                             $estimatedFortnights = 1;
-                         } else {
-                             $daysUntilEstimatedLastPayment = (int) $startDate->diff($estimatedLastPaymentDate)->days;
-                             $estimatedFortnights = max(1, (int) ceil(($daysUntilEstimatedLastPayment + 1) / 15));
-                         }
+                    $opcionesFechas = $buildPeriodicOptions($startDate, (array) $typeInfo);
+                    $cantidadSeleccionada = max(1, (int) ($incomeInstallments[$typeId] ?? 1));
+                    $fechaSeleccionada = (string) ($incomeLastDates[$typeId] ?? '');
 
-                         $fortnights = min($estimatedFortnights, $maxFortnightsThisYear);
-                     } catch (\Exception) {
-                         $fortnights = 1;
-                     }
-                     $interestMethod = 'simple_aleman';
+                    if ($opcionesFechas !== []) {
+                        $indiceSeleccionado = array_search($fechaSeleccionada, $opcionesFechas, true);
+
+                        if ($indiceSeleccionado !== false) {
+                            $cantidadSeleccionada = min($cantidadSeleccionada, $indiceSeleccionado + 1);
+                        }
+
+                        $fortnights = max(1, min($cantidadSeleccionada, count($opcionesFechas)));
+                    } else {
+                        // Backward-compatible fallback when there are no periodic options.
+                        try {
+                            $estimatedLastPaymentDate = new \DateTimeImmutable($fechaSeleccionada);
+                            if ($estimatedLastPaymentDate <= $startDate) {
+                                $estimatedFortnights = 1;
+                            } else {
+                                $daysUntilEstimatedLastPayment = (int) $startDate->diff($estimatedLastPaymentDate)->days;
+                                $estimatedFortnights = max(1, (int) ceil(($daysUntilEstimatedLastPayment + 1) / 15));
+                            }
+
+                            $fortnights = min($estimatedFortnights, $maxFortnightsThisYear);
+                        } catch (\Exception) {
+                            $fortnights = 1;
+                        }
+                    }
+
+                    $interestMethod = 'simple_aleman';
                 }
 
                 $paymentConfigs[] = [

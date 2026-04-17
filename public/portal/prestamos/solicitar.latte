@@ -193,6 +193,9 @@
             <template x-if="Number(item.tipoId) > 0 && Number(item.monto) > 0">
               <input type="hidden" :name="'income_amounts[' + Number(item.tipoId) + ']'" :value="Number(item.monto)">
             </template>
+            <template x-if="Number(item.tipoId) > 0 && Number(item.cantidad) > 0">
+              <input type="hidden" :name="'income_installments[' + Number(item.tipoId) + ']'" :value="Number(item.cantidad)">
+            </template>
             <template x-if="Number(item.tipoId) > 0 && item.fechaPago">
               <input type="hidden" :name="'income_last_dates[' + Number(item.tipoId) + ']'" :value="item.fechaPago">
             </template>

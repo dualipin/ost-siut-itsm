@@ -755,7 +755,7 @@ function loanDetail() {
         termFortnights: {$loan['term_fortnights'] ?? 24},
         get estimatedTotal() {
             const P = parseFloat(this.approvedAmount) || 0;
-            const r = (parseFloat(this.interestRate) / 100) / 24; // fortnight rate
+			const r = (parseFloat(this.interestRate) / 100) / 2; // simulador: tasa mensual -> quincenal
             const n = parseInt(this.termFortnights) || 1;
             if (r === 0) return P;
             // German simple: constant principal + decreasing interest

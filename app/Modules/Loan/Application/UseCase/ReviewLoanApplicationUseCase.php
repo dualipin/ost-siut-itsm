@@ -64,14 +64,27 @@ final readonly class ReviewLoanApplicationUseCase
         $now = new DateTimeImmutable();
         $financeSignature = $this->signatureService->generate($financeSignatoryCurp, $now);
         $lenderSignature = $this->signatureService->generate($lenderSignatoryCurp, $now);
+
+        $paymentConfigs = $this->paymentConfigRepository->findByLoanIdWithIncomeType($loanId);
         
         // Calculate estimated total
-        $amortization = $this->amortizationCalculator->calculateGermanSimple(
-            $approvedAmount,
-            $appliedRate,
-            $termFortnights,
-            $now
-        );
+        $amortization = $paymentConfigs !== []
+            ? $this->amortizationCalculator->calculateByPaymentConfigurations(
+                $approvedAmount,
+                $appliedRate,
+                $now,
+                $paymentConfigs
+            )
+            : $this->amortizationCalculator->calculateGermanSimple(
+                $approvedAmount,
+                $appliedRate,
+                $termFortnights,
+                $now
+            );
+
+        if ($amortization !== []) {
+            $termFortnights = count($amortization);
+        }
         
         $estimatedTotal = array_reduce(
             $amortization,
@@ -79,8 +92,8 @@ final readonly class ReviewLoanApplicationUseCase
             Money::zero()
         );
         
-        $firstPaymentDate = $amortization[0]->scheduledDate();
-        $lastPaymentDate = end($amortization)->scheduledDate();
+        $firstPaymentDate = $amortization !== [] ? $amortization[0]->scheduledDate() : null;
+        $lastPaymentDate = $amortization !== [] ? end($amortization)->scheduledDate() : null;
         
         // Update loan
         $approvedLoan = new Loan(
@@ -132,8 +145,6 @@ final readonly class ReviewLoanApplicationUseCase
             'bank_account' => (string) ($loanDetail['borrower_bank_account'] ?? ''),
         ];
 
-        $paymentConfigs = $this->paymentConfigRepository->findByLoanIdWithIncomeType($loanId);
-        
         // Generate legal documents
         $this->generateLegalDocument(
             $loanId,
