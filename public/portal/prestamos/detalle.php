@@ -314,8 +314,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $_POST['new_term_fortnights'] ?? '',
                     FILTER_VALIDATE_INT,
                 );
-                $restructureReason = trim((string) ($_POST['restructure_reason'] ?? ''));
-                $restructureObservations = trim((string) ($_POST['restructure_observations'] ?? '')) ?: null;
+                $restructureReasonType = strtolower(
+                    trim((string) ($_POST['restructure_reason_type'] ?? '')),
+                );
+                $restructureReasonDetail = trim(
+                    (string) ($_POST['restructure_reason_detail'] ?? ''),
+                );
+                $restructureObservationsRaw = trim(
+                    (string) ($_POST['restructure_observations'] ?? ''),
+                );
+
+                $reasonLabels = [
+                    'mora' => 'Mora',
+                    'liquidacion_anticipada' => 'Liquidación anticipada',
+                    'otro' => 'Otro',
+                ];
 
                 if ($newInterestRate === false || $newInterestRate < 0 || $newInterestRate > 100) {
                     $errors[] = 'La nueva tasa de interés debe estar entre 0 y 100.';
@@ -327,10 +340,34 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     break;
                 }
 
-                if ($restructureReason === '') {
-                    $errors[] = 'Debes indicar el motivo de la reestructuración.';
+                if (!array_key_exists($restructureReasonType, $reasonLabels)) {
+                    $errors[] = 'Selecciona un motivo de reestructuración válido.';
                     break;
                 }
+
+                if ($restructureReasonType === 'otro' && $restructureReasonDetail === '') {
+                    $errors[] = 'Debes detallar el motivo cuando seleccionas "Otro".';
+                    break;
+                }
+
+                $restructureReason = $restructureReasonType;
+                $restructureReasonLabel = $reasonLabels[$restructureReasonType];
+                $auditReasonText = $restructureReasonLabel;
+
+                if ($restructureReasonType === 'otro' && $restructureReasonDetail !== '') {
+                    $auditReasonText .= ': ' . $restructureReasonDetail;
+                }
+
+                $observationLines = [];
+                if ($restructureReasonType === 'otro' && $restructureReasonDetail !== '') {
+                    $observationLines[] = 'Detalle de motivo: ' . $restructureReasonDetail;
+                }
+                if ($restructureObservationsRaw !== '') {
+                    $observationLines[] = $restructureObservationsRaw;
+                }
+                $restructureObservations = $observationLines !== []
+                    ? implode(PHP_EOL, $observationLines)
+                    : null;
 
                 $loanStatement = $db->prepare(
                     'SELECT *
@@ -702,7 +739,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $eventInsertStatement->execute([
                         'loan_id' => (int) $loanId,
                         'event_type' => 'loan_restructured',
-                        'description' => 'Reestructurado en el préstamo ' . $newFolio . ' (ID ' . $newLoanId . '). Motivo: ' . $restructureReason . '.',
+                        'description' => 'Reestructurado en el préstamo ' . $newFolio . ' (ID ' . $newLoanId . '). Motivo: ' . $auditReasonText . '.',
                         'event_date' => $now,
                     ]);
 

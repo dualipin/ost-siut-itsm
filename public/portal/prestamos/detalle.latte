@@ -646,7 +646,7 @@
 							Este proceso cierra el préstamo actual, crea un nuevo folio y recalcula la corrida financiera para casos de mora o liquidación anticipada, con una nueva tasa y plazo.
 						</p>
 
-						<form method="POST" action="{url('/portal/prestamos/detalle.php')}?id={$loan['loan_id']}" class="d-flex flex-column gap-3">
+						<form method="POST" action="{url('/portal/prestamos/detalle.php')}?id={$loan['loan_id']}" class="d-flex flex-column gap-3" x-data="{ restructureReasonType: 'mora' }">
 							<input type="hidden" name="action" value="reestructurar_anticipado">
 
 							<div>
@@ -660,8 +660,18 @@
 							</div>
 
 							<div>
-								<label for="restructure-reason" class="form-label fw-semibold small mb-1">Motivo</label>
-								<input type="text" id="restructure-reason" name="restructure_reason" class="form-control rounded-3" maxlength="35" placeholder="Ej. Atraso sostenido o liquidación anticipada" required>
+								<label for="restructure-reason-type" class="form-label fw-semibold small mb-1">Motivo</label>
+								<select id="restructure-reason-type" name="restructure_reason_type" class="form-select rounded-3" x-model="restructureReasonType" required>
+									<option value="mora">Mora</option>
+									<option value="liquidacion_anticipada">Liquidación anticipada</option>
+									<option value="otro">Otro</option>
+								</select>
+								<div class="form-text">Este valor se guarda para reporteo y auditoría.</div>
+							</div>
+
+							<div x-show="restructureReasonType === 'otro'" x-cloak>
+								<label for="restructure-reason-detail" class="form-label fw-semibold small mb-1">Detalle de motivo</label>
+								<input type="text" id="restructure-reason-detail" name="restructure_reason_detail" class="form-control rounded-3" maxlength="120" placeholder="Describe el motivo específico" :required="restructureReasonType === 'otro'">
 							</div>
 
 							<div>
