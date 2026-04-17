@@ -4,7 +4,6 @@ use App\Bootstrap;
 use App\Infrastructure\Templating\RendererInterface;
 use App\Modules\Publication\Domain\Repository\PublicationRepositoryInterface;
 use App\Shared\Utils\DocumentHelper;
-use PDO;
 
 require __DIR__ . "/../bootstrap.php";
 
