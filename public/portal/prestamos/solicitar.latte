@@ -188,6 +188,12 @@
           </div>
         </template>
 
+        <div class="d-flex my-4 justify-content-center">
+            <button type="button" class="btn btn-outline-secondary w-75 h-100" @click.prevent="agregar()" :disabled="!puedeAgregar" aria-label="Agregar descuento">
+              <i class="bi bi-plus" style="font-size: 1.25rem;"></i>
+            </button>
+          </div> 
+
         <template x-for="(item, index) in descuentos" :key="'hidden-' + index">
           <div>
             <template x-if="Number(item.tipoId) > 0 && Number(item.monto) > 0">
@@ -273,11 +279,11 @@
         </div>
 
         <div class="d-grid gap-2 d-sm-flex mb-3">
-          <div class="me-sm-2" style="width:64px;">
+          {* <div class="me-sm-2" style="width:64px;">
             <button type="button" class="btn btn-outline-secondary w-100 h-100" @click.prevent="agregar()" :disabled="!puedeAgregar" aria-label="Agregar descuento">
               <i class="bi bi-plus" style="font-size: 1.25rem;"></i>
             </button>
-          </div>
+          </div> *}
           <div class="flex-fill d-flex gap-2">
             <button type="submit" name="save_draft" value="1" class="btn btn-outline-secondary w-100">
               <i class="bi bi-save me-1"></i>Guardar Borrador
