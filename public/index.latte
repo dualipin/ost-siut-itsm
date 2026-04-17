@@ -19,6 +19,52 @@
   </div>
 </div>
 
+{if !empty($birthdayMembers)}
+<section class="py-4 border-bottom bg-body-tertiary">
+  <div class="container">
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-body p-4">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-4">
+          <div>
+            <span class="text-uppercase small fw-semibold text-secondary">Cumpleaños del día</span>
+            <h2 class="h4 mb-0">Felicitaciones a nuestros agremiados</h2>
+          </div>
+          <span class="badge text-bg-primary rounded-pill px-3 py-2">{count($birthdayMembers)} celebrando hoy</span>
+        </div>
+
+        <div class="row g-3">
+          {foreach $birthdayMembers as $birthdayMember}
+            <div class="col-12 col-sm-6 col-lg-4">
+              <div class="d-flex align-items-center gap-3 border rounded-4 p-3 h-100 bg-white">
+                <div class="flex-shrink-0">
+                  {if !empty($birthdayMember['photo'])}
+                    <img
+                      src="{upload($birthdayMember['photo'])}"
+                      alt="Foto de {$birthdayMember['fullName']}"
+                      class="rounded-circle border object-fit-cover"
+                      width="64"
+                      height="64"
+                    >
+                  {else}
+                    <span class="rounded-circle bg-secondary-subtle border d-inline-flex align-items-center justify-content-center text-secondary p-3">
+                      <i class="bi bi-person-circle fs-4"></i>
+                    </span>
+                  {/if}
+                </div>
+                <div class="min-w-0">
+                  <p class="mb-1 fw-semibold">{$birthdayMember['fullName']}</p>
+                  <p class="mb-0 small text-secondary">¡Que tengas un excelente cumpleaños!</p>
+                </div>
+              </div>
+            </div>
+          {/foreach}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{/if}
+
 <section class="py-5 min-vh-100" id="home">
   <div class="container py-5">
     <div class="row align-items-center">
