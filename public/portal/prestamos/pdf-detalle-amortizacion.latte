@@ -1,65 +1,182 @@
 {extends ../../../templates/@document.latte}
 
-{block title}Tabla de Amortización - {$loan['folio'] ?: ('SIUT-FOLIO-' . $loan['loan_id'])}{/block}
+{block title}Corrida del Préstamo - {$loan['folio'] ?: ('SIUT-FOLIO-' . $loan['loan_id'])}{/block}
 
 {block content}
 
-<h2 style="color: var(--bs-primary); margin-bottom: 12px; text-align: center;">
-  Tabla de Amortización del Préstamo
-</h2>
+  {var $loanFolio = $loan['folio'] ?: ('SIUT-FOLIO-' . $loan['loan_id'])}
+  {var $montoPrestamo = (float) ($loan['approved_amount'] ?: $loan['requested_amount'])}
+  {var $termDays = ((int) ($loan['term_fortnights'] ?? 0)) * 15}
+  {var $mesesPagar = intdiv($termDays, 30)}
+  {var $diasAdicionales = $termDays % 30}
+  {var $fechaOtorgamiento = !empty($loan['approval_date']) ? date('Y-m-d', strtotime((string) $loan['approval_date'])) : date('Y-m-d')}
+  {var $tasaInteresMensual = (float) ($loan['applied_interest_rate'] ?? 0)}
+  {var $totalInterest = array_sum(array_column($detail['amortization'], 'ordinary_interest'))}
+  {var $totalPayment = array_sum(array_column($detail['amortization'], 'total_scheduled_payment'))}
+  {var $saldoFinal = count($detail['amortization']) > 0 ? (float) $detail['amortization'][count($detail['amortization']) - 1]['final_balance'] : 0.0}
+  {var $pagoTotalResumen = (float) ($resumen['pagoTotal'] ?? $totalPayment)}
 
-<div style="font-size: 10px; margin-bottom: 12px;">
-  <strong>Fecha de generación:</strong> {$fecha_generacion}
-</div>
+  <h2 style="color: var(--bs-primary); margin-bottom: 12px; text-align: center;">
+    Reporte de Corrida del Préstamo
+  </h2>
 
-<div style="border: 1px solid #ced4da; padding: 10px; margin-bottom: 12px; font-size: 10px;">
-  <div><strong>Folio:</strong> {$loan['folio'] ?: ('SIUT-FOLIO-' . $loan['loan_id'])}</div>
-  <div><strong>Solicitante:</strong> {$loan['borrower_name']}</div>
-  <div><strong>Monto aprobado:</strong> ${number_format((float) $loan['approved_amount'], 2)}</div>
-  <div><strong>Tasa de interés:</strong> {$loan['applied_interest_rate']}%</div>
-  <div><strong>Plazo:</strong> {$loan['term_fortnights']} quincena(s)</div>
-  <div><strong>Fecha de otorgamiento:</strong> {date('d/m/Y', strtotime($loan['approval_date']))}</div>
-</div>
+  <div style="font-size: 10px; margin-bottom: 12px;">
+    <strong>Fecha de Corrida:</strong> {$fecha_generacion}
+  </div>
 
-{if count($detail['amortization']) > 0}
-<h3 style="margin: 0 0 8px 0; font-size: 12px;">Cronograma de amortización</h3>
-<table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 9px;">
-  <thead>
-  <tr>
-    <th style="border: 1px solid #ced4da; padding: 6px; text-align: center;">#</th>
-    <th style="border: 1px solid #ced4da; padding: 6px; text-align: center;">Fecha</th>
-    <th style="border: 1px solid #ced4da; padding: 6px; text-align: right;">Saldo Inicial</th>
-    <th style="border: 1px solid #ced4da; padding: 6px; text-align: right;">Capital</th>
-    <th style="border: 1px solid #ced4da; padding: 6px; text-align: right;">Interés</th>
-    <th style="border: 1px solid #ced4da; padding: 6px; text-align: right;">Total Pago</th>
-    <th style="border: 1px solid #ced4da; padding: 6px; text-align: right;">Saldo Final</th>
-  </tr>
-  </thead>
-  <tbody>
-  {foreach $detail['amortization'] as $row}
+  <div style="border: 1px solid #ced4da; padding: 10px; margin-bottom: 12px; font-size: 10px;">
+    <div><strong>Prestamista / Solicitante:</strong> {$loan['borrower_name']}</div>
+    <div><strong>Monto del préstamo:</strong> ${number_format($montoPrestamo, 2)}</div>
+    <div><strong>Fecha de otorgamiento:</strong> {$fechaOtorgamiento}</div>
+    <div><strong>Plazo:</strong> {$mesesPagar} mes(es) + {$diasAdicionales} día(s)</div>
+    <div><strong>Tasa mensual:</strong> {$tasaInteresMensual}%</div>
+    <div><strong>Folio:</strong> {$loanFolio}</div>
+  </div>
+
+  {if count($detail['payment_configs']) > 0}
+  <h4 style="margin: 0 0 8px 0; font-size: 12px;">Formas de descuento aplicadas</h4>
+  <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 9px;">
+    <thead>
     <tr>
-      <td style="border: 1px solid #ced4da; padding: 6px; text-align: center;">{$row['payment_number']}</td>
-      <td style="border: 1px solid #ced4da; padding: 6px; text-align: center;">{date('d/m/Y', strtotime($row['scheduled_date']))}</td>
-      <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format((float) $row['initial_balance'], 2)}</td>
-      <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format((float) $row['principal'], 2)}</td>
-      <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format((float) $row['ordinary_interest'], 2)}</td>
-      <td style="border: 1px solid #ced4da; padding: 6px; text-align: right; font-weight: bold;">${number_format((float) $row['total_scheduled_payment'], 2)}</td>
-      <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format((float) $row['final_balance'], 2)}</td>
+      <th style="border: 1px solid #ced4da; padding: 6px; text-align: left;">Prestación</th>
+      <th style="border: 1px solid #ced4da; padding: 6px; text-align: left;">Tipo</th>
+      <th style="border: 1px solid #ced4da; padding: 6px; text-align: left;">Detalle</th>
+      <th style="border: 1px solid #ced4da; padding: 6px; text-align: right;">Monto</th>
     </tr>
-  {/foreach}
-  </tbody>
-  <tfoot>
-  <tr style="background-color: #f8f9fa; font-weight: bold;">
-    <td colspan="3" style="border: 1px solid #ced4da; padding: 6px;">TOTALES</td>
-    {var $totalPrincipal = array_sum(array_column($detail['amortization'], 'principal'))}
-    {var $totalInterest = array_sum(array_column($detail['amortization'], 'ordinary_interest'))}
-    {var $totalPayment = array_sum(array_column($detail['amortization'], 'total_scheduled_payment'))}
-    <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format((float) $totalPrincipal, 2)}</td>
-    <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format((float) $totalInterest, 2)}</td>
-    <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format((float) $totalPayment, 2)}</td>
-    <td style="border: 1px solid #ced4da; padding: 6px;"></td>
-  </tr>
-  </tfoot>
-</table>
-{/if}
+    </thead>
+    <tbody>
+    {foreach $detail['payment_configs'] as $config}
+      <tr>
+        <td style="border: 1px solid #ced4da; padding: 6px;">{$config['income_type_name']}</td>
+        <td style="border: 1px solid #ced4da; padding: 6px;">
+          {if !empty($config['income_is_periodic'])}Periódico{else}No periódico{/if}
+        </td>
+        <td style="border: 1px solid #ced4da; padding: 6px;">
+          {if !empty($config['income_is_periodic'])}
+            {if !empty($config['income_frequency_days'])}
+              Cada {$config['income_frequency_days']} días, {$config['number_of_installments']} periodo(s)
+            {else}
+              {$config['number_of_installments']} periodo(s)
+            {/if}
+          {else}
+            Parcialidades: {$config['number_of_installments']}
+          {/if}
+        </td>
+        <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">
+          ${number_format((float) ($config['total_amount_to_deduct'] ?? 0), 2)}
+        </td>
+      </tr>
+    {/foreach}
+    </tbody>
+  </table>
+  {/if}
 
+  {if count($detail['payment_configs']) > 0}
+  <h4 style="margin: 0 0 8px 0; font-size: 12px;">Corrida financiera de prestaciones</h4>
+  <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 9px;">
+    <thead>
+    <tr>
+      <th style="border: 1px solid #ced4da; padding: 6px; text-align: left;">Prestación</th>
+      <th style="border: 1px solid #ced4da; padding: 6px; text-align: left;">Tipo</th>
+      <th style="border: 1px solid #ced4da; padding: 6px; text-align: center;">Periodo</th>
+      <th style="border: 1px solid #ced4da; padding: 6px; text-align: center;">Fecha</th>
+      <th style="border: 1px solid #ced4da; padding: 6px; text-align: right;">Monto</th>
+      <th style="border: 1px solid #ced4da; padding: 6px; text-align: right;">Acumulado</th>
+    </tr>
+    </thead>
+    <tbody>
+    {var $acumuladoPrestaciones = 0.0}
+    {foreach $detail['payment_configs'] as $config}
+      {var $montoConfig = (float) ($config['total_amount_to_deduct'] ?? 0)}
+      {var $acumuladoPrestaciones = $acumuladoPrestaciones + $montoConfig}
+      {var $fechaPrestacion = ''}
+      {foreach $detail['amortization'] as $row}
+        {if (int) ($row['income_type_id'] ?? 0) === (int) ($config['income_type_id'] ?? 0)}
+          {var $fechaPrestacion = (string) ($row['scheduled_date'] ?? $fechaPrestacion)}
+        {/if}
+      {/foreach}
+      {if $fechaPrestacion === ''}
+        {var $fechaPrestacion = $fechaOtorgamiento}
+      {/if}
+      <tr>
+        <td style="border: 1px solid #ced4da; padding: 6px;">{$config['income_type_name']}</td>
+        <td style="border: 1px solid #ced4da; padding: 6px;">
+          {if !empty($config['income_is_periodic'])}Periódico{else}No periódico{/if}
+        </td>
+        <td style="border: 1px solid #ced4da; padding: 6px; text-align: center;">
+          {if !empty($config['income_is_periodic'])}
+            {(int) ($config['number_of_installments'] ?? 1)} periodo(s)
+          {else}
+            1/1
+          {/if}
+        </td>
+        <td style="border: 1px solid #ced4da; padding: 6px; text-align: center;">{$fechaPrestacion}</td>
+        <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($montoConfig, 2)}</td>
+        <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($acumuladoPrestaciones, 2)}</td>
+      </tr>
+    {/foreach}
+    </tbody>
+  </table>
+  {/if}
+
+  <h4 style="margin: 0 0 8px 0; font-size: 12px;">Tabla de corrida financiera por tipo de descuento</h4>
+  {if count($corridasPorTipo ?? []) > 0}
+    {foreach $corridasPorTipo as $grupo}
+      <div style="font-size: 10px; margin: 6px 0 4px 0;">
+        <strong>Prestación:</strong> {$grupo['prestacion']} |
+        <strong>Tipo:</strong> {if $grupo['tipo'] === 'periodico'}Periódico{else}No periódico{/if} |
+        <strong>Método:</strong> {$grupo['metodo']} |
+        <strong>Monto base:</strong> ${number_format($grupo['montoBase'], 2)}
+      </div>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 9px;">
+        <thead>
+        <tr>
+          <th style="border: 1px solid #ced4da; padding: 6px; text-align: center;">Periodo</th>
+          <th style="border: 1px solid #ced4da; padding: 6px; text-align: right;">Pago Capital</th>
+          <th style="border: 1px solid #ced4da; padding: 6px; text-align: right;">Interés</th>
+          <th style="border: 1px solid #ced4da; padding: 6px; text-align: right;">Pago</th>
+          <th style="border: 1px solid #ced4da; padding: 6px; text-align: right;">Saldo Final</th>
+          <th style="border: 1px solid #ced4da; padding: 6px; text-align: center;">Fecha de pago</th>
+        </tr>
+        </thead>
+        <tbody>
+        {foreach $grupo['corrida'] as $row}
+          <tr>
+            <td style="border: 1px solid #ced4da; padding: 6px; text-align: center;">{$row['periodo']}</td>
+            <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($row['capital'], 2)}</td>
+            <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($row['interes'], 2)}</td>
+            <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($row['pago'], 2)}</td>
+            <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($row['saldo'], 2)}</td>
+            <td style="border: 1px solid #ced4da; padding: 6px; text-align: center;">{$row['fecha']}</td>
+          </tr>
+        {/foreach}
+        {if count($grupo['corrida']) === 0}
+          <tr>
+            <td colspan="6" style="border: 1px solid #ced4da; padding: 6px; text-align: center; color: #6c757d;">Sin movimientos de amortización para este tipo de descuento.</td>
+          </tr>
+        {/if}
+        </tbody>
+        <tfoot>
+        <tr>
+          <td colspan="2" style="border: 1px solid #ced4da; padding: 6px;"><strong>Totales</strong></td>
+          <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;"><strong>${number_format($grupo['resumen']['interesTotal'], 2)}</strong></td>
+          <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;"><strong>${number_format($grupo['resumen']['pagoTotal'], 2)}</strong></td>
+          <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;"><strong>${number_format($grupo['resumen']['saldoFinal'], 2)}</strong></td>
+          <td style="border: 1px solid #ced4da; padding: 6px;"></td>
+        </tr>
+        </tfoot>
+      </table>
+    {/foreach}
+  {else}
+    <p style="font-size: 9px; margin-bottom: 12px; color: #6c757d;">No hay tipos de descuento registrados para esta corrida.</p>
+  {/if}
+
+  <div style="margin-top: 12px; padding-top: 8px; border-top: 1px solid #ced4da; font-size: 12px; text-align: right;">
+    <strong>Monto final a pagar: ${number_format($pagoTotalResumen, 2)}</strong>
+  </div>
+
+  <p style="font-size: 8px; color: #6c757d; margin-top: 10px;">
+    Documento generado automáticamente. Esta corrida financiera es una estimación basada en los datos capturados en el simulador.
+  </p>
+
+{/block}
