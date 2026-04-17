@@ -24,6 +24,9 @@ $db = $container->get(\PDO::class);
 
 $currentUser = $userContext->get();
 $request = new FormRequest();
+$defaultBankName = trim((string) ($currentUser->bankingData->bankName ?? ''));
+$defaultInterbankCode = trim((string) ($currentUser->bankingData->interbankCode ?? ''));
+$defaultBankAccount = trim((string) ($currentUser->bankingData->bankAccount ?? ''));
 
 // Check if user is a saver (for interest rate calculation)
 $saverUserRepository = $container->get(SaverUserRepositoryInterface::class);
@@ -74,6 +77,9 @@ if ($request->method() === "POST") {
         $incomeInstallments = $_POST['income_installments'] ?? [];
         $incomeLastDates = $_POST['income_last_dates'] ?? [];
         $notes = $request->input('notes', '');
+        $bankName = (string) $request->input('bank_name', $defaultBankName);
+        $interbankCode = preg_replace('/\D+/', '', (string) $request->input('interbank_code', $defaultInterbankCode)) ?? '';
+        $bankAccount = preg_replace('/\D+/', '', (string) $request->input('bank_account', $defaultBankAccount)) ?? '';
         $saveDraft = $request->input('save_draft') === '1';
 
         // Get income types from DB to calculate fortnights
@@ -238,6 +244,17 @@ if ($request->method() === "POST") {
         }
 
         // Validate inputs
+        if ($bankName === '') {
+            $errors[] = "Debe capturar el nombre del banco.";
+        } elseif (strlen($bankName) > 100) {
+            $errors[] = "El nombre del banco no puede exceder 100 caracteres.";
+        }
+        if (!preg_match('/^\d{18}$/', $interbankCode)) {
+            $errors[] = "La CLABE interbancaria debe contener exactamente 18 dígitos.";
+        }
+        if (!preg_match('/^\d{10,20}$/', $bankAccount)) {
+            $errors[] = "El número de cuenta debe contener entre 10 y 20 dígitos.";
+        }
         if ($requestedAmount <= 0) {
             $errors[] = "El monto solicitado debe ser mayor a cero";
         }
@@ -252,6 +269,20 @@ if ($request->method() === "POST") {
         }
 
         if (empty($errors)) {
+            $updateBankingDataStmt = $db->prepare(
+                'UPDATE users
+                 SET bank_name = :bank_name,
+                     interbank_code = :interbank_code,
+                     bank_account = :bank_account
+                 WHERE user_id = :user_id'
+            );
+            $updateBankingDataStmt->execute([
+                'bank_name' => $bankName,
+                'interbank_code' => $interbankCode,
+                'bank_account' => $bankAccount,
+                'user_id' => (int) $currentUser->id,
+            ]);
+
             if ($isDraftEdit && $draftState !== null) {
                 $db->beginTransaction();
                 try {
@@ -417,6 +448,11 @@ if ($isDraftEdit && $draftState !== null) {
 
 $renderer->render("./solicitar.latte", [
     'user' => $currentUser,
+    'bank_defaults' => [
+        'bank_name' => $defaultBankName,
+        'interbank_code' => $defaultInterbankCode,
+        'bank_account' => $defaultBankAccount,
+    ],
     'is_saver' => $isSaver,
     'errors' => $errors,
     'success' => $success,

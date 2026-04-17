@@ -188,6 +188,12 @@
           </div>
         </template>
 
+        <div class="d-flex my-4 justify-content-center">
+            <button type="button" class="btn btn-outline-secondary w-75 h-100" @click.prevent="agregar()" :disabled="!puedeAgregar" aria-label="Agregar descuento">
+              <i class="bi bi-plus" style="font-size: 1.25rem;"></i>
+            </button>
+          </div> 
+
         <template x-for="(item, index) in descuentos" :key="'hidden-' + index">
           <div>
             <template x-if="Number(item.tipoId) > 0 && Number(item.monto) > 0">
@@ -206,6 +212,64 @@
 
         <div class="card border-0 shadow-sm rounded-4 mb-4">
           <div class="card-header bg-light border-0 rounded-top-4">
+            <h5 class="mb-0 fw-semibold"><i class="bi bi-bank me-2 text-primary"></i>Datos Bancarios para Depósito</h5>
+          </div>
+          <div class="card-body p-4">
+            <div class="row g-3">
+              <div class="col-12 col-md-4">
+                <label for="bank_name" class="form-label">Nombre del banco</label>
+                <input
+                  type="text"
+                  class="form-control rounded-3"
+                  id="bank_name"
+                  name="bank_name"
+                  maxlength="100"
+                  required
+                  value="{$old_input['bank_name'] ?? ($bank_defaults['bank_name'] ?? '')}"
+                  placeholder="Ej. BBVA"
+                >
+              </div>
+              <div class="col-12 col-md-4">
+                <label for="interbank_code" class="form-label">CLABE interbancaria</label>
+                <input
+                  type="text"
+                  class="form-control rounded-3"
+                  id="interbank_code"
+                  name="interbank_code"
+                  inputmode="numeric"
+                  minlength="18"
+                  maxlength="18"
+                  pattern="[0-9]+"
+                  required
+                  value="{$old_input['interbank_code'] ?? ($bank_defaults['interbank_code'] ?? '')}"
+                  placeholder="18 dígitos"
+                  oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                >
+                <div class="form-text">Debe contener exactamente 18 dígitos.</div>
+              </div>
+              <div class="col-12 col-md-4">
+                <label for="bank_account" class="form-label">Número de cuenta</label>
+                <input
+                  type="text"
+                  class="form-control rounded-3"
+                  id="bank_account"
+                  name="bank_account"
+                  inputmode="numeric"
+                  minlength="10"
+                  maxlength="20"
+                  pattern="[0-9]+"
+                  required
+                  value="{$old_input['bank_account'] ?? ($bank_defaults['bank_account'] ?? '')}"
+                  placeholder="10 a 20 dígitos"
+                  oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+          <div class="card-header bg-light border-0 rounded-top-4">
             <h5 class="mb-0 fw-semibold"><i class="bi bi-chat-left-text me-2 text-primary"></i>Notas Adicionales</h5>
           </div>
           <div class="card-body p-4">
@@ -215,11 +279,11 @@
         </div>
 
         <div class="d-grid gap-2 d-sm-flex mb-3">
-          <div class="me-sm-2" style="width:64px;">
+          {* <div class="me-sm-2" style="width:64px;">
             <button type="button" class="btn btn-outline-secondary w-100 h-100" @click.prevent="agregar()" :disabled="!puedeAgregar" aria-label="Agregar descuento">
               <i class="bi bi-plus" style="font-size: 1.25rem;"></i>
             </button>
-          </div>
+          </div> *}
           <div class="flex-fill d-flex gap-2">
             <button type="submit" name="save_draft" value="1" class="btn btn-outline-secondary w-100">
               <i class="bi bi-save me-1"></i>Guardar Borrador
@@ -354,7 +418,7 @@
           const y = date.getFullYear()
           const m = String(date.getMonth() + 1).padStart(2, '0')
           const d = String(date.getDate()).padStart(2, '0')
-          return `${ y }-${ m }-${ d }`
+          return y + '-' + m + '-' + d
         },
         toDisplayDate (date) {
           return date.toLocaleDateString('es-MX')
@@ -458,9 +522,36 @@
           if (!dateStr) return ''
           const p = String(dateStr).split('-')
           if (p.length !== 3) return dateStr
-          return `${ p[2] }/${ p[1] }/${ p[0] }`
+          return p[2] + '/' + p[1] + '/' + p[0]
         },
         handleSubmit (event) {
+          const form = event.target
+          const bankNameField = form.elements.namedItem('bank_name')
+          const interbankCodeField = form.elements.namedItem('interbank_code')
+          const bankAccountField = form.elements.namedItem('bank_account')
+
+          const bankName = String(bankNameField?.value || '').trim()
+          const interbankCode = String(interbankCodeField?.value || '').replace(/\D+/g, '')
+          const bankAccount = String(bankAccountField?.value || '').replace(/\D+/g, '')
+
+          if (bankName.length === 0) {
+            event.preventDefault()
+            alert('Debe capturar el nombre del banco.')
+            return
+          }
+
+          if (!/^\d+$/.test(interbankCode) || interbankCode.length !== 18) {
+            event.preventDefault()
+            alert('La CLABE interbancaria debe contener exactamente 18 dígitos.')
+            return
+          }
+
+          if (!/^\d+$/.test(bankAccount) || bankAccount.length < 10 || bankAccount.length > 20) {
+            event.preventDefault()
+            alert('El número de cuenta debe contener entre 10 y 20 dígitos.')
+            return
+          }
+
           const validItems = this.descuentos.filter(item => Number(item.tipoId) > 0 && Number(item.monto) > 0)
           if (validItems.length === 0) {
             event.preventDefault()
@@ -468,10 +559,9 @@
             return
           }
 
-          const form = event.target
           const missingDocument = validItems.some((item) => {
             const tipoId = Number(item.tipoId)
-            const fieldName = `income_documents[${ tipoId }]`
+            const fieldName = 'income_documents[' + tipoId + ']'
             const input = form.elements.namedItem(fieldName)
 
             if (!input || !('files' in input)) {
