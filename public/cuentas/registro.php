@@ -6,12 +6,10 @@ use App\Bootstrap;
 use App\Http\Request\FormRequest;
 use App\Infrastructure\Mail\MailerInterface;
 use App\Infrastructure\Templating\RendererInterface;
-use App\Modules\Setting\Application\UseCase\GetColorUseCase;
 use App\Modules\User\Application\DTO\CreateUser;
 use App\Modules\User\Application\UseCase\CreateUserUseCase;
 use App\Modules\User\Domain\Repository\UserRepositoryInterface;
 use App\Shared\Domain\Enum\RoleEnum;
-use Dompdf\Dompdf;
 use Psr\Container\ContainerInterface;
 
 require_once __DIR__ . "/../../bootstrap.php";
@@ -23,6 +21,8 @@ $renderer = $container->get(RendererInterface::class);
 
 $errors = [];
 $old = [];
+$success = false;
+$successRedirectDelaySeconds = 5;
 
 if ($request->isSubmitted()) {
 	$formData = mapRegisterFormData($request);
@@ -31,12 +31,19 @@ if ($request->isSubmitted()) {
 
 	if ($errors === []) {
 		$errors = registerAgremiado($container, $formData);
+
+		if ($errors === []) {
+			$success = true;
+			$old = [];
+		}
 	}
 }
 
 $renderer->render("./registro.latte", [
 	"errors" => $errors,
 	"old" => $old,
+	"success" => $success,
+	"successRedirectDelaySeconds" => $successRedirectDelaySeconds,
 	"roles" => [RoleEnum::Agremiado, RoleEnum::NoAgremiado],
 ]);
 
@@ -232,8 +239,6 @@ function registerAgremiado(ContainerInterface $container, array $formData): arra
 		error_log($exception->getMessage());
 	}
 
-	streamRegistrationCertificate($container, $formData);
-
 	return [];
 }
 
@@ -263,71 +268,6 @@ function sendWelcomeMail(ContainerInterface $container, string $email, string $n
 		"Hola {$name}, tu registro fue recibido correctamente. Bienvenido(a) a OST-SIUT-ITSM.",
 	);
 }
-
-/**
- * @param array{
- *   name: string,
- *   surnames: string,
- *   address: string,
- *   phone: string,
- *   email: string,
- *   category: string,
- *   department: string,
- *   nss: string,
- *   curp: string,
- *   birthdate: string,
- *   work_start_date: string,
- *   role: string,
- *   password: string,
- *   password_confirm: string
- * } $formData
- */
-function streamRegistrationCertificate(ContainerInterface $container, array $formData): never
-{
-	/** @var RendererInterface $renderer */
-	$renderer = $container->get(RendererInterface::class);
-	/** @var Dompdf $pdf */
-	$pdf = $container->get(Dompdf::class);
-
-	$logoPath = __DIR__ . "/../assets/images/logo.webp";
-	$logoSrc = null;
-
-	if (is_file($logoPath)) {
-		$logoData = file_get_contents($logoPath);
-
-		if (is_string($logoData) && $logoData !== "") {
-			$logoSrc = "data:image/webp;base64," . base64_encode($logoData);
-		}
-	}
-
-	$primaryColor = "#611232";
-
-	try {
-		$colorConfig = $container->get(GetColorUseCase::class)->execute();
-
-		if ($colorConfig !== null && $colorConfig->primary !== "") {
-			$primaryColor = $colorConfig->primary;
-		}
-	} catch (\Throwable) {
-		// Mantener color institucional por defecto si no se pudo resolver configuración.
-	}
-
-	$html = $renderer->renderToString(__DIR__ . "/../../templates/documents/agremiado-registration-certificate.latte", [
-		"user" => $formData,
-		"issuedAt" => (new \DateTimeImmutable())->format("d/m/Y H:i"),
-		"logoSrc" => $logoSrc,
-		"primaryColor" => $primaryColor,
-	]);
-
-	$pdf->loadHtml($html);
-	$pdf->render();
-
-	$filename = "constancia-registro-" . date("YmdHis") . ".pdf";
-	$pdf->stream($filename, ["Attachment" => true]);
-
-	exit;
-}
-
 /**
  * @param array{
  *   name: string,
