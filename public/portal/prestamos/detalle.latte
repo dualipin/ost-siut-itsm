@@ -640,10 +640,10 @@
 				<div class="card border-0 shadow-sm rounded-4 mb-3">
 					<div class="card-body p-4">
 						<h3 class="h6 fw-bold mb-3 text-uppercase text-muted">
-							<i class="bi bi-arrow-repeat me-1"></i>Reestructuración por liquidación anticipada
+							<i class="bi bi-arrow-repeat me-1"></i>Reestructuración por mora o liquidación anticipada
 						</h3>
 						<p class="small text-muted mb-3">
-							Este proceso cierra el préstamo actual, crea un nuevo folio y recalcula la corrida financiera con una nueva tasa y plazo.
+							Este proceso cierra el préstamo actual, crea un nuevo folio y recalcula la corrida financiera para casos de mora o liquidación anticipada, con una nueva tasa y plazo.
 						</p>
 
 						<form method="POST" action="{url('/portal/prestamos/detalle.php')}?id={$loan['loan_id']}" class="d-flex flex-column gap-3">
@@ -661,7 +661,7 @@
 
 							<div>
 								<label for="restructure-reason" class="form-label fw-semibold small mb-1">Motivo</label>
-								<input type="text" id="restructure-reason" name="restructure_reason" class="form-control rounded-3" maxlength="35" placeholder="Ej. Liquidación anticipada solicitada" required>
+								<input type="text" id="restructure-reason" name="restructure_reason" class="form-control rounded-3" maxlength="35" placeholder="Ej. Atraso sostenido o liquidación anticipada" required>
 							</div>
 
 							<div>
@@ -669,7 +669,7 @@
 								<textarea id="restructure-observations" name="restructure_observations" rows="3" class="form-control rounded-3" placeholder="Detalles de la negociación o acuerdos"></textarea>
 							</div>
 
-							<button type="submit" class="btn btn-primary w-100 rounded-3 py-2" onclick="return confirm('¿Confirmas la reestructuración por liquidación anticipada? Esta acción cerrará el préstamo actual y generará un nuevo folio.');">
+							<button type="submit" class="btn btn-primary w-100 rounded-3 py-2" onclick="return confirm('¿Confirmas la reestructuración? Esta acción cerrará el préstamo actual y generará un nuevo folio.');">
 								<i class="bi bi-arrow-repeat me-2"></i>Reestructurar deuda
 							</button>
 						</form>

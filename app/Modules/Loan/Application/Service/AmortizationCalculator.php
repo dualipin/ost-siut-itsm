@@ -233,18 +233,34 @@ final readonly class AmortizationCalculator
             }
         );
 
-        foreach ($generatedSegments as $segment) {
+        $segmentsWithPrincipal = array_values(
+            array_filter(
+                $generatedSegments,
+                static fn (array $segment): bool => max(0.0, (float) $segment['principal']) > 0.0
+            )
+        );
+
+        $segmentCount = count($segmentsWithPrincipal);
+
+        foreach ($segmentsWithPrincipal as $index => $segment) {
             if ($runningBalance <= 0) {
                 break;
             }
 
-            $principal = min($runningBalance, max(0.0, (float) $segment['principal']));
+            $isLastSegment = $index === $segmentCount - 1;
+
+            $principal = $isLastSegment
+                ? round($runningBalance * 100) / 100
+                : min($runningBalance, max(0.0, (float) $segment['principal']));
+
+            $principal = round($principal * 100) / 100;
+
             if ($principal <= 0) {
                 continue;
             }
 
-            $interest = max(0.0, (float) $segment['interest']);
-            $total = $principal + $interest;
+            $interest = round(max(0.0, (float) $segment['interest']) * 100) / 100;
+            $total = round(($principal + $interest) * 100) / 100;
             $endingBalance = max(0, round(($runningBalance - $principal) * 100) / 100);
 
             /** @var DateTimeImmutable $scheduledDate */

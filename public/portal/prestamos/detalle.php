@@ -78,8 +78,8 @@ if (($_GET['restructured'] ?? '') === '1') {
     }
 
     $success = $newLoanFolio !== ''
-        ? 'La deuda fue reestructurada por liquidacion anticipada con recálculo de interes. Nuevo folio: ' . $newLoanFolio . '.'
-        : 'La deuda fue reestructurada por liquidacion anticipada con recálculo de interes.';
+        ? 'La deuda fue reestructurada con recalculo financiero. Nuevo folio: ' . $newLoanFolio . '.'
+        : 'La deuda fue reestructurada con recalculo financiero.';
 }
 
 // -------------------------------------------------------------------------
@@ -395,7 +395,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $baseOutstandingBalance = $pendingPrincipal > 0
                     ? $pendingPrincipal
                     : $originalOutstandingBalance;
-                $restructuredPrincipal = round($baseOutstandingBalance + $pendingDefaultInterest, 2);
+                $restructuredPrincipal = round(
+                    $baseOutstandingBalance + $pendingInterest + $pendingDefaultInterest,
+                    2,
+                );
 
                 if ($restructuredPrincipal <= 0) {
                     $errors[] = 'No fue posible determinar un saldo base válido para reestructurar.';
@@ -699,7 +702,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $eventInsertStatement->execute([
                         'loan_id' => (int) $loanId,
                         'event_type' => 'loan_restructured',
-                        'description' => 'Reestructurado por liquidacion anticipada en el préstamo ' . $newFolio . ' (ID ' . $newLoanId . ').',
+                        'description' => 'Reestructurado en el préstamo ' . $newFolio . ' (ID ' . $newLoanId . '). Motivo: ' . $restructureReason . '.',
                         'event_date' => $now,
                     ]);
 
