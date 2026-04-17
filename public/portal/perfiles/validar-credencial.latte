@@ -1,219 +1,69 @@
-<!doctype html>
-<html lang="es">
+{layout ../../../templates/@base.latte}
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Validacion de credencial</title>
+{block head}
   <style>
-    :root {
-      --brand-red: #c8102e;
-      --brand-blue: #0a3d91;
-      --ink: #0f172a;
-      --muted: #475569;
-      --surface: #ffffff;
-      --bg: #f8fafc;
-      --ok: #166534;
-      --warn: #b91c1c;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      font-family: "Segoe UI", Arial, sans-serif;
-      color: var(--ink);
-      background:
-        radial-gradient(circle at 15% 18%, rgba(10, 61, 145, 0.16), transparent 36%),
-        radial-gradient(circle at 85% 82%, rgba(200, 16, 46, 0.12), transparent 38%),
-        var(--bg);
-      padding: 24px;
-    }
-
-    .card {
-      width: min(560px, 100%);
-      background: var(--surface);
-      border-radius: 20px;
-      overflow: hidden;
-      box-shadow: 0 24px 54px rgba(15, 23, 42, 0.16);
-      border: 1px solid #e2e8f0;
-    }
-
-    .header {
-      position: relative;
-      padding: 28px 26px 22px;
-      background: linear-gradient(120deg, #ffffff 0%, #eef4ff 100%);
-      border-bottom: 1px solid #e2e8f0;
-    }
-
-    .header::before,
-    .header::after {
-      content: "";
-      position: absolute;
-      border-radius: 999px;
-      z-index: 0;
-    }
-
-    .header::before {
-      width: 160px;
-      height: 52px;
-      background: rgba(200, 16, 46, 0.15);
-      top: -20px;
-      right: -42px;
-    }
-
-    .header::after {
-      width: 180px;
-      height: 62px;
-      background: rgba(10, 61, 145, 0.16);
-      bottom: -24px;
-      left: -44px;
-    }
-
-    .header h1,
-    .header p {
-      position: relative;
-      z-index: 1;
-      margin: 0;
-    }
-
-    .header h1 {
-      font-size: 1.5rem;
-      color: var(--brand-blue);
-      margin-bottom: 6px;
-    }
-
-    .header p {
-      color: var(--muted);
-      font-size: 0.95rem;
-    }
-
-    .body {
-      padding: 24px 26px 28px;
-    }
-
-    .badge {
-      display: inline-block;
-      border-radius: 999px;
-      padding: 7px 14px;
-      font-weight: 700;
-      font-size: 0.82rem;
-      margin-bottom: 14px;
-      letter-spacing: 0.2px;
-    }
-
-    .badge.ok {
-      background: rgba(22, 101, 52, 0.12);
-      color: var(--ok);
-    }
-
-    .badge.warn {
-      background: rgba(185, 28, 28, 0.12);
-      color: var(--warn);
-    }
-
-    .message {
-      margin: 0 0 18px;
-      font-size: 0.96rem;
-      line-height: 1.45;
-      color: var(--ink);
-    }
-
-    .meta {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 18px;
-    }
-
-    .meta td {
-      padding: 10px 0;
-      border-bottom: 1px solid #e2e8f0;
-      font-size: 0.92rem;
-      vertical-align: top;
-    }
-
-    .meta td:first-child {
-      width: 140px;
-      color: var(--muted);
-      font-weight: 600;
-    }
-
-    .meta td:last-child {
-      font-weight: 700;
-    }
-
-    .footer {
-      margin-top: 4px;
-      font-size: 0.86rem;
-      color: var(--muted);
-      line-height: 1.45;
-    }
-
-    .footer a {
-      color: var(--brand-blue);
-      text-decoration: none;
-      font-weight: 700;
-    }
-
-    @media (max-width: 600px) {
-      .header {
-        padding: 24px 20px 18px;
+      .credential-validation-bg {
+          background-image: linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.98)), url('{url("assets/images/logo.webp")}');
+          background-repeat: repeat;
+          background-size: 240px auto;
+          background-position: center;
       }
-
-      .body {
-        padding: 20px;
-      }
-
-      .meta td:first-child {
-        width: 118px;
-      }
-    }
   </style>
-</head>
+{/block}
 
-<body>
-<div class="card">
-  <div class="header">
-    <h1>Validacion de credencial SIUT-ITSM</h1>
-    <p>Resultado de vigencia en linea del padron de afiliados.</p>
+{block content}
+  <div class="container-fluid credential-validation-bg min-vh-100 d-flex align-items-center justify-content-center py-4 px-3">
+    <div class="row w-100 justify-content-center">
+      <div class="col-12 col-md-10 col-lg-8 col-xl-6">
+        <div class="card border-0 shadow-sm rounded-4">
+          <div class="card-body p-4 p-md-5">
+            <img class="rounded-circle mb-3" src="{url('assets/images/logo.webp')}" alt="Logo del Sindicato" width="90" height="90">
+
+
+            <h1 class="h3 mb-2">Resultado de vigencia en linea del padron de afiliados.</h1>
+            <p class="text-body-secondary mb-4"></p>
+
+            <span class="badge rounded-pill mb-3 {$result['isValid'] ? 'text-bg-success' : 'text-bg-warning text-dark'}">
+              {$result['isValid'] ? 'Verificada' : 'No verificada'}
+            </span>
+
+            <p class="mb-4">{$result['message']}</p>
+
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0">
+                <tbody>
+                <tr>
+                  <th scope="row" class="fw-semibold">Vigencia</th>
+                  <td>{$result['vigencia']}</td>
+                </tr>
+                {* <tr>
+                  <th scope="row" class="fw-semibold">Titular</th>
+                  <td>{$result['holderName'] ?? 'No disponible'}</td>
+                </tr> *}
+                <tr>
+                  <th scope="row" class="fw-semibold">Cargo</th>
+                  <td>{$result['holderRole'] ?? 'No disponible'}</td>
+                </tr>
+                <tr>
+                  <th scope="row" class="fw-semibold">Emitido por</th>
+                  <td>{$result['issuedBy']}</td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p class="mt-4 mb-0 small text-body-secondary">
+              Sitio oficial: <a href="{$siteUrl}" target="_blank" rel="noopener" class="link-primary">{$siteUrl}</a>
+            </p>
+            <p class="small mb-0 text-body-secondary">
+              Correo Sindical: <a href="mailto:Sindicato_SIUTITSM@outlook.com" class="link-primary text-lowercase">Sindicato_SIUTITSM@outlook.com</a>
+            </p>
+            <p class="small text-body-secondary">
+              Teléfono de contacto: <a href="tel:+529361066169" class="link-primary">936 106 6169</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-
-  <div class="body">
-    <span class="badge {$result['isValid'] ? 'ok' : 'warn'}">
-      {$result['isValid'] ? 'Verificada' : 'No verificada'}
-    </span>
-
-    <p class="message">{$result['message']}</p>
-
-    <table class="meta">
-      <tr>
-        <td>Vigencia</td>
-        <td>{$result['vigencia']}</td>
-      </tr>
-      <tr>
-        <td>Titular</td>
-        <td>{$result['holderName'] ?? 'No disponible'}</td>
-      </tr>
-      <tr>
-        <td>Cargo</td>
-        <td>{$result['holderRole'] ?? 'No disponible'}</td>
-      </tr>
-      <tr>
-        <td>Emitido por</td>
-        <td>{$result['issuedBy']}</td>
-      </tr>
-    </table>
-
-    <p class="footer">
-      Sitio oficial: <a href="{$siteUrl}" target="_blank" rel="noopener">{$siteUrl}</a>
-    </p>
-  </div>
-</div>
-</body>
-
-</html>
+{/block}
