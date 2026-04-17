@@ -636,6 +636,47 @@
 					</div>
 				</div>
 				{else}
+				{if $canRestructure}
+				<div class="card border-0 shadow-sm rounded-4 mb-3">
+					<div class="card-body p-4">
+						<h3 class="h6 fw-bold mb-3 text-uppercase text-muted">
+							<i class="bi bi-arrow-repeat me-1"></i>Reestructuración por liquidación anticipada
+						</h3>
+						<p class="small text-muted mb-3">
+							Este proceso cierra el préstamo actual, crea un nuevo folio y recalcula la corrida financiera con una nueva tasa y plazo.
+						</p>
+
+						<form method="POST" action="{url('/portal/prestamos/detalle.php')}?id={$loan['loan_id']}" class="d-flex flex-column gap-3">
+							<input type="hidden" name="action" value="reestructurar_anticipado">
+
+							<div>
+								<label for="restructure-interest-rate" class="form-label fw-semibold small mb-1">Nueva tasa mensual (%)</label>
+								<input type="number" id="restructure-interest-rate" name="new_interest_rate" class="form-control rounded-3" step="0.01" min="0" max="100" value="{$loan['applied_interest_rate']}" required>
+							</div>
+
+							<div>
+								<label for="restructure-term" class="form-label fw-semibold small mb-1">Nuevo plazo (quincenas)</label>
+								<input type="number" id="restructure-term" name="new_term_fortnights" class="form-control rounded-3" min="1" value="{$loan['term_fortnights'] ?: 24}" required>
+							</div>
+
+							<div>
+								<label for="restructure-reason" class="form-label fw-semibold small mb-1">Motivo</label>
+								<input type="text" id="restructure-reason" name="restructure_reason" class="form-control rounded-3" maxlength="35" placeholder="Ej. Liquidación anticipada solicitada" required>
+							</div>
+
+							<div>
+								<label for="restructure-observations" class="form-label fw-semibold small mb-1">Observaciones (opcional)</label>
+								<textarea id="restructure-observations" name="restructure_observations" rows="3" class="form-control rounded-3" placeholder="Detalles de la negociación o acuerdos"></textarea>
+							</div>
+
+							<button type="submit" class="btn btn-primary w-100 rounded-3 py-2" onclick="return confirm('¿Confirmas la reestructuración por liquidación anticipada? Esta acción cerrará el préstamo actual y generará un nuevo folio.');">
+								<i class="bi bi-arrow-repeat me-2"></i>Reestructurar deuda
+							</button>
+						</form>
+					</div>
+				</div>
+				{/if}
+
 				{* Read-only status panel *}
 				<div class="card border-0 shadow-sm rounded-4">
 					<div class="card-body p-4 text-center">

@@ -5,6 +5,8 @@ use App\Http\Middleware\MiddlewareFactory;
 use App\Http\Middleware\MiddlewareRunner;
 use App\Http\Request\FormRequest;
 use App\Infrastructure\Templating\RendererInterface;
+use App\Modules\Loan\Application\Service\AmortizationCalculator;
+use App\Modules\Loan\Application\Service\FolioGenerator;
 use App\Modules\Loan\Application\UseCase\GetLoanDetailUseCase;
 use App\Modules\Loan\Application\UseCase\ReviewLoanApplicationUseCase;
 use App\Modules\Loan\Application\UseCase\ValidateSignedDocumentsUseCase;
@@ -66,6 +68,19 @@ if ($loanId === false || $loanId <= 0) {
 
 $errors = [];
 $success = null;
+
+if (($_GET['restructured'] ?? '') === '1') {
+    $newLoanId = filter_var($_GET['new_loan_id'] ?? '', FILTER_VALIDATE_INT);
+    $newLoanFolio = trim((string) ($_GET['new_folio'] ?? ''));
+
+    if ($newLoanFolio === '' && $newLoanId !== false && $newLoanId > 0) {
+        $newLoanFolio = 'SIUT-FOLIO-' . $newLoanId;
+    }
+
+    $success = $newLoanFolio !== ''
+        ? 'La deuda fue reestructurada por liquidacion anticipada con recálculo de interes. Nuevo folio: ' . $newLoanFolio . '.'
+        : 'La deuda fue reestructurada por liquidacion anticipada con recálculo de interes.';
+}
 
 // -------------------------------------------------------------------------
 // POST — Handle actions: aprobar | rechazar | en_espera
@@ -289,6 +304,430 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                 $success = $result["message"];
                 break;
+
+            case "reestructurar_anticipado":
+                $newInterestRate = filter_var(
+                    $_POST['new_interest_rate'] ?? '',
+                    FILTER_VALIDATE_FLOAT,
+                );
+                $newTermFortnights = filter_var(
+                    $_POST['new_term_fortnights'] ?? '',
+                    FILTER_VALIDATE_INT,
+                );
+                $restructureReason = trim((string) ($_POST['restructure_reason'] ?? ''));
+                $restructureObservations = trim((string) ($_POST['restructure_observations'] ?? '')) ?: null;
+
+                if ($newInterestRate === false || $newInterestRate < 0 || $newInterestRate > 100) {
+                    $errors[] = 'La nueva tasa de interés debe estar entre 0 y 100.';
+                    break;
+                }
+
+                if ($newTermFortnights === false || $newTermFortnights <= 0) {
+                    $errors[] = 'El nuevo plazo en quincenas debe ser mayor a cero.';
+                    break;
+                }
+
+                if ($restructureReason === '') {
+                    $errors[] = 'Debes indicar el motivo de la reestructuración.';
+                    break;
+                }
+
+                $loanStatement = $db->prepare(
+                    'SELECT *
+                     FROM loans
+                     WHERE loan_id = :loan_id
+                       AND deletion_date IS NULL
+                     LIMIT 1'
+                );
+                $loanStatement->execute(['loan_id' => $loanId]);
+                $loanRow = $loanStatement->fetch(\PDO::FETCH_ASSOC);
+
+                if (!$loanRow) {
+                    $errors[] = 'El préstamo no existe o no está disponible.';
+                    break;
+                }
+
+                $loanStatus = strtolower(trim((string) ($loanRow['status'] ?? '')));
+                if (!in_array($loanStatus, ['activo', 'desembolsado'], true)) {
+                    $errors[] = 'Solo se puede reestructurar un préstamo activo.';
+                    break;
+                }
+
+                $unpaidRowsStatement = $db->prepare(
+                    "SELECT
+                        amortization_id,
+                        payment_number,
+                        income_type_id,
+                        principal,
+                        ordinary_interest,
+                        generated_default_interest
+                     FROM loan_amortization
+                     WHERE loan_id = :loan_id
+                       AND active = 1
+                       AND payment_status IN ('pendiente', 'vencido')
+                     ORDER BY payment_number ASC"
+                );
+                $unpaidRowsStatement->execute(['loan_id' => $loanId]);
+                $unpaidRows = $unpaidRowsStatement->fetchAll(\PDO::FETCH_ASSOC);
+
+                if ($unpaidRows === []) {
+                    $errors[] = 'No hay pagos pendientes para recalcular en una reestructuración.';
+                    break;
+                }
+
+                $pendingPrincipal = array_reduce(
+                    $unpaidRows,
+                    static fn(float $sum, array $row): float => $sum + (float) ($row['principal'] ?? 0),
+                    0.0,
+                );
+                $pendingInterest = array_reduce(
+                    $unpaidRows,
+                    static fn(float $sum, array $row): float => $sum + (float) ($row['ordinary_interest'] ?? 0),
+                    0.0,
+                );
+                $pendingDefaultInterest = array_reduce(
+                    $unpaidRows,
+                    static fn(float $sum, array $row): float => $sum + (float) ($row['generated_default_interest'] ?? 0),
+                    0.0,
+                );
+
+                $originalOutstandingBalance = (float) ($loanRow['outstanding_balance'] ?? 0.0);
+                $baseOutstandingBalance = $pendingPrincipal > 0
+                    ? $pendingPrincipal
+                    : $originalOutstandingBalance;
+                $restructuredPrincipal = round($baseOutstandingBalance + $pendingDefaultInterest, 2);
+
+                if ($restructuredPrincipal <= 0) {
+                    $errors[] = 'No fue posible determinar un saldo base válido para reestructurar.';
+                    break;
+                }
+
+                $sourceConfigStatement = $db->prepare(
+                    'SELECT
+                        lpc.*,
+                        cit.income_type_id AS resolved_income_type_id
+                     FROM loan_payment_configuration lpc
+                     INNER JOIN cat_income_types cit ON cit.income_type_id = lpc.income_type_id
+                     WHERE lpc.loan_id = :loan_id
+                     ORDER BY lpc.payment_config_id ASC
+                     LIMIT 1'
+                );
+                $sourceConfigStatement->execute(['loan_id' => $loanId]);
+                $sourceConfig = $sourceConfigStatement->fetch(\PDO::FETCH_ASSOC) ?: [];
+
+                $defaultIncomeTypeId = (int) ($sourceConfig['resolved_income_type_id'] ?? ($unpaidRows[0]['income_type_id'] ?? 1));
+
+                /** @var AmortizationCalculator $amortizationCalculator */
+                $amortizationCalculator = $container->get(AmortizationCalculator::class);
+                /** @var FolioGenerator $folioGenerator */
+                $folioGenerator = $container->get(FolioGenerator::class);
+
+                $restructureDate = new DateTimeImmutable();
+                $newScheduleRows = $amortizationCalculator->calculateGermanSimple(
+                    Money::fromFloat($restructuredPrincipal),
+                    InterestRate::fromPercentage((float) $newInterestRate),
+                    (int) $newTermFortnights,
+                    $restructureDate,
+                    $defaultIncomeTypeId,
+                );
+
+                if ($newScheduleRows === []) {
+                    $errors[] = 'No fue posible generar la nueva corrida financiera.';
+                    break;
+                }
+
+                $firstPaymentDate = $newScheduleRows[0]->scheduledDate()->format('Y-m-d');
+                $lastPaymentDate = $newScheduleRows[count($newScheduleRows) - 1]
+                    ->scheduledDate()
+                    ->format('Y-m-d');
+
+                $recalculatedInterest = array_reduce(
+                    $newScheduleRows,
+                    static fn(float $sum, $row): float => $sum + $row->ordinaryInterest()->amount(),
+                    0.0,
+                );
+                $newTotalAmount = round($restructuredPrincipal + $recalculatedInterest, 2);
+                $newFolio = $folioGenerator->generate($restructureDate)->toString();
+
+                $loanInsertStatement = $db->prepare(
+                    'INSERT INTO loans (
+                        user_id,
+                        folio,
+                        requested_amount,
+                        approved_amount,
+                        applied_interest_rate,
+                        daily_default_rate,
+                        estimated_total_to_pay,
+                        outstanding_balance,
+                        term_fortnights,
+                        first_payment_date,
+                        last_scheduled_payment_date,
+                        application_date,
+                        approval_date,
+                        disbursement_date,
+                        status,
+                        original_loan_id,
+                        admin_observations,
+                        internal_observations,
+                        finance_signatory,
+                        lender_signatory,
+                        requires_restructuring,
+                        created_by
+                    ) VALUES (
+                        :user_id,
+                        :folio,
+                        :requested_amount,
+                        :approved_amount,
+                        :applied_interest_rate,
+                        :daily_default_rate,
+                        :estimated_total_to_pay,
+                        :outstanding_balance,
+                        :term_fortnights,
+                        :first_payment_date,
+                        :last_scheduled_payment_date,
+                        :application_date,
+                        :approval_date,
+                        :disbursement_date,
+                        :status,
+                        :original_loan_id,
+                        :admin_observations,
+                        :internal_observations,
+                        :finance_signatory,
+                        :lender_signatory,
+                        :requires_restructuring,
+                        :created_by
+                    )'
+                );
+
+                $paymentConfigInsertStatement = $db->prepare(
+                    'INSERT INTO loan_payment_configuration (
+                        loan_id,
+                        income_type_id,
+                        total_amount_to_deduct,
+                        number_of_installments,
+                        amount_per_installment,
+                        interest_method,
+                        supporting_document_path,
+                        document_status,
+                        document_observations,
+                        document_validation_date
+                    ) VALUES (
+                        :loan_id,
+                        :income_type_id,
+                        :total_amount_to_deduct,
+                        :number_of_installments,
+                        :amount_per_installment,
+                        :interest_method,
+                        :supporting_document_path,
+                        :document_status,
+                        :document_observations,
+                        :document_validation_date
+                    )'
+                );
+
+                $amortizationInsertStatement = $db->prepare(
+                    'INSERT INTO loan_amortization (
+                        loan_id,
+                        payment_number,
+                        income_type_id,
+                        scheduled_date,
+                        initial_balance,
+                        principal,
+                        ordinary_interest,
+                        total_scheduled_payment,
+                        final_balance,
+                        payment_status,
+                        table_version,
+                        active
+                    ) VALUES (
+                        :loan_id,
+                        :payment_number,
+                        :income_type_id,
+                        :scheduled_date,
+                        :initial_balance,
+                        :principal,
+                        :ordinary_interest,
+                        :total_scheduled_payment,
+                        :final_balance,
+                        :payment_status,
+                        :table_version,
+                        :active
+                    )'
+                );
+
+                $deactivatePendingRowsStatement = $db->prepare(
+                    "UPDATE loan_amortization
+                     SET active = 0
+                     WHERE loan_id = :loan_id
+                       AND active = 1
+                       AND payment_status IN ('pendiente', 'vencido')"
+                );
+
+                $oldLoanUpdateStatement = $db->prepare(
+                    "UPDATE loans
+                     SET status = :status,
+                         outstanding_balance = :outstanding_balance,
+                         total_liquidation_date = :total_liquidation_date,
+                         requires_restructuring = 0
+                     WHERE loan_id = :loan_id"
+                );
+
+                $restructuringInsertStatement = $db->prepare(
+                    'INSERT INTO loan_restructurings (
+                        original_loan_id,
+                        new_loan_id,
+                        reason,
+                        original_outstanding_balance,
+                        pending_interest,
+                        pending_default_interest,
+                        new_total_amount,
+                        new_interest_rate,
+                        new_term_fortnights,
+                        restructuring_date,
+                        authorized_by,
+                        observations
+                    ) VALUES (
+                        :original_loan_id,
+                        :new_loan_id,
+                        :reason,
+                        :original_outstanding_balance,
+                        :pending_interest,
+                        :pending_default_interest,
+                        :new_total_amount,
+                        :new_interest_rate,
+                        :new_term_fortnights,
+                        :restructuring_date,
+                        :authorized_by,
+                        :observations
+                    )'
+                );
+
+                $eventInsertStatement = $db->prepare(
+                    'INSERT INTO loan_events (loan_id, event_type, description, event_date)
+                     VALUES (:loan_id, :event_type, :description, :event_date)'
+                );
+
+                $now = $restructureDate->format('Y-m-d H:i:s');
+
+                $db->beginTransaction();
+
+                try {
+                    $loanInsertStatement->execute([
+                        'user_id' => (int) $loanRow['user_id'],
+                        'folio' => $newFolio,
+                        'requested_amount' => $restructuredPrincipal,
+                        'approved_amount' => $restructuredPrincipal,
+                        'applied_interest_rate' => (float) $newInterestRate,
+                        'daily_default_rate' => (float) ($loanRow['daily_default_rate'] ?? 0),
+                        'estimated_total_to_pay' => $newTotalAmount,
+                        'outstanding_balance' => $restructuredPrincipal,
+                        'term_fortnights' => (int) $newTermFortnights,
+                        'first_payment_date' => $firstPaymentDate,
+                        'last_scheduled_payment_date' => $lastPaymentDate,
+                        'application_date' => $now,
+                        'approval_date' => $now,
+                        'disbursement_date' => $now,
+                        'status' => 'activo',
+                        'original_loan_id' => (int) $loanId,
+                        'admin_observations' => $loanRow['admin_observations'] ?? null,
+                        'internal_observations' => $loanRow['internal_observations'] ?? null,
+                        'finance_signatory' => $loanRow['finance_signatory'] ?? null,
+                        'lender_signatory' => $loanRow['lender_signatory'] ?? null,
+                        'requires_restructuring' => 0,
+                        'created_by' => (int) $currentUser->id,
+                    ]);
+
+                    $newLoanId = (int) $db->lastInsertId();
+                    if ($newLoanId <= 0) {
+                        throw new RuntimeException('No fue posible crear el préstamo reestructurado.');
+                    }
+
+                    $paymentConfigInsertStatement->execute([
+                        'loan_id' => $newLoanId,
+                        'income_type_id' => $defaultIncomeTypeId,
+                        'total_amount_to_deduct' => $restructuredPrincipal,
+                        'number_of_installments' => (int) $newTermFortnights,
+                        'amount_per_installment' => $restructuredPrincipal / max(1, (int) $newTermFortnights),
+                        'interest_method' => 'simple_aleman',
+                        'supporting_document_path' => $sourceConfig['supporting_document_path'] ?? null,
+                        'document_status' => (string) ($sourceConfig['document_status'] ?? 'pendiente'),
+                        'document_observations' => $sourceConfig['document_observations'] ?? null,
+                        'document_validation_date' => $sourceConfig['document_validation_date'] ?? null,
+                    ]);
+
+                    foreach ($newScheduleRows as $row) {
+                        $amortizationInsertStatement->execute([
+                            'loan_id' => $newLoanId,
+                            'payment_number' => $row->paymentNumber(),
+                            'income_type_id' => $row->incomeTypeId(),
+                            'scheduled_date' => $row->scheduledDate()->format('Y-m-d'),
+                            'initial_balance' => $row->initialBalance()->amount(),
+                            'principal' => $row->principal()->amount(),
+                            'ordinary_interest' => $row->ordinaryInterest()->amount(),
+                            'total_scheduled_payment' => $row->totalScheduledPayment()->amount(),
+                            'final_balance' => $row->finalBalance()->amount(),
+                            'payment_status' => 'pendiente',
+                            'table_version' => 1,
+                            'active' => 1,
+                        ]);
+                    }
+
+                    $deactivatePendingRowsStatement->execute(['loan_id' => $loanId]);
+
+                    $oldLoanUpdateStatement->execute([
+                        'status' => 'reestructurado',
+                        'outstanding_balance' => 0,
+                        'total_liquidation_date' => $now,
+                        'loan_id' => $loanId,
+                    ]);
+
+                    $restructuringInsertStatement->execute([
+                        'original_loan_id' => $loanId,
+                        'new_loan_id' => $newLoanId,
+                        'reason' => $restructureReason,
+                        'original_outstanding_balance' => $baseOutstandingBalance,
+                        'pending_interest' => $pendingInterest,
+                        'pending_default_interest' => $pendingDefaultInterest,
+                        'new_total_amount' => $newTotalAmount,
+                        'new_interest_rate' => (float) $newInterestRate,
+                        'new_term_fortnights' => (int) $newTermFortnights,
+                        'restructuring_date' => $now,
+                        'authorized_by' => (int) $currentUser->id,
+                        'observations' => $restructureObservations,
+                    ]);
+
+                    $eventInsertStatement->execute([
+                        'loan_id' => (int) $loanId,
+                        'event_type' => 'loan_restructured',
+                        'description' => 'Reestructurado por liquidacion anticipada en el préstamo ' . $newFolio . ' (ID ' . $newLoanId . ').',
+                        'event_date' => $now,
+                    ]);
+
+                    $eventInsertStatement->execute([
+                        'loan_id' => $newLoanId,
+                        'event_type' => 'loan_created_from_restructure',
+                        'description' => 'Préstamo creado por reestructuración del préstamo ID ' . $loanId . '.',
+                        'event_date' => $now,
+                    ]);
+
+                    $db->commit();
+                } catch (\Throwable $transactionError) {
+                    if ($db->inTransaction()) {
+                        $db->rollBack();
+                    }
+
+                    throw $transactionError;
+                }
+
+                header(
+                    'Location: /portal/prestamos/detalle.php?id=' .
+                    $newLoanId .
+                    '&restructured=1&new_loan_id=' .
+                    $newLoanId .
+                    '&new_folio=' .
+                    rawurlencode($newFolio),
+                );
+                exit();
 
             default:
                 $errors[] = "Acción no reconocida.";
@@ -752,6 +1191,7 @@ $renderer->render(__DIR__ . "/detalle.latte", [
     "errors" => $errors,
     "success" => $success,
     "canReview" => $currentStatus === "solicitado",
+    "canRestructure" => in_array($currentStatus, ["activo", "desembolsado"], true),
     "canHold" => $currentStatus === "solicitado",
     "canValidateDocs" => $currentStatus === "aprobado",
 ]);
