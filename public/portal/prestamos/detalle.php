@@ -3,6 +3,7 @@
 use App\Bootstrap;
 use App\Http\Middleware\MiddlewareFactory;
 use App\Http\Middleware\MiddlewareRunner;
+use App\Http\Request\FormRequest;
 use App\Infrastructure\Templating\RendererInterface;
 use App\Modules\Loan\Application\UseCase\GetLoanDetailUseCase;
 use App\Modules\Loan\Application\UseCase\ReviewLoanApplicationUseCase;
@@ -13,6 +14,7 @@ use App\Modules\Loan\Domain\ValueObject\InterestRate;
 use App\Modules\Loan\Domain\ValueObject\Money;
 use App\Shared\Context\UserContextInterface;
 use App\Shared\Domain\Enum\RoleEnum;
+use Dompdf\Dompdf;
 
 require_once __DIR__ . "/../../../bootstrap.php";
 
@@ -277,6 +279,29 @@ $statusBadges = [
 
 $loan = $detail["loan"];
 $currentStatus = (string) $loan["status"];
+
+// Handle PDF download request
+$form = new FormRequest();
+if ($form->input('output', 'html') === 'pdf' && !empty($detail['amortization'])) {
+    $html = $renderer->renderToString(__DIR__ . "/pdf-detalle-amortizacion.latte", [
+        "loan" => $loan,
+        "detail" => $detail,
+        "fecha_generacion" => (new DateTimeImmutable())->format('d/m/Y H:i'),
+    ]);
+
+    $pdf = new Dompdf();
+    $pdf->loadHtml($html);
+    $pdf->setPaper('Letter');
+    $options = $pdf->getOptions();
+    $options->setIsRemoteEnabled(true);
+    $options->setIsHtml5ParserEnabled(true);
+    $pdf->setOptions($options);
+    $pdf->render();
+
+    $filename = 'amortizacion-' . (string)$loan['folio'] . '.pdf';
+    $pdf->stream($filename, ['Attachment' => true]);
+    exit;
+}
 
 $renderer->render(__DIR__ . "/detalle.latte", [
     "user" => $currentUser,

@@ -1,0 +1,65 @@
+{extends ../../../templates/@document.latte}
+
+{block title}Tabla de Amortización - {$loan['folio']}{/block}
+
+{block content}
+
+<h2 style="color: var(--bs-primary); margin-bottom: 12px; text-align: center;">
+  Tabla de Amortización del Préstamo
+</h2>
+
+<div style="font-size: 10px; margin-bottom: 12px;">
+  <strong>Fecha de generación:</strong> {$fecha_generacion}
+</div>
+
+<div style="border: 1px solid #ced4da; padding: 10px; margin-bottom: 12px; font-size: 10px;">
+  <div><strong>Folio:</strong> {$loan['folio']}</div>
+  <div><strong>Solicitante:</strong> {$loan['borrower_name']}</div>
+  <div><strong>Monto aprobado:</strong> ${number_format($loan['approved_amount'], 2)}</div>
+  <div><strong>Tasa de interés:</strong> {$loan['applied_interest_rate']}%</div>
+  <div><strong>Plazo:</strong> {$loan['term_fortnights']} quincena(s)</div>
+  <div><strong>Fecha de otorgamiento:</strong> {date('d/m/Y', strtotime($loan['approval_date']))}</div>
+</div>
+
+{if count($detail['amortization']) > 0}
+<h3 style="margin: 0 0 8px 0; font-size: 12px;">Cronograma de amortización</h3>
+<table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 9px;">
+  <thead>
+  <tr>
+    <th style="border: 1px solid #ced4da; padding: 6px; text-align: center;">#</th>
+    <th style="border: 1px solid #ced4da; padding: 6px; text-align: center;">Fecha</th>
+    <th style="border: 1px solid #ced4da; padding: 6px; text-align: right;">Saldo Inicial</th>
+    <th style="border: 1px solid #ced4da; padding: 6px; text-align: right;">Capital</th>
+    <th style="border: 1px solid #ced4da; padding: 6px; text-align: right;">Interés</th>
+    <th style="border: 1px solid #ced4da; padding: 6px; text-align: right;">Total Pago</th>
+    <th style="border: 1px solid #ced4da; padding: 6px; text-align: right;">Saldo Final</th>
+  </tr>
+  </thead>
+  <tbody>
+  {foreach $detail['amortization'] as $row}
+    <tr>
+      <td style="border: 1px solid #ced4da; padding: 6px; text-align: center;">{$row['payment_number']}</td>
+      <td style="border: 1px solid #ced4da; padding: 6px; text-align: center;">{date('d/m/Y', strtotime($row['scheduled_date']))}</td>
+      <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format((float) $row['initial_balance'], 2)}</td>
+      <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format((float) $row['principal'], 2)}</td>
+      <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format((float) $row['ordinary_interest'], 2)}</td>
+      <td style="border: 1px solid #ced4da; padding: 6px; text-align: right; font-weight: bold;">${number_format((float) $row['total_scheduled_payment'], 2)}</td>
+      <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format((float) $row['final_balance'], 2)}</td>
+    </tr>
+  {/foreach}
+  </tbody>
+  <tfoot>
+  <tr style="background-color: #f8f9fa; font-weight: bold;">
+    <td colspan="3" style="border: 1px solid #ced4da; padding: 6px;">TOTALES</td>
+    {var $totalPrincipal = array_sum(array_column($detail['amortization'], 'principal'))}
+    {var $totalInterest = array_sum(array_column($detail['amortization'], 'ordinary_interest'))}
+    {var $totalPayment = array_sum(array_column($detail['amortization'], 'total_scheduled_payment'))}
+    <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($totalPrincipal, 2)}</td>
+    <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($totalInterest, 2)}</td>
+    <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($totalPayment, 2)}</td>
+    <td style="border: 1px solid #ced4da; padding: 6px;"></td>
+  </tr>
+  </tfoot>
+</table>
+{/if}
+
