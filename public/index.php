@@ -22,8 +22,7 @@ $birthdayMembersStmt = $pdo->query(
         surnames,
         photo
      FROM users
-     WHERE role = 'agremiado'
-       AND active = 1
+         WHERE active = 1
        AND delete_at IS NULL
        AND birthdate IS NOT NULL
        AND MONTH(birthdate) = MONTH(CURDATE())
