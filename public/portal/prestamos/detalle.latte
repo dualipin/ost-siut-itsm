@@ -130,16 +130,13 @@
 						<div class="col-12 col-md-6">
 							<p class="text-muted small text-uppercase fw-semibold mb-3">A autorizar (editable)</p>
 							<div class="mb-3">
-								<label for="input-approved-amount"
-									class="form-label fw-semibold small">Monto a aprobar (MXN)</label>
+								<label class="form-label fw-semibold small mb-1">Monto total autorizado (suma por tipo)</label>
 								<div class="input-group">
 									<span class="input-group-text">$</span>
-									<input type="number" id="input-approved-amount"
+									<input type="text"
 										class="form-control rounded-end"
-										step="0.01" min="1"
-										x-model.number="approvedAmount"
-										value="{$loan['approved_amount'] ?? $loan['requested_amount']}"
-										{if !$canReview}disabled{/if}>
+										x-bind:value="formatMoneyValue(approvedAmount)"
+										readonly>
 								</div>
 							</div>
 							<div class="mb-3">
@@ -153,13 +150,12 @@
 									{if !$canReview}disabled{/if}>
 							</div>
 							<div class="mb-3">
-								<label for="input-term" class="form-label fw-semibold small">Plazo (quincenas)</label>
-								<input type="number" id="input-term"
+								<label class="form-label fw-semibold small">Plazo estimado (quincenas)</label>
+								<input type="text"
 									class="form-control"
-									min="1"
-									x-model.number="termFortnights"
-									value="{$loan['term_fortnights'] ?? 24}"
-									{if !$canReview}disabled{/if}>
+									x-bind:value="termFortnights"
+									readonly>
+								<div class="form-text">La cantidad de periodos se edita por tipo solo cuando la fuente es periódica.</div>
 							</div>
 							<div class="d-flex justify-content-between align-items-end">
 								<span class="text-muted small">Total estimado a pagar</span>
@@ -192,7 +188,7 @@
 							<thead class="text-uppercase small text-muted">
 								<tr>
 									<th class="py-2 border-0">Fuente de ingreso</th>
-									<th class="py-2 border-0">Total a descontar</th>
+									<th class="py-2 border-0">Monto autorizado / %</th>
 									<th class="py-2 border-0">Parcialidades</th>
 									<th class="py-2 border-0">Por parcialidad</th>
 									<th class="py-2 border-0">Método</th>
@@ -202,6 +198,7 @@
 							</thead>
 							<tbody>
 								{foreach $detail['payment_configs'] as $config}
+								{var $configIndex = $iterator->counter0}
 								<tr x-data="docValidator({$config['payment_config_id']}, '{$config['document_status']}')">
 									<td class="py-3">
 										<div class="fw-semibold">{$config['income_type_name']}</div>
@@ -211,14 +208,64 @@
 										<span class="badge bg-secondary-subtle text-secondary small">Prestación</span>
 										{/if}
 									</td>
-									<td class="py-3 fw-semibold">
-										${number_format((float) $config['total_amount_to_deduct'], 2)}
-									</td>
-									<td class="py-3">{$config['number_of_installments']}</td>
 									<td class="py-3">
-										{if $config['amount_per_installment']}
-										${number_format((float) $config['amount_per_installment'], 2)}
-										{else}—{/if}
+										{if $canReview}
+										<div class="d-flex flex-column gap-2">
+											<div class="input-group input-group-sm">
+												<span class="input-group-text">$</span>
+												<input type="number"
+													class="form-control"
+													name="approved_amount_by_type[{$config['payment_config_id']}]"
+													form="form-aprobar"
+													step="0.01"
+													min="0.01"
+													x-model.number="paymentConfigs[{$configIndex}].amount"
+													required>
+											</div>
+											<div class="input-group input-group-sm">
+												<input type="number"
+													class="form-control"
+													name="approved_percentage_by_type[{$config['payment_config_id']}]"
+													form="form-aprobar"
+													step="0.01"
+													min="0"
+													max="100"
+													placeholder="Opcional"
+													x-model="paymentConfigs[{$configIndex}].percentage">
+												<span class="input-group-text">%</span>
+											</div>
+										</div>
+										{else}
+										<div class="fw-semibold">${number_format((float) $config['total_amount_to_deduct'], 2)}</div>
+										{/if}
+									</td>
+									<td class="py-3">
+										{if $canReview && $config['income_is_periodic']}
+										<input type="number"
+											class="form-control form-control-sm"
+											name="term_fortnights_by_type[{$config['payment_config_id']}]"
+											form="form-aprobar"
+											min="1"
+											x-model.number="paymentConfigs[{$configIndex}].installments"
+											required>
+										{elseif $canReview}
+										<input type="hidden"
+											name="term_fortnights_by_type[{$config['payment_config_id']}]"
+											form="form-aprobar"
+											value="1">
+										<span class="badge bg-secondary-subtle text-secondary">1 (fijo)</span>
+										{else}
+										{$config['number_of_installments']}
+										{/if}
+									</td>
+									<td class="py-3">
+										{if $canReview}
+										<span x-text="formatMXN(getInstallmentAmount(paymentConfigs[{$configIndex}]))"></span>
+										{else}
+											{if $config['amount_per_installment']}
+											${number_format((float) $config['amount_per_installment'], 2)}
+											{else}—{/if}
+										{/if}
 									</td>
 									<td class="py-3">
 										<span class="badge bg-light text-dark border small">
@@ -800,10 +847,46 @@ document.getElementById('btn-confirm-espera')?.addEventListener('click', functio
 
 // Alpine.js main data
 function loanDetail() {
+	const initialPaymentConfigs = [
+		{foreach $detail['payment_configs'] as $config}
+		{
+			id: {(int) ($config['payment_config_id'] ?? 0)},
+			amount: {number_format((float) ($config['total_amount_to_deduct'] ?? 0), 2, '.', '')},
+			percentage: '',
+			installments: {max(1, (int) ($config['number_of_installments'] ?? 1))},
+			isPeriodic: {if !empty($config['income_is_periodic'])}true{else}false{/if}
+		}{if !$iterator->last},{/if}
+		{/foreach}
+	];
+
+	const initialTotalAmount = initialPaymentConfigs.reduce((sum, row) => {
+		return sum + (parseFloat(row.amount) || 0);
+	}, 0);
+
     return {
-        approvedAmount: {$loan['approved_amount'] ?? $loan['requested_amount']},
+		paymentConfigs: initialPaymentConfigs.map((row) => ({
+			...row,
+			percentage: initialTotalAmount > 0
+				? ((parseFloat(row.amount) || 0) * 100 / initialTotalAmount).toFixed(2)
+				: '',
+		})),
         interestRate: {$loan['applied_interest_rate']},
-        termFortnights: {$loan['term_fortnights'] ?? 24},
+		get approvedAmount() {
+			return this.paymentConfigs.reduce((sum, row) => {
+				return sum + (parseFloat(row.amount) || 0);
+			}, 0);
+		},
+		get termFortnights() {
+			const periodicTerms = this.paymentConfigs
+				.filter((row) => row.isPeriodic)
+				.map((row) => Math.max(1, parseInt(row.installments, 10) || 1));
+
+			if (periodicTerms.length === 0) {
+				return 1;
+			}
+
+			return Math.max(...periodicTerms);
+		},
         get estimatedTotal() {
             const P = parseFloat(this.approvedAmount) || 0;
 			const r = (parseFloat(this.interestRate) / 100) / 2; // simulador: tasa mensual -> quincenal
@@ -819,6 +902,22 @@ function loanDetail() {
             }
             return total;
         },
+		getInstallmentAmount(row) {
+			if (!row) {
+				return 0;
+			}
+
+			const amount = parseFloat(row.amount) || 0;
+			const installments = row.isPeriodic
+				? Math.max(1, parseInt(row.installments, 10) || 1)
+				: 1;
+
+			return amount / installments;
+		},
+		formatMoneyValue(val) {
+			const numericVal = parseFloat(val) || 0;
+			return numericVal.toFixed(2);
+		},
         formatMXN(val) {
             return '$' + parseFloat(val).toLocaleString('es-MX', {
                 minimumFractionDigits: 2,
