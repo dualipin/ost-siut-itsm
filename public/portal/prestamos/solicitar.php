@@ -102,6 +102,7 @@ if ($request->method() === "POST") {
             }
         }
 
+        $firstPaymentToleranceDays = 15;
         $startDate = new \DateTimeImmutable();
         $yearEnd = new \DateTimeImmutable($startDate->format('Y') . '-12-31');
         $maxFortnightsThisYear = 1;
@@ -115,22 +116,23 @@ if ($request->method() === "POST") {
             $maxFortnightsThisYear = $candidateFortnights;
         }
 
-        $buildPeriodicOptions = static function (\DateTimeImmutable $inicio, array $tipoInfo): array {
+        $buildPeriodicOptions = static function (\DateTimeImmutable $inicio, array $tipoInfo) use ($firstPaymentToleranceDays): array {
             $isPeriodic = (bool) ($tipoInfo['is_periodic'] ?? false);
             if (!$isPeriodic) {
                 return [];
             }
 
+            $inicioElegible = $inicio->add(new \DateInterval('P' . $firstPaymentToleranceDays . 'D'));
             $frecuencia = max(1, (int) ($tipoInfo['frequency_days'] ?? 30));
             $diaPago = max(1, (int) ($tipoInfo['tentative_payment_day'] ?? 15));
-            $fechaMaxima = new \DateTimeImmutable($inicio->format('Y') . '-11-15');
+            $fechaMaxima = new \DateTimeImmutable($inicioElegible->format('Y') . '-11-15');
 
-            if ($inicio > $fechaMaxima) {
+            if ($inicioElegible > $fechaMaxima) {
                 return [];
             }
 
             $opciones = [];
-            $cursor = $inicio->setDate((int) $inicio->format('Y'), (int) $inicio->format('m'), 1);
+            $cursor = $inicioElegible->setDate((int) $inicioElegible->format('Y'), (int) $inicioElegible->format('m'), 1);
             $guard = 0;
 
             while ($cursor <= $fechaMaxima && $guard < 36) {
@@ -150,7 +152,7 @@ if ($request->method() === "POST") {
                     }
 
                     $fechaPago = $cursor->setDate($year, $month, $diaCandidato);
-                    if ($fechaPago < $inicio || $fechaPago > $fechaMaxima) {
+                    if ($fechaPago < $inicioElegible || $fechaPago > $fechaMaxima) {
                         continue;
                     }
 

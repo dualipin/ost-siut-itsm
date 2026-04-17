@@ -12,6 +12,8 @@ use DateTimeImmutable;
 
 final readonly class AmortizationCalculator
 {
+    private const FIRST_PAYMENT_TOLERANCE_DAYS = 15;
+
     /**
      * Calculate German Simple Interest amortization schedule (método alemán)
      * - Constant principal payment per period
@@ -41,11 +43,13 @@ final readonly class AmortizationCalculator
         // Round principal per period to 2 decimals for consistency
         $roundedPrincipal = round($principalPerPeriod * 100) / 100;
 
-        // Calculate first payment date (day 15 or last day of month)
-        $firstPaymentDate = $this->calculateNextFortnightDate($disbursementDate);
-        
-        // Calculate additional days from disbursement to first payment
-        $additionalDays = $this->calculateDaysBetween($disbursementDate, $firstPaymentDate);
+        // First payment starts after tolerance and then aligns to the next fortnight boundary.
+        $firstEligibleDate = $this->applyFirstPaymentTolerance($disbursementDate);
+        $firstPaymentDate = $this->calculateNextFortnightDate($firstEligibleDate);
+
+        // Keep existing simulator rule: one base fortnight plus extra days beyond 15.
+        $elapsedDays = $this->calculateDaysBetween($disbursementDate, $firstPaymentDate);
+        $additionalDays = max(0, $elapsedDays - self::FIRST_PAYMENT_TOLERANCE_DAYS);
         
         for ($i = 1; $i <= $fortnights; $i++) {
             // Calculate payment date
@@ -314,7 +318,8 @@ final readonly class AmortizationCalculator
         DateTimeImmutable $startDate,
         int $fortnights
     ): DateTimeImmutable {
-        $firstPayment = $this->calculateNextFortnightDate($startDate);
+        $firstEligibleDate = $this->applyFirstPaymentTolerance($startDate);
+        $firstPayment = $this->calculateNextFortnightDate($firstEligibleDate);
         return $this->calculateFortnightDate($firstPayment, $fortnights - 1);
     }
 
@@ -384,16 +389,17 @@ final readonly class AmortizationCalculator
             return [];
         }
 
+        $firstEligibleDate = $this->applyFirstPaymentTolerance($startDate);
         $frequencyDays = max(1, (int) ($config['income_frequency_days'] ?? 30));
         $tentativeDay = max(1, (int) ($config['income_payment_day'] ?? 15));
-        $limitDate = new DateTimeImmutable($startDate->format('Y') . '-11-15');
+        $limitDate = new DateTimeImmutable($firstEligibleDate->format('Y') . '-11-15');
 
-        if ($startDate > $limitDate) {
+        if ($firstEligibleDate > $limitDate) {
             return [];
         }
 
         $dates = [];
-        $cursor = $startDate->setDate((int) $startDate->format('Y'), (int) $startDate->format('m'), 1);
+        $cursor = $firstEligibleDate->setDate((int) $firstEligibleDate->format('Y'), (int) $firstEligibleDate->format('m'), 1);
         $guard = 0;
 
         while ($cursor <= $limitDate && $guard < 36 && count($dates) < $installments) {
@@ -413,7 +419,7 @@ final readonly class AmortizationCalculator
                 }
 
                 $paymentDate = $cursor->setDate($year, $month, $candidateDay);
-                if ($paymentDate < $startDate || $paymentDate > $limitDate) {
+                if ($paymentDate < $firstEligibleDate || $paymentDate > $limitDate) {
                     continue;
                 }
 
@@ -425,6 +431,11 @@ final readonly class AmortizationCalculator
         }
 
         return $dates;
+    }
+
+    private function applyFirstPaymentTolerance(DateTimeImmutable $date): DateTimeImmutable
+    {
+        return $date->add(new DateInterval('P' . self::FIRST_PAYMENT_TOLERANCE_DAYS . 'D'));
     }
 
     /**
