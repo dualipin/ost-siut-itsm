@@ -439,6 +439,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $_POST['new_term_fortnights'] ?? '',
                     FILTER_VALIDATE_INT,
                 );
+                $manualRestructuredAmountRaw = trim(
+                    (string) ($_POST['restructured_principal_amount'] ?? ''),
+                );
                 $restructureReasonType = strtolower(
                     trim((string) ($_POST['restructure_reason_type'] ?? '')),
                 );
@@ -448,6 +451,27 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $restructureObservationsRaw = trim(
                     (string) ($_POST['restructure_observations'] ?? ''),
                 );
+
+                $manualRestructuredAmount = null;
+                if ($manualRestructuredAmountRaw !== '') {
+                    $manualRestructuredAmountParsed = filter_var(
+                        $manualRestructuredAmountRaw,
+                        FILTER_VALIDATE_FLOAT,
+                    );
+
+                    if (
+                        $manualRestructuredAmountParsed === false ||
+                        (float) $manualRestructuredAmountParsed <= 0
+                    ) {
+                        $errors[] = 'El monto manual para reestructuración debe ser mayor a cero.';
+                        break;
+                    }
+
+                    $manualRestructuredAmount = round(
+                        (float) $manualRestructuredAmountParsed,
+                        2,
+                    );
+                }
 
                 $reasonLabels = [
                     'mora' => 'Mora',
@@ -557,13 +581,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $baseOutstandingBalance = $pendingPrincipal > 0
                     ? $pendingPrincipal
                     : $originalOutstandingBalance;
-                $restructuredPrincipal = round(
+                $calculatedRestructuredPrincipal = round(
                     $baseOutstandingBalance + $pendingInterest + $pendingDefaultInterest,
                     2,
                 );
+                $restructuredPrincipal = $manualRestructuredAmount ?? $calculatedRestructuredPrincipal;
 
                 if ($restructuredPrincipal <= 0) {
-                    $errors[] = 'No fue posible determinar un saldo base válido para reestructurar.';
+                    $errors[] = $manualRestructuredAmount === null
+                        ? 'No fue posible determinar un saldo base válido para reestructurar.'
+                        : 'El monto manual para reestructuración debe ser mayor a cero.';
                     break;
                 }
 
@@ -973,6 +1000,49 @@ $statusBadges = [
 $loan = $detail["loan"];
 $currentStatus = (string) $loan["status"];
 
+$restructureDefaultAmount = null;
+if (in_array($currentStatus, ["activo", "desembolsado"], true)) {
+    try {
+        $pendingSummaryStmt = $db->prepare(
+            "SELECT
+                COALESCE(SUM(principal), 0) AS pending_principal,
+                COALESCE(SUM(ordinary_interest), 0) AS pending_interest,
+                COALESCE(SUM(generated_default_interest), 0) AS pending_default_interest
+             FROM loan_amortization
+             WHERE loan_id = :loan_id
+               AND active = 1
+               AND payment_status IN ('pendiente', 'vencido')"
+        );
+        $pendingSummaryStmt->execute(['loan_id' => $loanId]);
+        $pendingSummary = $pendingSummaryStmt->fetch(\PDO::FETCH_ASSOC) ?: [];
+
+        $pendingPrincipalForDefault = (float) ($pendingSummary['pending_principal'] ?? 0.0);
+        $pendingInterestForDefault = (float) ($pendingSummary['pending_interest'] ?? 0.0);
+        $pendingDefaultInterestForDefault = (float) ($pendingSummary['pending_default_interest'] ?? 0.0);
+        $baseOutstandingForDefault = $pendingPrincipalForDefault > 0
+            ? $pendingPrincipalForDefault
+            : (float) ($loan['outstanding_balance'] ?? 0.0);
+
+        $calculatedDefaultAmount = round(
+            $baseOutstandingForDefault + $pendingInterestForDefault + $pendingDefaultInterestForDefault,
+            2,
+        );
+
+        if ($calculatedDefaultAmount > 0) {
+            $restructureDefaultAmount = $calculatedDefaultAmount;
+        }
+    } catch (\Throwable) {
+        $restructureDefaultAmount = null;
+    }
+}
+
+if ($restructureDefaultAmount === null) {
+    $fallbackOutstandingAmount = round((float) ($loan['outstanding_balance'] ?? 0.0), 2);
+    $restructureDefaultAmount = $fallbackOutstandingAmount > 0
+        ? $fallbackOutstandingAmount
+        : null;
+}
+
 // Handle PDF download request
 $form = new FormRequest();
 if ($form->input('output', 'html') === 'pdf' && !empty($detail['amortization'])) {
@@ -1349,6 +1419,7 @@ $renderer->render(__DIR__ . "/detalle.latte", [
     "user" => $currentUser,
     "detail" => $detail,
     "loan" => $loan,
+    "restructureDefaultAmount" => $restructureDefaultAmount,
     "statusLabel" => $statusLabels[$currentStatus] ?? ucfirst($currentStatus),
     "statusBadge" => $statusBadges[$currentStatus] ?? "bg-light text-dark",
     "statusLabels" => $statusLabels,
