@@ -128,13 +128,13 @@
 
 						{* Approval form col *}
 						<div class="col-12 col-md-6">
-							<p class="text-muted small text-uppercase fw-semibold mb-3">A autorizar (editable)</p>
+							<p class="text-muted small text-uppercase fw-semibold mb-3">A autorizar (interés editable)</p>
 							<div class="mb-3">
 								<label class="form-label fw-semibold small mb-1">Monto total autorizado (suma por tipo)</label>
 								<div class="input-group">
-									<span class="input-group-text">$</span>
+									<span class="input-group-text fs-5 fw-semibold">$</span>
 									<input type="text"
-										class="form-control rounded-end"
+										class="form-control form-control-lg rounded-end fw-bold fs-4 text-end"
 										x-bind:value="formatMoneyValue(approvedAmount)"
 										readonly>
 								</div>
@@ -188,7 +188,7 @@
 							<thead class="text-uppercase small text-muted">
 								<tr>
 									<th class="py-2 border-0">Fuente de ingreso</th>
-									<th class="py-2 border-0">Monto autorizado / %</th>
+									<th class="py-2 border-0">Monto autorizado (% opcional)</th>
 									<th class="py-2 border-0">Parcialidades</th>
 									<th class="py-2 border-0">Por parcialidad</th>
 									<th class="py-2 border-0">Método</th>
@@ -211,10 +211,10 @@
 									<td class="py-3">
 										{if $canReview}
 										<div class="d-flex flex-column gap-2">
-											<div class="input-group input-group-sm">
-												<span class="input-group-text">$</span>
+											<div class="input-group">
+												<span class="input-group-text fs-5 fw-semibold">$</span>
 												<input type="number"
-													class="form-control"
+													class="form-control form-control-lg fw-semibold fs-5 text-end"
 													name="approved_amount_by_type[{$config['payment_config_id']}]"
 													form="form-aprobar"
 													step="0.01"
@@ -224,7 +224,7 @@
 											</div>
 											<div class="input-group input-group-sm">
 												<input type="number"
-													class="form-control"
+													class="form-control text-end"
 													name="approved_percentage_by_type[{$config['payment_config_id']}]"
 													form="form-aprobar"
 													step="0.01"
@@ -940,7 +940,7 @@ function docValidator(paymentConfigId, initialStatus) {
                 const formData = new FormData();
                 formData.append('config_id', this.configId);
                 formData.append('status', newStatus);
-				const res = await fetch({=json_encode(url('/portal/prestamos/ajax/validar-documento.php'))}, {
+				const res = await fetch('/portal/prestamos/ajax/validar-documento.php', {
                     method: 'POST',
                     body: formData
                 });
