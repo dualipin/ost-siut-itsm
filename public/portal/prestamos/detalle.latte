@@ -188,7 +188,7 @@
 							<thead class="text-uppercase small text-muted">
 								<tr>
 									<th class="py-2 border-0">Fuente de ingreso</th>
-									<th class="py-2 border-0">Monto autorizado (% opcional)</th>
+									<th class="py-2 border-0" style="min-width: 200px;">Monto autorizado</th>
 									<th class="py-2 border-0">Parcialidades</th>
 									<th class="py-2 border-0">Por parcialidad</th>
 									<th class="py-2 border-0">Método</th>
@@ -208,31 +208,19 @@
 										<span class="badge bg-secondary-subtle text-secondary small">Prestación</span>
 										{/if}
 									</td>
-									<td class="py-3">
+									<td class="py-3" style="min-width: 200px;">
 										{if $canReview}
 										<div class="d-flex flex-column gap-2">
 											<div class="input-group">
-												<span class="input-group-text fs-5 fw-semibold">$</span>
+												<span class="input-group-text">$</span>
 												<input type="number"
-													class="form-control form-control-lg fw-semibold fs-5 text-end"
+													class="form-control text-end"
 													name="approved_amount_by_type[{$config['payment_config_id']}]"
 													form="form-aprobar"
 													step="0.01"
 													min="0.01"
 													x-model.number="paymentConfigs[{$configIndex}].amount"
 													required>
-											</div>
-											<div class="input-group input-group-sm">
-												<input type="number"
-													class="form-control text-end"
-													name="approved_percentage_by_type[{$config['payment_config_id']}]"
-													form="form-aprobar"
-													step="0.01"
-													min="0"
-													max="100"
-													placeholder="Opcional"
-													x-model="paymentConfigs[{$configIndex}].percentage">
-												<span class="input-group-text">%</span>
 											</div>
 										</div>
 										{else}
@@ -415,19 +403,19 @@
 			</div>
 
 			{* ============================================================ *}
-			{* SECCIÓN 5 · Documentos Legales                               *}
+			{* SECCIÓN 5 · Documentos requeridos para la solicitud de préstamo *}
 			{* ============================================================ *}
 			<div class="card border-0 shadow-sm rounded-4 mb-4">
 				<div class="card-header bg-transparent border-0 px-4 pt-4 pb-0">
 					<h3 class="h5 fw-bold mb-0">
-						<i class="bi bi-file-earmark-lock2 me-2 text-secondary"></i>Documentos Legales
+						<i class="bi bi-file-earmark-lock2 me-2 text-secondary"></i>Documentos requeridos para la solicitud de préstamo
 					</h3>
 				</div>
 				<div class="card-body p-4">
 					{if count($detail['legal_docs']) === 0}
 					<div class="text-center py-4 text-muted">
 						<i class="bi bi-folder2-open fs-3 d-block mb-2 opacity-25"></i>
-						<p class="mb-0">No se han generado documentos legales aún.</p>
+						<p class="mb-0">Aún no se han generado los documentos requeridos para la solicitud de préstamo.</p>
 					</div>
 					{else}
 					<div class="d-flex flex-column gap-3">
@@ -937,9 +925,29 @@ function docValidator(paymentConfigId, initialStatus) {
             if (this.loading) return;
             this.loading = true;
             try {
+				let observations = '';
+				if (newStatus === 'rechazado') {
+					const rejectionReason = window.prompt('Escribe el motivo de rechazo del documento:');
+					if (rejectionReason === null) {
+						return;
+					}
+
+					observations = rejectionReason.trim();
+					if (observations === '') {
+						Alpine.store('toast')?.show({
+							type: 'warning',
+							message: 'Debes indicar el motivo del rechazo.'
+						});
+						return;
+					}
+				}
+
                 const formData = new FormData();
                 formData.append('config_id', this.configId);
                 formData.append('status', newStatus);
+				if (observations !== '') {
+					formData.append('observations', observations);
+				}
 				const res = await fetch('/portal/prestamos/ajax/validar-documento.php', {
                     method: 'POST',
                     body: formData

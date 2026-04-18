@@ -81,8 +81,10 @@ if (!$isPrivileged && (int) ($loan['user_id'] ?? 0) !== (int) $currentUser->id) 
 $isOwner = (int) ($loan['user_id'] ?? 0) === (int) $currentUser->id;
 $canDraftActions = $isOwner && (string) ($loan['status'] ?? '') === 'borrador';
 $canUploadSignedDocs = $isOwner && (string) ($loan['status'] ?? '') === 'aprobado';
+$canReuploadPaymentDocs = $isOwner;
 $draftActionError = null;
 $signedDocumentError = null;
+$paymentDocumentError = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = trim((string) ($_POST['action'] ?? ''));
@@ -165,6 +167,96 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         } catch (\Throwable $e) {
             $signedDocumentError = 'No fue posible subir el documento firmado. ' . $e->getMessage();
+        }
+    }
+
+    if ($action === 'upload_payment_doc' && $canReuploadPaymentDocs) {
+        try {
+            $paymentConfigId = filter_var($_POST['payment_config_id'] ?? '', FILTER_VALIDATE_INT);
+            if ($paymentConfigId === false || $paymentConfigId <= 0) {
+                throw new RuntimeException('Configuracion de pago invalida.');
+            }
+
+            $paymentConfig = null;
+            foreach (($detail['payment_configs'] ?? []) as $config) {
+                if ((int) ($config['payment_config_id'] ?? 0) === (int) $paymentConfigId) {
+                    $paymentConfig = $config;
+                    break;
+                }
+            }
+
+            if ($paymentConfig === null) {
+                throw new RuntimeException('No se encontro la configuracion de pago seleccionada.');
+            }
+
+            $documentStatus = strtolower(trim((string) ($paymentConfig['document_status'] ?? '')));
+            if ($documentStatus !== 'rechazado') {
+                throw new RuntimeException('Solo se puede reemplazar el archivo cuando el documento esta rechazado.');
+            }
+
+            if (!isset($_FILES['payment_document'])) {
+                throw new RuntimeException('Debes seleccionar un archivo PDF para reenviar.');
+            }
+
+            $file = $_FILES['payment_document'];
+            if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+                throw new RuntimeException('No fue posible subir el archivo seleccionado.');
+            }
+
+            $fileSize = (int) ($file['size'] ?? 0);
+            if ($fileSize <= 0 || $fileSize > (5 * 1024 * 1024)) {
+                throw new RuntimeException('El archivo debe ser PDF y no exceder 5MB.');
+            }
+
+            $extension = strtolower((string) pathinfo((string) ($file['name'] ?? ''), PATHINFO_EXTENSION));
+            if ($extension !== 'pdf') {
+                throw new RuntimeException('Solo se permiten archivos PDF.');
+            }
+
+            $uploadDir = __DIR__ . '/../../../uploads/solicitudes/';
+            if (!is_dir($uploadDir) && !mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
+                throw new RuntimeException('No se pudo preparar el directorio de carga.');
+            }
+
+            $fileName = sprintf(
+                'reenvio_doc_%d_%d_%s.pdf',
+                (int) $loan['loan_id'],
+                (int) $paymentConfigId,
+                bin2hex(random_bytes(4))
+            );
+            $storedPath = $uploadDir . $fileName;
+
+            if (!move_uploaded_file((string) $file['tmp_name'], $storedPath)) {
+                throw new RuntimeException('No se pudo almacenar el nuevo documento.');
+            }
+
+            $relativePath = '/uploads/solicitudes/' . $fileName;
+
+            $updatePaymentDocumentStmt = $db->prepare(
+                'UPDATE loan_payment_configuration
+                 SET supporting_document_path = :supporting_document_path,
+                     document_status = :document_status,
+                     document_observations = NULL,
+                     document_validation_date = NULL
+                 WHERE payment_config_id = :payment_config_id
+                   AND loan_id = :loan_id'
+            );
+
+            $updatePaymentDocumentStmt->execute([
+                'supporting_document_path' => $relativePath,
+                'document_status' => 'pendiente',
+                'payment_config_id' => (int) $paymentConfigId,
+                'loan_id' => (int) $loan['loan_id'],
+            ]);
+
+            if ($updatePaymentDocumentStmt->rowCount() <= 0) {
+                throw new RuntimeException('No fue posible actualizar el documento de la configuracion seleccionada.');
+            }
+
+            header('Location: /portal/prestamos/activo-detalle.php?id=' . (int) $loan['loan_id'] . '&payment_doc_uploaded=1');
+            exit;
+        } catch (\Throwable $e) {
+            $paymentDocumentError = 'No fue posible reenviar el documento de pago. ' . $e->getMessage();
         }
     }
 
@@ -676,4 +768,7 @@ $renderer->render(__DIR__ . '/activo-detalle.latte', [
     'can_upload_signed_docs' => $canUploadSignedDocs,
     'signed_upload_error' => $signedDocumentError,
     'signed_upload_success' => isset($_GET['signed_uploaded']) && $_GET['signed_uploaded'] === '1',
+    'can_reupload_payment_docs' => $canReuploadPaymentDocs,
+    'payment_doc_upload_error' => $paymentDocumentError,
+    'payment_doc_upload_success' => isset($_GET['payment_doc_uploaded']) && $_GET['payment_doc_uploaded'] === '1',
 ]);
