@@ -145,6 +145,7 @@ final readonly class DompdfLoanPdfGenerator implements PdfGeneratorInterface
             'requested_amount' => $requestedAmount,
             'approved_amount' => $approvedAmount,
             'approved_amount_label' => '$' . number_format($approvedAmount, 2),
+            'approved_amount_words' => $this->formatAmountInWords($approvedAmount),
             'requested_amount_label' => '$' . number_format($requestedAmount, 2),
             'estimated_total_label' => $loan->estimatedTotalToPay()?->format() ?? '$0.00',
             'interest_rate' => $interestRate,
@@ -167,6 +168,134 @@ final readonly class DompdfLoanPdfGenerator implements PdfGeneratorInterface
             'payment_configs' => $normalizedConfigs,
             'payment_config_count' => count($normalizedConfigs),
         ];
+    }
+
+    private function formatAmountInWords(float $amount): string
+    {
+        $normalizedAmount = round(max(0.0, $amount), 2);
+        $integerPart = (int) floor($normalizedAmount);
+        $decimalPart = (int) round(($normalizedAmount - $integerPart) * 100);
+
+        if ($decimalPart === 100) {
+            $integerPart++;
+            $decimalPart = 0;
+        }
+
+        $integerWords = $this->numberToSpanishWords($integerPart);
+        $integerWords = strtoupper($this->normalizeCurrencyWords($integerWords));
+        $currencyLabel = $integerPart === 1 ? 'PESO' : 'PESOS';
+
+        return sprintf('%s %s %02d/100 M.N.', $integerWords, $currencyLabel, $decimalPart);
+    }
+
+    private function normalizeCurrencyWords(string $words): string
+    {
+        $normalized = preg_replace('/\\s+/', ' ', trim($words)) ?: 'CERO';
+
+        $normalized = str_replace(' VEINTIUNO', ' VEINTIUN', $normalized);
+        $normalized = str_replace(' Y UNO', ' Y UN', $normalized);
+
+        if (str_ends_with($normalized, 'UNO')) {
+            $normalized = substr($normalized, 0, -3) . 'UN';
+        }
+
+        return $normalized;
+    }
+
+    private function numberToSpanishWords(int $number): string
+    {
+        if ($number === 0) {
+            return 'cero';
+        }
+
+        if ($number < 0) {
+            return 'menos ' . $this->numberToSpanishWords(abs($number));
+        }
+
+        $units = [
+            '', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve',
+            'diez', 'once', 'doce', 'trece', 'catorce', 'quince', 'dieciseis', 'diecisiete',
+            'dieciocho', 'diecinueve', 'veinte', 'veintiuno', 'veintidos', 'veintitres',
+            'veinticuatro', 'veinticinco', 'veintiseis', 'veintisiete', 'veintiocho', 'veintinueve',
+        ];
+        $tens = [
+            30 => 'treinta',
+            40 => 'cuarenta',
+            50 => 'cincuenta',
+            60 => 'sesenta',
+            70 => 'setenta',
+            80 => 'ochenta',
+            90 => 'noventa',
+        ];
+        $hundreds = [
+            100 => 'ciento',
+            200 => 'doscientos',
+            300 => 'trescientos',
+            400 => 'cuatrocientos',
+            500 => 'quinientos',
+            600 => 'seiscientos',
+            700 => 'setecientos',
+            800 => 'ochocientos',
+            900 => 'novecientos',
+        ];
+
+        if ($number <= 29) {
+            return $units[$number];
+        }
+
+        if ($number < 100) {
+            $ten = (int) (floor($number / 10) * 10);
+            $unit = $number % 10;
+
+            if ($unit === 0) {
+                return $tens[$ten];
+            }
+
+            return $tens[$ten] . ' y ' . $this->numberToSpanishWords($unit);
+        }
+
+        if ($number === 100) {
+            return 'cien';
+        }
+
+        if ($number < 1000) {
+            $hundred = (int) (floor($number / 100) * 100);
+            $remainder = $number % 100;
+            $text = $hundreds[$hundred];
+
+            if ($remainder > 0) {
+                $text .= ' ' . $this->numberToSpanishWords($remainder);
+            }
+
+            return $text;
+        }
+
+        if ($number < 1000000) {
+            $thousands = (int) floor($number / 1000);
+            $remainder = $number % 1000;
+
+            $text = $thousands === 1
+                ? 'mil'
+                : $this->numberToSpanishWords($thousands) . ' mil';
+
+            if ($remainder > 0) {
+                $text .= ' ' . $this->numberToSpanishWords($remainder);
+            }
+
+            return $text;
+        }
+
+        $millions = (int) floor($number / 1000000);
+        $remainder = $number % 1000000;
+        $text = $millions === 1
+            ? 'un millon'
+            : $this->numberToSpanishWords($millions) . ' millones';
+
+        if ($remainder > 0) {
+            $text .= ' ' . $this->numberToSpanishWords($remainder);
+        }
+
+        return $text;
     }
 
     private function formatDate(?DateTimeInterface $date, string $format): string

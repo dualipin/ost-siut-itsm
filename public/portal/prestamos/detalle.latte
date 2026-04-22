@@ -128,18 +128,15 @@
 
 						{* Approval form col *}
 						<div class="col-12 col-md-6">
-							<p class="text-muted small text-uppercase fw-semibold mb-3">A autorizar (editable)</p>
+							<p class="text-muted small text-uppercase fw-semibold mb-3">A autorizar (interés editable)</p>
 							<div class="mb-3">
-								<label for="input-approved-amount"
-									class="form-label fw-semibold small">Monto a aprobar (MXN)</label>
+								<label class="form-label fw-semibold small mb-1">Monto total autorizado (suma por tipo)</label>
 								<div class="input-group">
-									<span class="input-group-text">$</span>
-									<input type="number" id="input-approved-amount"
-										class="form-control rounded-end"
-										step="0.01" min="1"
-										x-model.number="approvedAmount"
-										value="{$loan['approved_amount'] ?? $loan['requested_amount']}"
-										{if !$canReview}disabled{/if}>
+									<span class="input-group-text fs-5 fw-semibold">$</span>
+									<input type="text"
+										class="form-control form-control-lg rounded-end fw-bold fs-4 text-end"
+										x-bind:value="formatMoneyValue(approvedAmount)"
+										readonly>
 								</div>
 							</div>
 							<div class="mb-3">
@@ -153,13 +150,12 @@
 									{if !$canReview}disabled{/if}>
 							</div>
 							<div class="mb-3">
-								<label for="input-term" class="form-label fw-semibold small">Plazo (quincenas)</label>
-								<input type="number" id="input-term"
+								<label class="form-label fw-semibold small">Plazo estimado (quincenas)</label>
+								<input type="text"
 									class="form-control"
-									min="1"
-									x-model.number="termFortnights"
-									value="{$loan['term_fortnights'] ?? 24}"
-									{if !$canReview}disabled{/if}>
+									x-bind:value="termFortnights"
+									readonly>
+								<div class="form-text">La cantidad de periodos se edita por tipo solo cuando la fuente es periódica.</div>
 							</div>
 							<div class="d-flex justify-content-between align-items-end">
 								<span class="text-muted small">Total estimado a pagar</span>
@@ -192,7 +188,7 @@
 							<thead class="text-uppercase small text-muted">
 								<tr>
 									<th class="py-2 border-0">Fuente de ingreso</th>
-									<th class="py-2 border-0">Total a descontar</th>
+									<th class="py-2 border-0" style="min-width: 200px;">Monto autorizado</th>
 									<th class="py-2 border-0">Parcialidades</th>
 									<th class="py-2 border-0">Por parcialidad</th>
 									<th class="py-2 border-0">Método</th>
@@ -202,6 +198,7 @@
 							</thead>
 							<tbody>
 								{foreach $detail['payment_configs'] as $config}
+								{var $configIndex = $iterator->counter0}
 								<tr x-data="docValidator({$config['payment_config_id']}, '{$config['document_status']}')">
 									<td class="py-3">
 										<div class="fw-semibold">{$config['income_type_name']}</div>
@@ -211,14 +208,52 @@
 										<span class="badge bg-secondary-subtle text-secondary small">Prestación</span>
 										{/if}
 									</td>
-									<td class="py-3 fw-semibold">
-										${number_format((float) $config['total_amount_to_deduct'], 2)}
+									<td class="py-3" style="min-width: 200px;">
+										{if $canReview}
+										<div class="d-flex flex-column gap-2">
+											<div class="input-group">
+												<span class="input-group-text">$</span>
+												<input type="number"
+													class="form-control text-end"
+													name="approved_amount_by_type[{$config['payment_config_id']}]"
+													form="form-aprobar"
+													step="0.01"
+													min="0.01"
+													x-model.number="paymentConfigs[{$configIndex}].amount"
+													required>
+											</div>
+										</div>
+										{else}
+										<div class="fw-semibold">${number_format((float) $config['total_amount_to_deduct'], 2)}</div>
+										{/if}
 									</td>
-									<td class="py-3">{$config['number_of_installments']}</td>
 									<td class="py-3">
-										{if $config['amount_per_installment']}
-										${number_format((float) $config['amount_per_installment'], 2)}
-										{else}—{/if}
+										{if $canReview && $config['income_is_periodic']}
+										<input type="number"
+											class="form-control form-control-sm"
+											name="term_fortnights_by_type[{$config['payment_config_id']}]"
+											form="form-aprobar"
+											min="1"
+											x-model.number="paymentConfigs[{$configIndex}].installments"
+											required>
+										{elseif $canReview}
+										<input type="hidden"
+											name="term_fortnights_by_type[{$config['payment_config_id']}]"
+											form="form-aprobar"
+											value="1">
+										<span class="badge bg-secondary-subtle text-secondary">1 (fijo)</span>
+										{else}
+										{$config['number_of_installments']}
+										{/if}
+									</td>
+									<td class="py-3">
+										{if $canReview}
+										<span x-text="formatMXN(getInstallmentAmount(paymentConfigs[{$configIndex}]))"></span>
+										{else}
+											{if $config['amount_per_installment']}
+											${number_format((float) $config['amount_per_installment'], 2)}
+											{else}—{/if}
+										{/if}
 									</td>
 									<td class="py-3">
 										<span class="badge bg-light text-dark border small">
@@ -368,19 +403,19 @@
 			</div>
 
 			{* ============================================================ *}
-			{* SECCIÓN 5 · Documentos Legales                               *}
+			{* SECCIÓN 5 · Documentos requeridos para la solicitud de préstamo *}
 			{* ============================================================ *}
 			<div class="card border-0 shadow-sm rounded-4 mb-4">
 				<div class="card-header bg-transparent border-0 px-4 pt-4 pb-0">
 					<h3 class="h5 fw-bold mb-0">
-						<i class="bi bi-file-earmark-lock2 me-2 text-secondary"></i>Documentos Legales
+						<i class="bi bi-file-earmark-lock2 me-2 text-secondary"></i>Documentos requeridos para la solicitud de préstamo
 					</h3>
 				</div>
 				<div class="card-body p-4">
 					{if count($detail['legal_docs']) === 0}
 					<div class="text-center py-4 text-muted">
 						<i class="bi bi-folder2-open fs-3 d-block mb-2 opacity-25"></i>
-						<p class="mb-0">No se han generado documentos legales aún.</p>
+						<p class="mb-0">Aún no se han generado los documentos requeridos para la solicitud de préstamo.</p>
 					</div>
 					{else}
 					<div class="d-flex flex-column gap-3">
@@ -660,6 +695,12 @@
 							</div>
 
 							<div>
+								<label for="restructure-principal-amount" class="form-label fw-semibold small mb-1">Monto base para reestructurar</label>
+								<input type="number" id="restructure-principal-amount" name="restructured_principal_amount" class="form-control rounded-3" step="0.01" min="0.01" value="{$restructureDefaultAmount !== null ? number_format((float) $restructureDefaultAmount, 2, '.', '') : ''}" required>
+								<div class="form-text">Puedes ajustarlo manualmente; por defecto se usa el cálculo actual.</div>
+							</div>
+
+							<div>
 								<label for="restructure-reason-type" class="form-label fw-semibold small mb-1">Motivo</label>
 								<select id="restructure-reason-type" name="restructure_reason_type" class="form-select rounded-3" x-model="restructureReasonType" required>
 									<option value="mora">Mora</option>
@@ -800,10 +841,46 @@ document.getElementById('btn-confirm-espera')?.addEventListener('click', functio
 
 // Alpine.js main data
 function loanDetail() {
+	const initialPaymentConfigs = [
+		{foreach $detail['payment_configs'] as $config}
+		{
+			id: {(int) ($config['payment_config_id'] ?? 0)},
+			amount: {number_format((float) ($config['total_amount_to_deduct'] ?? 0), 2, '.', '')},
+			percentage: '',
+			installments: {max(1, (int) ($config['number_of_installments'] ?? 1))},
+			isPeriodic: {if !empty($config['income_is_periodic'])}true{else}false{/if}
+		}{if !$iterator->last},{/if}
+		{/foreach}
+	];
+
+	const initialTotalAmount = initialPaymentConfigs.reduce((sum, row) => {
+		return sum + (parseFloat(row.amount) || 0);
+	}, 0);
+
     return {
-        approvedAmount: {$loan['approved_amount'] ?? $loan['requested_amount']},
+		paymentConfigs: initialPaymentConfigs.map((row) => ({
+			...row,
+			percentage: initialTotalAmount > 0
+				? ((parseFloat(row.amount) || 0) * 100 / initialTotalAmount).toFixed(2)
+				: '',
+		})),
         interestRate: {$loan['applied_interest_rate']},
-        termFortnights: {$loan['term_fortnights'] ?? 24},
+		get approvedAmount() {
+			return this.paymentConfigs.reduce((sum, row) => {
+				return sum + (parseFloat(row.amount) || 0);
+			}, 0);
+		},
+		get termFortnights() {
+			const periodicTerms = this.paymentConfigs
+				.filter((row) => row.isPeriodic)
+				.map((row) => Math.max(1, parseInt(row.installments, 10) || 1));
+
+			if (periodicTerms.length === 0) {
+				return 1;
+			}
+
+			return Math.max(...periodicTerms);
+		},
         get estimatedTotal() {
             const P = parseFloat(this.approvedAmount) || 0;
 			const r = (parseFloat(this.interestRate) / 100) / 2; // simulador: tasa mensual -> quincenal
@@ -819,6 +896,22 @@ function loanDetail() {
             }
             return total;
         },
+		getInstallmentAmount(row) {
+			if (!row) {
+				return 0;
+			}
+
+			const amount = parseFloat(row.amount) || 0;
+			const installments = row.isPeriodic
+				? Math.max(1, parseInt(row.installments, 10) || 1)
+				: 1;
+
+			return amount / installments;
+		},
+		formatMoneyValue(val) {
+			const numericVal = parseFloat(val) || 0;
+			return numericVal.toFixed(2);
+		},
         formatMXN(val) {
             return '$' + parseFloat(val).toLocaleString('es-MX', {
                 minimumFractionDigits: 2,
@@ -838,10 +931,30 @@ function docValidator(paymentConfigId, initialStatus) {
             if (this.loading) return;
             this.loading = true;
             try {
+				let observations = '';
+				if (newStatus === 'rechazado') {
+					const rejectionReason = window.prompt('Escribe el motivo de rechazo del documento:');
+					if (rejectionReason === null) {
+						return;
+					}
+
+					observations = rejectionReason.trim();
+					if (observations === '') {
+						Alpine.store('toast')?.show({
+							type: 'warning',
+							message: 'Debes indicar el motivo del rechazo.'
+						});
+						return;
+					}
+				}
+
                 const formData = new FormData();
                 formData.append('config_id', this.configId);
                 formData.append('status', newStatus);
-				const res = await fetch({=json_encode(url('/portal/prestamos/ajax/validar-documento.php'))}, {
+				if (observations !== '') {
+					formData.append('observations', observations);
+				}
+				const res = await fetch('/portal/prestamos/ajax/validar-documento.php', {
                     method: 'POST',
                     body: formData
                 });

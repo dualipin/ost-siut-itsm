@@ -93,10 +93,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     try {
         switch ($action) {
             case "aprobar":
-                $approvedAmount = filter_var(
-                    $_POST["approved_amount"] ?? "",
-                    FILTER_VALIDATE_FLOAT,
-                );
                 $interestRate = filter_var(
                     $_POST["applied_interest_rate"] ?? "",
                     FILTER_VALIDATE_FLOAT,
@@ -105,23 +101,26 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $_POST["daily_default_rate"] ?? "",
                     FILTER_VALIDATE_FLOAT,
                 );
-                $termFortnights = filter_var(
-                    $_POST["term_fortnights"] ?? "",
-                    FILTER_VALIDATE_INT,
-                );
                 $adminObs =
                     trim((string) ($_POST["admin_observations"] ?? "")) ?: null;
+                $approvedAmountsByType = is_array(
+                    $_POST["approved_amount_by_type"] ?? null,
+                )
+                    ? $_POST["approved_amount_by_type"]
+                    : [];
+                $approvedPercentagesByType = is_array(
+                    $_POST["approved_percentage_by_type"] ?? null,
+                )
+                    ? $_POST["approved_percentage_by_type"]
+                    : [];
+                $termFortnightsByType = is_array(
+                    $_POST["term_fortnights_by_type"] ?? null,
+                )
+                    ? $_POST["term_fortnights_by_type"]
+                    : [];
 
-                if ($approvedAmount === false || $approvedAmount <= 0) {
-                    $errors[] = "El monto a aprobar debe ser mayor a cero.";
-                    break;
-                }
                 if ($interestRate === false || $interestRate < 0) {
                     $errors[] = "La tasa de interés no es válida.";
-                    break;
-                }
-                if ($termFortnights === false || $termFortnights <= 0) {
-                    $errors[] = "El plazo en quincenas debe ser mayor a cero.";
                     break;
                 }
 
@@ -209,9 +208,105 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         ".";
                 }
 
+                $normalizedConfigsForApproval = [];
+                $approvedAmount = 0.0;
+                $termFortnights = 1;
+
+                foreach ($paymentConfigs as $config) {
+                    $paymentConfigId = (int) ($config["payment_config_id"] ?? 0);
+                    $incomeTypeId = (int) ($config["income_type_id"] ?? 0);
+                    $incomeTypeName = trim(
+                        (string) ($config["income_type_name"] ?? ""),
+                    );
+                    $incomeLabel = $incomeTypeName !== ""
+                        ? $incomeTypeName
+                        : ($incomeTypeId > 0
+                            ? "Tipo " . $incomeTypeId
+                            : "Tipo de descuento");
+
+                    $amountRaw = trim(
+                        (string) ($approvedAmountsByType[$paymentConfigId] ?? ""),
+                    );
+                    $approvedAmountByType = filter_var(
+                        $amountRaw,
+                        FILTER_VALIDATE_FLOAT,
+                    );
+                    if ($approvedAmountByType === false || $approvedAmountByType <= 0) {
+                        $errors[] =
+                            "El monto autorizado para " .
+                            $incomeLabel .
+                            " debe ser mayor a cero.";
+                        continue;
+                    }
+
+                    $percentageRaw = trim(
+                        (string) ($approvedPercentagesByType[$paymentConfigId] ?? ""),
+                    );
+                    if ($percentageRaw !== "") {
+                        $approvedPercentageByType = filter_var(
+                            $percentageRaw,
+                            FILTER_VALIDATE_FLOAT,
+                        );
+                        if (
+                            $approvedPercentageByType === false ||
+                            $approvedPercentageByType < 0 ||
+                            $approvedPercentageByType > 100
+                        ) {
+                            $errors[] =
+                                "El porcentaje autorizado para " .
+                                $incomeLabel .
+                                " debe estar entre 0 y 100.";
+                        }
+                    }
+
+                    $isPeriodicIncome = (bool) ($config["income_is_periodic"] ?? false);
+                    $installments = $isPeriodicIncome
+                        ? filter_var(
+                            $termFortnightsByType[$paymentConfigId] ?? "",
+                            FILTER_VALIDATE_INT,
+                        )
+                        : 1;
+
+                    if ($isPeriodicIncome) {
+                        if ($installments === false || $installments <= 0) {
+                            $errors[] =
+                                "Las parcialidades para " .
+                                $incomeLabel .
+                                " deben ser mayores a cero.";
+                            continue;
+                        }
+
+                        $termFortnights = max($termFortnights, (int) $installments);
+                    }
+
+                    $approvedAmount += (float) $approvedAmountByType;
+
+                    $normalizedConfigsForApproval[] = [
+                        "payment_config_id" => $paymentConfigId,
+                        "approved_amount" => round((float) $approvedAmountByType, 2),
+                        "number_of_installments" => $isPeriodicIncome
+                            ? (int) $installments
+                            : 1,
+                    ];
+                }
+
+                $approvedAmount = round($approvedAmount, 2);
+                if ($approvedAmount <= 0) {
+                    $errors[] = "El monto total a aprobar debe ser mayor a cero.";
+                }
+
                 if ($errors !== []) {
                     break;
                 }
+
+                $updatePaymentConfigStmt = $db->prepare(
+                    "UPDATE loan_payment_configuration
+                     SET total_amount_to_deduct = :total_amount_to_deduct,
+                         number_of_installments = :number_of_installments,
+                         amount_per_installment = :amount_per_installment
+                     WHERE payment_config_id = :payment_config_id
+                       AND loan_id = :loan_id",
+                );
 
                 // Fetch CURPs from profiles (not from form — per user requirement)
                 $borrowerStmt = $db->prepare(
@@ -226,17 +321,47 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $reviewerStmt->execute(["id" => $currentUser->id]);
                 $reviewerCurp = (string) ($reviewerStmt->fetchColumn() ?? "");
 
-                $reviewUseCase->approve(
-                    loanId: $loanId,
-                    reviewerId: $currentUser->id,
-                    approvedAmount: new Money($approvedAmount),
-                    appliedRate: InterestRate::fromPercentage($interestRate),
-                    dailyDefaultRate: (float) ($dailyDefaultRate ?: 0),
-                    termFortnights: $termFortnights,
-                    financeSignatoryCurp: $reviewerCurp,
-                    lenderSignatoryCurp: $borrowerCurp,
-                    adminObservations: $adminObs,
-                );
+                $db->beginTransaction();
+
+                try {
+                    foreach ($normalizedConfigsForApproval as $normalizedConfig) {
+                        $configAmount = (float) $normalizedConfig["approved_amount"];
+                        $configInstallments = max(
+                            1,
+                            (int) $normalizedConfig["number_of_installments"],
+                        );
+
+                        $updatePaymentConfigStmt->execute([
+                            "total_amount_to_deduct" => $configAmount,
+                            "number_of_installments" => $configInstallments,
+                            "amount_per_installment" =>
+                                $configAmount / $configInstallments,
+                            "payment_config_id" => (int) $normalizedConfig["payment_config_id"],
+                            "loan_id" => $loanId,
+                        ]);
+                    }
+
+                    $reviewUseCase->approve(
+                        loanId: $loanId,
+                        reviewerId: $currentUser->id,
+                        approvedAmount: new Money($approvedAmount),
+                        appliedRate: InterestRate::fromPercentage($interestRate),
+                        dailyDefaultRate: (float) ($dailyDefaultRate ?: 0),
+                        termFortnights: max(1, $termFortnights),
+                        financeSignatoryCurp: $reviewerCurp,
+                        lenderSignatoryCurp: $borrowerCurp,
+                        adminObservations: $adminObs,
+                    );
+
+                    $db->commit();
+                } catch (\Throwable $approvalError) {
+                    if ($db->inTransaction()) {
+                        $db->rollBack();
+                    }
+
+                    throw $approvalError;
+                }
+
                 $success = "El préstamo ha sido aprobado correctamente.";
                 break;
 
@@ -314,6 +439,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $_POST['new_term_fortnights'] ?? '',
                     FILTER_VALIDATE_INT,
                 );
+                $manualRestructuredAmountRaw = trim(
+                    (string) ($_POST['restructured_principal_amount'] ?? ''),
+                );
                 $restructureReasonType = strtolower(
                     trim((string) ($_POST['restructure_reason_type'] ?? '')),
                 );
@@ -323,6 +451,27 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $restructureObservationsRaw = trim(
                     (string) ($_POST['restructure_observations'] ?? ''),
                 );
+
+                $manualRestructuredAmount = null;
+                if ($manualRestructuredAmountRaw !== '') {
+                    $manualRestructuredAmountParsed = filter_var(
+                        $manualRestructuredAmountRaw,
+                        FILTER_VALIDATE_FLOAT,
+                    );
+
+                    if (
+                        $manualRestructuredAmountParsed === false ||
+                        (float) $manualRestructuredAmountParsed <= 0
+                    ) {
+                        $errors[] = 'El monto manual para reestructuración debe ser mayor a cero.';
+                        break;
+                    }
+
+                    $manualRestructuredAmount = round(
+                        (float) $manualRestructuredAmountParsed,
+                        2,
+                    );
+                }
 
                 $reasonLabels = [
                     'mora' => 'Mora',
@@ -432,13 +581,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $baseOutstandingBalance = $pendingPrincipal > 0
                     ? $pendingPrincipal
                     : $originalOutstandingBalance;
-                $restructuredPrincipal = round(
+                $calculatedRestructuredPrincipal = round(
                     $baseOutstandingBalance + $pendingInterest + $pendingDefaultInterest,
                     2,
                 );
+                $restructuredPrincipal = $manualRestructuredAmount ?? $calculatedRestructuredPrincipal;
 
                 if ($restructuredPrincipal <= 0) {
-                    $errors[] = 'No fue posible determinar un saldo base válido para reestructurar.';
+                    $errors[] = $manualRestructuredAmount === null
+                        ? 'No fue posible determinar un saldo base válido para reestructurar.'
+                        : 'El monto manual para reestructuración debe ser mayor a cero.';
                     break;
                 }
 
@@ -848,6 +1000,49 @@ $statusBadges = [
 $loan = $detail["loan"];
 $currentStatus = (string) $loan["status"];
 
+$restructureDefaultAmount = null;
+if (in_array($currentStatus, ["activo", "desembolsado"], true)) {
+    try {
+        $pendingSummaryStmt = $db->prepare(
+            "SELECT
+                COALESCE(SUM(principal), 0) AS pending_principal,
+                COALESCE(SUM(ordinary_interest), 0) AS pending_interest,
+                COALESCE(SUM(generated_default_interest), 0) AS pending_default_interest
+             FROM loan_amortization
+             WHERE loan_id = :loan_id
+               AND active = 1
+               AND payment_status IN ('pendiente', 'vencido')"
+        );
+        $pendingSummaryStmt->execute(['loan_id' => $loanId]);
+        $pendingSummary = $pendingSummaryStmt->fetch(\PDO::FETCH_ASSOC) ?: [];
+
+        $pendingPrincipalForDefault = (float) ($pendingSummary['pending_principal'] ?? 0.0);
+        $pendingInterestForDefault = (float) ($pendingSummary['pending_interest'] ?? 0.0);
+        $pendingDefaultInterestForDefault = (float) ($pendingSummary['pending_default_interest'] ?? 0.0);
+        $baseOutstandingForDefault = $pendingPrincipalForDefault > 0
+            ? $pendingPrincipalForDefault
+            : (float) ($loan['outstanding_balance'] ?? 0.0);
+
+        $calculatedDefaultAmount = round(
+            $baseOutstandingForDefault + $pendingInterestForDefault + $pendingDefaultInterestForDefault,
+            2,
+        );
+
+        if ($calculatedDefaultAmount > 0) {
+            $restructureDefaultAmount = $calculatedDefaultAmount;
+        }
+    } catch (\Throwable) {
+        $restructureDefaultAmount = null;
+    }
+}
+
+if ($restructureDefaultAmount === null) {
+    $fallbackOutstandingAmount = round((float) ($loan['outstanding_balance'] ?? 0.0), 2);
+    $restructureDefaultAmount = $fallbackOutstandingAmount > 0
+        ? $fallbackOutstandingAmount
+        : null;
+}
+
 // Handle PDF download request
 $form = new FormRequest();
 if ($form->input('output', 'html') === 'pdf' && !empty($detail['amortization'])) {
@@ -1224,6 +1419,7 @@ $renderer->render(__DIR__ . "/detalle.latte", [
     "user" => $currentUser,
     "detail" => $detail,
     "loan" => $loan,
+    "restructureDefaultAmount" => $restructureDefaultAmount,
     "statusLabel" => $statusLabels[$currentStatus] ?? ucfirst($currentStatus),
     "statusBadge" => $statusBadges[$currentStatus] ?? "bg-light text-dark",
     "statusLabels" => $statusLabels,

@@ -8,41 +8,6 @@
 		icon: 'bi-wallet2'
 	}
 
-	<div class="row g-3 mb-4">
-		<div class="col-12 col-lg-3">
-			<div class="card border-0 shadow-sm rounded-4 h-100">
-				<div class="card-body p-4">
-					<div class="text-muted small text-uppercase fw-semibold mb-1">Préstamos encontrados</div>
-					<div class="display-6 fw-bold text-primary mb-0">{$summary['total']}</div>
-				</div>
-			</div>
-		</div>
-		<div class="col-12 col-lg-3">
-			<div class="card border-0 shadow-sm rounded-4 h-100">
-				<div class="card-body p-4">
-					<div class="text-muted small text-uppercase fw-semibold mb-1">Saldo insoluto</div>
-					<div class="display-6 fw-bold text-success mb-0">${number_format($summary['balance'], 2)}</div>
-				</div>
-			</div>
-		</div>
-		<div class="col-12 col-lg-3">
-			<div class="card border-0 shadow-sm rounded-4 h-100">
-				<div class="card-body p-4">
-					<div class="text-muted small text-uppercase fw-semibold mb-1">Monto aprobado</div>
-					<div class="display-6 fw-bold text-info mb-0">${number_format($summary['approved'], 2)}</div>
-				</div>
-			</div>
-		</div>
-		<div class="col-12 col-lg-3">
-			<div class="card border-0 shadow-sm rounded-4 h-100">
-				<div class="card-body p-4">
-					<div class="text-muted small text-uppercase fw-semibold mb-1">Con atraso</div>
-					<div class="display-6 fw-bold text-danger mb-0">{$summary['overdue']}</div>
-				</div>
-			</div>
-		</div>
-	</div>
-
 	<div class="card border-0 shadow-sm rounded-4 mb-4">
 		<div class="card-body p-4">
 			<form method="GET" class="row g-3 align-items-end">
