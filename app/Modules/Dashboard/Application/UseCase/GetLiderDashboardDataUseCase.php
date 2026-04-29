@@ -31,7 +31,7 @@ final readonly class GetLiderDashboardDataUseCase
                 ],
                 [
                     'label' => 'Cartera Total',
-                    'value' => '$' . number_format($this->kpiRepository->getCarteTotalBalance(), 2),
+                    'value' => '$' . number_format($this->kpiRepository->getCarteTotalBalance(), 2, ',', '.'),
                     'icon' => 'cash-coin',
                     'color' => 'success',
                 ],

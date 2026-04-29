@@ -120,3 +120,81 @@ VALUES ('Cuota Ordinaria', 'income', 'Descuento quincenal aplicado por el patró
 INSERT INTO request_types (name, description, active)
 VALUES ('Lentes', 'Solicitud de apoyo para adquisición de lentes oftálmicos.', TRUE),
        ('Laptop', 'Solicitud de apoyo para adquisición de equipo de cómputo portátil.', TRUE);
+
+-- 1. Nómina
+UPDATE cat_income_types 
+SET name = 'Nómina', 
+    description = 'Ingreso por concepto de nómina' 
+WHERE name = 'Nomina';
+
+-- 2. Día del Servidor Público
+UPDATE cat_income_types 
+SET name = 'Día del Servidor Público', 
+    description = 'Día del Servidor Público (conmemoración)' 
+WHERE name = 'DIA SERVIDOR PUBLICO';
+
+-- 3. Día del Padre
+UPDATE cat_income_types 
+SET name = 'Día del Padre', 
+    description = 'Día del Padre (tercer domingo de junio) — 2026: 21/jun' 
+WHERE name = 'DIA DEL PADRE';
+
+-- 4. Día de la Madre
+UPDATE cat_income_types 
+SET name = 'Día de la Madre', 
+    description = 'Día de la Madre — 2026: 10/may' 
+WHERE name = 'DIA DE LA MADRE';
+
+-- 5. Día del Maestro
+UPDATE cat_income_types 
+SET name = 'Día del Maestro', 
+    description = 'Día del Maestro — 2026: 15/may' 
+WHERE name = 'DIA DEL MAESTRO';
+
+-- 6. Prima Vacacional (1er Periodo)
+UPDATE cat_income_types 
+SET name = 'Prima Vacacional 12 Días, 1er. Periodo', 
+    description = 'Prima vacacional — primer periodo (fecha recomendada)' 
+WHERE name = 'Prima Vacacional 12 Dias, 1ER. Periodo';
+
+-- 7. Retroactivo
+UPDATE cat_income_types 
+SET name = 'Retroactivo', 
+    description = 'Pago retroactivo' 
+WHERE name = 'RETROACTIVO';
+
+-- 8. Aguinaldo
+UPDATE cat_income_types 
+SET name = 'Aguinaldo 40 Días', 
+    description = 'Aguinaldo (pago anual) — fecha límite legal en México: 20/dic' 
+WHERE name = 'Aguinaldo 40 Dias';
+
+-- 9. Prima Vacacional (2do Periodo)
+UPDATE cat_income_types 
+SET name = 'Prima Vacacional 12 Días, 2do. Periodo', 
+    description = 'Prima vacacional — segundo periodo (fecha recomendada)' 
+WHERE name = 'Prima Vacacional 12 Dias, 2do. Periodo';
+
+-- 10. Bono Navideño
+UPDATE cat_income_types 
+SET name = 'Bono Navideño', 
+    description = 'Bono navideño anual (fecha recomendada)' 
+WHERE name = 'Bono Navideno';
+
+-- 11. Ajuste al Calendario
+UPDATE cat_income_types 
+SET name = 'Ajuste al Calendario 5 Días', 
+    description = 'Ajuste al calendario (5 días) — aplicado fin de año' 
+WHERE name = 'Ajuste al Calendario 5 Dias';
+
+-- 12. Otras Prestaciones de Fin de Año
+UPDATE cat_income_types 
+SET name = '9 Días Otras Prestaciones de Fin de Año', 
+    description = 'Otras prestaciones de fin de año (9 días) — recomendada en dic' 
+WHERE name = '9 DIAS Otras Prestaciones de Fin de Ano';
+
+-- 13. Complemento al Aguinaldo
+UPDATE cat_income_types 
+SET name = '5 Días Complemento al Aguinaldo', 
+    description = 'Complemento al aguinaldo (5 días) — recomendada en dic' 
+WHERE name = '5 DIAS Complemento al Aguinaldo';

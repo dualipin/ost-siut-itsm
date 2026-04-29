@@ -162,11 +162,11 @@ foreach ($loans as &$loan) {
 	$loan['last_payment_date_label'] = !empty($loan['last_scheduled_payment_date'])
 		? date('d/m/Y', strtotime((string) $loan['last_scheduled_payment_date']))
 		: '—';
-	$loan['requested_amount_label'] = '$' . number_format((float) $loan['requested_amount'], 2);
+	$loan['requested_amount_label'] = '$' . number_format((float) $loan['requested_amount'], 2, ',', '.');
 	$loan['approved_amount_label'] = $loan['approved_amount'] !== null
-		? '$' . number_format((float) $loan['approved_amount'], 2)
+		? '$' . number_format((float) $loan['approved_amount'], 2, ',', '.')
 		: '—';
-	$loan['outstanding_balance_label'] = '$' . number_format((float) $loan['outstanding_balance'], 2);
+	$loan['outstanding_balance_label'] = '$' . number_format((float) $loan['outstanding_balance'], 2, ',', '.');
 	$loan['days_overdue_label'] = (int) $loan['max_days_overdue'] > 0
 		? (int) $loan['max_days_overdue'] . ' días'
 		: 'Al corriente';

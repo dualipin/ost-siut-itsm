@@ -106,7 +106,7 @@
 							<p class="text-muted small text-uppercase fw-semibold mb-3">Solicitado por el empleado</p>
 							<div class="d-flex justify-content-between mb-2">
 								<span class="text-muted">Monto solicitado</span>
-								<span class="fw-semibold">${number_format((float) $loan['requested_amount'], 2)}</span>
+								<span class="fw-semibold">${number_format((float) $loan['requested_amount'], 2, ',', '.')}</span>
 							</div>
 							<div class="d-flex justify-content-between mb-2">
 								<span class="text-muted">Tasa de interés</span>
@@ -161,7 +161,7 @@
 								<span class="text-muted small">Total estimado a pagar</span>
 								<span class="fw-bold fs-5 text-primary" x-text="formatMXN(estimatedTotal)">
 									{if $loan['estimated_total_to_pay']}
-										${number_format((float) $loan['estimated_total_to_pay'], 2)}
+											${number_format((float) $loan['estimated_total_to_pay'], 2, ',', '.')}
 									{else}—{/if}
 								</span>
 							</div>
@@ -224,7 +224,7 @@
 											</div>
 										</div>
 										{else}
-										<div class="fw-semibold">${number_format((float) $config['total_amount_to_deduct'], 2)}</div>
+												<div class="fw-semibold">${number_format((float) $config['total_amount_to_deduct'], 2, ',', '.')}</div>
 										{/if}
 									</td>
 									<td class="py-3">
@@ -251,7 +251,7 @@
 										<span x-text="formatMXN(getInstallmentAmount(paymentConfigs[{$configIndex}]))"></span>
 										{else}
 											{if $config['amount_per_installment']}
-											${number_format((float) $config['amount_per_installment'], 2)}
+													${number_format((float) $config['amount_per_installment'], 2, ',', '.')}
 											{else}—{/if}
 										{/if}
 									</td>
@@ -376,11 +376,11 @@
 								<tr>
 									<td class="py-2 text-muted">{$row['payment_number']}</td>
 									<td class="py-2">{date('d/m/Y', strtotime($row['scheduled_date']))}</td>
-									<td class="py-2">${number_format((float) $row['initial_balance'], 2)}</td>
-									<td class="py-2">${number_format((float) $row['principal'], 2)}</td>
-									<td class="py-2 text-warning">${number_format((float) $row['ordinary_interest'], 2)}</td>
-									<td class="py-2 fw-semibold text-primary">${number_format((float) $row['total_scheduled_payment'], 2)}</td>
-									<td class="py-2 text-muted">${number_format((float) $row['final_balance'], 2)}</td>
+												<td class="py-2">${number_format((float) $row['initial_balance'], 2, ',', '.')}</td>
+												<td class="py-2">${number_format((float) $row['principal'], 2, ',', '.')}</td>
+												<td class="py-2 text-warning">${number_format((float) $row['ordinary_interest'], 2, ',', '.')}</td>
+												<td class="py-2 fw-semibold text-primary">${number_format((float) $row['total_scheduled_payment'], 2, ',', '.')}</td>
+												<td class="py-2 text-muted">${number_format((float) $row['final_balance'], 2, ',', '.')}</td>
 								</tr>
 								{/foreach}
 							</tbody>
@@ -390,9 +390,9 @@
 									{var $totalPrincipal = array_sum(array_column($detail['amortization'], 'principal'))}
 									{var $totalInterest = array_sum(array_column($detail['amortization'], 'ordinary_interest'))}
 									{var $totalPayment = array_sum(array_column($detail['amortization'], 'total_scheduled_payment'))}
-									<td class="py-2">${number_format($totalPrincipal, 2)}</td>
-									<td class="py-2 text-warning">${number_format($totalInterest, 2)}</td>
-									<td class="py-2 text-primary">${number_format($totalPayment, 2)}</td>
+												<td class="py-2">${number_format($totalPrincipal, 2, ',', '.')}</td>
+												<td class="py-2 text-warning">${number_format($totalInterest, 2, ',', '.')}</td>
+												<td class="py-2 text-primary">${number_format($totalPayment, 2, ',', '.')}</td>
 									<td></td>
 								</tr>
 							</tfoot>
@@ -534,25 +534,25 @@
 						<div class="col-6 col-md-4">
 							<div class="text-muted small text-uppercase fw-semibold mb-1">Saldo insoluto anterior</div>
 							<div class="fw-semibold text-danger">
-								${number_format((float) ($r->original_outstanding_balance ?? 0), 2)}
+								${number_format((float) ($r->original_outstanding_balance ?? 0), 2, ',', '.')}
 							</div>
 						</div>
 						<div class="col-6 col-md-4">
 							<div class="text-muted small text-uppercase fw-semibold mb-1">Interés pendiente</div>
 							<div class="fw-semibold text-warning">
-								${number_format((float) ($r->pending_interest ?? 0), 2)}
+								${number_format((float) ($r->pending_interest ?? 0), 2, ',', '.')}
 							</div>
 						</div>
 						<div class="col-6 col-md-4">
 							<div class="text-muted small text-uppercase fw-semibold mb-1">Interés moratorio pendiente</div>
 							<div class="fw-semibold text-danger">
-								${number_format((float) ($r->pending_default_interest ?? 0), 2)}
+								${number_format((float) ($r->pending_default_interest ?? 0), 2, ',', '.')}
 							</div>
 						</div>
 						<div class="col-6 col-md-4">
 							<div class="text-muted small text-uppercase fw-semibold mb-1">Nuevo monto total</div>
 							<div class="fw-semibold">
-								${number_format((float) ($r->new_total_amount ?? 0), 2)}
+								${number_format((float) ($r->new_total_amount ?? 0), 2, ',', '.')}
 							</div>
 						</div>
 						<div class="col-6 col-md-4">

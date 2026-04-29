@@ -202,7 +202,7 @@
 							{foreach $detail['payment_configs'] as $config}
 								<tr>
 									<td class="py-3">{$config['income_type_name']}</td>
-									<td class="py-3 fw-semibold">${number_format((float) $config['total_amount_to_deduct'], 2)}</td>
+											<td class="py-3 fw-semibold">${number_format((float) $config['total_amount_to_deduct'], 2, ',', '.')}</td>
 									<td class="py-3">{$config['number_of_installments']}</td>
 									<td class="py-3">
 										{if $config['supporting_document_url']}

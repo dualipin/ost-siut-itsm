@@ -1,3 +1,5 @@
+php_value date.timezone 'America/Mexico_City'
+
 RewriteEngine On
 
 RewriteCond %{REQUEST_URI} !^/public/

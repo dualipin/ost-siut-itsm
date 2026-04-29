@@ -36,11 +36,11 @@
           <div class="row g-3 mb-4">
             <div class="col-6 col-sm-3">
               <small class="text-muted d-block mb-1">Monto Original</small>
-              <strong class="text-dark">${number_format($activeLoan['original_amount'], 2, '.', ',')}</strong>
+              <strong class="text-dark">${number_format($activeLoan['original_amount'], 2, ',', '.')}</strong>
             </div>
             <div class="col-6 col-sm-3">
               <small class="text-muted d-block mb-1">Aprobado</small>
-              <strong class="text-dark">${number_format($activeLoan['approved_amount'], 2, '.', ',')}</strong>
+              <strong class="text-dark">${number_format($activeLoan['approved_amount'], 2, ',', '.')}</strong>
             </div>
             <div class="col-6 col-sm-3">
               <small class="text-muted d-block mb-1">Tasa</small>
@@ -69,13 +69,13 @@
           <div class="row g-3 border-top pt-4">
             <div class="col-6 col-sm-4">
               <small class="text-muted d-block mb-1">Saldo Pendiente</small>
-              <strong class="h5 text-danger mb-0">${number_format($activeLoan['outstanding_balance'], 2, '.', ',')}</strong>
+              <strong class="h5 text-danger mb-0">${number_format($activeLoan['outstanding_balance'], 2, ',', '.')}</strong>
             </div>
             <div class="col-6 col-sm-4">
               <small class="text-muted d-block mb-1">Próximo Pago</small>
               {var $nextPayment = array_values(array_filter($amortizationTable, fn($p) => $p['status'] === 'pendiente'))[0] ?? null}
               {if $nextPayment}
-                <strong class="h5 mb-0">${number_format($nextPayment['total'], 2, '.', ',')}</strong>
+                <strong class="h5 mb-0">${number_format($nextPayment['total'], 2, ',', '.')}</strong>
                 <small class="d-block text-muted">{$nextPayment['scheduled_date']|date:'d/m/Y'}</small>
               {else}
                 <strong class="h5 text-success mb-0">Liquidado</strong>
@@ -142,10 +142,10 @@
                     <tr class="{if $payment['status'] === 'pagado'}table-success-subtle{elseif $payment['days_overdue'] > 0}table-danger-subtle{elseif $payment['status'] === 'pendiente'}table-warning-subtle{/if}">
                       <td class="px-4 py-3 fw-bold">#{$payment['payment_number']}</td>
                       <td class="px-4 py-3">{$payment['scheduled_date']|date:'d/m/Y'}</td>
-                      <td class="px-4 py-3 text-end">${number_format($payment['principal'], 2, '.', ',')}</td>
-                      <td class="px-4 py-3 text-end">${number_format($payment['interest'], 2, '.', ',')}</td>
-                      <td class="px-4 py-3 text-end fw-bold">${number_format($payment['total'], 2, '.', ',')}</td>
-                      <td class="px-4 py-3 text-end">${number_format($payment['balance'], 2, '.', ',')}</td>
+                    <td class="px-4 py-3 text-end">${number_format($payment['principal'], 2, ',', '.')}</td>
+                    <td class="px-4 py-3 text-end">${number_format($payment['interest'], 2, ',', '.')}</td>
+                    <td class="px-4 py-3 text-end fw-bold">${number_format($payment['total'], 2, ',', '.')}</td>
+                    <td class="px-4 py-3 text-end">${number_format($payment['balance'], 2, ',', '.')}</td>
                       <td class="px-4 py-3">
                         {if $payment['status'] === 'pagado'}
                           <i class="bi bi-check-circle-fill text-success"></i>

@@ -125,7 +125,7 @@ foreach ($loans as &$loan) {
     $loan['status_badge']   = $statusBadges[$loan['status']] ?? 'bg-light text-dark';
     $loan['is_restructuring'] = !empty($loan['original_loan_id']) || (bool) $loan['requires_restructuring'];
     $loan['application_date_label'] = date('d/m/Y H:i', strtotime((string) $loan['application_date']));
-    $loan['requested_amount_label'] = '$' . number_format((float) $loan['requested_amount'], 2);
+    $loan['requested_amount_label'] = '$' . number_format((float) $loan['requested_amount'], 2, ',', '.');
     $loan['days_elapsed']   = (int) $loan['days_elapsed'];
 
     $summary[$loan['status']] = ($summary[$loan['status']] ?? 0) + 1;

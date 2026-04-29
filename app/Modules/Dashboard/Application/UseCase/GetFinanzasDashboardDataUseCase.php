@@ -35,7 +35,7 @@ final readonly class GetFinanzasDashboardDataUseCase
                 ],
                 [
                     'label' => 'Por Cobrar Hoy',
-                    'value' => '$' . number_format($totalScheduledToday, 2),
+                    'value' => '$' . number_format($totalScheduledToday, 2, ',', '.'),
                     'icon' => 'cash-coin',
                     'color' => 'success',
                 ],

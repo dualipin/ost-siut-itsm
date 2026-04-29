@@ -59,7 +59,7 @@
   <div class="col-6 col-md-3">
     <div class="p-3 bg-white border-0 shadow-sm rounded-4 text-center border-start border-danger border-4">
       <p class="text-muted small fw-bold text-uppercase mb-1">Total Adeudo</p>
-      <h3 class="fw-bold mb-0 text-danger">${number_format($granTotalAdeudo, 2)}</h3>
+      <h3 class="fw-bold mb-0 text-danger">${number_format($granTotalAdeudo, 2, ',', '.')}</h3>
     </div>
   </div>
 </div>
@@ -112,11 +112,11 @@
                 {if $enc->mesAdmSeleccionado('dic')}
                   <div class="py-1">
                     <span class="badge border border-success text-success bg-white px-2 py-1 mb-1">
-                      $<span>{number_format($enc->pagadoEnMes('dic'), 2)}</span>
+                      $<span>{number_format($enc->pagadoEnMes('dic'), 2, ',', '.')}</span>
                     </span>
                     <div class="text-muted" style="font-size:.62rem; line-height: 1;">
-                      P: ${number_format($enc->admDicPuntualidad ?? 0, 2)}<br>
-                      A: ${number_format($enc->admDicAsistencia ?? 0, 2)}
+                      P: ${number_format($enc->admDicPuntualidad ?? 0, 2, ',', '.')}<br>
+                      A: ${number_format($enc->admDicAsistencia ?? 0, 2, ',', '.')}
                     </div>
                   </div>
                 {else}
@@ -129,11 +129,11 @@
                 {if $enc->mesAdmSeleccionado('ene')}
                   <div class="py-1">
                     <span class="badge border border-success text-success bg-white px-2 py-1 mb-1">
-                      $<span>{number_format($enc->pagadoEnMes('ene'), 2)}</span>
+                      $<span>{number_format($enc->pagadoEnMes('ene'), 2, ',', '.')}</span>
                     </span>
                     <div class="text-muted" style="font-size:.62rem; line-height: 1;">
-                      P: ${number_format($enc->admEnePuntualidad ?? 0, 2)}<br>
-                      A: ${number_format($enc->admEneAsistencia ?? 0, 2)}
+                      P: ${number_format($enc->admEnePuntualidad ?? 0, 2, ',', '.')}<br>
+                      A: ${number_format($enc->admEneAsistencia ?? 0, 2, ',', '.')}
                     </div>
                   </div>
                 {else}
@@ -146,11 +146,11 @@
                 {if $enc->mesAdmSeleccionado('feb')}
                   <div class="py-1">
                     <span class="badge border border-success text-success bg-white px-2 py-1 mb-1">
-                      $<span>{number_format($enc->pagadoEnMes('feb'), 2)}</span>
+                      $<span>{number_format($enc->pagadoEnMes('feb'), 2, ',', '.')}</span>
                     </span>
                     <div class="text-muted" style="font-size:.62rem; line-height: 1;">
-                      P: ${number_format($enc->admFebPuntualidad ?? 0, 2)}<br>
-                      A: ${number_format($enc->admFebAsistencia ?? 0, 2)}
+                      P: ${number_format($enc->admFebPuntualidad ?? 0, 2, ',', '.')}<br>
+                      A: ${number_format($enc->admFebAsistencia ?? 0, 2, ',', '.')}
                     </div>
                   </div>
                 {else}
@@ -163,11 +163,11 @@
                 {if $enc->mesAdmSeleccionado('mar')}
                   <div class="py-1">
                     <span class="badge border border-success text-success bg-white px-2 py-1 mb-1">
-                      $<span>{number_format($enc->pagadoEnMes('mar'), 2)}</span>
+                      $<span>{number_format($enc->pagadoEnMes('mar'), 2, ',', '.')}</span>
                     </span>
                     <div class="text-muted" style="font-size:.62rem; line-height: 1;">
-                      P: ${number_format($enc->admMarPuntualidad ?? 0, 2)}<br>
-                      A: ${number_format($enc->admMarAsistencia ?? 0, 2)}
+                      P: ${number_format($enc->admMarPuntualidad ?? 0, 2, ',', '.')}<br>
+                      A: ${number_format($enc->admMarAsistencia ?? 0, 2, ',', '.')}
                     </div>
                   </div>
                 {else}
@@ -175,10 +175,10 @@
                 {/if}
               </td>
 
-              <td class="text-center px-2 fw-bold text-success">${number_format($enc->totalPagado(), 2)}</td>
+              <td class="text-center px-2 fw-bold text-success">${number_format($enc->totalPagado(), 2, ',', '.')}</td>
               <td class="text-center px-2">
                 {if $enc->totalAdeudo() > 0}
-                  <span class="fw-bold text-danger">${number_format($enc->totalAdeudo(), 2)}</span>
+                  <span class="fw-bold text-danger">${number_format($enc->totalAdeudo(), 2, ',', '.')}</span>
                 {else}
                   <span class="badge border border-danger text-danger bg-white fw-normal">Con Adeudo</span>
                 {/if}
@@ -281,10 +281,10 @@
                   </span>
                 {/if}
               </td>
-              <td class="text-center px-3 fw-bold text-success">${number_format($enc->totalPagado(), 2)}</td>
+              <td class="text-center px-3 fw-bold text-success">${number_format($enc->totalPagado(), 2, ',', '.')}</td>
               <td class="text-center px-3">
                 {if $enc->totalAdeudo() > 0}
-                  <span class="fw-bold text-danger">${number_format($enc->totalAdeudo(), 2)}</span>
+                  <span class="fw-bold text-danger">${number_format($enc->totalAdeudo(), 2, ',', '.')}</span>
                 {else}
                   <span class="badge border border-danger text-danger bg-white fw-normal">Con Adeudo</span>
                 {/if}
@@ -344,11 +344,11 @@
         </div>
         <div class="col-md-4 border-end border-white border-opacity-25">
           <p class="text-white text-opacity-75 small fw-bold text-uppercase mb-1">Pagado Acumulado</p>
-          <h3 class="fw-bold mb-0">${number_format($granTotalPagado, 2)}</h3>
+          <h3 class="fw-bold mb-0">${number_format($granTotalPagado, 2, ',', '.')}</h3>
         </div>
         <div class="col-md-4">
           <p class="text-white text-opacity-75 small fw-bold text-uppercase mb-1">Adeudo Acumulado</p>
-          <h3 class="fw-bold mb-0 text-warning">${number_format($granTotalAdeudo, 2)}</h3>
+          <h3 class="fw-bold mb-0 text-warning">${number_format($granTotalAdeudo, 2, ',', '.')}</h3>
         </div>
       </div>
     </div>

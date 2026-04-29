@@ -54,7 +54,7 @@
             <li class="mb-2"><span class="text-muted">Categoría:</span> {$user->workData->category ?? '—'}</li>
             <li class="mb-2"><span class="text-muted">NSS:</span> {$user->workData->nss ?? '—'}</li>
             <li class="mb-2"><span class="text-muted">Salario:</span>
-              ${number_format($user->workData->salary, 2)}
+              ${number_format($user->workData->salary, 2, ',', '.')}
             </li>
             <li class="mb-2"><span class="text-muted">Fecha de ingreso:</span>
               {$user->workData->workStartDate?->format('d/m/Y') ?? '—'}
