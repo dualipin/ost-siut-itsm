@@ -110,7 +110,8 @@
           </div>
           <div class="col-md-6 mb-3">
             <label class="form-label">Tasa Anual (%)</label>
-            <input type="number" class="form-control" step="0.1" min="0" x-model.number="interestRate" required>
+            <input type="number" class="form-control" name="applied_interest_rate" step="0.1" min="0" max="100" x-model.number="interestRate" required>
+            <div class="form-text">La tasa final se confirma en revisión por Admin/Lider/Finanzas.</div>
           </div>
         </div>
 

@@ -9,6 +9,7 @@ use App\Modules\Loan\Application\Service\AmortizationCalculator;
 use App\Modules\Loan\Application\UseCase\SubmitLoanApplicationUseCase;
 use App\Modules\Loan\Domain\Repository\SaverUserRepositoryInterface;
 use App\Modules\Loan\Domain\Exception\InvalidLoanStatusException;
+use App\Modules\Loan\Domain\ValueObject\InterestRate;
 use App\Shared\Context\UserContextInterface;
 
 require_once __DIR__ . "/../../../bootstrap.php";
@@ -73,6 +74,9 @@ if ($request->method() === "POST") {
         $amortizationCalculator = $container->get(AmortizationCalculator::class);
         
         $requestedAmount = (float) $request->input('requested_amount');
+        $interestRateRaw = $request->input('applied_interest_rate', null);
+        $interestRateValue = filter_var($interestRateRaw, FILTER_VALIDATE_FLOAT);
+        $customRate = null;
         $incomeAmounts = $_POST['income_amounts'] ?? [];
         $incomeInstallments = $_POST['income_installments'] ?? [];
         $incomeLastDates = $_POST['income_last_dates'] ?? [];
@@ -258,6 +262,11 @@ if ($request->method() === "POST") {
         if ($requestedAmount <= 0) {
             $errors[] = "El monto solicitado debe ser mayor a cero";
         }
+        if ($interestRateRaw === null || $interestRateRaw === '' || $interestRateValue === false || $interestRateValue < 0 || $interestRateValue > 100) {
+            $errors[] = "La tasa de interés debe estar entre 0 y 100.";
+        } else {
+            $customRate = InterestRate::fromPercentage((float) $interestRateValue);
+        }
         if (round($totalDistributed, 2) !== round($requestedAmount, 2)) {
             $errors[] = "El monto distribuido debe coincidir exactamente con el monto solicitado.";
         }
@@ -291,7 +300,8 @@ if ($request->method() === "POST") {
                     $updateDraftStmt = $db->prepare(
                         'UPDATE loans
                          SET requested_amount = :requested_amount,
-                             term_fortnights = :term_fortnights
+                             term_fortnights = :term_fortnights,
+                             applied_interest_rate = :applied_interest_rate
                          WHERE loan_id = :loan_id
                            AND user_id = :user_id
                            AND status = :status
@@ -300,6 +310,7 @@ if ($request->method() === "POST") {
                     $updateDraftStmt->execute([
                         'requested_amount' => $requestedAmount,
                         'term_fortnights' => $termFortnights,
+                        'applied_interest_rate' => (float) $interestRateValue,
                         'loan_id' => (int) $draftState['loan_id'],
                         'user_id' => (int) $currentUser->id,
                         'status' => 'borrador',
@@ -385,7 +396,8 @@ if ($request->method() === "POST") {
                     $currentUser->id,
                     $currentUser->role,
                     new \App\Modules\Loan\Domain\ValueObject\Money($requestedAmount),
-                    $paymentConfigs
+                    $paymentConfigs,
+                    $customRate
                 );
 
                 $loanId = $result['loan_id'];
