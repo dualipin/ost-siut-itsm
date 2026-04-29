@@ -38,9 +38,9 @@
                     <td class="px-4 py-3"><span class="badge bg-primary">{$payment['folio']}</span></td>
                     <td class="px-4 py-3 fw-medium">{$payment['user_name']|truncate:25}</td>
                     <td class="px-4 py-3">#{$payment['payment_number']}</td>
-                    <td class="px-4 py-3 text-end">${number_format($payment['principal'], 2, '.', ',')}</td>
-                    <td class="px-4 py-3 text-end">${number_format($payment['interest'], 2, '.', ',')}</td>
-                    <td class="px-4 py-3 text-end fw-bold">${number_format($payment['total'], 2, '.', ',')}</td>
+                    <td class="px-4 py-3 text-end">${number_format($payment['principal'], 2, ',', '.')}</td>
+                    <td class="px-4 py-3 text-end">${number_format($payment['interest'], 2, ',', '.')}</td>
+                    <td class="px-4 py-3 text-end fw-bold">${number_format($payment['total'], 2, ',', '.')}</td>
                     <td class="px-4 py-3">
                       {if $payment['status'] === 'pagado'}
                         <span class="badge bg-success">Pagado</span>
@@ -67,7 +67,7 @@
       <div class="card-footer border-top bg-light rounded-bottom-4 p-4">
         <div class="d-flex justify-content-between align-items-center">
           <strong class="text-dark">Total por cobrar hoy:</strong>
-          <h5 class="mb-0 text-primary fw-bold">${number_format($totalScheduledToday ?? 0, 2, '.', ',')}</h5>
+          <h5 class="mb-0 text-primary fw-bold">${number_format($totalScheduledToday ?? 0, 2, ',', '.')}</h5>
         </div>
       </div>
     </div>
@@ -103,7 +103,7 @@
                     <td class="px-4 py-3">{$payment['user_name']|truncate:25}</td>
                     <td class="px-4 py-3">#{$payment['payment_number']}</td>
                     <td class="px-4 py-3"><span class="badge bg-danger">{$payment['days_overdue']}d</span></td>
-                    <td class="px-4 py-3 text-end text-danger fw-bold">${number_format($payment['generated_default_interest'], 2, '.', ',')}</td>
+                    <td class="px-4 py-3 text-end text-danger fw-bold">${number_format($payment['generated_default_interest'], 2, ',', '.')}</td>
                     <td class="px-4 py-3">
                       <button class="btn btn-sm btn-danger rounded-pill" type="button">Gestionar</button>
                     </td>
@@ -138,7 +138,7 @@
                   <small class="text-muted">{$forecast['count']} pago{$forecast['count'] != 1 ? 's' : ''}</small>
                 </div>
                 <div class="text-end">
-                  <strong class="d-block text-primary">${number_format($forecast['total'], 2, '.', ',')}</strong>
+                  <strong class="d-block text-primary">${number_format($forecast['total'], 2, ',', '.')}</strong>
                 </div>
               </div>
             {/foreach}
@@ -230,7 +230,7 @@
                   <tr>
                     <td class="px-4 py-3 fw-bold">{$restr['original_folio']}</td>
                     <td class="px-4 py-3"><span class="badge bg-info-subtle text-info">{$restr['new_folio']}</span></td>
-                    <td class="px-4 py-3">${number_format($restr['new_total_amount'], 2)}</td>
+                    <td class="px-4 py-3">${number_format($restr['new_total_amount'], 2, ',', '.')}</td>
                     <td class="px-4 py-3">{$restr['new_interest_rate']}%</td>
                     <td class="px-4 py-3">{$restr['new_term_fortnights']}</td>
                   </tr>

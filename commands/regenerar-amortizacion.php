@@ -111,21 +111,21 @@ if (!empty($rowsForUpdate)) {
     $lastRow = end($rowsForUpdate);
     
     echo "Primera cuota: " . $firstRow->scheduledDate()->format('d/m/Y') . 
-         " - Capital: $" . number_format($firstRow->principal()->amount(), 2) . 
-         " - Interés: $" . number_format($firstRow->ordinaryInterest()->amount(), 2) . "\n";
+         " - Capital: $" . number_format($firstRow->principal()->amount(), 2, ',', '.') . 
+         " - Interés: $" . number_format($firstRow->ordinaryInterest()->amount(), 2, ',', '.') . "\n";
     
     echo "Última cuota: " . $lastRow->scheduledDate()->format('d/m/Y') . 
-         " - Capital: $" . number_format($lastRow->principal()->amount(), 2) . 
-         " - Interés: $" . number_format($lastRow->ordinaryInterest()->amount(), 2) . "\n";
+         " - Capital: $" . number_format($lastRow->principal()->amount(), 2, ',', '.') . 
+         " - Interés: $" . number_format($lastRow->ordinaryInterest()->amount(), 2, ',', '.') . "\n";
     
     $totalCapital = array_reduce($rowsForUpdate, fn($sum, $row) => $sum + $row->principal()->amount(), 0);
     $totalInterest = array_reduce($rowsForUpdate, fn($sum, $row) => $sum + $row->ordinaryInterest()->amount(), 0);
     $totalPayment = array_reduce($rowsForUpdate, fn($sum, $row) => $sum + $row->totalScheduledPayment()->amount(), 0);
     
     echo "\nTotales:\n";
-    echo "  Capital: $" . number_format($totalCapital, 2) . "\n";
-    echo "  Interés: $" . number_format($totalInterest, 2) . "\n";
-    echo "  Pago total: $" . number_format($totalPayment, 2) . "\n";
+    echo "  Capital: $" . number_format($totalCapital, 2, ',', '.') . "\n";
+    echo "  Interés: $" . number_format($totalInterest, 2, ',', '.') . "\n";
+    echo "  Pago total: $" . number_format($totalPayment, 2, ',', '.') . "\n";
 }
 
 exit(0);

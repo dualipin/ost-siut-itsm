@@ -300,13 +300,13 @@ $statusBadges = [
 
 $loan['status_label'] = $statusLabels[$loan['status']] ?? ucfirst((string) $loan['status']);
 $loan['status_badge'] = $statusBadges[$loan['status']] ?? 'bg-light text-dark';
-$loan['requested_amount_label'] = '$' . number_format((float) $loan['requested_amount'], 2);
+$loan['requested_amount_label'] = '$' . number_format((float) $loan['requested_amount'], 2, ',', '.');
 $loan['approved_amount_label'] = $loan['approved_amount'] !== null
-    ? '$' . number_format((float) $loan['approved_amount'], 2)
+    ? '$' . number_format((float) $loan['approved_amount'], 2, ',', '.')
     : '—';
-$loan['outstanding_balance_label'] = '$' . number_format((float) $loan['outstanding_balance'], 2);
+$loan['outstanding_balance_label'] = '$' . number_format((float) $loan['outstanding_balance'], 2, ',', '.');
 $loan['estimated_total_label'] = $loan['estimated_total_to_pay'] !== null
-    ? '$' . number_format((float) $loan['estimated_total_to_pay'], 2)
+    ? '$' . number_format((float) $loan['estimated_total_to_pay'], 2, ',', '.')
     : '—';
 $loan['application_date_label'] = !empty($loan['application_date'])
     ? date('d/m/Y H:i', strtotime((string) $loan['application_date']))
@@ -335,11 +335,11 @@ foreach ($amortization as &$row) {
     $row['scheduled_date_label'] = !empty($row['scheduled_date'])
         ? date('d/m/Y', strtotime((string) $row['scheduled_date']))
         : '—';
-    $row['initial_balance_label'] = '$' . number_format((float) $row['initial_balance'], 2);
-    $row['principal_label'] = '$' . number_format((float) $row['principal'], 2);
-    $row['ordinary_interest_label'] = '$' . number_format((float) $row['ordinary_interest'], 2);
-    $row['total_scheduled_payment_label'] = '$' . number_format((float) $row['total_scheduled_payment'], 2);
-    $row['final_balance_label'] = '$' . number_format((float) $row['final_balance'], 2);
+    $row['initial_balance_label'] = '$' . number_format((float) $row['initial_balance'], 2, ',', '.');
+    $row['principal_label'] = '$' . number_format((float) $row['principal'], 2, ',', '.');
+    $row['ordinary_interest_label'] = '$' . number_format((float) $row['ordinary_interest'], 2, ',', '.');
+    $row['total_scheduled_payment_label'] = '$' . number_format((float) $row['total_scheduled_payment'], 2, ',', '.');
+    $row['final_balance_label'] = '$' . number_format((float) $row['final_balance'], 2, ',', '.');
 
     $totals['principal'] += (float) $row['principal'];
     $totals['interest'] += (float) $row['ordinary_interest'];
@@ -735,9 +735,9 @@ if ($form->input('output', 'html') === 'pdf' && !empty($detail['amortization']))
     exit;
 }
 
-$totals['principal_label'] = '$' . number_format($totals['principal'], 2);
-$totals['interest_label'] = '$' . number_format($totals['interest'], 2);
-$totals['payment_label'] = '$' . number_format($totals['payment'], 2);
+$totals['principal_label'] = '$' . number_format($totals['principal'], 2, ',', '.');
+$totals['interest_label'] = '$' . number_format($totals['interest'], 2, ',', '.');
+$totals['payment_label'] = '$' . number_format($totals['payment'], 2, ',', '.');
 
 $overdueStatement = $db->prepare(
     'SELECT COUNT(*) AS overdue_installments, COALESCE(MAX(days_overdue), 0) AS max_days_overdue

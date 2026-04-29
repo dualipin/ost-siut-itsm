@@ -33,7 +33,7 @@ final readonly class InterestRate
 
     public function format(): string
     {
-        return number_format($this->rate, 2) . '%';
+        return number_format($this->rate, 2, ',', '.') . '%';
     }
 
     public static function fromPercentage(float $percentage): self

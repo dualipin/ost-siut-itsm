@@ -14,7 +14,7 @@
       <div class="row mt-3">
         <div class="col-md-3">
           <p class="text-muted mb-1">Monto del Préstamo</p>
-          <p class="fw-bold">${number_format($montoPrestamo, 2)}</p>
+          <p class="fw-bold">${number_format($montoPrestamo, 2, ',', '.')}</p>
         </div>
         <div class="col-md-3">
           <p class="text-muted mb-1">Fecha de Otorgamiento</p>
@@ -65,7 +65,7 @@
                 Pago tentativo: {$forma['fechaPago']}
               {/if}
             </td>
-            <td class="text-end">${number_format($forma['monto'], 2)}</td>
+            <td class="text-end">${number_format($forma['monto'], 2, ',', '.')}</td>
           </tr>
           {/foreach}
         </tbody>
@@ -84,7 +84,7 @@
         {foreach $resumenAnual as $prestacion => $monto}
         <li class="list-group-item d-flex justify-content-between align-items-center">
           {$prestacion}
-          <span class="badge bg-primary rounded-pill">${number_format($monto, 2)}</span>
+          <span class="badge bg-primary rounded-pill">${number_format($monto, 2, ',', '.')}</span>
         </li>
         {/foreach}
       </ul>
@@ -116,8 +116,8 @@
             <td>{if $row['tipo'] === 'periodico'}Periódico{else}No periódico{/if}</td>
             <td class="text-center">{$row['periodo']}</td>
             <td class="text-center">{$row['fecha']}</td>
-            <td class="text-end">${number_format($row['monto'], 2)}</td>
-            <td class="text-end fw-semibold">${number_format($row['acumulado'], 2)}</td>
+            <td class="text-end">${number_format($row['monto'], 2, ',', '.')}</td>
+            <td class="text-end fw-semibold">${number_format($row['acumulado'], 2, ',', '.')}</td>
           </tr>
           {/foreach}
         </tbody>
@@ -143,10 +143,10 @@
           {foreach $corrida as $row}
           <tr>
             <td class="text-center fw-bold">{$row['quincena']}</td>
-            <td class="text-end">${number_format($row['capital'], 2)}</td>
-            <td class="text-end">${number_format($row['interes'], 2)}</td>
-            <td class="text-end text-primary fw-bold">${number_format($row['pago'], 2)}</td>
-            <td class="text-end text-danger">${number_format($row['saldo'], 2)}</td>
+            <td class="text-end">${number_format($row['capital'], 2, ',', '.')}</td>
+            <td class="text-end">${number_format($row['interes'], 2, ',', '.')}</td>
+            <td class="text-end text-primary fw-bold">${number_format($row['pago'], 2, ',', '.')}</td>
+            <td class="text-end text-danger">${number_format($row['saldo'], 2, ',', '.')}</td>
             <td class="text-center">{$row['fecha']}</td>
           </tr>
           {/foreach}

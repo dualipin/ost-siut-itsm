@@ -65,7 +65,7 @@ final readonly class Money
 
     public function format(): string
     {
-        return '$' . number_format($this->amount, 2);
+        return '$' . number_format($this->amount, 2, ',', '.');
     }
 
     public static function zero(): self

@@ -26,7 +26,7 @@
 
   <div style="border: 1px solid #ced4da; padding: 10px; margin-bottom: 12px; font-size: 10px;">
     <div><strong>Prestamista / Solicitante:</strong> {$loan['borrower_name']}</div>
-    <div><strong>Monto del préstamo:</strong> ${number_format($montoPrestamo, 2)}</div>
+    <div><strong>Monto del préstamo:</strong> ${number_format($montoPrestamo, 2, ',', '.')}</div>
     <div><strong>Fecha de otorgamiento:</strong> {$fechaOtorgamiento}</div>
     <div><strong>Plazo:</strong> {$mesesPagar} mes(es) + {$diasAdicionales} día(s)</div>
     <div><strong>Tasa mensual:</strong> {$tasaInteresMensual}%</div>
@@ -63,7 +63,7 @@
           {/if}
         </td>
         <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">
-          ${number_format((float) ($config['total_amount_to_deduct'] ?? 0), 2)}
+          ${number_format((float) ($config['total_amount_to_deduct'] ?? 0), 2, ',', '.')}
         </td>
       </tr>
     {/foreach}
@@ -111,8 +111,8 @@
           {/if}
         </td>
         <td style="border: 1px solid #ced4da; padding: 6px; text-align: center;">{$fechaPrestacion}</td>
-        <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($montoConfig, 2)}</td>
-        <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($acumuladoPrestaciones, 2)}</td>
+        <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($montoConfig, 2, ',', '.')}</td>
+        <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($acumuladoPrestaciones, 2, ',', '.')}</td>
       </tr>
     {/foreach}
     </tbody>
@@ -126,7 +126,7 @@
         <strong>Prestación:</strong> {$grupo['prestacion']} |
         <strong>Tipo:</strong> {if $grupo['tipo'] === 'periodico'}Periódico{else}No periódico{/if} |
         <strong>Método:</strong> {$grupo['metodo']} |
-        <strong>Monto base:</strong> ${number_format($grupo['montoBase'], 2)}
+        <strong>Monto base:</strong> ${number_format($grupo['montoBase'], 2, ',', '.')}
       </div>
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 9px;">
         <thead>
@@ -143,10 +143,10 @@
         {foreach $grupo['corrida'] as $row}
           <tr>
             <td style="border: 1px solid #ced4da; padding: 6px; text-align: center;">{$row['periodo']}</td>
-            <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($row['capital'], 2)}</td>
-            <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($row['interes'], 2)}</td>
-            <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($row['pago'], 2)}</td>
-            <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($row['saldo'], 2)}</td>
+            <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($row['capital'], 2, ',', '.')}</td>
+            <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($row['interes'], 2, ',', '.')}</td>
+            <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($row['pago'], 2, ',', '.')}</td>
+            <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($row['saldo'], 2, ',', '.')}</td>
             <td style="border: 1px solid #ced4da; padding: 6px; text-align: center;">{$row['fecha']}</td>
           </tr>
         {/foreach}
@@ -159,9 +159,9 @@
         <tfoot>
         <tr>
           <td colspan="2" style="border: 1px solid #ced4da; padding: 6px;"><strong>Totales</strong></td>
-          <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;"><strong>${number_format($grupo['resumen']['interesTotal'], 2)}</strong></td>
-          <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;"><strong>${number_format($grupo['resumen']['pagoTotal'], 2)}</strong></td>
-          <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;"><strong>${number_format($grupo['resumen']['saldoFinal'], 2)}</strong></td>
+          <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;"><strong>${number_format($grupo['resumen']['interesTotal'], 2, ',', '.')}</strong></td>
+          <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;"><strong>${number_format($grupo['resumen']['pagoTotal'], 2, ',', '.')}</strong></td>
+          <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;"><strong>${number_format($grupo['resumen']['saldoFinal'], 2, ',', '.')}</strong></td>
           <td style="border: 1px solid #ced4da; padding: 6px;"></td>
         </tr>
         </tfoot>
@@ -172,7 +172,7 @@
   {/if}
 
   <div style="margin-top: 12px; padding-top: 8px; border-top: 1px solid #ced4da; font-size: 12px; text-align: right;">
-    <strong>Monto final a pagar: ${number_format($pagoTotalResumen, 2)}</strong>
+    <strong>Monto final a pagar: ${number_format($pagoTotalResumen, 2, ',', '.')}</strong>
   </div>
 
   <p style="font-size: 8px; color: #6c757d; margin-top: 10px;">

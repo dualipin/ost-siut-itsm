@@ -217,20 +217,20 @@
       <td class="lbl">Administrativos</td>
       <td>{$totalAdministrativos}</td>
       <td style="color:#dc3545; font-weight:bold;">
-        ${number_format(array_sum(array_map(fn($e) => $e->esAdministrativo() ? $e->totalAdeudo() : 0.0, $encuestas)), 2)}
+        ${number_format(array_sum(array_map(fn($e) => $e->esAdministrativo() ? $e->totalAdeudo() : 0.0, $encuestas)), 2, ',', '.')}
       </td>
     </tr>
     <tr>
       <td class="lbl">Docentes</td>
       <td>{$totalDocentes}</td>
       <td style="color:#dc3545; font-weight:bold;">
-        ${number_format(array_sum(array_map(fn($e) => $e->esDocente() ? $e->totalAdeudo() : 0.0, $encuestas)), 2)}
+        ${number_format(array_sum(array_map(fn($e) => $e->esDocente() ? $e->totalAdeudo() : 0.0, $encuestas)), 2, ',', '.')}
       </td>
     </tr>
     <tr class="totals-row">
       <td style="text-align:left; font-weight:bold;">TOTAL GENERAL</td>
       <td>{$totalEncuestas}</td>
-      <td style="color:#dc3545; font-weight:bold;">${number_format($sumaGlobalAdeudo, 2)}</td>
+      <td style="color:#dc3545; font-weight:bold;">${number_format($sumaGlobalAdeudo, 2, ',', '.')}</td>
     </tr>
   </tbody>
 </table>
@@ -266,9 +266,9 @@
       <td>
         {if $enc->mesAdmSeleccionado('dic')}
           <span class="badge-pagado">
-            ${number_format($enc->admDicPuntualidad ?? 0, 2)} /
-            ${number_format($enc->admDicAsistencia  ?? 0, 2)} /
-            ${number_format($enc->pagadoEnMes('dic'), 2)}
+            ${number_format($enc->admDicPuntualidad ?? 0, 2, ',', '.')} /
+            ${number_format($enc->admDicAsistencia  ?? 0, 2, ',', '.')} /
+            ${number_format($enc->pagadoEnMes('dic'), 2, ',', '.')}
           </span>
         {else}
           <span class="badge-adeudo">No pagado</span>
@@ -279,9 +279,9 @@
       <td>
         {if $enc->mesAdmSeleccionado('ene')}
           <span class="badge-pagado">
-            ${number_format($enc->admEnePuntualidad ?? 0, 2)} /
-            ${number_format($enc->admEneAsistencia  ?? 0, 2)} /
-            ${number_format($enc->pagadoEnMes('ene'), 2)}
+            ${number_format($enc->admEnePuntualidad ?? 0, 2, ',', '.')} /
+            ${number_format($enc->admEneAsistencia  ?? 0, 2, ',', '.')} /
+            ${number_format($enc->pagadoEnMes('ene'), 2, ',', '.')}
           </span>
         {else}
           <span class="badge-adeudo">No pagado</span>
@@ -292,9 +292,9 @@
       <td>
         {if $enc->mesAdmSeleccionado('feb')}
           <span class="badge-pagado">
-            ${number_format($enc->admFebPuntualidad ?? 0, 2)} /
-            ${number_format($enc->admFebAsistencia  ?? 0, 2)} /
-            ${number_format($enc->pagadoEnMes('feb'), 2)}
+            ${number_format($enc->admFebPuntualidad ?? 0, 2, ',', '.')} /
+            ${number_format($enc->admFebAsistencia  ?? 0, 2, ',', '.')} /
+            ${number_format($enc->pagadoEnMes('feb'), 2, ',', '.')}
           </span>
         {else}
           <span class="badge-adeudo">No pagado</span>
@@ -305,9 +305,9 @@
       <td>
         {if $enc->mesAdmSeleccionado('mar')}
           <span class="badge-pagado">
-            ${number_format($enc->admMarPuntualidad ?? 0, 2)} /
-            ${number_format($enc->admMarAsistencia  ?? 0, 2)} /
-            ${number_format($enc->pagadoEnMes('mar'), 2)}
+            ${number_format($enc->admMarPuntualidad ?? 0, 2, ',', '.')} /
+            ${number_format($enc->admMarAsistencia  ?? 0, 2, ',', '.')} /
+            ${number_format($enc->pagadoEnMes('mar'), 2, ',', '.')}
           </span>
         {else}
           <span class="badge-adeudo">No pagado</span>
@@ -320,7 +320,7 @@
     <tr>
       <td style="text-align:right;" colspan="4">Total Reembolso Administrativos:</td>
       <td style="color:#dc3545; font-weight:bold;">
-        ${number_format(array_sum(array_map(fn($e) => $e->totalAdeudo(), $admins)), 2)}
+        ${number_format(array_sum(array_map(fn($e) => $e->totalAdeudo(), $admins)), 2, ',', '.')}
       </td>
     </tr>
   </tfoot>
@@ -372,7 +372,7 @@
     <tr>
       <td style="text-align:right;" colspan="2">Total Reembolso Docentes:</td>
       <td style="color:#dc3545; font-weight:bold;">
-        ${number_format(array_sum(array_map(fn($e) => $e->totalAdeudo(), $docentes)), 2)}
+        ${number_format(array_sum(array_map(fn($e) => $e->totalAdeudo(), $docentes)), 2, ',', '.')}
       </td>
     </tr>
   </tfoot>
