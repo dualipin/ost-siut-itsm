@@ -38,6 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $addUseCase = $container->get(AddAttachmentUseCase::class);
         $type = $_POST['attachment_type'] ?? '';
         $description = trim($_POST['description'] ?? '');
+        $dateUpload = $_POST['date_upload'] ?? null;
 
         try {
             if ($type === 'ENLACE') {
@@ -45,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 if (!filter_var($url, FILTER_VALIDATE_URL)) {
                     throw new InvalidArgumentException('Debe ingresar una URL válida.');
                 }
-                $addUseCase->execute($id, $url, $url, 'text/uri-list', $type, $description);
+                $addUseCase->execute($id, $url, $url, 'text/uri-list', $type, $description, $dateUpload);
             } else {
                 if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
                     throw new InvalidArgumentException('Debe seleccionar un archivo válido para subir.');
@@ -58,7 +59,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $file['name'], 
                     $file['type'] ?: 'application/octet-stream', 
                     $type, 
-                    $description
+                    $description,
+                    $dateUpload
                 );
             }
             

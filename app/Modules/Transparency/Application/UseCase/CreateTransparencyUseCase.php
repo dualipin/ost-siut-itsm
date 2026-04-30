@@ -66,6 +66,7 @@ final readonly class CreateTransparencyUseCase
                 if ($file['error'] !== UPLOAD_ERR_OK) continue;
 
                 $savedPath = $this->fileStorage->store($file['tmp_name'], $file['name'], $transparency->isPrivate);
+                $dateUpload = $this->resolveDateUpload($file['date_upload'] ?? null);
                 
                 $attachment = new TransparencyAttachment(
                     id: null,
@@ -73,7 +74,8 @@ final readonly class CreateTransparencyUseCase
                     filePath: $savedPath,
                     mimeType: $file['type'] ?: 'application/octet-stream',
                     attachmentType: AttachmentType::tryFrom($file['attachment_type'] ?? '') ?? AttachmentType::OTRO,
-                    description: $file['description'] ?? null
+                    description: $file['description'] ?? null,
+                    dateUpload: $dateUpload
                 );
                 
                 $this->repository->saveAttachment($attachment);
@@ -82,13 +84,16 @@ final readonly class CreateTransparencyUseCase
             foreach ($links as $link) {
                 if (empty($link['url']) || !filter_var($link['url'], FILTER_VALIDATE_URL)) continue;
 
+                $dateUpload = $this->resolveDateUpload($link['date_upload'] ?? null);
+
                 $attachment = new TransparencyAttachment(
                     id: null,
                     transparencyId: $savedTransparency->id,
                     filePath: $link['url'],
                     mimeType: 'text/uri-list',
                     attachmentType: AttachmentType::ENLACE,
-                    description: $link['description'] ?? null
+                    description: $link['description'] ?? null,
+                    dateUpload: $dateUpload
                 );
                 
                 $this->repository->saveAttachment($attachment);
@@ -96,5 +101,20 @@ final readonly class CreateTransparencyUseCase
 
             return $savedTransparency;
         });
+    }
+
+    private function resolveDateUpload(?string $dateUpload): DateTimeImmutable
+    {
+        $rawDate = $dateUpload !== null ? trim($dateUpload) : '';
+        if ($rawDate === '') {
+            return new DateTimeImmutable('today');
+        }
+
+        $parsed = DateTimeImmutable::createFromFormat('Y-m-d', $rawDate);
+        if ($parsed === false || $parsed->format('Y-m-d') !== $rawDate) {
+            throw new InvalidArgumentException('Formato de fecha de publicación del adjunto inválido. Use YYYY-MM-DD.');
+        }
+
+        return $parsed;
     }
 }

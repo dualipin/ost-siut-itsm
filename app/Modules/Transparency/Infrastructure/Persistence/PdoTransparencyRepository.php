@@ -185,15 +185,16 @@ final readonly class PdoTransparencyRepository implements TransparencyRepository
     {
         if ($attachment->id === null) {
             $stmt = $this->pdo->prepare('
-                INSERT INTO transparency_attachments (transparency_id, file_path, mime_type, attachment_type, description)
-                VALUES (:transparency_id, :file_path, :mime_type, :attachment_type, :description)
+                INSERT INTO transparency_attachments (transparency_id, file_path, mime_type, attachment_type, description, date_upload)
+                VALUES (:transparency_id, :file_path, :mime_type, :attachment_type, :description, :date_upload)
             ');
             $stmt->execute([
                 'transparency_id' => $attachment->transparencyId,
                 'file_path' => $attachment->filePath,
                 'mime_type' => $attachment->mimeType,
                 'attachment_type' => $attachment->attachmentType->value,
-                'description' => $attachment->description
+                'description' => $attachment->description,
+                'date_upload' => $attachment->dateUpload?->format('Y-m-d')
             ]);
 
             return new TransparencyAttachment(
@@ -202,7 +203,8 @@ final readonly class PdoTransparencyRepository implements TransparencyRepository
                 filePath: $attachment->filePath,
                 mimeType: $attachment->mimeType,
                 attachmentType: $attachment->attachmentType,
-                description: $attachment->description
+                description: $attachment->description,
+                dateUpload: $attachment->dateUpload
             );
         }
 
@@ -211,7 +213,8 @@ final readonly class PdoTransparencyRepository implements TransparencyRepository
             SET file_path = :file_path, 
                 mime_type = :mime_type, 
                 attachment_type = :attachment_type, 
-                description = :description
+                description = :description,
+                date_upload = :date_upload
             WHERE attachment_id = :id
         ');
         $stmt->execute([
@@ -219,7 +222,8 @@ final readonly class PdoTransparencyRepository implements TransparencyRepository
             'file_path' => $attachment->filePath,
             'mime_type' => $attachment->mimeType,
             'attachment_type' => $attachment->attachmentType->value,
-            'description' => $attachment->description
+            'description' => $attachment->description,
+            'date_upload' => $attachment->dateUpload?->format('Y-m-d')
         ]);
 
         return $attachment;
@@ -300,7 +304,8 @@ final readonly class PdoTransparencyRepository implements TransparencyRepository
             filePath: $row['file_path'],
             mimeType: $row['mime_type'],
             attachmentType: AttachmentType::from($row['attachment_type']),
-            description: $row['description']
+            description: $row['description'],
+            dateUpload: $row['date_upload'] !== null ? new DateTimeImmutable($row['date_upload']) : null
         );
     }
 }

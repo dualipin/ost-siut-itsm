@@ -36,11 +36,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             foreach ($_POST['attachments'] as $index => $attPost) {
                 $type = $attPost['type'] ?? '';
                 $description = $attPost['description'] ?? null;
+                $dateUpload = $attPost['date_upload'] ?? null;
 
                 if ($type === 'ENLACE') {
                     $links[] = [
                         'url' => $attPost['url'] ?? '',
-                        'description' => $description
+                        'description' => $description,
+                        'date_upload' => $dateUpload
                     ];
                 } else {
                     if (isset($_FILES['attachments_files']['error'][$index]) && $_FILES['attachments_files']['error'][$index] === UPLOAD_ERR_OK) {
@@ -50,7 +52,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             'tmp_name' => $_FILES['attachments_files']['tmp_name'][$index],
                             'error' => $_FILES['attachments_files']['error'][$index],
                             'attachment_type' => $type,
-                            'description' => $description
+                            'description' => $description,
+                            'date_upload' => $dateUpload
                         ];
                     }
                 }

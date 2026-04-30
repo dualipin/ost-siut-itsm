@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Transparency\Domain\Entity;
 
 use App\Modules\Transparency\Domain\Enum\AttachmentType;
+use DateTimeImmutable;
 
 final readonly class TransparencyAttachment
 {
@@ -14,7 +15,8 @@ final readonly class TransparencyAttachment
         public string $filePath,
         public string $mimeType,
         public AttachmentType $attachmentType,
-        public ?string $description
+        public ?string $description,
+        public ?DateTimeImmutable $dateUpload
     ) {
     }
 }

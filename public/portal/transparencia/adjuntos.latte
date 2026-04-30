@@ -50,6 +50,11 @@
             <input type="url" class="form-control bg-light border-0 rounded-3" id="url" name="url" placeholder="https://..." :required="tipo === 'ENLACE'">
           </div>
 
+          <div class="mb-3">
+            <label for="date_upload" class="form-label fw-medium text-secondary">Fecha de publicación</label>
+            <input type="date" class="form-control bg-light border-0 rounded-3" id="date_upload" name="date_upload" value="{date('Y-m-d')}" required>
+          </div>
+
           <div class="mb-4">
             <label for="description" class="form-label fw-medium text-secondary">Descripción (Opcional)</label>
             <input type="text" class="form-control bg-light border-0 rounded-3" id="description" name="description" placeholder="Ej. Acta de asamblea escaneada">
