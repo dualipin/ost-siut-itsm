@@ -31,9 +31,10 @@
         <form method="post" action="./nuevo.php" enctype="multipart/form-data" 
               x-data="{ 
                   isPrivate: {$formData['is_private'] ?? '0' === '1' ? 'true' : 'false'},
+                  today: '{date('Y-m-d')}',
                   attachments: [],
                   addAttachment(type) {
-                      this.attachments.push({ id: Date.now(), type: type, description: '' });
+                    this.attachments.push({ id: Date.now(), type: type, description: '', date_upload: this.today });
                   },
                   removeAttachment(id) {
                       this.attachments = this.attachments.filter(a => a.id !== id);
@@ -107,7 +108,7 @@
                             <span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary" x-text="att.type"></span>
                         </div>
                         
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <template x-if="att.type !== 'ENLACE'">
                                 <input type="file" class="form-control form-control-sm border-0 shadow-sm rounded-3" :name="'attachments_files[' + index + ']'" required>
                             </template>
@@ -116,7 +117,11 @@
                             </template>
                         </div>
                         
-                        <div class="col-md-5">
+                        <div class="col-md-3">
+                          <input type="date" class="form-control form-control-sm border-0 shadow-sm rounded-3" :name="'attachments[' + index + '][date_upload]'" x-model="att.date_upload" required>
+                        </div>
+
+                        <div class="col-md-3">
                             <input type="text" class="form-control form-control-sm border-0 shadow-sm rounded-3" :name="'attachments[' + index + '][description]'" x-model="att.description" placeholder="Descripción breve (Opcional)">
                         </div>
                         

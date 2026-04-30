@@ -10,6 +10,7 @@ use App\Modules\Transparency\Domain\Enum\AttachmentType;
 use App\Modules\Transparency\Domain\Exception\TransparencyNotFoundException;
 use App\Modules\Transparency\Domain\Repository\FileStorageInterface;
 use App\Modules\Transparency\Domain\Repository\TransparencyRepositoryInterface;
+use DateTimeImmutable;
 use InvalidArgumentException;
 use RuntimeException;
 
@@ -28,7 +29,8 @@ final readonly class AddAttachmentUseCase
         string $originalFilename,
         string $mimeType,
         string $attachmentTypeValue,
-        ?string $description
+        ?string $description,
+        ?string $dateUpload = null
     ): TransparencyAttachment {
         $transparency = $this->repository->findById($transparencyId);
         if ($transparency === null) {
@@ -40,6 +42,8 @@ final readonly class AddAttachmentUseCase
             throw new InvalidArgumentException("Tipo de adjunto inválido: {$attachmentTypeValue}");
         }
 
+        $resolvedDateUpload = $this->resolveDateUpload($dateUpload);
+
         // Caso especial para ENLACE (No se guarda archivo)
         if ($type === AttachmentType::ENLACE) {
             $attachment = new TransparencyAttachment(
@@ -48,7 +52,8 @@ final readonly class AddAttachmentUseCase
                 filePath: $sourcePath, // En este caso sourcePath es la URL
                 mimeType: 'text/uri-list',
                 attachmentType: $type,
-                description: $description
+                description: $description,
+                dateUpload: $resolvedDateUpload
             );
             return $this->repository->saveAttachment($attachment);
         }
@@ -60,7 +65,8 @@ final readonly class AddAttachmentUseCase
             $originalFilename,
             $mimeType,
             $type,
-            $description
+            $description,
+            $resolvedDateUpload
         ) {
             try {
                 $savedPath = $this->fileStorage->store($sourcePath, $originalFilename, $transparency->isPrivate);
@@ -71,7 +77,8 @@ final readonly class AddAttachmentUseCase
                     filePath: $savedPath,
                     mimeType: $mimeType,
                     attachmentType: $type,
-                    description: $description
+                    description: $description,
+                    dateUpload: $resolvedDateUpload
                 );
 
                 return $this->repository->saveAttachment($attachment);
@@ -79,5 +86,20 @@ final readonly class AddAttachmentUseCase
                 throw new RuntimeException("Error al procesar el archivo adjunto: " . $e->getMessage(), 0, $e);
             }
         });
+    }
+
+    private function resolveDateUpload(?string $dateUpload): DateTimeImmutable
+    {
+        $rawDate = $dateUpload !== null ? trim($dateUpload) : '';
+        if ($rawDate === '') {
+            return new DateTimeImmutable('today');
+        }
+
+        $parsed = DateTimeImmutable::createFromFormat('Y-m-d', $rawDate);
+        if ($parsed === false || $parsed->format('Y-m-d') !== $rawDate) {
+            throw new InvalidArgumentException('Formato de fecha de publicación del adjunto inválido. Use YYYY-MM-DD.');
+        }
+
+        return $parsed;
     }
 }
