@@ -1,0 +1,1 @@
+ALTER TABLE transparency_attachments ADD date_upload DATE DEFAULT NULL;
