@@ -31,6 +31,8 @@ if ($id === 0) {
     exit;
 }
 
+$order = ($_GET['order'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
+
 $isPrivileged = in_array($authenticatedUser->role, [RoleEnum::Admin, RoleEnum::Lider], true);
 
 try {
@@ -54,6 +56,31 @@ try {
     }
 
     $attachments = $repository->findAttachmentsByTransparencyId($id);
+    if (!empty($attachments)) {
+        $direction = $order === 'asc' ? 1 : -1;
+        usort($attachments, static function ($left, $right) use ($direction): int {
+            $leftValue = $left->dateUpload?->getTimestamp();
+            $rightValue = $right->dateUpload?->getTimestamp();
+
+            if ($leftValue === null && $rightValue === null) {
+                return $left->id <=> $right->id;
+            }
+
+            if ($leftValue === null) {
+                return 1;
+            }
+
+            if ($rightValue === null) {
+                return -1;
+            }
+
+            if ($leftValue === $rightValue) {
+                return $left->id <=> $right->id;
+            }
+
+            return ($leftValue <=> $rightValue) * $direction;
+        });
+    }
 } catch (TransparencyNotFoundException $e) {
     header('Location: ./listado.php?error=notfound');
     exit;
@@ -63,4 +90,5 @@ $renderer->render('./detalle.latte', [
     'transparency' => $transparency,
     'attachments' => $attachments,
     'isPrivileged' => $isPrivileged,
+    'order' => $order,
 ]);

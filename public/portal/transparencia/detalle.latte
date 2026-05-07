@@ -2,6 +2,7 @@
 {varType App\Modules\Transparency\Domain\Entity\Transparency $transparency}
 {varType App\Modules\Transparency\Domain\Entity\TransparencyAttachment[] $attachments}
 {varType bool $isPrivileged}
+{varType string $order}
 
 {block main}
 {include
@@ -70,9 +71,20 @@
   <div class="col-12 col-lg-7">
     <div class="card border-0 shadow-sm rounded-4 h-100">
       <div class="card-body p-4">
-        <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
           <h3 class="h5 mb-0">Adjuntos</h3>
-          <span class="badge rounded-pill bg-light text-dark">{count($attachments)} archivo(s)</span>
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            <span class="badge rounded-pill bg-light text-dark">{count($attachments)} archivo(s)</span>
+            <span class="small text-muted">Orden:</span>
+            <div class="btn-group btn-group-sm" role="group" aria-label="Orden de adjuntos">
+              <a href="./detalle.php?id={$transparency->id}&order=desc" class="btn {if $order === 'desc'}btn-primary{else}btn-outline-primary{/if} rounded-4">
+                <i class="bi bi-sort-down"></i> Fecha desc
+              </a>
+              <a href="./detalle.php?id={$transparency->id}&order=asc" class="btn {if $order === 'asc'}btn-primary{else}btn-outline-primary{/if} rounded-4">
+                <i class="bi bi-sort-up"></i> Fecha asc
+              </a>
+            </div>
+          </div>
         </div>
 
         {if empty($attachments)}
