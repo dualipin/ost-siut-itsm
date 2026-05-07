@@ -70,6 +70,7 @@ final readonly class AddAttachmentUseCase
         ) {
             try {
                 $savedPath = $this->fileStorage->store($sourcePath, $originalFilename, $transparency->isPrivate);
+                $resolvedDescription = $this->resolveFileDescription($description, $originalFilename);
                 
                 $attachment = new TransparencyAttachment(
                     id: null,
@@ -77,7 +78,7 @@ final readonly class AddAttachmentUseCase
                     filePath: $savedPath,
                     mimeType: $mimeType,
                     attachmentType: $type,
-                    description: $description,
+                    description: $resolvedDescription,
                     dateUpload: $resolvedDateUpload
                 );
 
@@ -101,5 +102,17 @@ final readonly class AddAttachmentUseCase
         }
 
         return $parsed;
+    }
+
+    private function resolveFileDescription(?string $description, string $originalFilename): ?string
+    {
+        $normalized = trim((string) $description);
+        if ($normalized !== '') {
+            return $normalized;
+        }
+
+        $fallback = trim(pathinfo($originalFilename, PATHINFO_FILENAME));
+
+        return $fallback !== '' ? $fallback : null;
     }
 }

@@ -74,7 +74,7 @@ final readonly class CreateTransparencyUseCase
                     filePath: $savedPath,
                     mimeType: $file['type'] ?: 'application/octet-stream',
                     attachmentType: AttachmentType::tryFrom($file['attachment_type'] ?? '') ?? AttachmentType::OTRO,
-                    description: $file['description'] ?? null,
+                    description: $this->resolveFileDescription($file),
                     dateUpload: $dateUpload
                 );
                 
@@ -116,5 +116,19 @@ final readonly class CreateTransparencyUseCase
         }
 
         return $parsed;
+    }
+
+    private function resolveFileDescription(array $file): ?string
+    {
+        $rawDescription = $file['description'] ?? '';
+        $description = trim((string) $rawDescription);
+        if ($description !== '') {
+            return $description;
+        }
+
+        $rawFilename = (string) ($file['name'] ?? '');
+        $fallback = trim(pathinfo($rawFilename, PATHINFO_FILENAME));
+
+        return $fallback !== '' ? $fallback : null;
     }
 }
