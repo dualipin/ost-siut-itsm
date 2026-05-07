@@ -14,6 +14,7 @@ $renderer = $container->get(RendererInterface::class);
 $getUseCase = $container->get(GetTransparencyUseCase::class);
 
 $id = (int) ($_GET['id'] ?? ($_POST['id'] ?? 0));
+$order = ($_GET['order'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
 
 if ($id === 0) {
     header("Location: ./listado.php");
@@ -26,6 +27,18 @@ try {
     // Obtenemos manualmente los archivos desde el repositorio ya que la entidad principal los desacopla
     $repository = $container->get(\App\Modules\Transparency\Domain\Repository\TransparencyRepositoryInterface::class);
     $attachments = $repository->findAttachmentsByTransparencyId($id);
+    usort($attachments, function ($left, $right) use ($order): int {
+        $leftTimestamp = $left->dateUpload?->getTimestamp() ?? 0;
+        $rightTimestamp = $right->dateUpload?->getTimestamp() ?? 0;
+
+        if ($leftTimestamp === $rightTimestamp) {
+            $leftId = $left->id ?? 0;
+            $rightId = $right->id ?? 0;
+            return $order === 'asc' ? ($leftId <=> $rightId) : ($rightId <=> $leftId);
+        }
+
+        return $order === 'asc' ? ($leftTimestamp <=> $rightTimestamp) : ($rightTimestamp <=> $leftTimestamp);
+    });
 
 } catch (TransparencyNotFoundException $e) {
     header("Location: ./listado.php?error=notfound");
@@ -100,5 +113,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 $renderer->render("./adjuntos.latte", [
     "transparency" => $transparency,
     "attachments" => $attachments,
+    "order" => $order,
     "error" => $error ?? null
 ]);
