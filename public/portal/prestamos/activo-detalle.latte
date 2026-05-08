@@ -70,14 +70,6 @@
 		<div class="col-12 col-md-6 col-xl-3">
 			<div class="card border-0 shadow-sm rounded-4 h-100">
 				<div class="card-body p-4">
-					<div class="text-muted small text-uppercase fw-semibold mb-1">Saldo insoluto</div>
-					<div class="h4 fw-bold text-success mb-0">{$loan['outstanding_balance_label']}</div>
-				</div>
-			</div>
-		</div>
-		<div class="col-12 col-md-6 col-xl-3">
-			<div class="card border-0 shadow-sm rounded-4 h-100">
-				<div class="card-body p-4">
 					<div class="text-muted small text-uppercase fw-semibold mb-1">Mora</div>
 					{if $summary['overdue_installments'] > 0}
 						<div class="h5 fw-bold text-danger mb-1">{$summary['overdue_installments']} vencida(s)</div>

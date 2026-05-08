@@ -110,7 +110,8 @@
           </div>
           <div class="col-md-6 mb-3">
             <label class="form-label">Tasa Anual (%)</label>
-            <input type="number" class="form-control" name="applied_interest_rate" step="0.1" min="0" max="100" x-model.number="interestRate" required>
+            <p class="form-control-plaintext fw-bold text-primary" x-text="interestRate + '%'">0%</p>
+            <input type="hidden" class="form-control" name="applied_interest_rate" step="0.1" min="0" max="100" x-model.number="interestRate" required>
             <div class="form-text">La tasa final se confirma en revisión por Admin/Lider/Finanzas.</div>
           </div>
         </div>
@@ -280,11 +281,6 @@
         </div>
 
         <div class="d-grid gap-2 d-sm-flex mb-3">
-          {* <div class="me-sm-2" style="width:64px;">
-            <button type="button" class="btn btn-outline-secondary w-100 h-100" @click.prevent="agregar()" :disabled="!puedeAgregar" aria-label="Agregar descuento">
-              <i class="bi bi-plus" style="font-size: 1.25rem;"></i>
-            </button>
-          </div> *}
           <div class="flex-fill d-flex gap-2">
             <button type="submit" name="save_draft" value="1" class="btn btn-outline-secondary w-100">
               <i class="bi bi-save me-1"></i>Guardar Borrador
