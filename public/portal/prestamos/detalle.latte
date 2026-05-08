@@ -738,6 +738,18 @@
 							y no puede ser modificada en este momento.
 						</p>
 					</div>
+
+					{if $statusLabel === 'En espera'}
+					<div class="card-footer bg-transparent border-0 text-center">
+						<span class="text-muted">
+							<i class="bi bi-clock me-1"></i>
+							<form method="POST" action="{url('/portal/prestamos/detalle.php')}?id={$loan['loan_id']}" class="d-inline">
+								<input type="hidden" name="action" value="quitar_espera">
+								<button type="submit" class="btn btn-link p-0 m-0 align-baseline">Quitar estado de espera</button>
+							</form>
+						</span>
+					</div>
+						{/if}
 				</div>
 				{/if}
 

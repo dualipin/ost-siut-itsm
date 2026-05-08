@@ -387,6 +387,23 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $success = "La solicitud ha sido puesta en espera.";
                 break;
 
+                
+            case 'quitar_espera':
+                $sql = "UPDATE loans
+                        SET status = 'solicitado'
+                        WHERE loan_id = :loan_id
+                          AND status = 'en_espera'";    
+                          
+                $stmt = $db->prepare($sql);
+                $stmt->execute(['loan_id' => $loanId]);
+                if ($stmt->rowCount() === 0) {
+                    $errors[] = "No se pudo despausar el préstamo. Asegúrate de que el préstamo esté en estado 'en_espera'.";
+                } else {
+                    $success = "El préstamo ha sido despausado y está nuevamente en estado 'solicitado'.";
+                }
+                break;
+
+
             case "validar_legal_doc":
                 $legalDocId = filter_var(
                     $_POST["legal_doc_id"] ?? "",
