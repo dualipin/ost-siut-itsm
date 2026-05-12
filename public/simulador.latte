@@ -410,7 +410,7 @@
               const diffMs = fechaPago.getTime() - inicio.getTime()
               const diffDays = Math.floor(diffMs / 86400000)
 
-              if (fechaPago < inicio || fechaPago > fechaMaxima) continue
+              if (diffDays < 10 || fechaPago > fechaMaxima) continue
 
               opciones.push({
                 value: this.toIsoDate(fechaPago),
