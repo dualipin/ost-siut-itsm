@@ -5,14 +5,15 @@
     <a class="navbar-brand p-0" href="/">
 
       <img src="/assets/images/logo.webp" alt="Sindicato" width="70" height="70"
-        class="img-fluid rounded-circle">
+           class="img-fluid rounded-circle">
     </a>
 
     <!-- Desktop: Botones derecha / Mobile: Toggler -->
     <div class="d-flex align-items-center gap-2 order-lg-last">
 
       <!-- Registro Desktop -->
-      <a href="/cuentas/registro.php" class="btn btn-secondary text-white d-none d-lg-inline-flex align-items-center gap-2">
+      <a href="/cuentas/registro.php"
+         class="btn btn-secondary text-white d-none d-lg-inline-flex align-items-center gap-2">
         <i class="bi bi-person-plus"></i>
         <span>Registro</span>
       </a>
@@ -22,17 +23,17 @@
         <i class="bi bi-box-arrow-in-right"></i>
         <span>Acceder</span>
       </a>
-      
+
       <!-- Mobile Toggler -->
       <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="offcanvas"
-        data-bs-target="#navbarOffcanvas" aria-controls="navbarOffcanvas" aria-label="Toggle navigation">
+              data-bs-target="#navbarOffcanvas" aria-controls="navbarOffcanvas" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
     </div>
 
     <!-- Menú Principal: Offcanvas en mobile, Collapse en desktop -->
     <div class="offcanvas offcanvas-start d-lg-none" id="navbarOffcanvas" tabindex="-1" aria-labelledby="offcanvasLabel"
-      style="width: 85%; max-width: 320px;">
+         style="width: 85%; max-width: 320px;">
 
       <!-- Header Offcanvas -->
       <div class="offcanvas-header border-bottom">
@@ -56,26 +57,26 @@
           <!-- Publicaciones -->
           <li class="nav-item border-bottom">
             <a class="nav-link text-primary dropdown-toggle py-3 px-4 d-flex align-items-center justify-content-between"
-              href="#" data-bs-toggle="collapse" data-bs-target="#pubCollapse" aria-expanded="false">
+               href="#" data-bs-toggle="collapse" data-bs-target="#pubCollapse" aria-expanded="false">
               <span><i class="bi bi-newspaper me-2"></i>Publicaciones</span>
             </a>
             <div class="collapse bg-light" id="pubCollapse">
               <ul class="list-unstyled mb-0">
                 <li>
                   <a class="d-block py-2 px-5 text-decoration-none text-dark {$linkActivo === 'avisos' ? 'active fw-bold'}"
-                    href="/publicaciones/avisos.php">Avisos</a>
+                     href="/publicaciones/avisos.php">Avisos</a>
                 </li>
                 <li>
                   <a class="d-block py-2 px-5 text-decoration-none text-dark {$linkActivo === 'noticias' ? 'active fw-bold'}"
-                    href="/publicaciones/noticias.php">Noticias</a>
+                     href="/publicaciones/noticias.php">Noticias</a>
                 </li>
                 <li>
                   <a class="d-block py-2 px-5 text-decoration-none text-dark {$linkActivo === 'gestiones' ? 'active fw-bold'}"
-                    href="/publicaciones/gestiones.php">Gestiones</a>
+                     href="/publicaciones/gestiones.php">Gestiones</a>
                 </li>
                 <li>
                   <a class="d-block py-2 px-5 text-decoration-none text-dark {$linkActivo === 'contratos' ? 'active fw-bold'}"
-                    href="/publicaciones/contratos.php">Contratos</a>
+                     href="/publicaciones/contratos.php">Contratos</a>
                 </li>
               </ul>
             </div>
@@ -84,28 +85,33 @@
           <!-- Sindicato -->
           <li class="nav-item border-bottom">
             <a class="nav-link text-primary dropdown-toggle py-3 px-4 d-flex align-items-center justify-content-between"
-              href="#" data-bs-toggle="collapse" data-bs-target="#sindCollapse" aria-expanded="false">
+               href="#" data-bs-toggle="collapse" data-bs-target="#sindCollapse" aria-expanded="false">
               <span><i class="bi bi-building me-2"></i>Sindicato</span>
             </a>
             <div class="collapse bg-light" id="sindCollapse">
               <ul class="list-unstyled mb-0">
+                <li>
+                  <a class="d-block py-2 px-5 text-decoration-none text-dark" href="/simulador.php">
+                    Simulador
+                  </a>
+                </li>
 
                 <!-- Repositorios -->
                 <li class="border-top">
                   <a class="d-block py-2 px-5 text-decoration-none text-dark dropdown-toggle d-flex align-items-center justify-content-between"
-                    href="#" data-bs-toggle="collapse" data-bs-target="#repoCollapse">
+                     href="#" data-bs-toggle="collapse" data-bs-target="#repoCollapse">
                     <span>Repositorios</span>
                   </a>
                   <div class="collapse" id="repoCollapse">
                     <ul class="list-unstyled mb-0 bg-white">
                       <li><a class="d-block py-2 px-5 ps-5 text-decoration-none text-dark small"
-                          href="/portal/repositorios/documentos-de-gestoria/index.php">Gestoría</a></li>
+                             href="/portal/repositorios/documentos-de-gestoria/index.php">Gestoría</a></li>
                       <li><a class="d-block py-2 px-5 ps-5 text-decoration-none text-dark small"
-                          href="/portal/repositorios/documentos-gremiales/index.php">Gremiales</a></li>
+                             href="/portal/repositorios/documentos-gremiales/index.php">Gremiales</a></li>
                       <li><a class="d-block py-2 px-5 ps-5 text-decoration-none text-dark small"
-                          href="/portal/repositorios/tramite-ante-autoridades/index.php">Trámites</a></li>
+                             href="/portal/repositorios/tramite-ante-autoridades/index.php">Trámites</a></li>
                       <li><a class="d-block py-2 px-5 ps-5 text-decoration-none text-dark small"
-                          href="/portal/repositorios/minutas-y-acuerdos/index.php">Minutas</a></li>
+                             href="/portal/repositorios/minutas-y-acuerdos/index.php">Minutas</a></li>
                     </ul>
                   </div>
                 </li>
@@ -113,17 +119,17 @@
                 <!-- Transparencia -->
                 <li class="border-top">
                   <a class="d-block py-2 px-5 text-decoration-none text-dark dropdown-toggle d-flex align-items-center justify-content-between"
-                    href="#" data-bs-toggle="collapse" data-bs-target="#transCollapse">
+                     href="#" data-bs-toggle="collapse" data-bs-target="#transCollapse">
                     <span>Transparencia</span>
                   </a>
                   <div class="collapse" id="transCollapse">
                     <ul class="list-unstyled mb-0 bg-white">
                       <li><a class="d-block py-2 px-5 ps-5 text-decoration-none text-dark small"
-                          href="/dudas.php">¿Tienes dudas?</a></li>
+                             href="/dudas.php">¿Tienes dudas?</a></li>
                       <li><a class="d-block py-2 px-5 ps-5 text-decoration-none text-dark small"
-                          href="/preguntas-frecuentes.php">Preguntas Frecuentes</a></li>
+                             href="/preguntas-frecuentes.php">Preguntas Frecuentes</a></li>
                       <li><a class="d-block py-2 px-5 ps-5 text-decoration-none text-dark small"
-                          href="/transparencia.php">Normativos</a></li>
+                             href="/transparencia.php">Normativos</a></li>
                     </ul>
                   </div>
                 </li>
@@ -131,16 +137,16 @@
                 <!-- Recursos -->
                 <li class="border-top">
                   <a class="d-block py-2 px-5 text-decoration-none text-dark dropdown-toggle d-flex align-items-center justify-content-between"
-                    href="#" data-bs-toggle="collapse" data-bs-target="#recCollapse">
+                     href="#" data-bs-toggle="collapse" data-bs-target="#recCollapse">
                     <span>Recursos</span>
                   </a>
                   <div class="collapse" id="recCollapse">
                     <ul class="list-unstyled mb-0 bg-white">
                       <li><a class="d-block py-2 px-5 ps-5 text-decoration-none text-dark small"
-                          href="/publicaciones/formatos.php">Formatos</a>
+                             href="/publicaciones/formatos.php">Formatos</a>
                       </li>
                       <li><a class="d-block py-2 px-5 ps-5 text-decoration-none text-dark small"
-                          href="/publicaciones/acervos.php">Biblioteca</a></li>
+                             href="/publicaciones/acervos.php">Biblioteca</a></li>
                     </ul>
                   </div>
                 </li>
@@ -166,14 +172,14 @@
           <!-- Mobile only: Login button -->
           <li class="nav-item px-4 pt-4 pb-2">
             <a href="/cuentas/registro.php"
-              class="btn btn-secondary text-white w-100 d-flex align-items-center justify-content-center gap-2">
+               class="btn btn-secondary text-white w-100 d-flex align-items-center justify-content-center gap-2">
               <i class="bi bi-person-plus"></i>Registro de Agremiados
             </a>
           </li>
 
           <li class="nav-item p-4">
             <a href="/cuentas/login.php"
-              class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2">
+               class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2">
               <i class="bi bi-box-arrow-in-right"></i>Acceder al Portal
             </a>
           </li>
@@ -218,20 +224,24 @@
             Sindicato
           </a>
           <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="/simulador.php">
+                Simulador
+              </a>
+            </li>
 
             <!-- Repositorios Submenu -->
             <li class="dropend">
               <a class="dropdown-item dropdown-toggle d-flex align-items-center justify-content-between pe-4" href="#"
-                data-bs-toggle="dropdown" aria-expanded="false">
+                 data-bs-toggle="dropdown" aria-expanded="false">
                 Repositorios
               </a>
               <ul class="dropdown-menu dropdown-submenu">
                 <li><a class="dropdown-item"
-                    href="/portal/repositorios/documentos-de-gestoria/index.php">Gestoría</a></li>
+                       href="/portal/repositorios/documentos-de-gestoria/index.php">Gestoría</a></li>
                 <li><a class="dropdown-item"
-                    href="/portal/repositorios/documentos-gremiales/index.php">Gremiales</a></li>
+                       href="/portal/repositorios/documentos-gremiales/index.php">Gremiales</a></li>
                 <li><a class="dropdown-item"
-                    href="/portal/repositorios/tramite-ante-autoridades/index.php">Trámites</a></li>
+                       href="/portal/repositorios/tramite-ante-autoridades/index.php">Trámites</a></li>
                 <li><a class="dropdown-item" href="/portal/repositorios/minutas-y-acuerdos/index.php">Minutas</a>
                 </li>
               </ul>
@@ -240,7 +250,7 @@
             <!-- Transparencia Submenu -->
             <li class="dropend">
               <a class="dropdown-item dropdown-toggle d-flex align-items-center justify-content-between pe-4" href="#"
-                data-bs-toggle="dropdown" aria-expanded="false">
+                 data-bs-toggle="dropdown" aria-expanded="false">
                 Transparencia
               </a>
               <ul class="dropdown-menu dropdown-submenu">
@@ -253,7 +263,7 @@
             <!-- Recursos Submenu -->
             <li class="dropend">
               <a class="dropdown-item dropdown-toggle d-flex align-items-center justify-content-between pe-4" href="#"
-                data-bs-toggle="dropdown" aria-expanded="false">
+                 data-bs-toggle="dropdown" aria-expanded="false">
                 Recursos
               </a>
               <ul class="dropdown-menu dropdown-submenu">
@@ -283,30 +293,30 @@
 
 <!-- CSS mínimo para submenús (solo lo necesario) -->
 <style>
-  /* Solo para desktop: activar submenús en hover y posicionamiento correcto */
-  @media (min-width: 992px) {
-    .dropend:hover>.dropdown-menu {
-      display: block;
-    }
+    /* Solo para desktop: activar submenús en hover y posicionamiento correcto */
+    @media (min-width: 992px) {
+        .dropend:hover > .dropdown-menu {
+            display: block;
+        }
 
-    .dropend>.dropdown-menu {
-      top: 0;
-      left: 100%;
-      margin-top: 0;
-      margin-left: 0;
-      border-top-left-radius: 0;
-    }
+        .dropend > .dropdown-menu {
+            top: 0;
+            left: 100%;
+            margin-top: 0;
+            margin-left: 0;
+            border-top-left-radius: 0;
+        }
 
-    /* Flecha indicadora para submenú */
-    .dropend .dropdown-toggle::after {
-      display: inline-block;
-      margin-left: 0.5em;
-      vertical-align: middle;
-      content: "";
-      border-top: 0.3em solid transparent;
-      border-right: 0;
-      border-bottom: 0.3em solid transparent;
-      border-left: 0.3em solid;
+        /* Flecha indicadora para submenú */
+        .dropend .dropdown-toggle::after {
+            display: inline-block;
+            margin-left: 0.5em;
+            vertical-align: middle;
+            content: "";
+            border-top: 0.3em solid transparent;
+            border-right: 0;
+            border-bottom: 0.3em solid transparent;
+            border-left: 0.3em solid;
+        }
     }
-  }
 </style>
