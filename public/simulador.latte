@@ -321,10 +321,12 @@
             this.descuentos[index].fechaPago = opciones.length > 0 ? opciones[0].value : ''
             this.descuentos[index].cantidad = opciones.length > 0 ? 1 : 0
             const maxPeriodos = opciones.length
-            Alpine.store('toast').show({
-              message: `Tipo periódico: ${ cat.nombre }. Máx períodos: ${ maxPeriodos }`,
-              type: 'alert',
-            })
+            if (window.Alpine && Alpine.store('toast')) {
+              Alpine.store('toast').show({
+                message: `Tipo periódico: ${ cat.nombre }. Máx períodos: ${ maxPeriodos }`,
+                type: 'alert',
+              })
+            }
           } else {
             delete this.descuentos[index].unidad
             delete this.descuentos[index].cantidad
@@ -408,7 +410,7 @@
               const diffMs = fechaPago.getTime() - inicio.getTime()
               const diffDays = Math.floor(diffMs / 86400000)
 
-              if (diffDays < 10 || fechaPago > fechaMaxima) continue
+              if (fechaPago < inicio || fechaPago > fechaMaxima) continue
 
               opciones.push({
                 value: this.toIsoDate(fechaPago),
