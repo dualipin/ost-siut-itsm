@@ -33,6 +33,7 @@ $categoriasTipoIngreso = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Convert numeric types to booleans and integers properly for JSON
 foreach ($categoriasTipoIngreso as &$cat) {
+    $cat['id'] = (int)$cat['id'];
     $cat['esPeriodico'] = (bool)$cat['esPeriodico'];
     $cat['activo'] = (bool)$cat['active'];
     $cat['frecuenciaDias'] = $cat['frecuenciaDias'] ? (int)$cat['frecuenciaDias'] : null;
