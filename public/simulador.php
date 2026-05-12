@@ -11,18 +11,8 @@ require_once __DIR__ . "/../bootstrap.php";
 $container = Bootstrap::buildContainer();
 $renderer = $container->get(RendererInterface::class);
 $pdo = $container->get(PDO::class);
-$userContext = $container->get(UserContextInterface::class);
-
-$user = $userContext->get();
-$prestamistaNombre = $user ? $user->name : "Usuario Anónimo";
-$rolUsuario = 'agremiado';
-if ($user && isset($user->role)) {
-    $rolRaw = is_object($user->role) && isset($user->role->value)
-        ? (string)$user->role->value
-        : (string)$user->role;
-    $rolUsuario = strtolower($rolRaw);
-}
-$isNoAgremiado = $rolUsuario === 'no_agremiado';
+$prestamistaNombre = "Usuario Anónimo";
+$isNoAgremiado = false;
 
 $form = new FormRequest();
 $salidaPdf = $form->input('output', 'html') === 'pdf';
