@@ -147,6 +147,10 @@
         </div>
       </form>
     </div>
+
+    <div class="alert alert-warning mt-4" role="alert">
+      Aquellos no miembros que deseen un préstamo, presentarse con un representante o acudir a las oficinas y mostrar el archivo de la simulación.
+    </div>
   </div>
 
   <script>
@@ -387,9 +391,9 @@
           let guard = 0
 
           while (cursor <= fechaMaxima && guard < 36) {
-            // condición especial para préstamos quincenales
-            // esta condición evita pagos muy próximos
-            // la condición permite que se aumente 10 días si la fecha esta proxima ej, hoy es 12 de mayo, faltan solo 12 dias para el 15, 
+            // la condición permite que se aplique una tolerancia de 15 días si la fecha está próxima
+            // ej. si hoy es 28 de mayo, la quincena del 31 de mayo está a solo 3 días (se salta),
+            // por lo tanto la siguiente quincena disponible será el 15 de junio.
 
 
             const year = cursor.getFullYear()
