@@ -372,6 +372,14 @@
         onPerfilChange (val) {
           this.interestRate = Number(val) || this.interestRate
         },
+        /**
+         * Calcula la tasa diaria a partir de la tasa anual
+         * Fórmula: i_diaria = tasa_anual / 100 / 30
+         * @returns { number }
+         */
+        get tasaDiaria () {
+          return this.interestRate / 100 / 30
+        },
         get selectedTipoIds () {
           return this.descuentos.map(d => Number(d.tipoId)).filter(Boolean)
         },
@@ -422,6 +430,28 @@
         },
         diasEnMes (year, monthIndex) {
           return new Date(year, monthIndex + 1, 0).getDate()
+        },
+        /**
+         * Calcula los días naturales entre dos fechas (ISO)
+         * @param { string } fechaInicio - Formato: YYYY-MM-DD
+         * @param { string } fechaFin - Formato: YYYY-MM-DD
+         * @returns { number }
+         */
+        calcularDiasEntreFechas (fechaInicio, fechaFin) {
+          const inicio = new Date(fechaInicio + 'T00:00:00')
+          const fin = new Date(fechaFin + 'T00:00:00')
+          const diffMs = fin.getTime() - inicio.getTime()
+          return Math.floor(diffMs / 86400000)
+        },
+        /**
+         * Calcula el interés exacto para un período basado en días reales
+         * Fórmula: I = Saldo × i_diaria × n (donde n es número de días reales)
+         * @param { number } saldo - Saldo insoluto
+         * @param { number } diasReales - Número de días entre fechas de pago
+         * @returns { number }
+         */
+        calcularInteresDiario (saldo, diasReales) {
+          return saldo * this.tasaDiaria * diasReales
         },
         obtenerOpcionesFechasPago (cat) {
           if (!cat || !cat.esPeriodico) return []

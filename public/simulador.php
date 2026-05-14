@@ -135,10 +135,14 @@ if ($form->method() == "POST") {
             return [];
         }
 
-        $tasaPeriodoSimple = ($tasaMensual / 100) * ($frecuenciaDias / 30);
+        // Tasa diaria: (Tasa Anual / 100) / 30
+        $tasaDiaria = ($tasaMensual / 100) / 30;
         $capitalFijo = $monto / $cantidad;
         $saldo = $monto;
         $rows = [];
+        
+        // Track previous date to calculate real days between payments
+        $fechaAnterior = $fechaBase;
 
         for ($i = 1; $i <= $cantidad; $i++) {
             $fecha = $fechas[$i - 1] ?? null;
@@ -146,7 +150,14 @@ if ($form->method() == "POST") {
                 $fecha = $fechaBase->modify('+' . ($frecuenciaDias * $i) . ' days')->format('Y-m-d');
             }
 
-            $interes = $saldo * $tasaPeriodoSimple;
+            // Calculate REAL days between previous date and current payment date
+            $fechaActual = DateTimeImmutable::createFromFormat('Y-m-d', $fecha) ?: $fechaBase;
+            $diasReales = max(1, (int)$fechaAnterior->diff($fechaActual)->days);
+
+            // Apply real daily interest: Balance × Daily Rate × Actual Days
+            // Fórmula: I = Saldo × (Tasa Anual / 100 / 30) × Días Reales
+            $interes = $saldo * $tasaDiaria * $diasReales;
+            
             $capital = min($capitalFijo, $saldo);
             $pago = $capital + $interes;
             $saldo -= $capital;
@@ -162,6 +173,9 @@ if ($form->method() == "POST") {
                 'saldo' => $saldo,
                 'fecha' => $fecha,
             ];
+            
+            // Update previous date for next iteration
+            $fechaAnterior = $fechaActual;
         }
 
         return $rows;

@@ -17,7 +17,8 @@ final readonly class AmortizationCalculator
     /**
      * Calculate German Simple Interest amortization schedule (método alemán)
      * - Constant principal payment per period
-     * - Interest calculated on declining balance
+     * - Interest calculated on declining balance using DAILY RATE
+     * - Interest = Balance × (Annual Rate / 100 / 30) × Actual Days Between Payments
      * - Payment dates: 15th or last day of month
      * 
      * @return AmortizationRow[]
@@ -37,7 +38,6 @@ final readonly class AmortizationCalculator
         $balance = $amount->amount();
         $principalPerPeriod = $amount->amount() / $fortnights;
         $monthlyRate = $rate->annual() / 100;
-        $fortnightRate = $monthlyRate / 2;
         $dailyRate = $monthlyRate / 30;
         
         // Round principal per period to 2 decimals for consistency
@@ -47,19 +47,20 @@ final readonly class AmortizationCalculator
         $firstEligibleDate = $this->applyFirstPaymentTolerance($disbursementDate);
         $firstPaymentDate = $this->calculateNextFortnightDate($firstEligibleDate);
 
-        // Keep existing simulator rule: one base fortnight plus extra days beyond 15.
-        $elapsedDays = $this->calculateDaysBetween($disbursementDate, $firstPaymentDate);
-        $additionalDays = max(0, $elapsedDays - self::FIRST_PAYMENT_TOLERANCE_DAYS);
+        // Track previous date for calculating real days between payments
+        $previousDate = $disbursementDate;
         
         for ($i = 1; $i <= $fortnights; $i++) {
             // Calculate payment date
             $paymentDate = $this->calculateFortnightDate($firstPaymentDate, $i - 1);
             
-            // Simulador rule: base fortnightly interest plus extra initial days.
-            $interest = $balance * $fortnightRate;
-            if ($i === 1 && $additionalDays > 0) {
-                $interest += $amount->amount() * $dailyRate * $additionalDays;
-            }
+            // Calculate REAL days between previous date and current payment date
+            $daysInPeriod = $this->calculateDaysBetween($previousDate, $paymentDate);
+            $daysInPeriod = max(1, $daysInPeriod); // Ensure at least 1 day
+            
+            // Apply real daily interest: Balance × Daily Rate × Actual Days
+            // Fórmula: I = Saldo × (Tasa Anual / 100 / 30) × Días
+            $interest = $balance * $dailyRate * $daysInPeriod;
             
             // Round interest to 2 decimals
             $interest = round($interest * 100) / 100;
@@ -101,6 +102,7 @@ final readonly class AmortizationCalculator
             );
             
             $balance = $newBalance;
+            $previousDate = $paymentDate;
         }
         
         return $rows;
@@ -308,6 +310,20 @@ final readonly class AmortizationCalculator
     }
 
     /**
+     * Calculate daily interest rate from annual rate
+     * Formula: i_daily = (annual_rate / 100) / 30
+     * 
+     * Example: 6% annual = 0.06 / 30 = 0.002 daily rate
+     * 
+     * @param float $annualRate Annual interest rate (e.g., 6.0 for 6%)
+     * @return float Daily interest rate (decimal, not percentage)
+     */
+    public function calculateDailyRate(float $annualRate): float
+    {
+        return ($annualRate / 100) / 30;
+    }
+
+    /**
      * Regenerate amortization table after pico or extraordinary payment
      */
     public function regenerateAmortizationTable(
@@ -456,6 +472,7 @@ final readonly class AmortizationCalculator
 
     /**
      * Generate simple-interest German rows using explicit payment dates.
+     * Uses DAILY RATE calculation: Interest = Balance × (Annual Rate / 100 / 30) × Days Between Payments
      *
      * @param DateTimeImmutable[] $scheduledDates
      * @return AmortizationRow[]
@@ -477,10 +494,19 @@ final readonly class AmortizationCalculator
         $installments = count($scheduledDates);
         $principalPerPeriod = $installments > 0 ? ($amount->amount() / $installments) : 0.0;
         $roundedPrincipal = round($principalPerPeriod * 100) / 100;
-        $periodRate = ($rate->annual() / 100) * (max(1, $fallbackFrequencyDays) / 30);
+        $dailyRate = ($rate->annual() / 100) / 30;
+
+        // Track previous date for real days calculation
+        $previousDate = $disbursementDate;
 
         foreach ($scheduledDates as $index => $paymentDate) {
-            $interest = $balance * $periodRate;
+            // Calculate REAL days between previous date and current payment date
+            $daysInPeriod = $this->calculateDaysBetween($previousDate, $paymentDate);
+            $daysInPeriod = max(1, $daysInPeriod); // Ensure at least 1 day
+            
+            // Apply real daily interest: Balance × Daily Rate × Actual Days
+            // Fórmula: I = Saldo × (Tasa Anual / 100 / 30) × Días
+            $interest = $balance * $dailyRate * $daysInPeriod;
             $interest = round($interest * 100) / 100;
 
             if ($index === $installments - 1) {
@@ -516,6 +542,7 @@ final readonly class AmortizationCalculator
             );
 
             $balance = $newBalance;
+            $previousDate = $paymentDate;
         }
 
         return $rows;
