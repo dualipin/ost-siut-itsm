@@ -17,7 +17,7 @@
       <form class="needs-validation" method="POST">
 
         <div class="row mb-3">
-          <div class="col-md-6 mb-3">
+          <div class="col-md-4 mb-3">
             <label class="form-label">Perfil (Tasa de Interés)</label>
             <select class="form-select" @change="onPerfilChange($event.target.value)">
               <option value="" disabled selected>Selecciona un perfil...</option>
@@ -27,11 +27,15 @@
                 <option value="7.5">Agremiado y no ahorrador (7.5%)</option>
             </select>
           </div>
-          <div class="col-md-6 mb-3">
+          <div class="col-md-4 mb-3">
             <label class="form-label">Tasa Mensual (%)</label>
             <span class="form-control-plaintext fw-bold" x-text="tasaInteresMensual.toFixed(2) + '%'"></span>
             <input type="hidden" name="tasa_interes" x-model="tasaInteresMensual" class="form-control" step="0.1"
                    required>
+          </div>
+          <div class="col-md-4 mb-3">
+            <label for="fechaOtorgamiento" class="form-label">Fecha de Inicio</label>
+            <input type="date" id="fechaOtorgamiento" class="form-control" x-model="fechaOtorgamiento" required>
           </div>
         </div>
 
@@ -87,7 +91,7 @@
                       <div class="col-12 col-sm-4">
                         <label class="form-label mb-1 small">Primer quincena</label>
                         <div class="form-control-plaintext fw-semibold"
-                             x-text="calcularFechaFin(categoriasTipoIngreso.find(c => Number(c.id) === Number(item.tipoId)), 1)">
+                             x-text="calcularPrimeraQuincena()">
                         </div>
                       </div>
                       <div class="col-12 col-sm-4">
@@ -106,13 +110,13 @@
                              x-text="`Cada ${ categoriasTipoIngreso.find(c => Number(c.id) === Number(item.tipoId))?.frecuenciaDias } días`">
                         </div>
                       </div>
-                      <div class="col-6 col-sm-4">
+                      {* <div class="col-6 col-sm-4">
                         <label class="form-label mb-1 small">Períodos</label>
                         <div class="form-control-plaintext fw-semibold" x-text="item.cantidad || 0"></div>
                         <div class="small text-muted">Máx períodos: <span
                                   x-text="calcularMaxPeriodos(categoriasTipoIngreso.find(c => Number(c.id) === Number(item.tipoId)))"></span>
                         </div>
-                      </div>
+                      </div> *}
                       {* <div class="col-12">
                         <label class="form-label mb-1 small">Fecha aproximada de terminación</label>
                         <div class="form-control-plaintext fw-semibold"
@@ -286,10 +290,50 @@
          */
         categoriasTipoIngreso: tiposPrestamos,
         /**
-         * Calcula la fecha máxima hasta donde se puede llegar con un tipo de ingreso
-         * Generalmente es el 20 de noviembre del año actual (antes del aguinaldo)
-         * @returns { Date }
+         * Calcula la fecha de la primera quincena respetando tolerancia de 10 días
+         * Si estamos a MENOS de 10 días de una quincena, la saltamos (período muy corto)
+         * @returns { string }
          */
+        calcularPrimeraQuincena () {
+          const fecha = new Date(this.fechaOtorgamiento + 'T00:00:00')
+          const dia = fecha.getDate()
+          const mes = fecha.getMonth()
+          const ano = fecha.getFullYear()
+          
+          // Tolerancia: 10 días mínimo entre hoy y la quincena para usarla
+          const tolerancia = 10
+          
+          // Quincenas posibles: día 15 y último día del mes
+          const dia15 = new Date(ano, mes, 15)
+          const ultimoDia = new Date(ano, mes + 1, 0)
+          
+          // Si aún no hemos llegado al día 15
+          if (dia < 15) {
+            const diasHasta15 = Math.floor((dia15.getTime() - fecha.getTime()) / 86400000)
+            
+            // Si estamos a 10 o más días del 15, esa es nuestra quincena
+            if (diasHasta15 >= tolerancia) {
+              return dia15.toLocaleDateString('es-MX')
+            }
+            
+            // Si estamos a menos de 10 días del 15, saltamos al último día
+            return ultimoDia.toLocaleDateString('es-MX')
+          }
+          
+          // Si ya pasamos el día 15
+          if (dia >= 15) {
+            const diasHastaUltimoDia = Math.floor((ultimoDia.getTime() - fecha.getTime()) / 86400000)
+            
+            // Si estamos a 10 o más días del último día, esa es nuestra quincena
+            if (diasHastaUltimoDia >= tolerancia) {
+              return ultimoDia.toLocaleDateString('es-MX')
+            }
+            
+            // Si estamos a menos de 10 días del último día, saltamos al 15 del próximo mes
+            const nextMonth = new Date(ano, mes + 1, 15)
+            return nextMonth.toLocaleDateString('es-MX')
+          }
+        },
         obtenerFechaMaximaAnual () {
           const hoy = new Date()
           const anioActual = hoy.getFullYear()
@@ -563,5 +607,8 @@
         },
       }
     }
+
+    // Exponer la función a Alpine.js
+    window.simuladorData = simuladorData
   </script>
 {/block}
