@@ -35,357 +35,461 @@
         </li>
 
         <li class="nav-item mb-2">
-          <a href="{url('/portal/documentos/informe-financiero-2025.php')}" class="nav-link text-white px-3">
-            <i class="bi bi-file-earmark-lock2 me-2"></i>
-            <span>Informe Financiero 2025</span>
-          </a>
+          <span class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
+                type="button" data-bs-toggle="collapse" data-bs-target="#informe-financiero-collapse"
+                aria-expanded="false"
+                aria-controls="informe-financiero-collapse">
+            Informes Financieros
+            <i class="bi bi-chevron-down"></i>
+          </span>
+          <div class="collapse ms-3" id="informe-financiero-collapse">
+            <ul class="nav flex-column pb-1">
+              <li class="nav-item">
+                <a href="{url('/portal/informes-financieros/index.php')}" class="nav-link text-white px-3">
+                  <i class="bi bi-book me-2"></i>
+                  <span>
+                    Listado
+                  </span>
+                </a>
+              </li>
+              {if $authUser->role->value === 'administrador' || $authUser->role->value === 'lider'}
+                <li class="nav-item">
+                  <a href="{url('/portal/informes-financieros/registrar.php')}" class="nav-link text-white px-3">
+                    <i class="bi bi-plus-circle me-2"></i>
+                    <span>Registrar Nuevo</span>
+                  </a>
+                </li>
+              {/if}
+            </ul>
+          </div>
         </li>
 
         {* ── Vales de Despensa (visible para todos los roles) ── *}
+
+
+
         <li class="nav-item mb-2">
-          <span
-                  class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
-                  type="button" data-bs-toggle="collapse" data-bs-target="#sodexo-collapse" aria-expanded="false"
-                  aria-controls="sodexo-collapse">
+            <span
+                    class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#sodexo-collapse" aria-expanded="false"
+                    aria-controls="sodexo-collapse">
             Vales de Despensa
             <i class="bi bi-chevron-down"></i>
           </span>
-          <div class="collapse ms-3" id="sodexo-collapse">
-            <ul class="nav flex-column pb-1">
-              <li class="nav-item" data-aos="fade-right" data-aos-delay="200">
-                <a href="{url('/portal/sodexo/solicitud.php')}" class="nav-link text-white px-3 mb-1">
-                  <i class="bi bi-receipt-cutoff me-2"></i>
-                  <span>Solicitud Pago Retroactivo</span>
-                </a>
-              </li>
-              {if $authUser->role->value === 'administrador' || $authUser->role->value === 'lider'}
+            <div class="collapse ms-3" id="sodexo-collapse">
+              <ul class="nav flex-column pb-1">
+                <li class="nav-item" data-aos="fade-right" data-aos-delay="200">
+                  <a href="{url('/portal/sodexo/solicitud.php')}" class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-receipt-cutoff me-2"></i>
+                    <span>Solicitud Pago Retroactivo</span>
+                  </a>
+                </li>
+                {if $authUser->role->value === 'administrador' || $authUser->role->value === 'lider'}
+                  <li class="nav-item" data-aos="fade-right" data-aos-delay="300">
+                    <a href="{url('/portal/sodexo/reporte.php')}" class="nav-link text-white px-3 mb-1">
+                      <i class="bi bi-file-earmark-bar-graph-fill me-2"></i>
+                      <span>Reporte Adeudos</span>
+                    </a>
+                  </li>
+                {/if}
+              </ul>
+            </div>
+        </li>
+
+
+
+
+
+
+
+
+        <li class="nav-item mb-2">
+            <a class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
+               href="#publicacion-collapse" data-bs-toggle="collapse" role="button" aria-expanded="false"
+               aria-controls="publicacion-collapse">
+              Publicaciones
+              <i class="bi bi-chevron-down"></i>
+            </a>
+
+            <div class="collapse ms-3" id="publicacion-collapse">
+              <ul class="nav flex-column pb-1">
+                <!-- Avisos -->
+                <li class="nav-item" data-aos="fade-right" data-aos-delay="200">
+                  <a href="{url('/portal/publicaciones/avisos.php')}" class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-bell me-2"></i>
+                    <span>Avisos</span>
+                  </a>
+                </li>
+
+                <!-- Noticias -->
                 <li class="nav-item" data-aos="fade-right" data-aos-delay="300">
-                  <a href="{url('/portal/sodexo/reporte.php')}" class="nav-link text-white px-3 mb-1">
+                  <a href="{url('/portal/publicaciones/noticias.php')}" class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-newspaper me-2"></i>
+                    <span>Noticias</span>
+                  </a>
+                </li>
+
+                <!-- Gestiones -->
+                <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                  <a href="{url('/portal/publicaciones/gestiones.php')}" class="nav-link text-white px-3 mb-1">
                     <i class="bi bi-file-earmark-bar-graph-fill me-2"></i>
-                    <span>Reporte Adeudos</span>
+                    <span>Gestiones</span>
                   </a>
                 </li>
-              {/if}
-            </ul>
-          </div>
-        </li>
 
-        <li class="nav-item mb-2">
-          <a class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
-             href="#publicacion-collapse" data-bs-toggle="collapse" role="button" aria-expanded="false"
-             aria-controls="publicacion-collapse">
-            Publicaciones
-            <i class="bi bi-chevron-down"></i>
-          </a>
-
-          <div class="collapse ms-3" id="publicacion-collapse">
-            <ul class="nav flex-column pb-1">
-              <!-- Avisos -->
-              <li class="nav-item" data-aos="fade-right" data-aos-delay="200">
-                <a href="{url('/portal/publicaciones/avisos.php')}" class="nav-link text-white px-3 mb-1">
-                  <i class="bi bi-bell me-2"></i>
-                  <span>Avisos</span>
-                </a>
-              </li>
-
-              <!-- Noticias -->
-              <li class="nav-item" data-aos="fade-right" data-aos-delay="300">
-                <a href="{url('/portal/publicaciones/noticias.php')}" class="nav-link text-white px-3 mb-1">
-                  <i class="bi bi-newspaper me-2"></i>
-                  <span>Noticias</span>
-                </a>
-              </li>
-
-              <!-- Gestiones -->
-              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
-                <a href="{url('/portal/publicaciones/gestiones.php')}" class="nav-link text-white px-3 mb-1">
-                  <i class="bi bi-file-earmark-bar-graph-fill me-2"></i>
-                  <span>Gestiones</span>
-                </a>
-              </li>
-
-              <li class="nav-item" data-aos="fade-right" data-aos-delay="450">
-                <a href="{url('/portal/publicaciones/contratos.php')}" class="nav-link text-white px-3 mb-1">
-                  <i class="bi bi-file-earmark-text me-2"></i>
-                  <span>Contratos</span>
-                </a>
-              </li>
-
-              {if $authUser->role->value === 'administrador' || $authUser->role->value === 'lider'}
-                <li class="nav-item">
-                  <a href="{url('/portal/publicaciones/registrar.php')}" class="nav-link text-white px-3 mb-1">
-                    <i class="bi bi-plus-circle me-2"></i>
-                    <span>Registrar</span>
+                <li class="nav-item" data-aos="fade-right" data-aos-delay="450">
+                  <a href="{url('/portal/publicaciones/contratos.php')}" class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-file-earmark-text me-2"></i>
+                    <span>Contratos</span>
                   </a>
                 </li>
-              {/if}
-            </ul>
-          </div>
+
+                {if $authUser->role->value === 'administrador' || $authUser->role->value === 'lider'}
+                  <li class="nav-item">
+                    <a href="{url('/portal/publicaciones/registrar.php')}" class="nav-link text-white px-3 mb-1">
+                      <i class="bi bi-plus-circle me-2"></i>
+                      <span>Registrar</span>
+                    </a>
+                  </li>
+                {/if}
+              </ul>
+            </div>
         </li>
 
 
+
+
+
+
+
+
+
         <li class="nav-item mb-2">
-          <a class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
-             href="#prestamo-collapse" data-bs-toggle="collapse" role="button" aria-expanded="false"
-             aria-controls="prestamo-collapse">
-            Prestamos
-            <i class="bi bi-chevron-down"></i>
-          </a>
-          <div class="collapse ms-3" id="prestamo-collapse">
-            <ul class="nav flex-column pb-1">
-              {* <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
-                <a href="{url('/portal/prestamos/simulador.php')}" class="nav-link text-white px-3 mb-1">
-                  <i class="bi bi-calculator me-2"></i>
-                  Simulador
-                </a>
-              </li> *}
-              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
-                <a href="{url('/portal/prestamos/solicitar.php')}" class="nav-link text-white px-3 mb-1">
-                  <i class="bi bi-send me-2"></i>
-                  Solicitar
-                </a>
+            <a class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
+               href="#prestamo-collapse" data-bs-toggle="collapse" role="button" aria-expanded="false"
+               aria-controls="prestamo-collapse">
+              Prestamos
+              <i class="bi bi-chevron-down"></i>
+            </a>
+            <div class="collapse ms-3" id="prestamo-collapse">
+              <ul class="nav flex-column pb-1">
+                {* <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                  <a href="{url('/portal/prestamos/simulador.php')}" class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-calculator me-2"></i>
+                    Simulador
+                  </a>
+                </li> *}
+
+
+
+
+
+
+
+                <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                    <a href="{url('/portal/prestamos/solicitar.php')}" class="nav-link text-white px-3 mb-1">
+                      <i class="bi bi-send me-2"></i>
+                      Solicitar
+                    </a>
               </li>
-              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
-                <a href="{url('/portal/prestamos/activos.php')}" class="nav-link text-white px-3 mb-1">
-                  <i class="bi bi-journal-check me-2"></i>
-                  Activos
-                </a>
+
+
+
+
+
+
+
+                <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                    <a href="{url('/portal/prestamos/activos.php')}" class="nav-link text-white px-3 mb-1">
+                      <i class="bi bi-journal-check me-2"></i>
+                      Activos
+                    </a>
               </li>
               {if $authUser->role->value === 'administrador' || $authUser->role->value === 'lider' || $authUser->role->value === 'finanzas'}
-                <li class="nav-item" data-aos="fade-right" data-aos-delay="450">
-                  <a href="{url('/portal/prestamos/revision.php')}" class="nav-link text-white px-3 mb-1">
-                    <i class="bi bi-clipboard2-check me-2"></i>
-                    Cola de revisión
-                  </a>
-                </li>
-                <li class="nav-item" data-aos="fade-right" data-aos-delay="500">
-                  <a href="{url('/portal/prestamos/categorias.php')}" class="nav-link text-white px-3 mb-1">
-                    <i class="bi bi-tags me-2"></i>
-                    Categorías de ingreso
-                  </a>
-                </li>
-              {/if}
-            </ul>
-          </div>
+                  <li class="nav-item" data-aos="fade-right" data-aos-delay="450">
+                    <a href="{url('/portal/prestamos/revision.php')}" class="nav-link text-white px-3 mb-1">
+                      <i class="bi bi-clipboard2-check me-2"></i>
+                      Cola de revisión
+                    </a>
+                  </li>
+                  <li class="nav-item" data-aos="fade-right" data-aos-delay="500">
+                    <a href="{url('/portal/prestamos/categorias.php')}" class="nav-link text-white px-3 mb-1">
+                      <i class="bi bi-tags me-2"></i>
+                      Categorías de ingreso
+                    </a>
+                  </li>
+                {/if}
+              </ul>
+            </div>
         </li>
 
-        <li class="nav-item mb-2" {if $authUser->role->value !== 'administrador' && $authUser->role->value !== 'lider' && $authUser->role->value !== 'finanzas'}style="display:none"{/if}>
-          <span
-                  class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
-                  type="button" data-bs-toggle="collapse" data-bs-target="#cajas-collapse" aria-expanded="false"
-                  aria-controls="cajas-collapse">
+
+
+
+
+
+
+
+        <li class="nav-item mb-2"
+            {if $authUser->role->value !== 'administrador' && $authUser->role->value !== 'lider' && $authUser->role->value !== 'finanzas'}style="display:none"{/if}>
+            <span
+                    class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#cajas-collapse" aria-expanded="false"
+                    aria-controls="cajas-collapse">
             Cajas
             <i class="bi bi-chevron-down"></i>
           </span>
-          <div class="collapse ms-3" id="cajas-collapse">
-            <ul class="nav flex-column pb-1">
-              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
-                <a href="{url('/portal/cajas/listado.php')}" class="nav-link text-white px-3 mb-1">
-                  <i class="bi bi-cash-coin me-2"></i>
-                  <span>Listado</span>
-                </a>
-              </li>
-              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
-                <a href="{url('/portal/cajas/movimientos.php')}" class="nav-link text-white px-3 mb-1">
-                  <i class="bi bi-arrow-left-right me-2"></i>
-                  <span>Movimientos</span>
-                </a>
-              </li>
-              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
-                <a href="{url('/portal/cajas/categorias.php')}" class="nav-link text-white px-3 mb-1">
-                  <i class="bi bi-tags me-2"></i>
-                  <span>Categorías</span>
-                </a>
-              </li>
-              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
-                <a href="{url('/portal/cajas/informe.php')}" class="nav-link text-white px-3 mb-1">
-                  <i class="bi bi-file-earmark-pdf me-2"></i>
-                  <span>Informe</span>
-                </a>
-              </li>
-            </ul>
-          </div>
+            <div class="collapse ms-3" id="cajas-collapse">
+              <ul class="nav flex-column pb-1">
+                <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                  <a href="{url('/portal/cajas/listado.php')}" class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-cash-coin me-2"></i>
+                    <span>Listado</span>
+                  </a>
+                </li>
+                <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                  <a href="{url('/portal/cajas/movimientos.php')}" class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-arrow-left-right me-2"></i>
+                    <span>Movimientos</span>
+                  </a>
+                </li>
+                <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                  <a href="{url('/portal/cajas/categorias.php')}" class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-tags me-2"></i>
+                    <span>Categorías</span>
+                  </a>
+                </li>
+                <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                  <a href="{url('/portal/cajas/informe.php')}" class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-file-earmark-pdf me-2"></i>
+                    <span>Informe</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
         </li>
 
         {* ── Solicitudes ── *}
+
+
+
+
+
+
+
         <li class="nav-item mb-2">
-          <span
-                  class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
-                  type="button" data-bs-toggle="collapse" data-bs-target="#solicitudes-collapse" aria-expanded="false"
-                  aria-controls="solicitudes-collapse">
+            <span
+                    class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#solicitudes-collapse" aria-expanded="false"
+                    aria-controls="solicitudes-collapse">
             Solicitudes
             <i class="bi bi-chevron-down"></i>
           </span>
-          <div class="collapse ms-3" id="solicitudes-collapse">
-            <ul class="nav flex-column pb-1">
-              <li class="nav-item" data-aos="fade-right" data-aos-delay="200">
-                <a href="{url('/portal/solicitudes/nueva.php')}" class="nav-link text-white px-3 mb-1">
-                  <i class="bi bi-send-plus me-2"></i>
-                  <span>Nueva Solicitud</span>
-                </a>
-              </li>
-              <li class="nav-item" data-aos="fade-right" data-aos-delay="300">
-                <a href="{url('/portal/solicitudes/mis-solicitudes.php')}" class="nav-link text-white px-3 mb-1">
-                  <i class="bi bi-journal-text me-2"></i>
-                  <span>Mis Solicitudes</span>
-                </a>
-              </li>
-              {if $authUser->role->value === 'administrador' || $authUser->role->value === 'finanzas' || $authUser->role->value === 'lider'}
-                <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
-                  <a href="{url('/portal/solicitudes/panel.php')}" class="nav-link text-white px-3 mb-1">
-                    <i class="bi bi-clipboard2-data me-2"></i>
-                    <span>Panel de Solicitudes</span>
+            <div class="collapse ms-3" id="solicitudes-collapse">
+              <ul class="nav flex-column pb-1">
+                <li class="nav-item" data-aos="fade-right" data-aos-delay="200">
+                  <a href="{url('/portal/solicitudes/nueva.php')}" class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-send-plus me-2"></i>
+                    <span>Nueva Solicitud</span>
                   </a>
                 </li>
-              {/if}
-            </ul>
-          </div>
+                <li class="nav-item" data-aos="fade-right" data-aos-delay="300">
+                  <a href="{url('/portal/solicitudes/mis-solicitudes.php')}" class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-journal-text me-2"></i>
+                    <span>Mis Solicitudes</span>
+                  </a>
+                </li>
+                {if $authUser->role->value === 'administrador' || $authUser->role->value === 'finanzas' || $authUser->role->value === 'lider'}
+                  <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                    <a href="{url('/portal/solicitudes/panel.php')}" class="nav-link text-white px-3 mb-1">
+                      <i class="bi bi-clipboard2-data me-2"></i>
+                      <span>Panel de Solicitudes</span>
+                    </a>
+                  </li>
+                {/if}
+              </ul>
+            </div>
         </li>
 
+
+
+
+
+
+
+
         <li class="nav-item mb-2">
-          <span
-                  class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
-                  type="button" data-bs-toggle="collapse" data-bs-target="#transparencia-collapse" aria-expanded="false"
-                  aria-controls="transparencia-collapse">
+            <span
+                    class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#transparencia-collapse"
+                    aria-expanded="false"
+                    aria-controls="transparencia-collapse">
             Transparencia
             <i class="bi bi-chevron-down"></i>
           </span>
-          <div class="collapse ms-3" id="transparencia-collapse">
-            <ul class="nav flex-column pb-1">
-              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
-                <a href="{url('/portal/transparencia/listado.php')}" class="nav-link text-white px-3 mb-1">
-                  <i class="bi bi-file-lock me-2"></i>
-                  <span>Documentos</span>
-                </a>
-              </li>
-              {if $authUser->role->value === 'administrador' || $authUser->role->value === 'lider'}
+            <div class="collapse ms-3" id="transparencia-collapse">
+              <ul class="nav flex-column pb-1">
                 <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
-                  <a href="{url('/portal/transparencia/nuevo.php')}" class="nav-link text-white px-3 mb-1">
-                    <i class="bi bi-file-plus me-2"></i>
-                    <span>Nuevo</span>
+                  <a href="{url('/portal/transparencia/listado.php')}" class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-file-lock me-2"></i>
+                    <span>Documentos</span>
                   </a>
                 </li>
-              {else}
-                <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
-                  <a href="{url('/portal/mensajeria/dudas/mis-dudas.php')}" class="nav-link text-white px-3 mb-1">
-                    <i class="bi bi-question-circle me-2"></i>
-                    <span>Mis Dudas</span>
-                  </a>
-                </li>
-                <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
-                  <a href="{url('/portal/mensajeria/dudas/nueva.php')}" class="nav-link text-white px-3 mb-1">
-                    <i class="bi bi-patch-question me-2"></i>
-                    <span>Nueva Duda</span>
-                  </a>
-                </li>
-              {/if}
-            </ul>
-          </div>
+                {if $authUser->role->value === 'administrador' || $authUser->role->value === 'lider'}
+                  <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                    <a href="{url('/portal/transparencia/nuevo.php')}" class="nav-link text-white px-3 mb-1">
+                      <i class="bi bi-file-plus me-2"></i>
+                      <span>Nuevo</span>
+                    </a>
+                  </li>
+                {else}
+                  <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                    <a href="{url('/portal/mensajeria/dudas/mis-dudas.php')}" class="nav-link text-white px-3 mb-1">
+                      <i class="bi bi-question-circle me-2"></i>
+                      <span>Mis Dudas</span>
+                    </a>
+                  </li>
+                  <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                    <a href="{url('/portal/mensajeria/dudas/nueva.php')}" class="nav-link text-white px-3 mb-1">
+                      <i class="bi bi-patch-question me-2"></i>
+                      <span>Nueva Duda</span>
+                    </a>
+                  </li>
+                {/if}
+              </ul>
+            </div>
         </li>
 
+
+
+
+
+
+
+
         <li class="nav-item mb-2">
-          <span
-                  class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
-                  type="button" data-bs-toggle="collapse" data-bs-target="#repositorios-collapse" aria-expanded="false"
-                  aria-controls="repositorios-collapse">
+            <span
+                    class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#repositorios-collapse"
+                    aria-expanded="false"
+                    aria-controls="repositorios-collapse">
             Repositorios
             <i class="bi bi-chevron-down"></i>
           </span>
-          <div class="collapse ms-3" id="repositorios-collapse">
-            <ul class="nav flex-column pb-1">
-              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
-                <a href="{url('/portal/repositorios/documentos-de-gestoria/index.php')}" class="nav-link text-white px-3 mb-1">
-                  <i class="bi bi-folder2-open me-2"></i>
-                  <span>Gestoría</span>
-                </a>
-              </li>
-              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
-                <a href="{url('/portal/repositorios/documentos-gremiales/index.php')}" class="nav-link text-white px-3 mb-1">
-                  <i class="bi bi-people-fill me-2"></i>
-                  <span>Gremiales</span>
-                </a>
-              </li>
-              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
-                <a href="{url('/portal/repositorios/minutas-y-acuerdos/index.php')}" class="nav-link text-white px-3 mb-1">
-                  <i class="bi bi-journal-text me-2"></i>
-                  <span>Minutas</span>
-                </a>
-              </li>
-              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
-                <a href="{url('/portal/repositorios/tramite-ante-autoridades/index.php')}" class="nav-link text-white px-3 mb-1">
-                  <i class="bi bi-bank me-2"></i>
-                  <span>Trámites</span>
-                </a>
-              </li>
-            </ul>
-          </div>
+            <div class="collapse ms-3" id="repositorios-collapse">
+              <ul class="nav flex-column pb-1">
+                <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                  <a href="{url('/portal/repositorios/documentos-de-gestoria/index.php')}"
+                     class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-folder2-open me-2"></i>
+                    <span>Gestoría</span>
+                  </a>
+                </li>
+                <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                  <a href="{url('/portal/repositorios/documentos-gremiales/index.php')}"
+                     class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-people-fill me-2"></i>
+                    <span>Gremiales</span>
+                  </a>
+                </li>
+                <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                  <a href="{url('/portal/repositorios/minutas-y-acuerdos/index.php')}"
+                     class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-journal-text me-2"></i>
+                    <span>Minutas</span>
+                  </a>
+                </li>
+                <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                  <a href="{url('/portal/repositorios/tramite-ante-autoridades/index.php')}"
+                     class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-bank me-2"></i>
+                    <span>Trámites</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
         </li>
 
+
+
+
+
+
+
+
         <li class="nav-item mb-2">
-          <span
-                  class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
-                  type="button" data-bs-toggle="collapse" data-bs-target="#mensajeria-collapse" aria-expanded="false"
-                  aria-controls="mensajeria-collapse">
+            <span
+                    class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#mensajeria-collapse" aria-expanded="false"
+                    aria-controls="mensajeria-collapse">
             Mensajería
             <i class="bi bi-chevron-down"></i>
           </span>
-          <div class="collapse ms-3" id="mensajeria-collapse">
-            <ul class="nav flex-column pb-1">
-              {if $authUser->role->value === 'administrador' || $authUser->role->value === 'lider'}
-                <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
-                  <a href="{url('/portal/mensajeria/contacto/index.php')}" class="nav-link text-white px-3 mb-1">
-                    <i class="bi bi-envelope me-2"></i>
-                    <span>Contacto</span>
-                  </a>
-                </li>
-                <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
-                  <a href="{url('/portal/mensajeria/dudas/index.php')}" class="nav-link text-white px-3 mb-1">
-                    <i class="bi bi-question-circle me-2"></i>
-                    <span>Dudas</span>
-                  </a>
-                </li>
-              {else}
-                <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
-                  <a href="{url('/portal/mensajeria/contacto/mis-mensajes.php')}" class="nav-link text-white px-3 mb-1">
-                    <i class="bi bi-chat-left-text me-2"></i>
-                    <span>Mis Mensajes</span>
-                  </a>
-                </li>
-                <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
-                  <a href="{url('/portal/mensajeria/contacto/nuevo.php')}" class="nav-link text-white px-3 mb-1">
-                    <i class="bi bi-pencil-square me-2"></i>
-                    <span>Enviar Mensaje</span>
-                  </a>
-                </li>
-              {/if}
-            </ul>
-          </div>
+            <div class="collapse ms-3" id="mensajeria-collapse">
+              <ul class="nav flex-column pb-1">
+                {if $authUser->role->value === 'administrador' || $authUser->role->value === 'lider'}
+                  <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                    <a href="{url('/portal/mensajeria/contacto/index.php')}" class="nav-link text-white px-3 mb-1">
+                      <i class="bi bi-envelope me-2"></i>
+                      <span>Contacto</span>
+                    </a>
+                  </li>
+                  <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                    <a href="{url('/portal/mensajeria/dudas/index.php')}" class="nav-link text-white px-3 mb-1">
+                      <i class="bi bi-question-circle me-2"></i>
+                      <span>Dudas</span>
+                    </a>
+                  </li>
+                {else}
+                  <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                    <a href="{url('/portal/mensajeria/contacto/mis-mensajes.php')}"
+                       class="nav-link text-white px-3 mb-1">
+                      <i class="bi bi-chat-left-text me-2"></i>
+                      <span>Mis Mensajes</span>
+                    </a>
+                  </li>
+                  <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                    <a href="{url('/portal/mensajeria/contacto/nuevo.php')}" class="nav-link text-white px-3 mb-1">
+                      <i class="bi bi-pencil-square me-2"></i>
+                      <span>Enviar Mensaje</span>
+                    </a>
+                  </li>
+                {/if}
+              </ul>
+            </div>
         </li>
 
+
+
+
+
+
+
+
         <li class="nav-item mb-2">
-          <span
-                  class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
-                  type="button" data-bs-toggle="collapse" data-bs-target="#recursos-collapse" aria-expanded="false"
-                  aria-controls="recursos-collapse">
+            <span
+                    class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#recursos-collapse" aria-expanded="false"
+                    aria-controls="recursos-collapse">
             Recursos
             <i class="bi bi-chevron-down"></i>
           </span>
-          <div class="collapse ms-3" id="recursos-collapse">
-            <ul class="nav flex-column pb-1">
-              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
-                <a href="{url('/portal/publicaciones/formatos.php')}" class="nav-link text-white px-3 mb-1">
-                  <i class="bi bi-file-earmark-ruled me-2"></i>
-                  <span>Formatos</span>
-                </a>
-              </li>
-              <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
-                <a href="{url('/portal/publicaciones/acervos.php')}" class="nav-link text-white px-3 mb-1">
-                  <i class="bi bi-book me-2"></i>
-                  <span>Acervo Bibliográfico</span>
-                </a>
-              </li>
-            </ul>
-          </div>
+            <div class="collapse ms-3" id="recursos-collapse">
+              <ul class="nav flex-column pb-1">
+                <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                  <a href="{url('/portal/publicaciones/formatos.php')}" class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-file-earmark-ruled me-2"></i>
+                    <span>Formatos</span>
+                  </a>
+                </li>
+                <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
+                  <a href="{url('/portal/publicaciones/acervos.php')}" class="nav-link text-white px-3 mb-1">
+                    <i class="bi bi-book me-2"></i>
+                    <span>Acervo Bibliográfico</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
         </li>
 
         {if $authUser->role->value === 'administrador' || $authUser->role->value === 'lider'}
@@ -432,7 +536,8 @@
           <li class="nav-item mb-2">
             <span
                     class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
-                    type="button" data-bs-toggle="collapse" data-bs-target="#configuracion-collapse" aria-expanded="false"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#configuracion-collapse"
+                    aria-expanded="false"
                     aria-controls="configuracion-collapse">
               Configuración
               <i class="bi bi-chevron-down"></i>
@@ -539,21 +644,21 @@
 {/if}
 
 <style>
-  /* Fixed sidebar on desktop - required for layout */
-  @media (min-width: 992px) {
-    #sidebarMenu {
-      position: fixed;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      z-index: 1000;
-    }
+    /* Fixed sidebar on desktop - required for layout */
+    @media (min-width: 992px) {
+        #sidebarMenu {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 1000;
+        }
 
-    /* Adjust main content to account for fixed sidebar */
-    .row.g-0 > .col {
-      margin-left: 280px;
-      flex: 0 0 calc(100% - 280px);
-      max-width: calc(100% - 280px);
+        /* Adjust main content to account for fixed sidebar */
+        .row.g-0 > .col {
+            margin-left: 280px;
+            flex: 0 0 calc(100% - 280px);
+            max-width: calc(100% - 280px);
+        }
     }
-  }
 </style>
