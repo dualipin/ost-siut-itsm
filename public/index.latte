@@ -2,7 +2,7 @@
 
 {block main}
 {* Banner Promocional para Sodexo *}
-<div class="bg-light py-3 border-bottom border-secondary shadow-sm">
+{* <div class="bg-light py-3 border-bottom border-secondary shadow-sm">
   <div class="container">
     <div class="d-flex flex-column flex-md-row align-items-center justify-content-center gap-3 text-center text-md-start">
       <div class="d-flex align-items-center gap-2">
@@ -17,7 +17,7 @@
       </a>
     </div>
   </div>
-</div>
+</div> *}
 
 {if !empty($birthdayMembers)}
 <section class="py-4 border-bottom bg-body-tertiary">
@@ -65,8 +65,8 @@
 </section>
 {/if}
 
-<section class="py-5 min-vh-100" id="home">
-  <div class="container py-5">
+<section class="pt-5" id="home">
+  <div class="container pt-5">
     <div class="row align-items-center">
       <div class="col-lg-6 mb-4 mb-lg-0">
         <div class="row">
@@ -166,14 +166,10 @@
             </div>
 
             <!-- Logos -->
-            <div class="mb-4" data-aos="fade-up" data-aos-delay="400">
+            <div class="" data-aos="fade-up" data-aos-delay="400">
               <span class="text-uppercase text-secondary mb-3 d-block fw-semibold small">
                 En unidad permanente, TODOS SOMOS LA FUERZA
               </span>
-              <div class="d-flex gap-3 align-items-center">
-                <img class="img-fluid rounded" src="/assets/images/logo.webp" alt="OST-SIUT-ITSM Logo"
-                  style="width: 200px; aspect-ratio: 1/1; object-fit: contain;">
-              </div>
             </div>
           </div>
         </div>
@@ -188,6 +184,20 @@
     </div>
   </div>
 </section>
+
+<section class="py-5 mt-5 border-top">
+  <div class="container text-center">
+    <div class="row d-flex flex-wrap align-items-center justify-content-center g-4">
+      <div class="col-6 col-md-4 col-lg-3">
+        <img class="img-fluid grayscale" src="/assets/images/logo.webp" alt="OST-SIUT-ITSM Logo">
+      </div>
+      <div class="col-6 col-md-4 col-lg-3">
+        <img src="/assets/images/logo/logo-snes.png" class="img-fluid grayscale" alt="Cliente 2">
+      </div>
+    </div>
+  </div>
+</section>
+
 
 {* Contacto *}
 

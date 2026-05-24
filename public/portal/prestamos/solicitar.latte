@@ -160,7 +160,7 @@
                   <div class="col-12" x-show="item.tipoId && (categoriasTipoIngreso.find(c => c.id === item.tipoId)?.esPeriodico)">
                     <div class="row g-2">
                       <div class="col-12 col-sm-4">
-                        <label class="form-label mb-1 small">Fecha estimada de último pago</label>
+                        <label class="form-label mb-1 small">Fecha de último pago</label>
                         <select x-model="item.fechaPago" @change="onFechaPagoChange(index)" class="form-select" :disabled="obtenerOpcionesParaItem(index).length === 0">
                           <option value="">Seleccione una fecha...</option>
                           <template x-for="op in obtenerOpcionesParaItem(index)" :key="op.value">
@@ -652,20 +652,15 @@
           <li><strong>No Agremiado No Ahorrador:</strong> 9.5%</li>
         </ul>
 
-        <h6>3. Pagos y Picos</h6>
-        <p>
-          Si no se realiza un pago en la fecha establecida (pico), se aplicará un interés moratorio
-          del 2% anual sobre el saldo pendiente, y se regenerará la tabla de amortización.
-        </p>
-
-        <h6>4. Documentación Requerida</h6>
+        <h6>3. Documentación Requerida</h6>
         <p>Una vez aprobado el préstamo, deberá presentar:</p>
         <ul>
           <li>Pagaré firmado</li>
           <li>Anuencia de descuento firmada</li>
+          <li>Formato de anuencia de descuento firmado por el sindicato</li>
         </ul>
 
-        <h6>5. Aceptación</h6>
+        <h6>4. Aceptación</h6>
         <p>
           Al enviar esta solicitud, el solicitante acepta todos los términos y condiciones establecidos,
           así como las políticas del sindicato respecto a préstamos.
