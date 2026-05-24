@@ -21,7 +21,7 @@ $userContext = $container->get(UserContextInterface::class);
 
 $authenticatedUser = $userContext->get();
 if ($authenticatedUser === null) {
-    header('Location: /cuentas/login.php');
+    header('Location: /cuentas/login.php?redirect=' . urlencode($_SERVER['REQUEST_URI'] ?? '/portal/transparencia/detalle.php'));
     exit;
 }
 
