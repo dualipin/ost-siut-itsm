@@ -21,7 +21,7 @@ $userContext = $container->get(UserContextInterface::class);
 
 $authenticatedUser = $userContext->get();
 if ($authenticatedUser === null) {
-    header('Location: /portal/cuentas/login.php');
+    header('Location: /cuentas/login.php');
     exit;
 }
 

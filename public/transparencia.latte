@@ -120,26 +120,9 @@
                                   <article class="border rounded-4 p-3 p-md-4 bg-white">
                                     <div class="d-flex flex-column flex-md-row gap-3 justify-content-between">
                                       <div class="d-flex gap-3">
-                                        <div class="flex-shrink-0">
-                                          {if $document->isPrivate}
-                                            <div class="bg-danger bg-opacity-10 text-danger rounded-4 p-3">
-                                              <i class="bi bi-lock-fill fs-3"></i>
-                                            </div>
-                                          {else}
-                                            <div class="bg-success bg-opacity-10 text-success rounded-4 p-3">
-                                              <i class="bi bi-file-earmark-text fs-3"></i>
-                                            </div>
-                                          {/if}
-                                        </div>
-
                                         <div class="min-w-0">
                                           <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
                                             <h4 class="h5 mb-0">{$document->title}</h4>
-                                            {if $document->isPrivate}
-                                              <span class="badge rounded-pill bg-danger bg-opacity-75"><i class="bi bi-lock-fill"></i> Privado</span>
-                                            {else}
-                                              <span class="badge rounded-pill bg-success bg-opacity-75"><i class="bi bi-globe"></i> Público</span>
-                                            {/if}
                                             <span class="badge rounded-pill bg-info text-dark bg-opacity-25">{$document->type->value}</span>
                                           </div>
 
@@ -151,21 +134,17 @@
                                           {if $document->summary && $documentVisibility[$document->id]}
                                             <p class="mb-0 mt-3 text-secondary">{$document->summary}</p>
                                           {elseif $document->isPrivate}
-                                            <p class="mb-0 mt-3 text-muted">Documento reservado. Su detalle solo está disponible para usuarios autorizados.</p>
+                                            <p class="mb-0 mt-3 text-muted">...</p>
                                           {/if}
                                         </div>
                                       </div>
 
                                       <div class="d-flex align-items-start">
-                                        {if $documentVisibility[$document->id]}
-                                          <a href="transparencia-detalle.php?id={$document->id}" class="btn btn-outline-primary rounded-4 text-nowrap">
+   
+                                          <a href="/portal/transparencia/detalle.php?id={$document->id}" class="btn btn-outline-primary rounded-4 text-nowrap">
                                             <i class="bi bi-eye me-1"></i> Ver detalle
                                           </a>
-                                        {else}
-                                          <span class="btn btn-outline-secondary rounded-4 disabled text-nowrap" aria-disabled="true">
-                                            <i class="bi bi-lock-fill me-1"></i> Acceso restringido
-                                          </span>
-                                        {/if}
+  
                                       </div>
                                     </div>
                                   </article>
