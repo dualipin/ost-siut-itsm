@@ -29,9 +29,12 @@ try {
     exit;
 }
 
+$isPdf = strtolower(pathinfo($report->document, PATHINFO_EXTENSION)) === 'pdf';
+
 $renderer->render('./ver.latte', [
     'report' => $report,
     'isPrivileged' => in_array($user->role, [RoleEnum::Admin, RoleEnum::Lider], true),
     'created' => ($_GET['created'] ?? '') === '1',
     'updated' => ($_GET['updated'] ?? '') === '1',
+    'isPdf' => $isPdf,
 ]);
