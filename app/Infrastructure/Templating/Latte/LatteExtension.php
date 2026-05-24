@@ -18,6 +18,7 @@ class LatteExtension extends Extension
         return [
             "url" => $this->urlBuilder->to(...),
             "upload" => $this->resolveUploadUrl(...),
+            "download" => $this->resolveDownloadUrl(...),
         ];
     }
 
@@ -30,5 +31,31 @@ class LatteExtension extends Extension
         return $this->urlBuilder->to(
             "{$this->settings->upload->publicUrl}/{$path}",
         );
+    }
+
+    public function resolveDownloadUrl(?string $path): string
+    {
+        if (!$path) {
+            return '#';
+        }
+
+        if (preg_match('~^https?://~i', $path) === 1) {
+            return $path;
+        }
+
+        $normalizedPath = str_replace('\\', '/', $path);
+        $uploadsPosition = strpos($normalizedPath, 'uploads/');
+
+        if ($uploadsPosition !== false) {
+            $normalizedPath = substr($normalizedPath, $uploadsPosition);
+        } else {
+            $normalizedPath = 'uploads/' . ltrim($normalizedPath, '/');
+        }
+
+        $normalizedPath = ltrim($normalizedPath, '/');
+
+        return $this->urlBuilder->to('/descargar.php', [
+            'path' => $normalizedPath,
+        ]);
     }
 }

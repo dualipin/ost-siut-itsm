@@ -1,0 +1,83 @@
+{extends ../../../templates/@portal.latte}
+{varType ?App\Modules\CashBoxes\Domain\Entity\AnnualFinancialReport $report}
+{varType array $formData}
+{varType ?string $error}
+{varType string $title}
+{varType string $description}
+{varType string $submitLabel}
+{varType string $action}
+{varType bool $isEditMode}
+
+{block main}
+  {include
+    ../../../templates/components/header-page.latte,
+    title => $title,
+    description => $description,
+    icon => $isEditMode ? 'bi-pencil-square' : 'bi-upload'
+  }
+
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      {if $error}
+        <div class="alert alert-danger border-0 rounded-4 mb-4" role="alert">
+          <i class="bi bi-exclamation-triangle me-2"></i>{$error}
+        </div>
+      {/if}
+
+      <form method="post" action="{$action}" enctype="multipart/form-data" class="card border-0 shadow-sm rounded-4 p-4 p-md-5">
+        <input type="hidden" name="id" value="{$formData['id'] ?? ($report ? $report->id : 0)}">
+
+        <div class="mb-4">
+          <label for="year" class="form-label fw-semibold text-secondary">Año del informe</label>
+          <input
+            type="number"
+            class="form-control form-control-lg rounded-4"
+            id="year"
+            name="year"
+            min="1900"
+            max="{date('Y') + 1}"
+            value="{$formData['year'] ?? ($report ? $report->year : '')}"
+            required
+          >
+        </div>
+
+        <div class="mb-4">
+          <label for="document" class="form-label fw-semibold text-secondary">Archivo del informe</label>
+          <input
+            type="file"
+            class="form-control form-control-lg rounded-4"
+            id="document"
+            name="document"
+            accept=".pdf,.doc,.docx,.xls,.xlsx"
+            {if !$isEditMode}required{/if}
+          >
+          <div class="form-text mt-2">
+            Formatos admitidos: PDF, Word o Excel. Tamaño máximo: 20 MB.
+          </div>
+          {if $isEditMode && $report}
+            <div class="alert alert-light border rounded-4 mt-3 mb-0">
+              <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+                <div>
+                  <div class="fw-semibold text-dark">Archivo actual</div>
+                  <small class="text-muted">{$report->fileName()}</small>
+                </div>
+                <a href="{download($report->document)}" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                  <i class="bi bi-download me-1"></i>Ver archivo
+                </a>
+              </div>
+            </div>
+          {/if}
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <a href="./gestionar.php" class="btn btn-outline-secondary rounded-pill px-4">
+            Cancelar
+          </a>
+          <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">
+            <i class="bi bi-save me-2"></i>{$submitLabel}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+{/block}
