@@ -1,62 +1,189 @@
 {extends ../templates/@landing.latte}
-{varType App\Modules\Transparency\Domain\Entity\Transparency[] $documents}
-{varType array $attachmentsByDoc}
+{varType array $documentsByYear}
+{varType array $documentVisibility}
 {varType bool $isAuthenticated}
 {block main}
-<section class="py-5" id="about">
-  <div class="container pt-5">
-    <div class="row mb-4">
-      <h1 data-aos="fade-up" data-aos-delay="0" class="text-uppercase fw-bold">
-        Transparencia
-      </h1>
-    </div>
-    <div class="row">
-      <div class="col-md-6 order-md-2">
-        <div class="row justify-content-end">
-          <div class="col-md-11 mb-4 mb-md-0">
-            <span class="d-block text-uppercase small text-muted mb-3" data-aos="fade-up" data-aos-delay="0">Transparencia</span>
-            <h2 class="mb-4" data-aos="fade-up" data-aos-delay="100">Vínculos Normativos</h2>
-            <div data-aos="fade-up" data-aos-delay="200">
-              <p>
+<section class="py-5 mt-5">
+  <div class="container pt-4">
+    <div class="row justify-content-center mb-4">
+      <div class="col-12 col-xl-10">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+          <div class="card-body p-4 p-md-5">
+            <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
+              <div>
+                <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary mb-3">Transparencia pública</span>
+                <h1 class="display-6 fw-bold mb-3">Documentos organizados por año y mes</h1>
+                <p class="lead text-secondary mb-0">
+                  Explora el archivo cronológico de documentos. Los registros privados se muestran en el listado,
+                  pero solo habilitan el detalle cuando tu sesión tiene permisos.
+                </p>
+              </div>
 
-              </p>
-            </div>
-            <h2 class="mb-4 mt-5" data-aos="fade-up" data-aos-delay="500">Contacto para Consultas</h2>
-            <div data-aos="fade-up" data-aos-delay="600">
-              <p>Si tienes alguna pregunta o necesitas información adicional, no dudes en contactarnos a
-                través de
-                nuestro correo electrónico: 
-                <a href="mailto:Sindicato_SIUTITSM@outlook.com" class="text-lowercase">Sindicato_SIUTITSM@outlook.com</a> o llamarnos al teléfono: 
-                <a href="tel:+52-993-106-6169" class="text-lowercase">936 106 61 69.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-6 order-md-1">
-        <div class="row justify-content-start">
-          <div class="col-md-11">
-            <div class="row">
-              <a href="https://tabasco.gob.mx/buen-gobierno" target="_blank" rel="noopener noreferrer">
-                <img src="/assets/images/logo/LOGOESC-BUEN-GOBIERNO.png" alt="Logo del Buen Gobierno Tabasco" class="img-fluid rounded"
-                  data-aos="fade-up" data-aos-delay="700">
-              </a>
-            </div>
-            <div class="row">
-              <a href="https://www.gob.mx/buengobierno" target="_blank" rel="noreferrer noopener">
-                <img src="/assets/images/logo/secretaria-anticorrupcion-y-buen-gobierno.webp" alt="Logo de la Secretaría de Transparencia" class="img-fluid rounded mt-4"
-                  data-aos="fade-up" data-aos-delay="800">
-              </a>
-            </div>
-                        <div class="row">
-              <a href="https://osfetabasco.gob.mx/" target="_blank" rel="noreferrer noopener">
-                <img src="/assets/images/logo/osfe.png" alt="Logo de la OSFE" class="img-fluid rounded mt-4"
-                  data-aos="fade-up" data-aos-delay="800">
-              </a>
+              <div class="text-lg-end">
+                <div class="d-inline-flex align-items-center gap-2 bg-light rounded-pill px-3 py-2 mb-2">
+                  <i class="bi bi-calendar3 text-primary"></i>
+                  <span class="small fw-semibold">Año → Mes → Documento</span>
+                </div>
+                <div class="small text-muted">Vista responsive con acordeón multinivel</div>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+
+    <div class="row justify-content-center mb-4">
+      <div class="col-12 col-xl-10">
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+          <div class="col">
+            <a href="https://tabasco.gob.mx/buen-gobierno" target="_blank" rel="noopener noreferrer" class="d-block text-decoration-none">
+              <img src="/assets/images/logo/LOGOESC-BUEN-GOBIERNO.png" alt="Logo del Buen Gobierno Tabasco" class="img-fluid rounded-4 shadow-sm w-100" width="420" height="210">
+            </a>
+          </div>
+          <div class="col">
+            <a href="https://www.gob.mx/buengobierno" target="_blank" rel="noreferrer noopener" class="d-block text-decoration-none">
+              <img src="/assets/images/logo/secretaria-anticorrupcion-y-buen-gobierno.webp" alt="Logo de la Secretaría de Transparencia" class="img-fluid rounded-4 shadow-sm w-100" width="420" height="210">
+            </a>
+          </div>
+          <div class="col">
+            <a href="https://osfetabasco.gob.mx/" target="_blank" rel="noreferrer noopener" class="d-block text-decoration-none">
+              <img src="/assets/images/logo/osfe.png" alt="Logo de la OSFE" class="img-fluid rounded-4 shadow-sm w-100" width="420" height="210">
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {if empty($documentsByYear)}
+      <div class="row justify-content-center">
+        <div class="col-12 col-xl-10">
+          <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body py-5 text-center text-muted">
+              <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+              <h2 class="h4 mb-2">Aún no hay documentos publicados</h2>
+              <p class="mb-0">Cuando exista nuevo contenido, aparecerá agrupado por año y mes.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    {else}
+      <div class="row row-cols-1 row-cols-md-2 g-4">
+        {foreach $documentsByYear as $year => $months}
+          <div class="col">
+            <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+              <div class="accordion-item border-0">
+                <h2 class="accordion-header" id="headingYear{$year}">
+                  <button class="accordion-button collapsed fs-4 fw-bold py-4"
+                          type="button"
+                          data-bs-toggle="collapse"
+                          data-bs-target="#collapseYear{$year}"
+                          aria-expanded="false"
+                          aria-controls="collapseYear{$year}">
+                    <span class="d-flex w-100 align-items-center justify-content-between gap-3">
+                      <span class="d-flex align-items-center gap-3 text-start">
+                        <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary">{$year}</span>
+                        <span>Documentos del año {$year}</span>
+                      </span>
+                      <span class="badge rounded-pill bg-light text-dark">{count($months)} mes(es)</span>
+                    </span>
+                  </button>
+                </h2>
+
+                <div id="collapseYear{$year}"
+                   class="accordion-collapse collapse"
+                     aria-labelledby="headingYear{$year}">
+                  <div class="card-body bg-light bg-opacity-25 p-3 p-md-4">
+                    <div class="accordion" id="accordionMonths{$year}">
+                      {foreach $months as $monthNumber => $monthData}
+                        <div class="accordion-item border-0 shadow-sm rounded-4 mb-3 overflow-hidden">
+                          <h3 class="accordion-header" id="headingMonth{$year}{$monthNumber}">
+                            <button class="accordion-button collapsed"
+                                    type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#collapseMonth{$year}{$monthNumber}"
+                                    aria-expanded="false"
+                                    aria-controls="collapseMonth{$year}{$monthNumber}">
+                              <span class="d-flex w-100 align-items-center justify-content-between gap-3">
+                                <span class="text-start text-capitalize">{$monthData['label']}</span>
+                                <span class="badge rounded-pill bg-light text-dark">{count($monthData['documents'])} documento(s)</span>
+                              </span>
+                            </button>
+                          </h3>
+
+                          <div id="collapseMonth{$year}{$monthNumber}"
+                               class="accordion-collapse collapse"
+                               aria-labelledby="headingMonth{$year}{$monthNumber}"
+                               data-bs-parent="#accordionMonths{$year}">
+                            <div class="accordion-body bg-white p-3 p-md-4">
+                              <div class="d-grid gap-3">
+                                {foreach $monthData['documents'] as $document}
+                                  <article class="border rounded-4 p-3 p-md-4 bg-white">
+                                    <div class="d-flex flex-column flex-md-row gap-3 justify-content-between">
+                                      <div class="d-flex gap-3">
+                                        <div class="flex-shrink-0">
+                                          {if $document->isPrivate}
+                                            <div class="bg-danger bg-opacity-10 text-danger rounded-4 p-3">
+                                              <i class="bi bi-lock-fill fs-3"></i>
+                                            </div>
+                                          {else}
+                                            <div class="bg-success bg-opacity-10 text-success rounded-4 p-3">
+                                              <i class="bi bi-file-earmark-text fs-3"></i>
+                                            </div>
+                                          {/if}
+                                        </div>
+
+                                        <div class="min-w-0">
+                                          <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                                            <h4 class="h5 mb-0">{$document->title}</h4>
+                                            {if $document->isPrivate}
+                                              <span class="badge rounded-pill bg-danger bg-opacity-75"><i class="bi bi-lock-fill"></i> Privado</span>
+                                            {else}
+                                              <span class="badge rounded-pill bg-success bg-opacity-75"><i class="bi bi-globe"></i> Público</span>
+                                            {/if}
+                                            <span class="badge rounded-pill bg-info text-dark bg-opacity-25">{$document->type->value}</span>
+                                          </div>
+
+                                          <div class="small text-muted d-flex flex-wrap gap-3">
+                                            <span><i class="bi bi-calendar-event me-1"></i>{$document->datePublished->format('d/m/Y')}</span>
+                                            <span><i class="bi bi-clock-history me-1"></i>{$document->createdAt->format('d/m/Y H:i')}</span>
+                                          </div>
+
+                                          {if $document->summary && $documentVisibility[$document->id]}
+                                            <p class="mb-0 mt-3 text-secondary">{$document->summary}</p>
+                                          {elseif $document->isPrivate}
+                                            <p class="mb-0 mt-3 text-muted">Documento reservado. Su detalle solo está disponible para usuarios autorizados.</p>
+                                          {/if}
+                                        </div>
+                                      </div>
+
+                                      <div class="d-flex align-items-start">
+                                        {if $documentVisibility[$document->id]}
+                                          <a href="transparencia-detalle.php?id={$document->id}" class="btn btn-outline-primary rounded-4 text-nowrap">
+                                            <i class="bi bi-eye me-1"></i> Ver detalle
+                                          </a>
+                                        {else}
+                                          <span class="btn btn-outline-secondary rounded-4 disabled text-nowrap" aria-disabled="true">
+                                            <i class="bi bi-lock-fill me-1"></i> Acceso restringido
+                                          </span>
+                                        {/if}
+                                      </div>
+                                    </div>
+                                  </article>
+                                {/foreach}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      {/foreach}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        {/foreach}
+      </div>
+    {/if}
   </div>
 </section>
 
