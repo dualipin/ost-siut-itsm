@@ -1,0 +1,52 @@
+{extends ../templates/@landing.latte}
+{varType array $reportsByYear}
+
+{block main}
+	<section class="py-5 mt-5 container">
+		<div class="row mb-4 align-items-center">
+			<div class="col-md-8">
+				<h1 class="display-5 fw-bold text-primary mb-2">Informes Financieros</h1>
+				<p class="lead text-muted mb-0">Consulta los reportes agrupados por año.</p>
+			</div>
+		</div>
+
+		{if empty($reportsByYear)}
+			<div class="card border-0 shadow-sm rounded-4">
+				<div class="card-body py-5 text-center text-muted">
+					<i class="bi bi-inbox fs-1 d-block mb-3"></i>
+					<h2 class="h4 mb-2">Aún no hay informes disponibles</h2>
+					<p class="mb-0">Cuando se publiquen informes financieros aparecerán aquí.</p>
+				</div>
+			</div>
+		{else}
+			<div class="row g-4">
+				{foreach $reportsByYear as $year => $reports}
+					<div class="col-12 col-lg-6">
+						<div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+							<div class="card-header bg-white border-0 px-4 pt-4 pb-3">
+								<div class="d-flex align-items-center justify-content-between gap-2">
+									<h2 class="h5 mb-0 text-primary">Año {$year}</h2>
+									<span class="badge rounded-pill bg-light text-dark">{count($reports)} reporte(s)</span>
+								</div>
+							</div>
+
+							<div class="list-group list-group-flush">
+								{foreach $reports as $report}
+									<a href="/portal/informes-financieros/ver.php?id={$report->id}" class="list-group-item list-group-item-action px-4 py-3">
+										<div class="d-flex align-items-center justify-content-between gap-3">
+											<div class="d-flex align-items-center gap-2">
+												<i class="bi bi-file-earmark-text text-primary"></i>
+												<span class="fw-medium text-dark">Informe financiero {$year}</span>
+											</div>
+											<span class="small text-primary">Ver detalle <i class="bi bi-chevron-right"></i></span>
+										</div>
+									</a>
+								{/foreach}
+							</div>
+						</div>
+					</div>
+				{/foreach}
+			</div>
+		{/if}
+	</section>
+{/block}
