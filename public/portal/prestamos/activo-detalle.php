@@ -348,8 +348,28 @@ foreach ($amortization as &$row) {
 unset($row);
 
 $paymentConfigs = $detail['payment_configs'] ?? [];
+
+// Calcular la última fecha programada por tipo de ingreso a partir de la tabla de amortización
+$lastScheduledDatesByIncomeType = [];
+foreach ($amortization as $row) {
+    $incomeTypeId = (int) ($row['income_type_id'] ?? 0);
+    $scheduledDate = trim((string) ($row['scheduled_date'] ?? ''));
+
+    if ($incomeTypeId <= 0 || $scheduledDate === '') {
+        continue;
+    }
+
+    if (!isset($lastScheduledDatesByIncomeType[$incomeTypeId]) || $scheduledDate > $lastScheduledDatesByIncomeType[$incomeTypeId]) {
+        $lastScheduledDatesByIncomeType[$incomeTypeId] = $scheduledDate;
+    }
+}
+
 foreach ($paymentConfigs as &$config) {
     $config['supporting_document_url'] = $buildDownloadUrl($config['supporting_document_path'] ?? null);
+
+    $tipoId = (int) ($config['income_type_id'] ?? 0);
+    $dateRaw = $lastScheduledDatesByIncomeType[$tipoId] ?? null;
+    $config['last_payment_date_label'] = $dateRaw ? date('d/m/Y', strtotime($dateRaw)) : '—';
 }
 unset($config);
 $detail['payment_configs'] = $paymentConfigs;
@@ -758,6 +778,20 @@ $summary = [
 
 $simulationDownloadUrl = null;
 if ((string) ($loan['status'] ?? '') !== 'activo') {
+    $lastScheduledDatesByIncomeType = [];
+    foreach ($amortization as $row) {
+        $incomeTypeId = (int) ($row['income_type_id'] ?? 0);
+        $scheduledDate = trim((string) ($row['scheduled_date'] ?? ''));
+
+        if ($incomeTypeId <= 0 || $scheduledDate === '') {
+            continue;
+        }
+
+        if (!isset($lastScheduledDatesByIncomeType[$incomeTypeId]) || $scheduledDate > $lastScheduledDatesByIncomeType[$incomeTypeId]) {
+            $lastScheduledDatesByIncomeType[$incomeTypeId] = $scheduledDate;
+        }
+    }
+
     $descuentos = [];
 
     foreach (($detail['payment_configs'] ?? []) as $config) {
@@ -772,6 +806,7 @@ if ((string) ($loan['status'] ?? '') !== 'activo') {
             'tipoId' => $tipoId,
             'monto' => $monto,
             'cantidad' => max(1, (int) ($config['number_of_installments'] ?? 1)),
+            'fechaPago' => $lastScheduledDatesByIncomeType[$tipoId] ?? null,
         ];
     }
 

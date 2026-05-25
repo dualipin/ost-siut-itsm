@@ -144,8 +144,8 @@
 						<span class="fw-semibold">{$loan['applied_interest_rate']}%</span>
 					</div>
 					<div class="d-flex justify-content-between mb-0">
-						<span class="text-muted">Plazo</span>
-						<span class="fw-semibold">{$loan['term_fortnights'] ?: '—'} quincenas</span>
+						<span class="text-muted">Última fecha de pago</span>
+						<span class="fw-semibold">{$loan['last_payment_date_label']}</span>
 					</div>
 				</div>
 			</div>
@@ -197,7 +197,7 @@
 							<tr>
 								<th class="py-2 border-0">Fuente</th>
 								<th class="py-2 border-0">Total a descontar</th>
-								<th class="py-2 border-0">Parcialidades</th>
+								<th class="py-2 border-0">Última fecha de pago</th>
 								<th class="py-2 border-0">Documento</th>
 								<th class="py-2 border-0">Estatus doc.</th>
 							</tr>
@@ -207,7 +207,7 @@
 								<tr>
 									<td class="py-3">{$config['income_type_name']}</td>
 											<td class="py-3 fw-semibold">${number_format((float) $config['total_amount_to_deduct'], 2, '.', ',')}</td>
-									<td class="py-3">{$config['number_of_installments']}</td>
+									<td class="py-3">{$config['last_payment_date_label']}</td>
 									<td class="py-3">
 										{if $config['supporting_document_url']}
 											<a href="{$config['supporting_document_url']}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-3">

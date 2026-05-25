@@ -52,9 +52,9 @@
 						<th class="py-3 border-0">Solicitante</th>
 						<th class="py-3 border-0">Estatus</th>
 						<th class="py-3 border-0">Monto</th>
-						<th class="py-3 border-0">Saldo</th>
+						{* <th class="py-3 border-0">Saldo</th> *}
 						<th class="py-3 border-0">Fecha de referencia</th>
-						<th class="py-3 border-0">Mora</th>
+						{* <th class="py-3 border-0">Mora</th> *}
 						<th class="py-3 border-0 text-end pe-4">Acciones</th>
 					</tr>
 				</thead>
@@ -78,16 +78,16 @@
 								<div class="fw-semibold">{$loan['approved_amount_label']}</div>
 								<div class="small text-muted">Solicitado: {$loan['requested_amount_label']}</div>
 							</td>
-							<td class="py-3">
+							{* <td class="py-3">
 								<div class="fw-semibold text-success">{$loan['outstanding_balance_label']}</div>
 								<div class="small text-muted">Próx. pago: {$loan['last_payment_date_label']}</div>
-							</td>
+							</td> *}
 							<td class="py-3">
 								<div class="fw-semibold">{$loan['reference_date_label']}</div>
 								<div class="small text-muted">Desembolso: {$loan['disbursement_date_label']}</div>
 								<div class="small text-muted">Solicitud: {$loan['application_date_label']}</div>
 							</td>
-							<td class="py-3">
+							{* <td class="py-3">
 								{if (int) $loan['overdue_installments'] > 0}
 									<span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill">
 										{$loan['overdue_installments']} vencida(s)
@@ -96,7 +96,7 @@
 								{else}
 									<span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill">Al corriente</span>
 								{/if}
-							</td>
+							</td> *}
 							<td class="py-3 pe-4 text-end">
 								<a href="{url('/portal/prestamos/activo-detalle.php')}?id={$loan['loan_id']}" class="btn btn-sm btn-outline-primary rounded-3">
 									<i class="bi bi-eye me-1"></i>Ver detalle
