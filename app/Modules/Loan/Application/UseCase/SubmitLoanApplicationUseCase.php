@@ -33,16 +33,51 @@ final readonly class SubmitLoanApplicationUseCase
     ): array {
         // Get standard interest rate or use custom
         $interestRate = $customRate ?? $this->interestRateProvider->getStandardRate($userId, $userRole);
-        
-        // Calculate total fortnights
+
+        $debugLogFile = dirname(__DIR__, 5) . '/logs/application.log';
+        $debugLog = static function (string $message) use ($debugLogFile): void {
+            @file_put_contents(
+                $debugLogFile,
+                '[' . date('Y-m-d H:i:s') . '] ' . $message . PHP_EOL,
+                FILE_APPEND
+            );
+        };
+
+        // Calculate the real schedule first so the deadline check reflects the DB-backed payment dates.
         $totalFortnights = array_sum(array_column($paymentConfigs, 'fortnights'));
-        
+        $scheduleConfigs = array_map(
+            static function (array $config): array {
+                return [
+                    'income_type_id' => $config['income_type_id'] ?? 1,
+                    'total_amount_to_deduct' => $config['amount'] ?? 0,
+                    'number_of_installments' => $config['fortnights'] ?? 1,
+                    'interest_method' => $config['interest_method'] ?? 'simple_aleman',
+                    'income_is_periodic' => $config['income_is_periodic'] ?? false,
+                    'income_frequency_days' => $config['income_frequency_days'] ?? 0,
+                    'income_payment_month' => $config['income_payment_month'] ?? 0,
+                    'income_payment_day' => $config['income_payment_day'] ?? 0,
+                ];
+            },
+            $paymentConfigs
+        );
+        $debugLog('SubmitLoanApplicationUseCase start userId=' . $userId . ' role=' . $userRole->value . ' requestedAmount=' . $requestedAmount->amount() . ' totalFortnights=' . $totalFortnights . ' paymentConfigs=' . json_encode($paymentConfigs, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        $generatedRows = $this->amortizationCalculator->calculateByPaymentConfigurations(
+            $requestedAmount,
+            $interestRate,
+            new DateTimeImmutable(),
+            $scheduleConfigs
+        );
+
         // Validate deadline (must end before Dec 31 of current year)
         $startDate = new DateTimeImmutable();
-        $lastPaymentDate = $this->amortizationCalculator->calculateLastPaymentDate($startDate, $totalFortnights);
+        $lastPaymentDate = $generatedRows !== []
+            ? $generatedRows[array_key_last($generatedRows)]->scheduledDate()
+            : $this->amortizationCalculator->calculateLastPaymentDate($startDate, $totalFortnights);
         $yearEnd = new DateTimeImmutable($startDate->format('Y') . '-12-31');
+        $debugLog('SubmitLoanApplicationUseCase dates startDate=' . $startDate->format('Y-m-d') . ' lastPaymentDate=' . $lastPaymentDate->format('Y-m-d') . ' yearEnd=' . $yearEnd->format('Y-m-d') . ' generatedRows=' . count($generatedRows));
         
         if ($totalFortnights > 0 && $lastPaymentDate > $yearEnd) {
+            $debugLog('SubmitLoanApplicationUseCase reject deadlineExceeded lastPaymentDate=' . $lastPaymentDate->format('Y-m-d') . ' yearEnd=' . $yearEnd->format('Y-m-d'));
             throw new \InvalidArgumentException("El plazo excede el 31 de diciembre del año en curso");
         }
         

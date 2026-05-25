@@ -72,6 +72,14 @@ if ($request->method() === "POST") {
     try {
         $submitLoanUseCase = $container->get(SubmitLoanApplicationUseCase::class);
         $amortizationCalculator = $container->get(AmortizationCalculator::class);
+        $debugLogFile = dirname(__DIR__, 3) . '/logs/application.log';
+        $debugLog = static function (string $message) use ($debugLogFile): void {
+            @file_put_contents(
+                $debugLogFile,
+                '[' . date('Y-m-d H:i:s') . '] ' . $message . PHP_EOL,
+                FILE_APPEND
+            );
+        };
         
         $requestedAmount = (float) $request->input('requested_amount');
         $interestRateRaw = $request->input('applied_interest_rate', null);
@@ -85,6 +93,7 @@ if ($request->method() === "POST") {
         $interbankCode = preg_replace('/\D+/', '', (string) $request->input('interbank_code', $defaultInterbankCode)) ?? '';
         $bankAccount = preg_replace('/\D+/', '', (string) $request->input('bank_account', $defaultBankAccount)) ?? '';
         $saveDraft = $request->input('save_draft') === '1';
+        $debugLog('solicitar.php POST start saveDraft=' . ($saveDraft ? '1' : '0') . ' requestedAmount=' . $requestedAmount . ' interestRateRaw=' . (string) $interestRateRaw . ' incomeAmounts=' . json_encode($incomeAmounts, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . ' incomeInstallments=' . json_encode($incomeInstallments, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . ' incomeLastDates=' . json_encode($incomeLastDates, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 
         // Get income types from DB to calculate fortnights
         $incomeTypesStmt = $db->query("SELECT * FROM cat_income_types WHERE active = 1");
@@ -215,7 +224,7 @@ if ($request->method() === "POST") {
                             $cantidadSeleccionada = min($cantidadSeleccionada, $indiceSeleccionado + 1);
                         }
 
-                        $fortnights = max(1, min($cantidadSeleccionada, count($opcionesFechas)));
+                        $fortnights = max(1, min($cantidadSeleccionada, count($opcionesFechas), $maxFortnightsThisYear));
                     } else {
                         // Backward-compatible fallback when there are no periodic options.
                         try {
@@ -241,8 +250,13 @@ if ($request->method() === "POST") {
                     'amount' => $amount,
                     'fortnights' => (int)$fortnights,
                     'interest_method' => $interestMethod,
-                    'document_path' => $documentPath
+                    'document_path' => $documentPath,
+                    'income_is_periodic' => (bool) ($typeInfo['is_periodic'] ?? false),
+                    'income_frequency_days' => (int) ($typeInfo['frequency_days'] ?? 0),
+                    'income_payment_month' => (int) ($typeInfo['tentative_payment_month'] ?? 0),
+                    'income_payment_day' => (int) ($typeInfo['tentative_payment_day'] ?? 0),
                 ];
+                $debugLog('solicitar.php config typeId=' . $typeId . ' amount=' . $amount . ' fortnights=' . $fortnights . ' isPeriodic=' . ((bool) ($typeInfo['is_periodic'] ?? false) ? '1' : '0') . ' paymentMonth=' . (int) ($typeInfo['tentative_payment_month'] ?? 0) . ' paymentDay=' . (int) ($typeInfo['tentative_payment_day'] ?? 0) . ' frequencyDays=' . (int) ($typeInfo['frequency_days'] ?? 0) . ' lastDate=' . (string) ($incomeLastDates[$typeId] ?? ''));
                 $totalDistributed += $amount;
             }
         }
@@ -392,6 +406,7 @@ if ($request->method() === "POST") {
 
                 $success = true;
             } else {
+                $debugLog('solicitar.php calling execute paymentConfigs=' . json_encode($paymentConfigs, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
                 $result = $submitLoanUseCase->execute(
                     $currentUser->id,
                     $currentUser->role,

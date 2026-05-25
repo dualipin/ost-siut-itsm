@@ -41,7 +41,7 @@
 
         <!-- Total solicitado (grande) -->
         <div class="text-center mb-4 position-sticky bg-body py-3"
-             style="z-index: 10; border-bottom: 1px solid #dee2e6; top: 2.6em">
+             style="z-index: 10; border-bottom: 1px solid #dee2e6; top: 3.8em">
           <div class="fw-bold text-primary" x-text="formatCurrency(totalSolicitado)"
                style="font-size: clamp(1.5rem, 6vw, 3rem);"></div>
           <div class="small text-muted">Monto del Préstamo</div>
@@ -76,7 +76,7 @@
                       <option value="0" selected disabled>Seleccione...</option>
                       <template x-for="dato in categoriasTipoIngreso">
                         <option :value="dato.id" x-text="dato.nombre"
-                                :disabled="!dato.activo || tipoEstaSeleccionado(dato.id, item.tipoId)"></option>
+                                :disabled="!dato.activo || tipoEstaSeleccionado(dato.id, item.tipoId) || fechaTentativaVencida(dato)"></option>
                       </template>
                     </select>
                   </div>
@@ -104,12 +104,12 @@
                           </template>
                         </select>
                       </div>
-                      <div class="col-6 col-sm-4">
+                      {* <div class="col-6 col-sm-4">
                         <label class="form-label mb-1 small">Unidad</label>
                         <div class="form-control-plaintext small"
                              x-text="`Cada ${ categoriasTipoIngreso.find(c => Number(c.id) === Number(item.tipoId))?.frecuenciaDias } días`">
                         </div>
-                      </div>
+                      </div> *}
                       {* <div class="col-6 col-sm-4">
                         <label class="form-label mb-1 small">Períodos</label>
                         <div class="form-control-plaintext fw-semibold" x-text="item.cantidad || 0"></div>
@@ -368,9 +368,34 @@
         tipoEstaSeleccionado (tipoId, currentTipoId) {
           return this.selectedTipoIds.includes(Number(tipoId)) && Number(currentTipoId) !== Number(tipoId)
         },
+        /**
+         * @param { TipoPrestamo | undefined } cat
+         * @returns { Date | null }
+         */
+        obtenerFechaTentativaPago (cat) {
+          if (!cat) return null
+
+          const mes = Number(cat.mesPagoTentativo)
+          const dia = Number(cat.diasPagoTentativo)
+          if (!mes || !dia) return null
+
+          const hoy = new Date(this.currentDate + 'T00:00:00')
+          return new Date(hoy.getFullYear(), mes - 1, dia)
+        },
+        /**
+         * @param { TipoPrestamo | undefined } cat
+         * @returns { boolean }
+         */
+        fechaTentativaVencida (cat) {
+          const fechaTentativa = this.obtenerFechaTentativaPago(cat)
+          if (!fechaTentativa) return false
+
+          const hoy = new Date(this.currentDate + 'T00:00:00')
+          return fechaTentativa < hoy
+        },
         /** @returns { void } */
         agregar () {
-          const disponible = this.categoriasTipoIngreso.find(c => c.activo && !this.selectedTipoIds.includes(c.id))
+          const disponible = this.categoriasTipoIngreso.find(c => c.activo && !this.selectedTipoIds.includes(c.id) && !this.fechaTentativaVencida(c))
           if (disponible) this.descuentos.push(buildDescuento())
         },
         /** @param { number } index */
@@ -384,8 +409,9 @@
           if (cat && cat.esPeriodico) {
             this.descuentos[index].unidad = (cat.frecuenciaDias === 15 ? 'quincenas' : 'meses')
             const opciones = this.obtenerOpcionesFechasPago(cat)
-            this.descuentos[index].fechaPago = opciones.length > 0 ? opciones[0].value : ''
-            this.descuentos[index].cantidad = opciones.length > 0 ? 1 : 0
+            const ultimaOpcion = opciones.length > 0 ? opciones[opciones.length - 1] : null
+            this.descuentos[index].fechaPago = ultimaOpcion ? ultimaOpcion.value : ''
+            this.descuentos[index].cantidad = ultimaOpcion ? opciones.length : 0
             const maxPeriodos = opciones.length
             if (window.Alpine && Alpine.store('toast')) {
               Alpine.store('toast').show({
@@ -603,7 +629,7 @@
           return `${ p[2] }/${ p[1] }/${ p[0] }`
         },
         get puedeAgregar () {
-          return this.categoriasTipoIngreso.some(c => c.activo && !this.selectedTipoIds.includes(c.id))
+          return this.categoriasTipoIngreso.some(c => c.activo && !this.selectedTipoIds.includes(c.id) && !this.fechaTentativaVencida(c))
         },
       }
     }

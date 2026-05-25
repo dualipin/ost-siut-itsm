@@ -147,7 +147,7 @@
                     <select x-model.number="item.tipoId" @change="onTipoChange(index)" class="form-select" required>
                       <option value="0" disabled>Seleccione...</option>
                       <template x-for="tipo in categoriasTipoIngreso" :key="tipo.id">
-                        <option :value="tipo.id" x-text="tipo.nombre" :disabled="!tipo.activo || tipoEstaSeleccionado(tipo.id, item.tipoId)"></option>
+                        <option :value="tipo.id" x-text="tipo.nombre" :disabled="!tipo.activo || tipoEstaSeleccionado(tipo.id, item.tipoId) || fechaTentativaVencida(tipo)"></option>
                       </template>
                     </select>
                   </div>
@@ -159,8 +159,13 @@
 
                   <div class="col-12" x-show="item.tipoId && (categoriasTipoIngreso.find(c => c.id === item.tipoId)?.esPeriodico)">
                     <div class="row g-2">
-                      <div class="col-12 col-sm-4">
-                        <label class="form-label mb-1 small">Fecha de último pago</label>
+                    <div class="col-12 col-sm-6">
+                        <label class="form-label mb-1 small">
+                        La fecha de inicio del descuento se determina una vez el proceso de solicitud termina y se confirma el préstamo. Se asignará la fecha de pago más próxima disponible según la periodicidad del ingreso seleccionado, tomando como referencia la fecha actual y las opciones disponibles.
+                        </label>
+                      </div>
+                      <div class="col-12 col-sm-6">
+                        <label class="form-label mb-1 small">Seleccione su ultima fecha de pago</label>
                         <select x-model="item.fechaPago" @change="onFechaPagoChange(index)" class="form-select" :disabled="obtenerOpcionesParaItem(index).length === 0">
                           <option value="">Seleccione una fecha...</option>
                           <template x-for="op in obtenerOpcionesParaItem(index)" :key="op.value">
@@ -168,15 +173,15 @@
                           </template>
                         </select>
                       </div>
-                      <div class="col-6 col-sm-4">
+                      {* <div class="col-6 col-sm-4">
                         <label class="form-label mb-1 small">Unidad</label>
                         <div class="form-control-plaintext small" x-text="'Cada ' + (categoriasTipoIngreso.find(c => c.id === item.tipoId)?.frecuenciaDias || 0) + ' días'"></div>
-                      </div>
-                      <div class="col-6 col-sm-4">
+                      </div> *}
+                      {* <div class="col-6 col-sm-4">
                         <label class="form-label mb-1 small">Períodos</label>
                         <div class="form-control-plaintext fw-semibold" x-text="item.cantidad || 0"></div>
                         <div class="small text-muted">Máx períodos: <span x-text="calcularMaxPeriodos(categoriasTipoIngreso.find(c => c.id === item.tipoId))"></span></div>
-                      </div>
+                      </div> *}
                     </div>
                   </div>
                 </div>
@@ -364,7 +369,9 @@
             const options = this.obtenerOpcionesParaItem(index)
             if (options.length === 0) return
 
-            const targetIndex = Math.min(Math.max((Number(item.cantidad) || 1) - 1, 0), options.length - 1)
+            const targetIndex = Number(item.cantidad) > 0
+              ? Math.min(Math.max(Number(item.cantidad) - 1, 0), options.length - 1)
+              : options.length - 1
             item.fechaPago = options[targetIndex].value
             item.cantidad = targetIndex + 1
           })
@@ -386,8 +393,19 @@
         tipoEstaSeleccionado (tipoId, currentTipoId) {
           return this.selectedTipoIds.includes(Number(tipoId)) && Number(currentTipoId) !== Number(tipoId)
         },
+        fechaTentativaVencida (cat) {
+          if (!cat || !cat.activo) return false
+
+          const mes = Number(cat.mesPagoTentativo)
+          const dia = Number(cat.diasPagoTentativo)
+          if (!mes || !dia) return false
+
+          const hoy = new Date(this.currentDate + 'T00:00:00')
+          const tentativa = new Date(hoy.getFullYear(), mes - 1, dia)
+          return tentativa < hoy
+        },
         agregar () {
-          const disponible = this.categoriasTipoIngreso.find(c => c.activo && !this.selectedTipoIds.includes(c.id))
+          const disponible = this.categoriasTipoIngreso.find(c => c.activo && !this.selectedTipoIds.includes(c.id) && !this.fechaTentativaVencida(c))
           if (disponible) this.descuentos.push(buildDescuento())
         },
         eliminar (index) {
@@ -399,8 +417,9 @@
           const cat = this.categoriasTipoIngreso.find(c => c.id === id)
           if (cat && cat.esPeriodico) {
             const opciones = this.obtenerOpcionesFechasPago(cat)
-            this.descuentos[index].fechaPago = opciones.length > 0 ? opciones[0].value : ''
-            this.descuentos[index].cantidad = opciones.length > 0 ? 1 : 0
+            const ultimaOpcion = opciones.length > 0 ? opciones[opciones.length - 1] : null
+            this.descuentos[index].fechaPago = ultimaOpcion ? ultimaOpcion.value : ''
+            this.descuentos[index].cantidad = ultimaOpcion ? opciones.length : 0
             return
           }
 
@@ -540,7 +559,7 @@
           return this.plazoDiasEstimado % 30
         },
         get puedeAgregar () {
-          return this.categoriasTipoIngreso.some(c => c.activo && !this.selectedTipoIds.includes(c.id))
+          return this.categoriasTipoIngreso.some(c => c.activo && !this.selectedTipoIds.includes(c.id) && !this.fechaTentativaVencida(c))
         },
         formatCurrency (v) {
           return '$' + Number(v || 0).toLocaleString(undefined, {

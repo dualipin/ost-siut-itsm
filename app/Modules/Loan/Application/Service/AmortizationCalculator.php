@@ -14,6 +14,15 @@ final readonly class AmortizationCalculator
 {
     private const FIRST_PAYMENT_TOLERANCE_DAYS = 15;
 
+    private function debugLog(string $message): void
+    {
+        @file_put_contents(
+            dirname(__DIR__, 5) . '/logs/application.log',
+            '[' . date('Y-m-d H:i:s') . '] ' . $message . PHP_EOL,
+            FILE_APPEND
+        );
+    }
+
     /**
      * Calculate German Simple Interest amortization schedule (método alemán)
      * - Constant principal payment per period
@@ -143,6 +152,8 @@ final readonly class AmortizationCalculator
             return [];
         }
 
+        $this->debugLog('calculateByPaymentConfigurations start amount=' . $amount->amount() . ' validationDate=' . $validationDate->format('Y-m-d') . ' configs=' . json_encode($paymentConfigurations, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+
         $rows = [];
         $runningBalance = $amount->amount();
         $paymentNumber = 1;
@@ -189,6 +200,8 @@ final readonly class AmortizationCalculator
                 ? $this->buildPeriodicPaymentDates($validationDate, $config, $installments)
                 : [];
 
+            $this->debugLog('calculateByPaymentConfigurations config incomeTypeId=' . $incomeTypeId . ' isPeriodic=' . ($isPeriodicIncome ? '1' : '0') . ' installments=' . $installments . ' periodicDates=' . count($periodicDates));
+
             $simpleRows = $periodicDates !== []
                 ? $this->calculateGermanSimpleByDates(
                     Money::fromFloat($configAmount),
@@ -205,6 +218,8 @@ final readonly class AmortizationCalculator
                     $validationDate,
                     $incomeTypeId
                 );
+
+            $this->debugLog('calculateByPaymentConfigurations config incomeTypeId=' . $incomeTypeId . ' simpleRows=' . count($simpleRows));
 
             foreach ($simpleRows as $simpleRow) {
                 $generatedSegments[] = [
@@ -293,6 +308,8 @@ final readonly class AmortizationCalculator
             $runningBalance = $endingBalance;
             $paymentNumber++;
         }
+
+        $this->debugLog('calculateByPaymentConfigurations end rows=' . count($rows) . ' generatedSegments=' . count($generatedSegments) . ' principalSegments=' . count($segmentsWithPrincipal));
 
         return $rows;
     }
