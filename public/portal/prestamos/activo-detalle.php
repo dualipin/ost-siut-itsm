@@ -155,12 +155,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new RuntimeException('No se pudo almacenar el archivo firmado.');
             }
 
+            // Guardar ruta relativa para interoperabilidad/migraciones
+            $relativePath = '/uploads/loans/signed/' . $fileName;
+
             /** @var ValidateSignedDocumentsUseCase $validateDocumentsUseCase */
             $validateDocumentsUseCase = $container->get(ValidateSignedDocumentsUseCase::class);
             $validateDocumentsUseCase->uploadSignedDocument(
                 loanId: (int) $loan['loan_id'],
                 legalDocId: (int) $legalDocId,
-                signedFilePath: $storedPath,
+                signedFilePath: $relativePath,
             );
 
             header('Location: /portal/prestamos/activo-detalle.php?id=' . (int) $loan['loan_id'] . '&signed_uploaded=1');

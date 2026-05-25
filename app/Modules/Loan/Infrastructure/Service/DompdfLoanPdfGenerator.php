@@ -327,7 +327,8 @@ final readonly class DompdfLoanPdfGenerator implements PdfGeneratorInterface
             throw new RuntimeException('No fue posible guardar el PDF generado.');
         }
 
-        return $path;
+        // Devolver ruta relativa para interoperabilidad/migraciones
+        return '/uploads/loans/documents/' . basename($path);
     }
 
     private function renderAndStore(string $title, string $prefix, array $lines): string
@@ -354,7 +355,8 @@ final readonly class DompdfLoanPdfGenerator implements PdfGeneratorInterface
             throw new RuntimeException('No fue posible guardar el PDF generado.');
         }
 
-        return $path;
+        // Devolver ruta relativa para interoperabilidad/migraciones
+        return '/uploads/loans/documents/' . basename($path);
     }
 
     private function buildTargetPath(string $prefix): string
