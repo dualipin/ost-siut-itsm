@@ -1060,6 +1060,52 @@ if ($restructureDefaultAmount === null) {
         : null;
 }
 
+$simulationDownloadUrl = null;
+if ((string) ($loan['status'] ?? '') !== 'activo') {
+    $descuentos = [];
+
+    foreach (($detail['payment_configs'] ?? []) as $config) {
+        $tipoId = (int) ($config['income_type_id'] ?? 0);
+        $monto = (float) ($config['total_amount_to_deduct'] ?? 0);
+
+        if ($tipoId <= 0 || $monto <= 0) {
+            continue;
+        }
+
+        $descuentos[] = [
+            'tipoId' => $tipoId,
+            'monto' => $monto,
+            'cantidad' => max(1, (int) ($config['number_of_installments'] ?? 1)),
+        ];
+    }
+
+    if ($descuentos !== []) {
+        $montoPrestamo = (float) ($loan['approved_amount'] ?? $loan['requested_amount'] ?? 0.0);
+        $fechaRaw = (string) ($loan['application_date'] ?? '');
+        $fechaOtorgamiento = $fechaRaw !== '' ? substr($fechaRaw, 0, 10) : date('Y-m-d');
+        $mesesPagar = (int) ($loan['term_months'] ?? 0);
+        $diasAdicionales = 0;
+        $termFortnights = (int) ($loan['term_fortnights'] ?? 0);
+
+        if ($mesesPagar <= 0 && $termFortnights > 0) {
+            $mesesPagar = intdiv($termFortnights, 2);
+            $diasAdicionales = ($termFortnights % 2) * 15;
+        }
+
+        $query = [
+            'descuentos_json' => json_encode($descuentos),
+            'monto_prestamo' => $montoPrestamo,
+            'fecha_otorgamiento' => $fechaOtorgamiento,
+            'meses_pagar' => $mesesPagar,
+            'dias_adicionales' => $diasAdicionales,
+            'tasa_interes' => (float) ($loan['applied_interest_rate'] ?? 0.0),
+            'prestamista_nombre' => (string) ($loan['borrower_name'] ?? ''),
+        ];
+
+        $simulationDownloadUrl = '/portal/prestamos/pdf-simulados.php?' . http_build_query($query);
+    }
+}
+
 // Handle PDF download request
 $form = new FormRequest();
 if ($form->input('output', 'html') === 'pdf' && !empty($detail['amortization'])) {
@@ -1437,6 +1483,7 @@ $renderer->render(__DIR__ . "/detalle.latte", [
     "detail" => $detail,
     "loan" => $loan,
     "restructureDefaultAmount" => $restructureDefaultAmount,
+    "simulation_download_url" => $simulationDownloadUrl,
     "statusLabel" => $statusLabels[$currentStatus] ?? ucfirst($currentStatus),
     "statusBadge" => $statusBadges[$currentStatus] ?? "bg-light text-dark",
     "statusLabels" => $statusLabels,
