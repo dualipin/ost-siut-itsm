@@ -158,12 +158,6 @@
 
 
 
-
-
-
-
-
-
         <li class="nav-item mb-2">
             <a class="nav-link px-3 text-uppercase text-white-50 d-flex align-items-center justify-content-between collapsed"
                href="#prestamo-collapse" data-bs-toggle="collapse" role="button" aria-expanded="false"
@@ -181,11 +175,6 @@
                 </li> *}
 
 
-
-
-
-
-
                 <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
                     <a href="{url('/portal/prestamos/solicitar.php')}" class="nav-link text-white px-3 mb-1">
                       <i class="bi bi-send me-2"></i>
@@ -193,29 +182,23 @@
                     </a>
               </li>
 
-
-
-
-
-
-
                 <li class="nav-item" data-aos="fade-right" data-aos-delay="400">
                     <a href="{url('/portal/prestamos/activos.php')}" class="nav-link text-white px-3 mb-1">
                       <i class="bi bi-journal-check me-2"></i>
-                      Activos
+                      Mis Préstamos
                     </a>
               </li>
               {if $authUser->role->value === 'administrador' || $authUser->role->value === 'lider' || $authUser->role->value === 'finanzas'}
                   <li class="nav-item" data-aos="fade-right" data-aos-delay="450">
                     <a href="{url('/portal/prestamos/revision.php')}" class="nav-link text-white px-3 mb-1">
                       <i class="bi bi-clipboard2-check me-2"></i>
-                      Cola de revisión
+                      Revisión de Solicitudes
                     </a>
                   </li>
                   <li class="nav-item" data-aos="fade-right" data-aos-delay="500">
                     <a href="{url('/portal/prestamos/categorias.php')}" class="nav-link text-white px-3 mb-1">
                       <i class="bi bi-tags me-2"></i>
-                      Categorías de ingreso
+                      Categorías de Descuento
                     </a>
                   </li>
                 {/if}
