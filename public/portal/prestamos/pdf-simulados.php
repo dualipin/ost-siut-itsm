@@ -18,6 +18,22 @@ $userContext = $container->get(UserContextInterface::class);
 $user = $userContext->get();
 $prestamistaNombre = $user ? $user->name : 'Usuario Anónimo';
 
+// Simple logger for PDF simulation debugging
+$pdfLogFile = __DIR__ . '/../../../logs/pdf-simulacion.log';
+$logPdf = static function (string $message, $data = null) use ($pdfLogFile): void {
+    $time = (new DateTimeImmutable())->format('Y-m-d H:i:s');
+    $entry = sprintf("[%s] %s", $time, $message);
+    if ($data !== null) {
+        $json = @json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if ($json === false) {
+            $json = print_r($data, true);
+        }
+        $entry .= " | " . $json;
+    }
+    $entry .= PHP_EOL;
+    @file_put_contents($pdfLogFile, $entry, FILE_APPEND | LOCK_EX);
+};
+
 $stmt = $pdo->query("SELECT
     income_type_id as id,
     name as nombre,
@@ -53,6 +69,9 @@ if (!is_array($descuentos) || empty($descuentos)) {
     echo 'No hay simulaciones para generar el PDF.';
     exit;
 }
+
+// Log incoming payload summary
+$logPdf('PDF_SIMULATION: descuentos parsed', ['count' => count($descuentos), 'sample' => array_slice($descuentos, 0, 3)]);
 
 $findCategoriaById = static function (array $categorias, int $tipoId): ?array {
     foreach ($categorias as $categoria) {
@@ -143,10 +162,14 @@ $buildGermanSimpleSchedule = static function (DateTimeImmutable $fechaBase, arra
         return [];
     }
 
-    $tasaPeriodoSimple = ($tasaMensual / 100) * ($frecuenciaDias / 30);
+    $diasAdicionalesPrestacion = max(0, (int)($prestacion['diasAdicionales'] ?? 0));
+
     $capitalFijo = $monto / $cantidad;
     $saldo = $monto;
     $rows = [];
+
+    // Track previous date to calculate real days between payments
+    $fechaAnterior = $fechaBase;
 
     for ($i = 1; $i <= $cantidad; $i++) {
         $fecha = $fechas[$i - 1] ?? null;
@@ -154,7 +177,20 @@ $buildGermanSimpleSchedule = static function (DateTimeImmutable $fechaBase, arra
             $fecha = $fechaBase->modify('+' . ($frecuenciaDias * $i) . ' days')->format('Y-m-d');
         }
 
-        $interes = $saldo * $tasaPeriodoSimple;
+        // Calculate REAL days between previous date and current payment date
+        $fechaActual = DateTimeImmutable::createFromFormat('Y-m-d', $fecha) ?: $fechaBase;
+        $diasReales = max(1, (int)$fechaAnterior->diff($fechaActual)->days);
+
+        // Tasa diaria: (Tasa mensual / 100) / 30
+        $tasaDiaria = ($tasaMensual / 100) / 30;
+
+        // Interes simple: tasa diaria * (dias del periodo + dias adicionales en el primer periodo)
+        $diasCalculo = $diasReales;
+        if ($i === 1 && $diasAdicionalesPrestacion > 0) {
+            $diasCalculo += $diasAdicionalesPrestacion;
+        }
+        $interes = $saldo * $tasaDiaria * $diasCalculo;
+
         $capital = min($capitalFijo, $saldo);
         $pago = $capital + $interes;
         $saldo -= $capital;
@@ -170,6 +206,9 @@ $buildGermanSimpleSchedule = static function (DateTimeImmutable $fechaBase, arra
             'saldo' => $saldo,
             'fecha' => $fecha,
         ];
+
+        // Update previous date for next iteration
+        $fechaAnterior = $fechaActual;
     }
 
     return $rows;
@@ -233,6 +272,9 @@ if ($montoPrestamo <= 0) {
 $fechaOtorgamiento = (string)($_POST['fecha_otorgamiento'] ?? $_GET['fecha_otorgamiento'] ?? date('Y-m-d'));
 $mesesPagar = max(0, (int)($_POST['meses_pagar'] ?? $_GET['meses_pagar'] ?? 0));
 $diasAdicionales = max(0, (int)($_POST['dias_adicionales'] ?? $_GET['dias_adicionales'] ?? 0));
+$diasAdicionalesInput = $diasAdicionales;
+// Was the caller explicit about dias_adicionales? If so, prefer the provided value
+$diasAdicionalesWasProvided = array_key_exists('dias_adicionales', $_POST) || array_key_exists('dias_adicionales', $_GET);
 $tasaInteresMensual = (float)($_POST['tasa_interes'] ?? $_GET['tasa_interes'] ?? 0);
 $prestamistaNombre = (string)($_POST['prestamista_nombre'] ?? $_GET['prestamista_nombre'] ?? $prestamistaNombre);
 
@@ -268,18 +310,9 @@ foreach ($descuentos as $desc) {
             continue;
         }
 
-        $fechaSeleccionada = !empty($desc['fechaPago']) && is_string($desc['fechaPago'])
-            ? (string)$desc['fechaPago']
-            : $opcionesFechas[0];
-
-        $indiceSeleccionado = array_search($fechaSeleccionada, $opcionesFechas, true);
-        if ($indiceSeleccionado === false) {
-            $indiceSeleccionado = min($cantidadSolicitada - 1, count($opcionesFechas) - 1);
-        }
-
-        $cantidad = $indiceSeleccionado + 1;
+        $cantidad = min($cantidadSolicitada, count($opcionesFechas));
         $opcionesSeleccionadas = array_slice($opcionesFechas, 0, $cantidad);
-        $fechaUltimaStr = $opcionesSeleccionadas[count($opcionesSeleccionadas) - 1];
+        $fechaUltimaStr = $opcionesSeleccionadas[$cantidad - 1];
         $fechaUltimoPeriodo = DateTimeImmutable::createFromFormat('Y-m-d', $fechaUltimaStr) ?: $fechaBase;
 
         $diasHastaPrestacion = max(0, (int)$fechaBase->diff($fechaUltimoPeriodo)->days);
@@ -301,6 +334,7 @@ foreach ($descuentos as $desc) {
             'frecuenciaDias' => $frecuenciaDias,
             'cantidad' => $cantidad,
             'fechas' => $opcionesSeleccionadas,
+            'diasAdicionales' => $diasAdicionalesInput,
         ];
 
         $acumuladoPrestaciones[$nombre] = ($acumuladoPrestaciones[$nombre] ?? 0.0) + $monto;
@@ -363,15 +397,105 @@ usort(
     static fn (array $a, array $b): int => strcmp((string)$a['fecha'], (string)$b['fecha'])
 );
 
-if ($plazoDias <= 0) {
-    $plazoDias = ($mesesPagar * 30) + $diasAdicionales;
-}
+$plazoDias = $plazoDias > 0 ? $plazoDias : (($mesesPagar * 30) + $diasAdicionales);
 
 $mesesPagar = intdiv($plazoDias, 30);
-$diasAdicionales = $plazoDias % 30;
+// Only overwrite $diasAdicionales if the request did NOT provide it explicitly.
+if (!($diasAdicionalesWasProvided ?? false)) {
+    $diasAdicionales = $plazoDias % 30;
+}
+$firstPaymentToleranceDays = 15;
+
+// Tasas auxiliares usadas por la corrida quincenal
+$tasaQuincenal = ($tasaInteresMensual / 100) / 2;
+$tasaDiaria = ($tasaInteresMensual / 100) / 30;
+
+$resolveNextFortnightDate = static function (DateTimeImmutable $date): DateTimeImmutable {
+    $day = (int)$date->format('d');
+
+    if ($day <= 15) {
+        return DateTimeImmutable::createFromFormat('Y-m-d', $date->format('Y-m-15')) ?: $date;
+    }
+
+    return new DateTimeImmutable($date->format('Y-m-t'));
+};
+
+// Construir corrida quincenal general (aplica días adicionales a la primera quincena)
+$numQuincenas = max(1, ($mesesPagar * 2) + (int)ceil($diasAdicionales / 15));
+$capitalFijo = $numQuincenas > 0 ? $montoPrestamo / $numQuincenas : 0;
+$saldo = $montoPrestamo;
+
+$corrida = [];
+$fechaReferenciaPrimerPago = $fechaBase->add(new DateInterval('P' . $firstPaymentToleranceDays . 'D'));
+$primerPago = $resolveNextFortnightDate($fechaReferenciaPrimerPago);
+$diasTranscurridosPrimerPago = max(0, (int)$fechaBase->diff($primerPago)->days);
+$diasExtraPrimeraQuincena = max(0, $diasTranscurridosPrimerPago - 15);
+$fechaActual = new DateTime($primerPago->format('Y-m-d'));
+
+$pagoExtraordinarioPorFecha = [];
+foreach ($prestacionesNoPeriodicas as $prestacion) {
+    $fechaKey = $prestacion['fecha']->format('Y-m-d');
+    if (!isset($pagoExtraordinarioPorFecha[$fechaKey])) {
+        $pagoExtraordinarioPorFecha[$fechaKey] = 0.0;
+    }
+    $pagoExtraordinarioPorFecha[$fechaKey] += (float)$prestacion['monto'];
+}
+
+for ($i = 1; $i <= $numQuincenas; $i++) {
+    $day = (int)$fechaActual->format('d');
+    if ($day <= 15) {
+        $fechaActual->setDate((int)$fechaActual->format('Y'), (int)$fechaActual->format('m'), 15);
+    } else {
+        $fechaActual->modify('last day of this month');
+    }
+
+    $fechaPagoStr = $fechaActual->format('Y-m-d');
+
+    $interesQuincenal = $saldo * $tasaQuincenal;
+
+    if ($i === 1 && $diasExtraPrimeraQuincena > 0) {
+        $interesQuincenal += ($montoPrestamo * $tasaDiaria * $diasExtraPrimeraQuincena);
+    }
+
+    $pagoExtraordinario = 0;
+    if (isset($pagoExtraordinarioPorFecha[$fechaPagoStr])) {
+        $pagoExtraordinario = (float)$pagoExtraordinarioPorFecha[$fechaPagoStr];
+        unset($pagoExtraordinarioPorFecha[$fechaPagoStr]);
+    }
+
+    $capitalAbono = $capitalFijo + $pagoExtraordinario;
+    if ($capitalAbono > $saldo) {
+        $capitalAbono = $saldo;
+    }
+
+    $pagoTotal = $capitalAbono + $interesQuincenal;
+    $saldo -= $capitalAbono;
+    if ($saldo < 0) $saldo = 0;
+
+    $corrida[] = [
+        'quincena' => $i,
+        'capital' => $capitalAbono,
+        'interes' => $interesQuincenal,
+        'pago' => $pagoTotal,
+        'saldo' => $saldo,
+        'fecha' => $fechaPagoStr
+    ];
+
+    if ($saldo <= 0) break;
+
+    if ((int)$fechaActual->format('d') == 15) {
+        $fechaActual->modify('last day of this month');
+    } else {
+        $fechaActual->modify('first day of next month');
+        $fechaActual->modify('+14 days');
+    }
+}
+
 $corridasPorTipo = [];
 $interesTotalGlobal = 0.0;
 $pagoTotalGlobal = 0.0;
+
+// No propagar días adicionales a prestaciones; se aplican solo en la corrida general
 
 foreach ($prestacionesParaCorrida as $prestacion) {
     $esPeriodico = (string)($prestacion['tipo'] ?? '') === 'periodico';
@@ -403,6 +527,13 @@ foreach ($prestacionesParaCorrida as $prestacion) {
     ];
 }
 
+// Log computed corridas summary before rendering
+$logPdf('PDF_SIMULATION: corridasPorTipo built', [
+    'corridas_count' => count($corridasPorTipo),
+    'interesTotalGlobal' => $interesTotalGlobal,
+    'pagoTotalGlobal' => $pagoTotalGlobal,
+]);
+
 if ($corridasPorTipo === []) {
     header('HTTP/1.1 400 Bad Request');
     echo 'No hay simulaciones para generar el PDF.';
@@ -415,29 +546,55 @@ $resumen = [
     'pagoTotal' => $pagoTotalGlobal,
 ];
 
-// Renderizar HTML usando la plantilla .latte
-$html = $latte->renderToString('./pdf-simulados.latte', [
-    'prestamistaNombre' => $prestamistaNombre,
-    'montoPrestamo' => $montoPrestamo,
-    'mesesPagar' => $mesesPagar,
-    'diasAdicionales' => $diasAdicionales,
-    'tasaInteresMensual' => $tasaInteresMensual,
-    'fechaOtorgamiento' => $fechaOtorgamiento,
-    'formasPago' => $formasPago,
-    'resumenAnual' => $resumenAnual,
-    'corridaPrestaciones' => $corridaPrestaciones,
-    'corridasPorTipo' => $corridasPorTipo,
-    'resumen' => $resumen,
-    "fecha_simulacion" => (new \DateTimeImmutable())->format('d/m/Y H:i'),
-]);
+// Renderizar HTML usando la plantilla .latte y generar PDF — con logging y manejo de errores
+try {
+    $html = $latte->renderToString('./pdf-simulados.latte', [
+        'prestamistaNombre' => $prestamistaNombre,
+        'montoPrestamo' => $montoPrestamo,
+        'mesesPagar' => $mesesPagar,
+        'diasAdicionales' => $diasAdicionales,
+        'tasaInteresMensual' => $tasaInteresMensual,
+        'fechaOtorgamiento' => $fechaOtorgamiento,
+        'formasPago' => $formasPago,
+        'resumenAnual' => $resumenAnual,
+        'corridaPrestaciones' => $corridaPrestaciones,
+        'corridasPorTipo' => $corridasPorTipo,
+        'resumen' => $resumen,
+        "fecha_simulacion" => (new \DateTimeImmutable())->format('d/m/Y H:i'),
+    ]);
 
-// Generar PDF
-$pdf = new Dompdf();
-$pdf->loadHtml($html);
-$pdf->setPaper('Letter');
-$options = $pdf->getOptions();
-$options->setIsRemoteEnabled(true);
-$pdf->setOptions($options);
-$pdf->render();
+    // Log HTML size and save a copy for inspection
+    $htmlSize = strlen($html);
+    $tmpHtmlPath = __DIR__ . '/../../../tmp/pdf-simulados-' . (new DateTimeImmutable())->format('YmdHis') . '.html';
+    @file_put_contents($tmpHtmlPath, $html);
+    $logPdf('PDF_SIMULATION: rendered HTML', ['size' => $htmlSize, 'tmp' => $tmpHtmlPath]);
 
-$pdf->stream('simulacion-prestamos.pdf', ['Attachment' => true]);
+    // Generar PDF
+    $pdf = new Dompdf();
+    $pdf->loadHtml($html);
+    $pdf->setPaper('Letter');
+    $options = $pdf->getOptions();
+    $options->setIsRemoteEnabled(true);
+    $options->setIsHtml5ParserEnabled(true);
+    $pdf->setOptions($options);
+
+    try {
+        $pdf->render();
+    } catch (\Throwable $e) {
+        $logPdf('PDF_SIMULATION: Dompdf render error', ['exception' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+        header('HTTP/1.1 500 Internal Server Error');
+        echo 'Error generando PDF. Revisa logs en logs/pdf-simulacion.log';
+        exit;
+    }
+
+    $output = $pdf->output();
+    $logPdf('PDF_SIMULATION: Dompdf output', ['length' => strlen($output)]);
+
+    // Stream PDF to browser
+    $pdf->stream('simulacion-prestamos.pdf', ['Attachment' => true]);
+} catch (\Throwable $e) {
+    $logPdf('PDF_SIMULATION: unexpected error', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+    header('HTTP/1.1 500 Internal Server Error');
+    echo 'Error inesperado. Revisa logs en logs/pdf-simulacion.log';
+    exit;
+}

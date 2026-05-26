@@ -23,6 +23,16 @@ $renderer    = $container->get(RendererInterface::class);
 $userContext = $container->get(UserContextInterface::class);
 $currentUser = $userContext->get();
 $db          = $container->get(\PDO::class);
+$loanDetailLogFile = __DIR__ . '/../../../logs/application.log';
+
+$loanDetailLog = static function (string $message, array $context = []) use ($loanDetailLogFile): void {
+    $line = '[' . date('Y-m-d H:i:s') . '] activo-detalle.php ' . $message;
+    if ($context !== []) {
+        $line .= ' | Context: ' . json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
+    @file_put_contents($loanDetailLogFile, $line . PHP_EOL, FILE_APPEND);
+};
 
 $buildDownloadUrl = static function (?string $path): ?string {
     $path = trim((string) $path);
@@ -155,15 +165,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new RuntimeException('No se pudo almacenar el archivo firmado.');
             }
 
-            // Guardar ruta relativa para interoperabilidad/migraciones
-            $relativePath = '/uploads/loans/signed/' . $fileName;
-
             /** @var ValidateSignedDocumentsUseCase $validateDocumentsUseCase */
             $validateDocumentsUseCase = $container->get(ValidateSignedDocumentsUseCase::class);
             $validateDocumentsUseCase->uploadSignedDocument(
                 loanId: (int) $loan['loan_id'],
                 legalDocId: (int) $legalDocId,
-                signedFilePath: $relativePath,
+                signedFilePath: $storedPath,
             );
 
             header('Location: /portal/prestamos/activo-detalle.php?id=' . (int) $loan['loan_id'] . '&signed_uploaded=1');
@@ -323,9 +330,77 @@ $loan['disbursement_date_label'] = !empty($loan['disbursement_date'])
 $loan['first_payment_date_label'] = !empty($loan['first_payment_date'])
     ? date('d/m/Y', strtotime((string) $loan['first_payment_date']))
     : '—';
-$loan['last_payment_date_label'] = !empty($loan['last_scheduled_payment_date'])
-    ? date('d/m/Y', strtotime((string) $loan['last_scheduled_payment_date']))
-    : '—';
+$buildLastScheduledDatesByIncomeType = static function (array $amortizationRows): array {
+    $lastScheduledDatesByIncomeType = [];
+    $lastScheduledDate = null;
+
+    foreach ($amortizationRows as $row) {
+        $incomeTypeId = (int) ($row['income_type_id'] ?? 0);
+        $scheduledDate = trim((string) ($row['scheduled_date'] ?? ''));
+
+        if ($incomeTypeId <= 0 || $scheduledDate === '') {
+            continue;
+        }
+
+        if (!isset($lastScheduledDatesByIncomeType[$incomeTypeId]) || $scheduledDate > $lastScheduledDatesByIncomeType[$incomeTypeId]) {
+            $lastScheduledDatesByIncomeType[$incomeTypeId] = $scheduledDate;
+        }
+
+        if ($lastScheduledDate === null || $scheduledDate > $lastScheduledDate) {
+            $lastScheduledDate = $scheduledDate;
+        }
+    }
+
+    return [
+        'by_type' => $lastScheduledDatesByIncomeType,
+        'overall' => $lastScheduledDate,
+    ];
+};
+
+$resolveDateForPaymentConfig = static function (DateTimeImmutable $baseDate, array $config): ?DateTimeImmutable {
+    $isPeriodic = !empty($config['income_is_periodic']);
+    $installments = max(1, (int) ($config['number_of_installments'] ?? 1));
+    $frequencyDays = max(1, (int) ($config['income_frequency_days'] ?? 15));
+
+    if ($isPeriodic) {
+        $month = (int) $baseDate->format('m');
+        $day = max(1, min((int) ($config['income_payment_day'] ?? 15), (int) $baseDate->format('t')));
+        $candidate = $baseDate->setDate((int) $baseDate->format('Y'), $month, $day);
+
+        if ($candidate <= $baseDate) {
+            $candidate = $candidate->modify('+' . max(1, $frequencyDays) . ' days');
+        }
+
+        $lastDate = $candidate;
+        for ($i = 1; $i < $installments; $i++) {
+            $lastDate = $lastDate->modify('+' . $frequencyDays . ' days');
+        }
+
+        return $lastDate;
+    }
+
+    $paymentMonth = (int) ($config['income_payment_month'] ?? 0);
+    $paymentDay = (int) ($config['income_payment_day'] ?? 0);
+
+    if ($paymentMonth < 1 || $paymentMonth > 12 || $paymentDay < 1) {
+        return null;
+    }
+
+    $year = (int) $baseDate->format('Y');
+    $paymentBase = DateTimeImmutable::createFromFormat('Y-n-j', sprintf('%d-%d-%d', $year, $paymentMonth, $paymentDay));
+    if (!$paymentBase) {
+        return null;
+    }
+
+    if ($paymentBase <= $baseDate) {
+        $paymentBase = DateTimeImmutable::createFromFormat('Y-n-j', sprintf('%d-%d-%d', $year + 1, $paymentMonth, $paymentDay));
+        if (!$paymentBase) {
+            return null;
+        }
+    }
+
+    return $paymentBase;
+};
 
 $amortization = $detail['amortization'] ?? [];
 $totals = [
@@ -350,32 +425,68 @@ foreach ($amortization as &$row) {
 }
 unset($row);
 
-$paymentConfigs = $detail['payment_configs'] ?? [];
+$lastScheduledDates = $buildLastScheduledDatesByIncomeType($amortization);
+$lastScheduledDatesByIncomeType = $lastScheduledDates['by_type'];
+$overallLastScheduledDate = $lastScheduledDates['overall'];
 
-// Calcular la última fecha programada por tipo de ingreso a partir de la tabla de amortización
-$lastScheduledDatesByIncomeType = [];
-foreach ($amortization as $row) {
-    $incomeTypeId = (int) ($row['income_type_id'] ?? 0);
-    $scheduledDate = trim((string) ($row['scheduled_date'] ?? ''));
+$paymentConfigsBaseDate = !empty($loan['application_date'])
+    ? new DateTimeImmutable((string) $loan['application_date'])
+    : new DateTimeImmutable();
 
-    if ($incomeTypeId <= 0 || $scheduledDate === '') {
-        continue;
+if ($overallLastScheduledDate === null) {
+    $derivedLastDates = [];
+    foreach ($detail['payment_configs'] ?? [] as $config) {
+        $incomeTypeId = (int) ($config['income_type_id'] ?? 0);
+        $resolvedDate = $resolveDateForPaymentConfig($paymentConfigsBaseDate, $config);
+
+        if ($incomeTypeId > 0 && $resolvedDate instanceof DateTimeImmutable) {
+            $derivedLastDates[$incomeTypeId] = $resolvedDate->format('Y-m-d');
+        }
     }
 
-    if (!isset($lastScheduledDatesByIncomeType[$incomeTypeId]) || $scheduledDate > $lastScheduledDatesByIncomeType[$incomeTypeId]) {
-        $lastScheduledDatesByIncomeType[$incomeTypeId] = $scheduledDate;
+    if ($derivedLastDates !== []) {
+        $overallLastScheduledDate = max($derivedLastDates);
+        $lastScheduledDatesByIncomeType = $derivedLastDates;
     }
 }
+
+$loan['last_payment_date_label'] = !empty($loan['last_scheduled_payment_date'])
+    ? date('d/m/Y', strtotime((string) $loan['last_scheduled_payment_date']))
+    : ($overallLastScheduledDate ? date('d/m/Y', strtotime((string) $overallLastScheduledDate)) : '—');
+
+$paymentConfigs = $detail['payment_configs'] ?? [];
 
 foreach ($paymentConfigs as &$config) {
     $config['supporting_document_url'] = $buildDownloadUrl($config['supporting_document_path'] ?? null);
 
     $tipoId = (int) ($config['income_type_id'] ?? 0);
     $dateRaw = $lastScheduledDatesByIncomeType[$tipoId] ?? null;
-    $config['last_payment_date_label'] = $dateRaw ? date('d/m/Y', strtotime($dateRaw)) : '—';
+    $config['last_payment_date_label'] = $dateRaw
+        ? date('d/m/Y', strtotime($dateRaw))
+        : ($overallLastScheduledDate ? date('d/m/Y', strtotime((string) $overallLastScheduledDate)) : '—');
 }
 unset($config);
 $detail['payment_configs'] = $paymentConfigs;
+
+if ((string) ($loan['status'] ?? '') === 'solicitado') {
+    $loanDetailLog('render summary', [
+        'loan_id' => (int) ($loan['loan_id'] ?? 0),
+        'status' => (string) ($loan['status'] ?? ''),
+        'loan_last_scheduled_payment_date' => (string) ($loan['last_scheduled_payment_date'] ?? ''),
+        'application_date' => (string) ($loan['application_date'] ?? ''),
+        'amortization_rows' => count($amortization),
+        'overall_last_scheduled_date' => $overallLastScheduledDate,
+        'by_type_dates' => $lastScheduledDatesByIncomeType,
+        'payment_configs' => array_map(static function (array $config): array {
+            return [
+                'income_type_id' => (int) ($config['income_type_id'] ?? 0),
+                'income_type_name' => (string) ($config['income_type_name'] ?? ''),
+                'is_periodic' => (bool) ($config['income_is_periodic'] ?? false),
+                'last_payment_date_label' => (string) ($config['last_payment_date_label'] ?? ''),
+            ];
+        }, $paymentConfigs),
+    ]);
+}
 
 $detail['legal_docs'] = array_map(
     static function (array $doc) use ($buildDownloadUrl): array {
@@ -781,19 +892,7 @@ $summary = [
 
 $simulationDownloadUrl = null;
 if ((string) ($loan['status'] ?? '') !== 'activo') {
-    $lastScheduledDatesByIncomeType = [];
-    foreach ($amortization as $row) {
-        $incomeTypeId = (int) ($row['income_type_id'] ?? 0);
-        $scheduledDate = trim((string) ($row['scheduled_date'] ?? ''));
-
-        if ($incomeTypeId <= 0 || $scheduledDate === '') {
-            continue;
-        }
-
-        if (!isset($lastScheduledDatesByIncomeType[$incomeTypeId]) || $scheduledDate > $lastScheduledDatesByIncomeType[$incomeTypeId]) {
-            $lastScheduledDatesByIncomeType[$incomeTypeId] = $scheduledDate;
-        }
-    }
+    $lastScheduledDatesByIncomeType = $buildLastScheduledDatesByIncomeType($amortization);
 
     $descuentos = [];
 
