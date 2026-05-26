@@ -64,5 +64,7 @@ function resolvePublicationListPath(PublicationTypeEnum $type): string
         PublicationTypeEnum::News => "/portal/publicaciones/noticias.php",
         PublicationTypeEnum::Management => "/portal/publicaciones/gestiones.php",
         PublicationTypeEnum::Contracts => "/portal/publicaciones/contratos.php",
+        PublicationTypeEnum::Format => "/portal/publicaciones/formatos.php",
+        PublicationTypeEnum::Library => "/portal/publicaciones/acervos.php",
     };
 }
