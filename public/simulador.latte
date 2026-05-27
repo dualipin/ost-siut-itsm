@@ -8,7 +8,7 @@
   <div class="container py-5">
     {include
       ../templates/components/header-page.latte,
-      title => 'Simular Préstamo',
+      title => 'Simulador de Préstamo Caja de Ahorro',
       description => "Ingresa el monto del préstamo para obtener una estimación de tus pagos futuros.",
       icon => 'bi-calculator'
     }
@@ -18,7 +18,7 @@
 
         <div class="row mb-3">
           <div class="col-md-4 mb-3">
-            <label class="form-label fw-bold">Tu situación actual</label>
+            <label class="form-label fw-bold">Tipo de trabajador solicitante</label>
             <select class="form-select" @change="onPerfilChange($event.target.value)">
               <option value="" disabled="" selected="">Selecciona cómo te identificas...</option>
               <option value="8.0">No agremiado y ahorrador (Externo) (8%)</option>
@@ -28,15 +28,30 @@
             </select>
           </div>
 
-          <div class="col-md-4 mb-3">
+          <div class="col-md-2 mb-3">
             <label class="form-label">Tasa Mensual (%)</label>
             <span class="form-control-plaintext fw-bold fs-5" x-text="tasaInteresMensual.toFixed(2) + '%'"></span>
             <input type="hidden" name="tasa_interes" x-model="tasaInteresMensual" class="form-control" step="0.1"
                    required>
           </div>
-          <div class="col-md-4 mb-3">
-            <label for="fechaOtorgamiento" class="form-label">Fecha de Inicio</label>
+          <div class="col-md-3 mb-3">
+            <label for="fechaOtorgamiento" class="form-label small mb-1">Seleccione la fecha de inicio de Crédito</label>
             <input type="date" id="fechaOtorgamiento" class="form-control" x-model="fechaOtorgamiento" required>
+          </div>
+          <div class="col-12 col-lg-3">
+            <label class="form-label mb-1 small">
+              Fecha final del préstamo
+            </label>
+            <select x-model="fechaPago"
+{*                    @change="onFechaPagoChange(0)"*}
+                    class="form-select"
+            >
+              {* :disabled="obtenerOpcionesParaItem(index).length === 0" *}
+              <option value="">Seleccione una fecha...</option>
+              <template x-for="op in obtenerOpcionesFecha()">
+                <option :value="op.value" x-text="op.label"></option>
+              </template>
+            </select>
           </div>
         </div>
 
@@ -46,7 +61,7 @@
               <div class="flex-fill">
                 <div class="row g-2">
                   <div class="col-12 col-sm-6">
-                    <label class="form-label mb-1 small d-none d-sm-block">Monto a descontar</label>
+                    <label class="form-label mb-1 small d-none d-sm-block">Monto a Solicitar</label>
                     <div class="input-group">
                       <span class="input-group-text">$</span>
                       <input x-model.number="item.monto" type="number" class="form-control" min="0" placeholder="0.00"
@@ -69,25 +84,21 @@
                   <div class="col-12"
                        x-show="item.tipoId && (categoriasTipoIngreso.find(c => Number(c.id) === Number(item.tipoId))?.esPeriodico)">
                     <div class="row g-2">
-                      <div class="col-12 col-sm-4">
+                      <div class="col-12 col-lg-4">
                         <label class="form-label mb-1 small">Inicio del préstamo</label>
                         <div class="form-control-plaintext fw-semibold" x-text="localize(fechaOtorgamiento)"></div>
                       </div>
-                      <div class="col-12 col-sm-4">
+                      <div class="col-12 col-lg-4">
                         <label class="form-label mb-1 small">Primer quincena</label>
                         <div class="form-control-plaintext fw-semibold"
                              x-text="calcularPrimeraQuincena()">
                         </div>
                       </div>
-                      <div class="col-12 col-sm-4">
-                        <label class="form-label mb-1 small">Fecha de último pago</label>
-                        <select x-model="item.fechaPago" @change="onFechaPagoChange(index)" class="form-select"
-                                :disabled="obtenerOpcionesParaItem(index).length === 0">
-                          <option value="">Seleccione una fecha...</option>
-                          <template x-for="op in obtenerOpcionesParaItem(index)">
-                            <option :value="op.value" x-text="op.label"></option>
-                          </template>
-                        </select>
+                      <div class="col-12 col-lg-4">
+                        <label class="form-label mb-1 small">
+                          Fecha final del préstamo
+                        </label>
+                        <p class="form-control-plaintext fw-semibold" x-text="fechaPago ? localize(fechaPago) : '-'"></p>
                       </div>
                       {* <div class="col-6 col-sm-4">
                         <label class="form-label mb-1 small">Unidad</label>
@@ -133,9 +144,12 @@
         <input type="hidden" name="dias_adicionales" :value="diasEstimados">
 
         <div class="d-grid gap-2 d-sm-flex mb-3">
-          <div class="me-sm-2" style="width:64px;">
-            <button type="button" class="btn btn-outline-secondary w-100 h-100" @click.prevent="agregar()"
-                    :disabled="!puedeAgregar" aria-label="Agregar descuento">
+          <div class="me-sm-2" style="">
+            <button type="button"
+                    class="btn btn-outline-secondary w-100 h-100 d-flex align-items-center justify-content-center"
+                    @click.prevent="agregar()"
+                    :disabled="!puedeAgregar" aria-label="Agregar descuento" title="Agregar descuento">
+              Nuevo Monto
               <i class="bi bi-plus" style="font-size: 1.25rem;"></i>
             </button>
           </div>
@@ -456,6 +470,20 @@
           if (!cat || !cat.esPeriodico) return []
           return this.obtenerOpcionesFechasPago(cat)
         },
+
+        /**
+         * Optiene las fechas de pago siempre
+         * @return { { value: string, label: string }[] }
+         */
+        obtenerOpcionesFecha(){
+          return this.obtenerOpcionesFechasPago({
+            esPeriodico: true,
+            frecuenciaDias: 15
+          })
+        },
+
+        fechaPago: '',
+
         /**
          * @param { number } year
          * @param { number } monthIndex
