@@ -100,25 +100,6 @@
                         </label>
                         <p class="form-control-plaintext fw-semibold" x-text="fechaPago ? localize(fechaPago) : '-'"></p>
                       </div>
-                      {* <div class="col-6 col-sm-4">
-                        <label class="form-label mb-1 small">Unidad</label>
-                        <div class="form-control-plaintext small"
-                             x-text="`Cada ${ categoriasTipoIngreso.find(c => Number(c.id) === Number(item.tipoId))?.frecuenciaDias } días`">
-                        </div>
-                      </div> *}
-                      {* <div class="col-6 col-sm-4">
-                        <label class="form-label mb-1 small">Períodos</label>
-                        <div class="form-control-plaintext fw-semibold" x-text="item.cantidad || 0"></div>
-                        <div class="small text-muted">Máx períodos: <span
-                                  x-text="calcularMaxPeriodos(categoriasTipoIngreso.find(c => Number(c.id) === Number(item.tipoId)))"></span>
-                        </div>
-                      </div> *}
-                      {* <div class="col-12">
-                        <label class="form-label mb-1 small">Fecha aproximada de terminación</label>
-                        <div class="form-control-plaintext fw-semibold"
-                             x-text="item.fechaPago ? localize(item.fechaPago) : '-'">
-                        </div>
-                      </div> *}
                     </div>
                   </div>
                 </div>
