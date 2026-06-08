@@ -32,6 +32,17 @@ $search     = trim((string) ($_GET['search'] ?? ''));
 $fechaDesde = trim((string) ($_GET['fecha_desde'] ?? ''));
 $fechaHasta = trim((string) ($_GET['fecha_hasta'] ?? ''));
 
+// Ordering: allow sorting by 'fecha' (application_date) or 'folio' (computed folio)
+$allowedOrders = ['fecha', 'folio'];
+$orderBy = trim((string) ($_GET['order'] ?? 'fecha'));
+if (!in_array($orderBy, $allowedOrders, true)) {
+    $orderBy = 'fecha';
+}
+$orderDir = strtolower(trim((string) ($_GET['dir'] ?? 'asc')));
+if ($orderDir !== 'asc' && $orderDir !== 'desc') {
+    $orderDir = 'asc';
+}
+
 $where  = ['l.deletion_date IS NULL'];
 $params = [];
 
@@ -82,7 +93,11 @@ $sql = "
     FROM loans l
     INNER JOIN users u ON u.user_id = l.user_id
     WHERE " . implode(' AND ', $where) . "
-    ORDER BY l.application_date ASC, l.loan_id ASC
+    ORDER BY " . (
+        $orderBy === 'folio'
+            ? "folio " . strtoupper($orderDir) . ", l.loan_id " . strtoupper($orderDir)
+            : "l.application_date " . strtoupper($orderDir) . ", l.loan_id " . strtoupper($orderDir)
+    ) . "
 ";
 
 $stmt = $db->prepare($sql);
@@ -143,4 +158,6 @@ $renderer->render(__DIR__ . '/revision.latte', [
     'search'       => $search,
     'fechaDesde'   => $fechaDesde,
     'fechaHasta'   => $fechaHasta,
+    'orderBy'      => $orderBy,
+    'orderDir'     => $orderDir,
 ]);

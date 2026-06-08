@@ -48,6 +48,9 @@
 	<div class="card border-0 shadow-sm rounded-4 mb-4">
 		<div class="card-body p-4">
 			<form method="GET" class="row g-3 align-items-end">
+			{* Preserve ordering parameters in the filter form *}
+			<input type="hidden" name="order" value="{$orderBy|default:'fecha'}">
+			<input type="hidden" name="dir" value="{$orderDir|default:'asc'}">
 				<div class="col-12 col-lg-4">
 					<label class="form-label fw-semibold small text-uppercase text-muted">Buscar</label>
 					<input type="text" name="search" class="form-control rounded-3"
@@ -94,7 +97,18 @@
 			<table class="table table-hover align-middle mb-0">
 				<thead class="bg-light text-uppercase small text-muted">
 					<tr>
-						<th class="px-4 py-3 border-0">Folio / Fecha</th>
+						<th class="px-4 py-3 border-0">
+							{* Sortable header: Folio *}
+							{var $nextDir = ($orderBy === 'folio' && $orderDir === 'asc') ? 'desc' : 'asc'}
+							<a href="?{http_build_query(array_merge($_GET, ['order' => 'folio', 'dir' => $nextDir]))}"
+								class="text-decoration-none text-dark">
+								<strong>Folio</strong>
+								{if $orderBy === 'folio'}
+									<i class="bi me-1 {if $orderDir === 'asc'}bi-sort-down{else}bi-sort-up{/if}"></i>
+								{/if}
+							</a>
+							<div class="small text-muted">Fecha</div>
+						</th>
 						<th class="py-3 border-0">Solicitante</th>
 						<th class="py-3 border-0">Estatus</th>
 						<th class="py-3 border-0">Monto solicitado</th>
