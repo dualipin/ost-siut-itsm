@@ -35,7 +35,7 @@
         <thead class="bg-light text-uppercase small text-muted">
           <tr>
             <th class="px-4 py-3 border-0">Año</th>
-            <th class="px-4 py-3 border-0">Documento</th>
+            {* <th class="px-4 py-3 border-0">Documento</th> *}
             <th class="px-4 py-3 border-0 text-end">Acciones</th>
           </tr>
         </thead>
@@ -43,12 +43,12 @@
           {foreach $reports as $report}
             <tr class="transition-all">
               <td class="px-4 py-3 fw-bold text-dark">{$report->year}</td>
-              <td class="px-4 py-3">
+              {* <td class="px-4 py-3">
                 <div class="d-flex flex-column">
                   <span class="fw-medium text-dark">{$report->fileName()}</span>
                   <small class="text-muted">{$report->document}</small>
                 </div>
-              </td>
+              </td> *}
               <td class="px-4 py-3 text-end">
                 <div class="d-inline-flex flex-wrap justify-content-end gap-2">
                   <a href="./ver.php?id={$report->id}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">

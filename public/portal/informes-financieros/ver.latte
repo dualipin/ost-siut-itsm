@@ -6,10 +6,12 @@
 {varType bool $isPdf}
 
 {block main}
+{var $title = "Informe Financiero {$report->year}"}
+
   {include
     ../../../templates/components/header-page.latte,
-    title => 'Detalle del informe financiero',
-    description => 'Consulta el archivo cargado para este ejercicio anual.',
+    title => $title,
+    description => '',
     icon => 'bi-file-earmark-text'
   }
 
@@ -39,39 +41,38 @@
     </a>
   </div>
 
-  <div class="row g-4">
-    <div class="col-lg-5">
-      <div class="card border-0 shadow-sm rounded-4 h-100">
-        <div class="card-body p-4 p-md-5">
-          <h2 class="h5 fw-semibold text-secondary mb-4">Resumen</h2>
-          <ul class="list-unstyled mb-0">
+  {* <div class="row g-4">
+    <div class="">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-3"> *}
+          {* <h2 class="h5 fw-semibold text-secondary mb-4">Resumen</h2> *}
+          {* <ul class="list-unstyled mb-0">
             <li class="mb-3">
               <span class="text-muted d-block small">Año</span>
               <span class="fw-bold fs-4 text-dark">{$report->year}</span>
-            </li>
-            <li class="mb-3">
+            </li> *}
+            {* <li class="mb-3">
               <span class="text-muted d-block small">Archivo</span>
               <span class="fw-semibold text-dark">{$report->fileName()}</span>
-            </li>
-            <li class="mb-0">
+            </li> *}
+            {* <li class="mb-0">
               <span class="text-muted d-block small">Ruta almacenada</span>
               <span class="text-break small text-muted">{$report->document}</span>
-            </li>
-          </ul>
+            </li> *}
+          {* </ul>
         </div>
       </div>
-    </div>
+    </div> *}
 
-    <div class="col-lg-7">
+    <div class="c">
       <div class="card border-0 shadow-sm rounded-4 h-100">
-        <div class="card-body p-4 p-md-5">
-          <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+        <div class="card-body px-4 px-md-5 py-2">
+          <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-3">
             <h2 class="h5 fw-semibold text-secondary mb-0">Documento</h2>
             <a href="./archivo.php?id={$report->id}" target="_blank" rel="noopener" class="btn btn-outline-primary rounded-pill px-4">
               <i class="bi bi-box-arrow-up-right me-2"></i>Abrir en nueva pestaña
             </a>
           </div>
-
           {if $isPdf}
             <div class="ratio ratio-16x9 border rounded-4 overflow-hidden bg-light mb-3">
               <iframe
@@ -81,7 +82,7 @@
                 class="w-100 h-100 border-0"
               ></iframe>
             </div>
-            <div class="alert alert-light border rounded-4 mb-0">
+            {* <div class="alert alert-light border rounded-4 mb-0">
               <div class="d-flex align-items-start gap-3">
                 <i class="bi bi-file-earmark-pdf text-danger fs-3"></i>
                 <div>
@@ -89,7 +90,7 @@
                   <small class="text-muted">Puedes revisar el PDF sin salir de la página.</small>
                 </div>
               </div>
-            </div>
+            </div> *}
           {else}
             <div class="p-4 bg-light rounded-4 border">
               <div class="d-flex align-items-start gap-3">
@@ -99,7 +100,7 @@
                   </span>
                 </div>
                 <div class="flex-grow-1">
-                  <p class="mb-2 text-dark fw-medium">El archivo cargado está disponible para descarga segura.</p>
+                  <p class="mb-2 text-dark fw-medium">El archivo cargado está disponible para su descarga.</p>
                   <a href="{download($report->document)}" target="_blank" rel="noopener" class="btn btn-outline-primary rounded-pill px-4">
                     <i class="bi bi-download me-2"></i>Descargar documento
                   </a>
