@@ -2,6 +2,7 @@
 
 namespace App\Infrastructure\Templating\Latte;
 
+use App\Infrastructure\Config\AppConfig;
 use App\Infrastructure\Env\EnvironmentInterface;
 
 class ViteHelper
@@ -9,7 +10,7 @@ class ViteHelper
     private bool $isDev;
     private string $manifestPath;
 
-    public function __construct(EnvironmentInterface $env)
+    public function __construct(private readonly EnvironmentInterface $env, private readonly AppConfig $config)
     {
         // Asumiendo que tu EnvironmentInterface puede decirnos si estamos en local
         $this->isDev = $env->get('APP_ENV') === 'dev';
@@ -20,32 +21,39 @@ class ViteHelper
 
     public function generateTags(string $entry): string
     {
-  if ($this->isDev) {
+        if ($this->isDev) {
             $tags = '';
 
-            // 1. Detectamos si es React verificando la extensión
-            $isReact = str_ends_with($entry, '.tsx') || str_ends_with($entry, '.jsx');
-
-            // 2. Solo si es React, inyectamos el Preamble usando Nowdoc
-            if ($isReact) {
-                $tags .= <<<'HTML'
-                    <script type="module">
-                        import RefreshRuntime from 'http://localhost:5173/@react-refresh'
-                        RefreshRuntime.injectIntoGlobalHook(window)
-                        window.$RefreshReg$ = () => {}
-                        window.$RefreshSig$ = () => (type) => type
-                        window.__vite_plugin_react_preamble_installed__ = true
-                    </script>
-                HTML;
+            // Construir dev base a partir de `baseUrl`.
+            // Si `baseUrl` incluye puerto, se usa; si no, se añade :5173.
+            $base = $this->config->baseUrl;
+            $parsed = parse_url($base);
+            if ($parsed === false || !isset($parsed['host'])) {
+                $devBase = 'http://localhost:5173';
+            } else {
+                $scheme = $parsed['scheme'] ?? 'http';
+                $host = $parsed['host'];
+                $port = $parsed['port'] ?? 5173;
+                $devBase = $scheme . '://' . $host . ':' . $port;
             }
 
-            // 3. Inyectamos el cliente de Vite y tu archivo usando Nowdoc
-            $baseHtml = <<<'HTML'
-                <script type="module" src="http://localhost:5173/@vite/client"></script>
-                <script type="module" src="http://localhost:5173/{{ENTRY_FILE}}"></script>
-            HTML;
+            // Detectamos si es React verificando la extensión
+            $isReact = str_ends_with($entry, '.tsx') || str_ends_with($entry, '.jsx');
 
-            $tags .= str_replace('{{ENTRY_FILE}}', $entry, $baseHtml);
+            // Si es React, inyectamos el preamble apuntando al dev server configurado
+            if ($isReact) {
+                $tags .= '<script type="module">'
+                    . "import RefreshRuntime from '{$devBase}/@react-refresh';"
+                    . 'RefreshRuntime.injectIntoGlobalHook(window);'
+                    . 'window.$RefreshReg$ = () => {};' 
+                    . 'window.$RefreshSig$ = () => (type) => type;' 
+                    . "window.__vite_plugin_react_preamble_installed__ = true;"
+                    . '</script>';
+            }
+
+            // Cliente Vite y archivo de entrada desde el dev server configurado
+            $tags .= '<script type="module" src="' . $devBase . '/@vite/client"></script>';
+            $tags .= '<script type="module" src="' . $devBase . '/' . ltrim($entry, '/') . '"></script>';
 
             return $tags;
         }
@@ -65,12 +73,16 @@ class ViteHelper
         $file = $manifest[$entry]['file'];
         $cssFiles = $manifest[$entry]['css'] ?? [];
 
+        // Construir base para assets en producción usando `baseUrl` configurado
+        $base = rtrim($this->config->baseUrl ?? '', '/');
+        $assetsBase = $base === '' ? '/build' : $base . '/build';
+
         // Generar script de JS
-        $tags = '<script type="module" src="/build/' . $file . '"></script>';
+        $tags = '<script type="module" src="' . $assetsBase . '/' . $file . '"></script>';
 
         // Generar links de CSS (si tu componente Vue tiene <style>)
         foreach ($cssFiles as $css) {
-            $tags .= '<link rel="stylesheet" href="/build/' . $css . '">';
+            $tags .= '<link rel="stylesheet" href="' . $assetsBase . '/' . $css . '">';
         }
 
         return $tags;
