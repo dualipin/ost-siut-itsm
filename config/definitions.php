@@ -12,6 +12,7 @@ use App\Infrastructure\Session\PhpSession;
 use App\Infrastructure\Session\SessionInterface;
 use App\Infrastructure\Templating\Latte\LatteExtension;
 use App\Infrastructure\Templating\Latte\LatteRenderer;
+use App\Infrastructure\Templating\Latte\ViteHelper;
 use App\Infrastructure\Templating\RendererInterface;
 use App\Modules\Loan\Application\Service\PdfGeneratorInterface;
 use App\Modules\Loan\Infrastructure\Service\DompdfLoanPdfGenerator;
@@ -74,6 +75,8 @@ return function (ContainerBuilder $container) {
 
             return $latte;
         },
+
+        ViteHelper::class=>autowire(),
 
         PDO::class => function (AppConfig $config) {
             $dsn = "mysql:host={$config->database->host};dbname={$config->database->database};charset=utf8mb4";

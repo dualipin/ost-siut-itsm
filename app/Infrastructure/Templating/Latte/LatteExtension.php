@@ -11,6 +11,7 @@ class LatteExtension extends Extension
     public function __construct(
         private readonly UrlBuilder $urlBuilder,
         private readonly AppConfig $settings,
+        private readonly ViteHelper $viteHelper,
     ) {}
 
     public function getFunctions(): array
@@ -19,6 +20,7 @@ class LatteExtension extends Extension
             "url" => $this->urlBuilder->to(...),
             "upload" => $this->resolveUploadUrl(...),
             "download" => $this->resolveDownloadUrl(...),
+            "vite" => $this->viteHelper->generateTags(...),
         ];
     }
 
