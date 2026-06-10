@@ -20,24 +20,35 @@ class ViteHelper
 
     public function generateTags(string $entry): string
     {
-        if ($this->isDev) {
-            // Usamos <<<'HTML' (Nowdoc) para que PHP no altere los signos de dólar ($)
-            $html = <<<'HTML'
-                <script type="module">
-                    import RefreshRuntime from 'http://localhost:5173/@react-refresh'
-                    RefreshRuntime.injectIntoGlobalHook(window)
-                    window.$RefreshReg$ = () => {}
-                    window.$RefreshSig$ = () => (type) => type
-                    window.__vite_plugin_react_preamble_installed__ = true
-                </script>
+  if ($this->isDev) {
+            $tags = '';
+
+            // 1. Detectamos si es React verificando la extensión
+            $isReact = str_ends_with($entry, '.tsx') || str_ends_with($entry, '.jsx');
+
+            // 2. Solo si es React, inyectamos el Preamble usando Nowdoc
+            if ($isReact) {
+                $tags .= <<<'HTML'
+                    <script type="module">
+                        import RefreshRuntime from 'http://localhost:5173/@react-refresh'
+                        RefreshRuntime.injectIntoGlobalHook(window)
+                        window.$RefreshReg$ = () => {}
+                        window.$RefreshSig$ = () => (type) => type
+                        window.__vite_plugin_react_preamble_installed__ = true
+                    </script>
+                HTML;
+            }
+
+            // 3. Inyectamos el cliente de Vite y tu archivo usando Nowdoc
+            $baseHtml = <<<'HTML'
                 <script type="module" src="http://localhost:5173/@vite/client"></script>
                 <script type="module" src="http://localhost:5173/{{ENTRY_FILE}}"></script>
             HTML;
 
-            // Reemplazamos la etiqueta con tu archivo (ej. resources/js/main.tsx)
-            return str_replace('{{ENTRY_FILE}}', $entry, $html);
-        }
+            $tags .= str_replace('{{ENTRY_FILE}}', $entry, $baseHtml);
 
+            return $tags;
+        }
         // ... código de producción ...
 
         // Si estamos en producción, leemos el manifest para obtener los archivos minificados
