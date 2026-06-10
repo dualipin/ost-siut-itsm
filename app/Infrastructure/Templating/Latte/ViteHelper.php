@@ -10,10 +10,10 @@ class ViteHelper
     private bool $isDev;
     private string $manifestPath;
 
-    public function __construct(private readonly EnvironmentInterface $env, private readonly AppConfig $config)
+    public function __construct(private readonly AppConfig $config)
     {
         // Asumiendo que tu EnvironmentInterface puede decirnos si estamos en local
-        $this->isDev = $env->get('APP_ENV') === 'dev';
+        $this->isDev = $config->isDev;
 
         // En Vite 5+, el manifest se guarda dentro de la carpeta .vite/
         $this->manifestPath = __DIR__ . '/../../../../public/build/.vite/manifest.json';
@@ -45,8 +45,8 @@ class ViteHelper
                 $tags .= '<script type="module">'
                     . "import RefreshRuntime from '{$devBase}/@react-refresh';"
                     . 'RefreshRuntime.injectIntoGlobalHook(window);'
-                    . 'window.$RefreshReg$ = () => {};' 
-                    . 'window.$RefreshSig$ = () => (type) => type;' 
+                    . 'window.$RefreshReg$ = () => {};'
+                    . 'window.$RefreshSig$ = () => (type) => type;'
                     . "window.__vite_plugin_react_preamble_installed__ = true;"
                     . '</script>';
             }
