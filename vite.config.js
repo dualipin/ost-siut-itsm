@@ -1,18 +1,29 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import vue from '@vitejs/plugin-vue'
+import path from 'path'
 
 export default defineConfig({
-    plugins: [react()],
-    build: {
-        manifest: true,
-        outDir: "public/build",
-        rolldownOptions: {
-            input: "resources/js/main.tsx"
-        },
-    },
-    server: {
-        strictPort: true,
-        port: 5173,
-        origin: "http://localhost:5173",
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'src')
     }
-});
+  },
+  plugins: [react(), vue()],
+  build: {
+    manifest: true,
+    outDir: 'public/build',
+    rolldownOptions: {
+      input: {
+        main: 'src/main.tsx',
+        prestamo: 'src/prestamo.tsx',
+      },
+
+    },
+  },
+  publicDir: false,
+  server: {
+    strictPort: true,
+    port: 5173,
+  },
+})
