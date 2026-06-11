@@ -1,5 +1,3 @@
 {
-  "plugins": [
-    "@prettier/plugin-php"
-  ]
+  "tabWidth": 2
 }
