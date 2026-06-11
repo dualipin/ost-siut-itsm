@@ -19,3 +19,6 @@ logs/
 
 
 opencode.json
+
+**/dist/*
+**/build/*
