@@ -19,6 +19,7 @@ use App\Modules\Loan\Application\UseCase\SubmitLoanApplicationUseCase;
 use App\Modules\Loan\Application\UseCase\ValidateSignedDocumentsUseCase;
 use App\Modules\Loan\Domain\Repository\AmortizationRepositoryInterface;
 use App\Modules\Loan\Domain\Repository\ExtraordinaryPaymentRepositoryInterface;
+use App\Modules\Loan\Domain\Repository\IncomeTypeRepositoryInterface;
 use App\Modules\Loan\Domain\Repository\LegalDocRepositoryInterface;
 use App\Modules\Loan\Domain\Repository\LoanRepositoryInterface;
 use App\Modules\Loan\Domain\Repository\LoanRestructuringRepositoryInterface;
@@ -28,6 +29,7 @@ use App\Modules\Loan\Domain\Repository\SaverUserRepositoryInterface;
 use App\Modules\Loan\Domain\Service\InterestRateProvider;
 use App\Modules\Loan\Infrastructure\Persistence\PdoAmortizationRepository;
 use App\Modules\Loan\Infrastructure\Persistence\PdoExtraordinaryPaymentRepository;
+use App\Modules\Loan\Infrastructure\Persistence\PdoIncomeTypeRepository;
 use App\Modules\Loan\Infrastructure\Persistence\PdoLegalDocRepository;
 use App\Modules\Loan\Infrastructure\Persistence\PdoLoanRepository;
 use App\Modules\Loan\Infrastructure\Persistence\PdoLoanRestructuringRepository;
@@ -48,6 +50,7 @@ final class LoanModule extends AbstractModule
         ExtraordinaryPaymentRepositoryInterface::class => PdoExtraordinaryPaymentRepository::class,
         LoanRestructuringRepositoryInterface::class => PdoLoanRestructuringRepository::class,
         PdfGeneratorInterface::class => DompdfLoanPdfGenerator::class,
+        IncomeTypeRepositoryInterface::class=>PdoIncomeTypeRepository::class
     ];
 
     protected const array SERVICES = [
