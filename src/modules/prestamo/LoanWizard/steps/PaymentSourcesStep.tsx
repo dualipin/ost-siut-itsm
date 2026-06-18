@@ -1,20 +1,22 @@
 import React, { useMemo } from "react";
-import type { LoanApplicationDraft } from "../types/loan.types";
+import type {
+  DiscountConfiguration,
+  LoanApplicationDraft,
+} from "../../types/loan.types";
 import DiscountCard from "../components/DiscountCard";
 import type { IncomeType } from "@/types/IncomeType.ts";
 
 interface Props {
   draft: LoanApplicationDraft;
   incomeTypes: IncomeType[];
-  addDiscount: (d?: any) => void;
-  updateDiscount: (tempId: string, patch: any) => void;
+  addDiscount: (d: Partial<DiscountConfiguration>) => void;
+  updateDiscount: (tempId: string, patch: Partial<DiscountConfiguration>) => void;
   removeDiscount: (tempId: string) => void;
   isDetails: boolean;
   // index del descuento que se debe mostrar cuando se renderiza un paso dinámico
   detailIndex?: number;
 }
 
-export type PaymentSourcesStepProps = Props;
 
 const PaymentSourcesStep: React.FC<Props> = ({
   draft,

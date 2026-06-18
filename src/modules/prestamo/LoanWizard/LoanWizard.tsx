@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getIncomeTypes } from "@/commons/api/incomeType";
-import Stepper from "./components/Stepper";
-import LoanInfoStep from "./steps/LoanInfoStep";
+import Stepper from "../../../commons/components/Stepper.tsx";
+import LoanInfoStep from "../components/steps/LoanInfoStep";
 import PaymentSourcesStep from "./steps/PaymentSourcesStep";
 import DocumentsStep from "./steps/DocumentsStep";
 import ReviewStep from "./steps/ReviewStep";
 import { useLoanWizard } from "./hooks/useLoanWizard";
-import type { LoanApplicationDraft } from "./types/loan.types";
+import type { LoanApplicationDraft } from "../types/loan.types";
 import type { User } from "@/types/User";
 
 export default function LoanWizard({ user }: { user: User }) {
@@ -110,7 +110,7 @@ export default function LoanWizard({ user }: { user: User }) {
     <div>
       <Stepper current={step} total={totalSteps} title={titles[step - 1]} />
 
-      <div className="card">
+      <div className="card border-0 shadow-sm rounded-4">
         <div className="card-body">
           {step === 1 && (
             <LoanInfoStep draft={draft} onChange={(p) => setBasicInfo(p)} />

@@ -1,5 +1,5 @@
-import type {LoanApplicationDraft} from '../types/loan.types';
-import {getProfileLabel} from '../constants/profiles';
+import type {LoanApplicationDraft} from '../../types/loan.types';
+import {getProfileLabel} from '../../constants/profiles';
 
 interface Props {
   draft: LoanApplicationDraft;

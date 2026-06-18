@@ -1,5 +1,5 @@
 import {useCallback, useState, useMemo} from 'react';
-import type {LoanApplicationDraft, DiscountConfiguration} from '../types/loan.types';
+import type {LoanApplicationDraft, DiscountConfiguration} from '../../types/loan.types';
 
 export function useLoanWizard(initial?: Partial<LoanApplicationDraft>) {
   const [draft, setDraft] = useState<LoanApplicationDraft>({

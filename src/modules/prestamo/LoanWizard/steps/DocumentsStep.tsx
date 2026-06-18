@@ -1,4 +1,4 @@
-import type {LoanApplicationDraft} from '../types/loan.types';
+import type {LoanApplicationDraft} from '../../types/loan.types';
 
 interface Props {
   draft: LoanApplicationDraft;

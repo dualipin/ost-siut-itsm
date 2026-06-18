@@ -1,4 +1,4 @@
-import type { DiscountConfiguration } from "../types/loan.types";
+import type { DiscountConfiguration } from "../../types/loan.types";
 
 interface Props {
   discount: DiscountConfiguration;
