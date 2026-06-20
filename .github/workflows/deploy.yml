@@ -74,6 +74,11 @@ jobs:
             data/**
             .claude/**
             .agent/**
+            .agents/**
             AGENTS.md
             CLAUDE.md
             docs/**
+            src/**
+            skill-lock.json
+            tsconfig.json
+            vite.config.ts
