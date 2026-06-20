@@ -1,0 +1,154 @@
+{extends ../@document.latte}
+
+{block title}Simulación de Préstamo - ITSM{/block}
+
+{block content}
+
+  <h2 style="color: var(--bs-primary); margin-bottom: 12px; text-align: center;">
+    Reporte de Simulación de Préstamo
+  </h2>
+
+  <div style="font-size: 10px; margin-bottom: 12px;">
+    <strong>Fecha de Simulación:</strong> {$fecha_simulacion}
+  </div>
+
+  <div style="border: 1px solid #ced4da; padding: 10px; margin-bottom: 12px; font-size: 10px;">
+
+    <div><strong>Monto del préstamo:</strong> ${number_format($montoPrestamo, 2, '.', ',')}</div>
+    <div><strong>Fecha de otorgamiento:</strong> {$fechaOtorgamiento}</div>
+    <div><strong>Plazo:</strong> {$mesesPagar} mes(es) + {$diasAdicionales} día(s)</div>
+    <div><strong>Tasa mensual:</strong> {$tasaInteresMensual}%</div>
+  </div>
+
+  {if count($formasPago) > 0}
+  <h4 style="margin: 0 0 8px 0; font-size: 12px;">Formas de descuento aplicadas</h4>
+  <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 9px;">
+    <thead>
+    <tr>
+      <th style="border: 1px solid #ced4da; padding: 6px; text-align: left;">Prestación</th>
+      <th style="border: 1px solid #ced4da; padding: 6px; text-align: left;">Tipo</th>
+      <th style="border: 1px solid #ced4da; padding: 6px; text-align: left;">Detalle</th>
+      <th style="border: 1px solid #ced4da; padding: 6px; text-align: right;">Monto</th>
+    </tr>
+    </thead>
+    <tbody>
+    {foreach $formasPago as $forma}
+      <tr>
+        <td style="border: 1px solid #ced4da; padding: 6px;">{$forma['nombre']}</td>
+        <td style="border: 1px solid #ced4da; padding: 6px;">
+          {if $forma['tipo'] === 'periodico'}Periódico{else}No periódico{/if}
+        </td>
+        <td style="border: 1px solid #ced4da; padding: 6px;">
+          {if $forma['tipo'] === 'periodico'}
+            Cada {$forma['frecuenciaDias']} días, {$forma['cantidad']} periodo(s)
+          {else}
+            Pago tentativo: {$forma['fechaPago']}
+          {/if}
+        </td>
+        <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($forma['monto'], 2, '.', ',')}</td>
+      </tr>
+    {/foreach}
+    </tbody>
+  </table>
+  {/if}
+
+  {if count($resumenAnual) > 0}
+  <h4 style="margin: 0 0 8px 0; font-size: 12px;">Resumen anual por prestación</h4>
+  <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 9px;">
+    <thead>
+    <tr>
+      <th style="border: 1px solid #ced4da; padding: 6px; text-align: left;">Prestación</th>
+      <th style="border: 1px solid #ced4da; padding: 6px; text-align: right;">Monto</th>
+    </tr>
+    </thead>
+    <tbody>
+    {foreach $resumenAnual as $prestacion => $monto}
+      <tr>
+        <td style="border: 1px solid #ced4da; padding: 6px;">{$prestacion}</td>
+        <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($monto, 2, '.', ',')}</td>
+      </tr>
+    {/foreach}
+    </tbody>
+  </table>
+  {/if}
+
+  {if count($corridaPrestaciones) > 0}
+  <h4 style="margin: 0 0 8px 0; font-size: 12px;">Corrida financiera de prestaciones</h4>
+  <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 9px;">
+    <thead>
+    <tr>
+      <th style="border: 1px solid #ced4da; padding: 6px; text-align: left;">Prestación</th>
+      <th style="border: 1px solid #ced4da; padding: 6px; text-align: left;">Tipo</th>
+      <th style="border: 1px solid #ced4da; padding: 6px; text-align: center;">Periodo</th>
+      <th style="border: 1px solid #ced4da; padding: 6px; text-align: center;">Fecha</th>
+      <th style="border: 1px solid #ced4da; padding: 6px; text-align: right;">Monto</th>
+      <th style="border: 1px solid #ced4da; padding: 6px; text-align: right;">Acumulado</th>
+    </tr>
+    </thead>
+    <tbody>
+    {foreach $corridaPrestaciones as $row}
+      <tr>
+        <td style="border: 1px solid #ced4da; padding: 6px;">{$row['prestacion']}</td>
+        <td style="border: 1px solid #ced4da; padding: 6px;">{if $row['tipo'] === 'periodico'}Periódico{else}No periódico{/if}</td>
+        <td style="border: 1px solid #ced4da; padding: 6px; text-align: center;">{$row['periodo']}</td>
+        <td style="border: 1px solid #ced4da; padding: 6px; text-align: center;">{$row['fecha']}</td>
+        <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($row['monto'], 2, '.', ',')}</td>
+        <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($row['acumulado'], 2, '.', ',')}</td>
+      </tr>
+    {/foreach}
+    </tbody>
+  </table>
+  {/if}
+
+  <h4 style="margin: 0 0 8px 0; font-size: 12px;">Tabla de corrida financiera por tipo de descuento</h4>
+  {foreach $corridasPorTipo as $grupo}
+    <div style="font-size: 10px; margin: 6px 0 4px 0;">
+      <strong>Prestación:</strong> {$grupo['prestacion']} |
+      <strong>Tipo:</strong> {if $grupo['tipo'] === 'periodico'}Periódico{else}No periódico{/if} |
+      <strong>Método:</strong> {$grupo['metodo']} |
+      <strong>Monto base:</strong> ${number_format($grupo['montoBase'], 2, '.', ',')}
+    </div>
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 9px;">
+      <thead>
+      <tr>
+        <th style="border: 1px solid #ced4da; padding: 6px; text-align: center;">Periodo</th>
+        <th style="border: 1px solid #ced4da; padding: 6px; text-align: right;">Pago Capital</th>
+        <th style="border: 1px solid #ced4da; padding: 6px; text-align: right;">Interés</th>
+        <th style="border: 1px solid #ced4da; padding: 6px; text-align: right;">Pago</th>
+        <th style="border: 1px solid #ced4da; padding: 6px; text-align: right;">Saldo Final</th>
+        <th style="border: 1px solid #ced4da; padding: 6px; text-align: center;">Fecha de pago</th>
+      </tr>
+      </thead>
+      <tbody>
+      {foreach $grupo['corrida'] as $row}
+        <tr>
+          <td style="border: 1px solid #ced4da; padding: 6px; text-align: center;">{$row['periodo']}</td>
+          <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($row['capital'], 2, '.', ',')}</td>
+          <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($row['interes'], 2, '.', ',')}</td>
+          <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($row['pago'], 2, '.', ',')}</td>
+          <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;">${number_format($row['saldo'], 2, '.', ',')}</td>
+          <td style="border: 1px solid #ced4da; padding: 6px; text-align: center;">{$row['fecha']}</td>
+        </tr>
+      {/foreach}
+      </tbody>
+      <tfoot>
+      <tr>
+        <td colspan="2" style="border: 1px solid #ced4da; padding: 6px;"><strong>Totales</strong></td>
+        <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;"><strong>${number_format($grupo['resumen']['interesTotal'], 2, '.', ',')}</strong></td>
+        <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;"><strong>${number_format($grupo['resumen']['pagoTotal'], 2, '.', ',')}</strong></td>
+        <td style="border: 1px solid #ced4da; padding: 6px; text-align: right;"><strong>${number_format($grupo['resumen']['saldoFinal'], 2, '.', ',')}</strong></td>
+        <td style="border: 1px solid #ced4da; padding: 6px;"></td>
+      </tr>
+      </tfoot>
+    </table>
+  {/foreach}
+
+  <div style="margin-top: 12px; padding-top: 8px; border-top: 1px solid #ced4da; font-size: 12px; text-align: right;">
+    <strong>Monto final a pagar: ${number_format($resumen['pagoTotal'], 2, '.', ',')}</strong>
+  </div>
+
+  <p style="font-size: 8px; color: #6c757d; margin-top: 10px;">
+    Documento generado automáticamente. Esta corrida financiera es una estimación basada en los datos capturados en el simulador.
+  </p>
+
+{/block}

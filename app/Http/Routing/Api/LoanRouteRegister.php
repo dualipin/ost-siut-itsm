@@ -3,6 +3,7 @@
 namespace App\Http\Routing\Api;
 
 use App\Http\Actions\Loan\ListIncomeTypesAction;
+use App\Http\Actions\Loan\LoanSimulateAction;
 use App\Http\Routing\RouteRegisterInterface;
 use Slim\Interfaces\RouteCollectorProxyInterface as Group;
 
@@ -12,6 +13,11 @@ class LoanRouteRegister implements RouteRegisterInterface
     {
         $group->group('/loan', function (Group $loan) {
             $loan->get('/income-types', ListIncomeTypesAction::class);
+
+
+
+            // simulación de préstamo
+            $loan->post('/simulate', LoanSimulateAction::class);
         });
     }
 }

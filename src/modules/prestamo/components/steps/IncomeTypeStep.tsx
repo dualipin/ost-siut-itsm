@@ -29,7 +29,7 @@ export default function IncomeTypeStep({
     (it) => !isIncomeTypeExpired(it),
   );
 
-  const isSelected = (incomeTypeId: number) => false; // Placeholder, implement selection logic as needed
+  const isSelected = (_incomeTypeId: number) => false; // Placeholder, implement selection logic as needed
   return (
     <div>
       <h2>Tipo de ingreso</h2>

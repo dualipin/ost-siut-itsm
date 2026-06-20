@@ -6,4 +6,6 @@ export interface DiscountConfiguration {
   isPeriodic?: boolean;
   lastDiscountDate?: string;
   supportingDocument?: File | null;
+  cantidad?: number;
 }
+
