@@ -1,5 +1,5 @@
 import { createRoot } from "react-dom/client";
-import App from "@/main.tsx";
+import App from "@/app";
 import Simulador from "@/modules/simulador";
 
 const container = document.getElementById("simulador-root");

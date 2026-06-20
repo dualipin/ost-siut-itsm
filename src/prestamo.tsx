@@ -1,5 +1,5 @@
 import { createRoot } from "react-dom/client";
-import App from "./main.tsx";
+import App from "./app.tsx";
 import Prestamo from "./modules/prestamo";
 
 const container = document.getElementById("prestamo-root");
