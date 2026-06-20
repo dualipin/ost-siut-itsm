@@ -10,13 +10,15 @@ interface Props {
   draft: LoanApplicationDraft;
   incomeTypes: IncomeType[];
   addDiscount: (d: Partial<DiscountConfiguration>) => void;
-  updateDiscount: (tempId: string, patch: Partial<DiscountConfiguration>) => void;
+  updateDiscount: (
+    tempId: string,
+    patch: Partial<DiscountConfiguration>,
+  ) => void;
   removeDiscount: (tempId: string) => void;
   isDetails: boolean;
   // index del descuento que se debe mostrar cuando se renderiza un paso dinámico
   detailIndex?: number;
 }
-
 
 const PaymentSourcesStep: React.FC<Props> = ({
   draft,
@@ -105,7 +107,7 @@ const PaymentSourcesStep: React.FC<Props> = ({
             {visibleIncomeTypes.map((it) => {
               const selected = isSelected(it.id);
               return (
-                <div className="col-6 col-md-3" key={it.id}>
+                <div className="col-12 col-md-6 col-xl-4 col-xxl-3" key={it.id}>
                   <button
                     type="button"
                     className={`card btn h-100 w-100 text-start p-3 ${selected ? "border-primary bg-primary-subtle" : ""}`}
