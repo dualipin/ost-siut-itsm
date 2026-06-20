@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Action;
+namespace App\Http\Actions;
 
-use App\Application\Actions\ActionPayload;
+
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
@@ -81,7 +81,7 @@ abstract class Action
 
     protected function respond(ActionPayload $payload): Response
     {
-        $json = json_encode($payload, JSON_PRETTY_PRINT);
+        $json = json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         $this->response->getBody()->write($json);
 
         return $this->response

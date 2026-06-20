@@ -1,12 +1,19 @@
 <?php
 
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
+use App\Http\Routing\Api\HealthRouteRegister;
+use App\Http\Routing\Api\LoanRouteRegister;
+use Slim\Interfaces\RouteCollectorProxyInterface as Group;
 use Slim\App;
 
 return function (App $app) {
-    $app->get('/', function (RequestInterface $request, ResponseInterface $response) {
-        $response->getBody()->write(json_encode(['status' => 'ok', 'timestamp' => time(), 'timezone' => date('P')]));
-        return $response->withHeader('Content-Type', 'application/json');
+    $app->group('', function (Group $group) {
+        $register = [
+            new HealthRouteRegister(),
+            new LoanRouteRegister()
+        ];
+
+        foreach ($register as $route) {
+            $route->register($group);
+        }
     });
 };
