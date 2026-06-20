@@ -3,7 +3,7 @@
 namespace App\Infrastructure\Templating\Latte;
 
 use App\Infrastructure\Config\AppConfig;
-use App\Infrastructure\Env\EnvironmentInterface;
+use RuntimeException;
 
 class ViteHelper
 {
@@ -12,20 +12,19 @@ class ViteHelper
 
     public function __construct(private readonly AppConfig $config)
     {
-        // Asumiendo que tu EnvironmentInterface puede decirnos si estamos en local
         $this->isDev = $config->isDev;
 
-        // En Vite 5+, el manifest se guarda dentro de la carpeta .vite/
-        $this->manifestPath = __DIR__ . '/../../../../public/build/.vite/manifest.json';
+        // Idealmente, esta ruta debería venir del AppConfig o de un path global,
+        // pero mantenemos tu lógica actual.
+        $this->manifestPath = realpath(__DIR__ . '/../../../../public/build/.vite/manifest.json') ?: __DIR__ . '/../../../../public/build/.vite/manifest.json';
     }
 
     public function generateTags(string $entry): string
     {
         if ($this->isDev) {
+            // ... (Tu código de desarrollo se mantiene igual) ...
             $tags = '';
 
-            // Construir dev base a partir de `baseUrl`.
-            // Si `baseUrl` incluye puerto, se usa; si no, se añade :5173.
             $base = $this->config->baseUrl;
             $parsed = parse_url($base);
             if ($parsed === false || !isset($parsed['host'])) {
@@ -37,10 +36,8 @@ class ViteHelper
                 $devBase = $scheme . '://' . $host . ':' . $port;
             }
 
-            // Detectamos si es React verificando la extensión
             $isReact = str_ends_with($entry, '.tsx') || str_ends_with($entry, '.jsx');
 
-            // Si es React, inyectamos el preamble apuntando al dev server configurado
             if ($isReact) {
                 $tags .= '<script type="module">'
                     . "import RefreshRuntime from '{$devBase}/@react-refresh';"
@@ -51,38 +48,40 @@ class ViteHelper
                     . '</script>';
             }
 
-            // Cliente Vite y archivo de entrada desde el dev server configurado
             $tags .= '<script type="module" src="' . $devBase . '/@vite/client"></script>';
             $tags .= '<script type="module" src="' . $devBase . '/' . ltrim($entry, '/') . '"></script>';
 
             return $tags;
         }
-        // ... código de producción ...
 
-        // Si estamos en producción, leemos el manifest para obtener los archivos minificados
+        // --- CÓDIGO DE PRODUCCIÓN ---
+
+        // 1. Verificamos si el manifest existe. Si no, lanzamos un error en lugar de ocultarlo.
         if (!file_exists($this->manifestPath)) {
-            return '';
+            throw new RuntimeException("Vite manifest no encontrado en: {$this->manifestPath}. Asegúrate de haber ejecutado 'npm run build'.");
         }
 
         $manifest = json_decode(file_get_contents($this->manifestPath), true);
 
+        // 2. Verificamos si el entry existe en el manifest. Si no, mostramos qué claves existen.
         if (!isset($manifest[$entry])) {
-            return "";
+            $availableKeys = implode(', ', array_keys($manifest));
+            throw new RuntimeException("El entry '{$entry}' no se encontró en el manifest de Vite. Las claves disponibles son: {$availableKeys}.");
         }
 
         $file = $manifest[$entry]['file'];
         $cssFiles = $manifest[$entry]['css'] ?? [];
 
-        // Construir base para assets en producción usando `baseUrl` configurado
+        // Construir base para assets en producción
         $base = rtrim($this->config->baseUrl ?? '', '/');
         $assetsBase = $base === '' ? '/build' : $base . '/build';
 
         // Generar script de JS
-        $tags = '<script type="module" src="' . $assetsBase . '/' . $file . '"></script>';
+        $tags = '<script type="module" src="' . rtrim($assetsBase, '/') . '/' . ltrim($file, '/') . '"></script>';
 
-        // Generar links de CSS (si tu componente Vue tiene <style>)
+        // Generar links de CSS
         foreach ($cssFiles as $css) {
-            $tags .= '<link rel="stylesheet" href="' . $assetsBase . '/' . $css . '">';
+            $tags .= '<link rel="stylesheet" href="' . rtrim($assetsBase, '/') . '/' . ltrim($css, '/') . '">';
         }
 
         return $tags;
