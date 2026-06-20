@@ -3,7 +3,10 @@ import Stepper from "@/commons/components/Stepper.tsx";
 import LoanInfoStep from "../../prestamo/components/steps/LoanInfoStep";
 import PaymentSourcesStep from "../../prestamo/components/steps/PaymentSourcesStep";
 import type { WorkerType } from "../../prestamo/types/loan.types";
-import { useLoanWizard, obtenerOpcionesFechasPago } from "./hooks/useLoanWizard";
+import {
+  useLoanWizard,
+  obtenerOpcionesFechasPago,
+} from "./hooks/useLoanWizard";
 import ReviewStep from "./steps/ReviewStep";
 import type { SimulationRequest } from "./types/loan.types";
 
@@ -95,8 +98,13 @@ export default function LoanSimulatorWizard() {
           ? (() => {
               const cat = incomeTypes.find((c) => c.id === d.incomeTypeId);
               if (!cat) return 1;
-              const opciones = obtenerOpcionesFechasPago(cat, draft.fechaOtorgamiento);
-              const idx = opciones.findIndex((op) => op.value === d.lastDiscountDate);
+              const opciones = obtenerOpcionesFechasPago(
+                cat,
+                draft.fechaOtorgamiento,
+              );
+              const idx = opciones.findIndex(
+                (op) => op.value === d.lastDiscountDate,
+              );
               return idx >= 0 ? idx + 1 : 1;
             })()
           : 1,
@@ -117,25 +125,37 @@ export default function LoanSimulatorWizard() {
         <div className="card-body p-4">
           {step === 1 && (
             <div className="text-center py-4">
-              <div className="d-inline-flex align-items-center justify-content-center bg-primary-subtle text-primary rounded-circle p-3 mb-3">
+              <div
+                className="d-inline-flex align-items-center justify-content-center bg-primary-subtle text-primary rounded-circle mb-3"
+                style={{ width: "80px", height: "80px" }}
+              >
                 <i className="bi bi-calendar-event fs-2"></i>
               </div>
-              <h4 className="fw-bold text-dark mb-2">Fecha de inicio del préstamo</h4>
+              <h4 className="fw-bold text-dark mb-2">
+                Fecha de inicio del préstamo
+              </h4>
               <p className="text-muted mb-4 mx-auto" style={{ maxWidth: 500 }}>
-                Selecciona la fecha en la que se te entregará el préstamo. Las fechas de tus pagos se calcularán a partir de este día.
+                Las fechas de tus pagos se calcularán a partir de este día.
               </p>
               <div className="mx-auto" style={{ maxWidth: 300 }}>
                 <input
                   type="date"
                   className="form-control form-control-lg rounded-3 border-primary shadow-sm text-center"
                   value={draft.fechaOtorgamiento}
-                  onChange={(e) => setDraft((prev) => ({ ...prev, fechaOtorgamiento: e.target.value }))}
+                  onChange={(e) =>
+                    setDraft((prev) => ({
+                      ...prev,
+                      fechaOtorgamiento: e.target.value,
+                    }))
+                  }
                   required
                 />
               </div>
               {draft.fechaOtorgamiento && (
                 <div className="mt-4 animate-fade-in">
-                  <span className="text-muted small d-block">Fecha seleccionada</span>
+                  <span className="text-muted small d-block">
+                    Fecha seleccionada
+                  </span>
                   <span className="badge bg-primary text-white px-3 py-2 rounded-pill fs-6 mt-1">
                     {formatFriendlyDate(draft.fechaOtorgamiento)}
                   </span>
@@ -193,17 +213,20 @@ export default function LoanSimulatorWizard() {
       </div>
 
       {/* Floating Summary Bar for early steps */}
-      {step < 4 + discountStepCount && (
+      {step > 3 && !(step === Math.max(1, totalSteps)) && (
         <div className="card border-0 shadow-sm rounded-4 mt-3 bg-light">
           <div className="card-body py-3 d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
             <div>
               <span className="text-muted small d-block">Monto Estimado</span>
-              <span className="h4 fw-bold text-primary mb-0">{formatCurrency(totalSolicitado)}</span>
+              <span className="h4 fw-bold text-primary mb-0">
+                {formatCurrency(totalSolicitado)}
+              </span>
             </div>
             <div className="text-center text-sm-end">
               <span className="text-muted small d-block">Plazo Estimado</span>
               <span className="fw-semibold text-dark">
-                {mesesEstimados} mes(es) {diasEstimados > 0 && `+ ${diasEstimados} día(s)`}
+                {mesesEstimados} mes(es){" "}
+                {diasEstimados > 0 && `+ ${diasEstimados} día(s)`}
               </span>
             </div>
           </div>
@@ -238,5 +261,3 @@ export default function LoanSimulatorWizard() {
     </div>
   );
 }
-
-
