@@ -51,16 +51,16 @@ abstract class Action
     /**
      * @return array|object
      */
-    protected function getFormData()
+    protected function getFormData(): array|string
     {
         return $this->request->getParsedBody();
     }
 
     /**
-     * @return mixed
+     *
      * @throws HttpBadRequestException
      */
-    protected function resolveArg(string $name)
+    protected function resolveArg(string $name): mixed
     {
         if (!isset($this->args[$name])) {
             throw new HttpBadRequestException($this->request, "Could not resolve argument `{$name}`.");
@@ -70,9 +70,9 @@ abstract class Action
     }
 
     /**
-     * @param array|object|null $data
+     * @param object|array|null $data
      */
-    protected function respondWithData($data = null, int $statusCode = 200): Response
+    protected function respondWithData(object|array $data = null, int $statusCode = 200): Response
     {
         $payload = new ActionPayload($statusCode, $data);
 
