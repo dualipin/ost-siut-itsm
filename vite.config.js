@@ -15,7 +15,6 @@ export default defineConfig({
     outDir: "public/build",
     rolldownOptions: {
       input: {
-        main: "src/main.tsx",
         prestamo: "src/prestamo.tsx",
         simulador: "src/simulador.tsx",
       },
