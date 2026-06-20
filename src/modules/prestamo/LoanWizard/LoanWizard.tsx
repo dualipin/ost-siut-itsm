@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getIncomeTypes } from "@/commons/api/incomeType";
 import Stepper from "../../../commons/components/Stepper.tsx";
 import LoanInfoStep from "../components/steps/LoanInfoStep";
-import PaymentSourcesStep from "./steps/PaymentSourcesStep";
+import PaymentSourcesStep from "../components/steps/PaymentSourcesStep";
 import DocumentsStep from "./steps/DocumentsStep";
 import ReviewStep from "./steps/ReviewStep";
 import { useLoanWizard } from "./hooks/useLoanWizard";
@@ -118,7 +118,7 @@ export default function LoanWizard({ user }: { user: User }) {
 
           {step === 2 && (
             <PaymentSourcesStep
-              draft={draft}
+              discounts={draft.discounts}
               incomeTypes={incomeTypes}
               addDiscount={(d) => addDiscount(d)}
               updateDiscount={updateDiscount}
@@ -130,7 +130,7 @@ export default function LoanWizard({ user }: { user: User }) {
           {/* Pasos dinámicos: uno por cada descuento seleccionado */}
           {step >= 3 && step <= 2 + dynamicCount && (
             <PaymentSourcesStep
-              draft={draft}
+              discounts={draft.discounts}
               incomeTypes={incomeTypes}
               addDiscount={(d) => addDiscount(d)}
               updateDiscount={updateDiscount}

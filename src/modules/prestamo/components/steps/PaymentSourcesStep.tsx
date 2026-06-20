@@ -1,39 +1,34 @@
 import React, { useMemo } from "react";
-import type {
-  DiscountConfiguration,
-  LoanApplicationDraft,
-} from "../../types/loan.types";
-import DiscountCard from "../components/DiscountCard";
-import type { IncomeType } from "@/types/IncomeType.ts";
+import type { DiscountConfiguration } from "@/types/DiscountConfiguration";
+import DiscountCard from "../DiscountCard";
+import type { IncomeType } from "@/types/IncomeType";
 
 interface Props {
-  draft: LoanApplicationDraft;
+  discounts: DiscountConfiguration[];
   incomeTypes: IncomeType[];
   addDiscount: (d: Partial<DiscountConfiguration>) => void;
-  updateDiscount: (
-    tempId: string,
-    patch: Partial<DiscountConfiguration>,
-  ) => void;
+  updateDiscount: (tempId: string, patch: Partial<DiscountConfiguration>) => void;
   removeDiscount: (tempId: string) => void;
   isDetails: boolean;
-  // index del descuento que se debe mostrar cuando se renderiza un paso dinámico
   detailIndex?: number;
+  requireDocument?: boolean;
 }
 
 const PaymentSourcesStep: React.FC<Props> = ({
-  draft,
+  discounts,
   incomeTypes,
   addDiscount,
   updateDiscount,
   removeDiscount,
   isDetails,
   detailIndex,
+  requireDocument = true,
 }) => {
   const isSelected = (incomeTypeId: number) =>
-    draft.discounts.some((d) => d.incomeTypeId === incomeTypeId);
+    discounts.some((d) => d.incomeTypeId === incomeTypeId);
 
   function toggleIncomeType(it: IncomeType) {
-    const selected = draft.discounts.find((d) => d.incomeTypeId === it.id);
+    const selected = discounts.find((d) => d.incomeTypeId === it.id);
     if (selected) {
       removeDiscount(selected.tempId);
       return;
@@ -46,23 +41,18 @@ const PaymentSourcesStep: React.FC<Props> = ({
     });
   }
 
-  //   const selectedCount = draft.discounts.length;
-
-  //   const canGoToDetails = selectedCount > 0;
-
   const detailsComplete = useMemo(() => {
-    if (draft.discounts.length === 0) return false;
-    for (const d of draft.discounts) {
+    if (discounts.length === 0) return false;
+    for (const d of discounts) {
       if (!d.amount || d.amount <= 0) return false;
       if (d.isPeriodic && !d.lastDiscountDate) return false;
-      if (!d.supportingDocument) return false;
+      if (requireDocument && !d.supportingDocument) return false;
     }
     return true;
-  }, [draft.discounts]);
+  }, [discounts, requireDocument]);
 
-  // Fecha actual para determinar si un tipo de descuento ya no es aplicable
   const today = useMemo(() => new Date(), []);
-  const currentMonth = today.getMonth() + 1; // 1-12
+  const currentMonth = today.getMonth() + 1;
   const currentDay = today.getDate();
 
   const isExpired = (it: IncomeType) => {
@@ -78,7 +68,6 @@ const PaymentSourcesStep: React.FC<Props> = ({
     return false;
   };
 
-  // Mostrar sólo los tipos vigentes en la selección (ocultar los vencidos)
   const visibleIncomeTypes = useMemo(
     () => incomeTypes.filter((it) => !isExpired(it)),
     [incomeTypes, currentMonth, currentDay],
@@ -99,7 +88,7 @@ const PaymentSourcesStep: React.FC<Props> = ({
           <div className="mb-3">
             <div className="small text-muted">
               Primero seleccione los tipos de descuento; presione "Siguiente"
-              para registrar monto y comprobante por cada tipo.
+              para registrar{requireDocument ? " monto y comprobante" : " monto"} por cada tipo.
             </div>
           </div>
 
@@ -131,8 +120,7 @@ const PaymentSourcesStep: React.FC<Props> = ({
 
           <div className="d-flex justify-content-end">
             <div className="small text-muted">
-              Presione "Siguiente" en la parte inferior para completar montos y
-              comprobantes.
+              Presione "Siguiente" en la parte inferior para completar{requireDocument ? " montos y comprobantes" : " montos"}.
             </div>
           </div>
         </>
@@ -142,21 +130,20 @@ const PaymentSourcesStep: React.FC<Props> = ({
         <>
           <div className="mb-3">
             <div className="small text-muted">
-              Complete los datos del descuento seleccionado: monto, comprobante
-              (obligatorio) y, si corresponde, fecha del último descuento.
+              Complete los datos del descuento seleccionado: monto
+              {requireDocument ? ", comprobante (obligatorio)" : ""} y, si corresponde, fecha del último descuento.
             </div>
           </div>
 
-          {draft.discounts.length === 0 && (
+          {discounts.length === 0 && (
             <div className="alert alert-secondary">
               Aún no hay formas de descuento seleccionadas.
             </div>
           )}
 
-          {/* Si se pasó detailIndex mostramos sólo ese descuento (un paso por tipo). Si no, mostramos la lista por compatibilidad. */}
           {typeof detailIndex === "number"
             ? (() => {
-                const d = draft.discounts[detailIndex];
+                const d = discounts[detailIndex];
                 if (!d)
                   return (
                     <div className="alert alert-warning">
@@ -170,23 +157,25 @@ const PaymentSourcesStep: React.FC<Props> = ({
                     onChange={(updated) => updateDiscount(d.tempId, updated)}
                     onRemove={removeDiscount}
                     autoFocus={detailIndex === 0}
+                    requireDocument={requireDocument}
                   />
                 );
               })()
-            : draft.discounts.map((d, idx) => (
+            : discounts.map((d, idx) => (
                 <DiscountCard
                   key={d.tempId}
                   discount={d}
                   onChange={(updated) => updateDiscount(d.tempId, updated)}
                   onRemove={removeDiscount}
                   autoFocus={isDetails && idx === 0}
+                  requireDocument={requireDocument}
                 />
               ))}
 
           <div className="mt-2">
             {!detailsComplete && (
               <div className="small text-danger mb-2">
-                Complete los comprobantes y montos para poder continuar.
+                Complete los{requireDocument ? " comprobantes y" : ""} montos para poder continuar.
               </div>
             )}
             <div className="small text-muted">

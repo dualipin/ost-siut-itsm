@@ -4,15 +4,8 @@ export type WorkerType =
   | "no_agremiado_ahorrador"
   | "no_agremiado_no_ahorrador";
 
-export interface DiscountConfiguration {
-  tempId: string;
-  incomeTypeId?: number;
-  incomeTypeName?: string;
-  amount?: number;
-  isPeriodic?: boolean;
-  lastDiscountDate?: string;
-  supportingDocument?: File | null;
-}
+import type { DiscountConfiguration } from "@/types/DiscountConfiguration";
+export type { DiscountConfiguration };
 
 export interface LoanApplicationDraft {
   requestedAmount?: number;

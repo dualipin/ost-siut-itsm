@@ -1,10 +1,11 @@
-import type { DiscountConfiguration } from "../../types/loan.types";
+import type { DiscountConfiguration } from "@/types/DiscountConfiguration";
 
 interface Props {
   discount: DiscountConfiguration;
   onChange: (d: DiscountConfiguration) => void;
   onRemove: (tempId: string) => void;
   autoFocus?: boolean;
+  requireDocument?: boolean;
 }
 
 export default function DiscountCard({
@@ -12,6 +13,7 @@ export default function DiscountCard({
   onChange,
   onRemove,
   autoFocus,
+  requireDocument = true,
 }: Props) {
   const MIN_DAYS_FROM_TODAY = 21;
   const now = new Date();
@@ -71,24 +73,26 @@ export default function DiscountCard({
           </div>
         )}
 
-        <div className="mb-0">
-          <label className="form-label">Comprobante (obligatorio)</label>
-          <input
-            className="form-control"
-            type="file"
-            onChange={(e) => onFile(e.target.files?.[0] ?? null)}
-          />
-          {discount.supportingDocument ? (
-            <div className="small text-success mt-1">
-              {discount.supportingDocument.name}
-            </div>
-          ) : (
-            <div className="small text-danger mt-1">
-              <i className="bi bi-exclamation-triangle me-2" />
-              Falta comprobante
-            </div>
-          )}
-        </div>
+        {requireDocument && (
+          <div className="mb-0">
+            <label className="form-label">Comprobante (obligatorio)</label>
+            <input
+              className="form-control"
+              type="file"
+              onChange={(e) => onFile(e.target.files?.[0] ?? null)}
+            />
+            {discount.supportingDocument ? (
+              <div className="small text-success mt-1">
+                {discount.supportingDocument.name}
+              </div>
+            ) : (
+              <div className="small text-danger mt-1">
+                <i className="bi bi-exclamation-triangle me-2" />
+                Falta comprobante
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
