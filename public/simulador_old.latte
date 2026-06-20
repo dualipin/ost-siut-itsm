@@ -1,6 +1,6 @@
 {extends ../templates/@landing.latte}
 
-{varType App\Module\Prestamo\Entity\CategoriaTipoIngreso[] $categoriasTipoIngreso}
+{*{varType App\Module\Prestamo\Entity\CategoriaTipoIngreso[] $categoriasTipoIngreso}*}
 {varType string $prestamistaNombre}
 {varType bool $isNoAgremiado}
 
@@ -19,13 +19,15 @@
         <div class="row mb-3">
           <div class="col-md-4 mb-3">
             <label class="form-label fw-bold">Tipo de trabajador solicitante</label>
-            <select class="form-select" @change="onPerfilChange($event.target.value)">
-              <option value="" disabled="" selected="">Selecciona cómo te identificas...</option>
-              <option value="8.0">No agremiado y ahorrador (Externo) (8%)</option>
-              <option value="9.5">No agremiado y no ahorrador (Externo) (9.5%)</option>
-              <option value="6.0">Agremiado y ahorrador (6%)</option>
-              <option value="7.5">Agremiado y no ahorrador (7.5%)</option>
-            </select>
+            <label>
+              <select class="form-select" @change="onPerfilChange($event.target.value)">
+                <option value="" disabled="" selected="">Selecciona cómo te identificas...</option>
+                <option value="8.0">No agremiado y ahorrador (Externo) (8%)</option>
+                <option value="9.5">No agremiado y no ahorrador (Externo) (9.5%)</option>
+                <option value="6.0">Agremiado y ahorrador (6%)</option>
+                <option value="7.5">Agremiado y no ahorrador (7.5%)</option>
+              </select>
+            </label>
           </div>
 
           <div class="col-md-2 mb-3">
@@ -42,16 +44,18 @@
             <label class="form-label mb-1 small">
               Seleccione la fecha final del préstamo
             </label>
-            <select x-model="fechaPago"
-                    {*                    @change="onFechaPagoChange(0)"*}
-                    class="form-select"
-            >
-              {* :disabled="obtenerOpcionesParaItem(index).length === 0" *}
-              <option value="">Seleccione una fecha...</option>
-              <template x-for="op in obtenerOpcionesFecha()">
-                <option :value="op.value" x-text="op.label"></option>
-              </template>
-            </select>
+            <label>
+              <select x-model="fechaPago"
+                      {*                    @change="onFechaPagoChange(0)"*}
+                      class="form-select"
+              >
+                {* :disabled="obtenerOpcionesParaItem(index).length === 0" *}
+                <option value="">Seleccione una fecha...</option>
+                <template x-for="op in obtenerOpcionesFecha()">
+                  <option :value="op.value" x-text="op.label"></option>
+                </template>
+              </select>
+            </label>
           </div>
         </div>
 

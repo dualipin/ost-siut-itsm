@@ -49,7 +49,7 @@ export function useLoanWizard(initial?: Partial<LoanApplicationDraft>) {
 
     // Paso 2: selección de tipos
     if (step === 2) {
-      return !!(draft.discounts && draft.discounts.length > 0);
+      return (draft.discounts && draft.discounts.length > 0);
     }
 
     // Pasos dinámicos: 3 .. (2 + dynamicCount)
@@ -61,8 +61,8 @@ export function useLoanWizard(initial?: Partial<LoanApplicationDraft>) {
       if (!d) return false;
       if (!d.incomeTypeId || !d.amount || d.amount <= 0) return false;
       if (d.isPeriodic && !d.lastDiscountDate) return false;
-      if (!d.supportingDocument) return false;
-      return true;
+      return d.supportingDocument;
+
     }
 
     // Documents step

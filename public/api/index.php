@@ -19,7 +19,7 @@ $app->addRoutingMiddleware();
 
 $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 
-$routes = require __DIR__ . '/routes.php';
+$routes = require __DIR__ . '/../../config/api_routes.php';
 
 $routes($app);
 
