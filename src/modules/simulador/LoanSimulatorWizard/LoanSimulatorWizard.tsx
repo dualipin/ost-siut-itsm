@@ -214,10 +214,10 @@ export default function LoanSimulatorWizard() {
 
       {/* Floating Summary Bar for early steps */}
       {step > 3 && !(step === Math.max(1, totalSteps)) && (
-        <div className="card border-0 shadow-sm rounded-4 mt-3 bg-light">
+        <div className="card border-0 shadow-sm rounded-4 mt-3 bg-light text-center">
           <div className="card-body py-3 d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
             <div>
-              <span className="text-muted small d-block">Monto Estimado</span>
+              <span className="text-muted small d-block">Monto</span>
               <span className="h4 fw-bold text-primary mb-0">
                 {formatCurrency(totalSolicitado)}
               </span>
