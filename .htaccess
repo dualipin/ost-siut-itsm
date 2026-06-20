@@ -2,6 +2,9 @@ php_value date.timezone 'America/Mexico_City'
 
 RewriteEngine On
 
+RewriteCond %{HTTP_HOST} ^www\.siutitsm\.com\.mx [NC]
+RewriteRule ^(.*)$ https://siutitsm.com.mx/$1 [L,R=301]
+
 RewriteCond %{REQUEST_URI} !^/public/
 RewriteRule ^(.*)$ public/$1 [L]
 
