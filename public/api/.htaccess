@@ -1,0 +1,8 @@
+RewriteEngine On
+
+# Si la petición es un archivo o directorio real en el disco, se sirve directamente
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Si no existe el archivo/directorio, reescribe la URL hacia index.php de Slim
+RewriteRule ^ index.php [QSA,L]
