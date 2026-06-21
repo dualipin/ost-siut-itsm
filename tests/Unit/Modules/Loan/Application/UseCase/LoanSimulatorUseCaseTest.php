@@ -53,11 +53,30 @@ it('successfully runs loan simulation calculation', function (): void {
     );
 
     $result = $useCase->execute($dto);
-
     expect($result)->toBeArray()
         ->and($result['montoPrestamo'])->toBe(10000.0)
         ->and($result['tasaInteresMensual'])->toBe(6.0)
         ->and($result['formasPago'])->toBeArray();
+
+    // The first periodic discount (tipoId 1) should have 4 installments and around 477.5 of interest.
+    $periodic = null;
+    $compound = null;
+    foreach ($result['corridasPorTipo'] as $c) {
+        if ($c['prestacion'] === 'Periodic Income') {
+            $periodic = $c;
+        } elseif ($c['prestacion'] === 'Another Income') {
+            $compound = $c;
+        }
+    }
+
+    expect($periodic)->not->toBeNull();
+    expect($periodic['resumen']['interesTotal'])->toBe(485.0);
+    expect($periodic['resumen']['pagoTotal'])->toBe(5485.0);
+
+    expect($compound)->not->toBeNull();
+    expect($compound['resumen']['interesTotal'])->toBe(2302.27);
+    expect($compound['resumen']['pagoTotal'])->toBe(7302.27);
 });
+
 
 

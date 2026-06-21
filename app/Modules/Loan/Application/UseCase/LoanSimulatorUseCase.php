@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\Loan\Application\UseCase;
 
 use App\Modules\Loan\Domain\DTO\LoanSimulationDTO;
-use App\Modules\Loan\Domain\DTO\LoanSimulationDiscountDTO;
 use App\Modules\Loan\Domain\Entity\IncomeType;
 use DateInterval;
 use DateTime;
@@ -68,17 +67,15 @@ final readonly class LoanSimulatorUseCase
                     continue;
                 }
 
-                $fechaSeleccionada = !empty($desc->fechaPago)
-                    ? $desc->fechaPago
-                    : $opcionesFechas[0];
-
-                $indiceSeleccionado = array_search($fechaSeleccionada, $opcionesFechas, true);
-                if ($indiceSeleccionado === false) {
-                    $indiceSeleccionado = min($cantidadSolicitada - 1, count($opcionesFechas) - 1);
+                $cantidad = $cantidadSolicitada;
+                if (!empty($desc->fechaPago)) {
+                    $indiceSeleccionado = array_search($desc->fechaPago, $opcionesFechas, true);
+                    if ($indiceSeleccionado !== false) {
+                        $cantidad = max($cantidadSolicitada, $indiceSeleccionado + 1);
+                    }
                 }
-
-                $cantidad = $indiceSeleccionado + 1;
                 $opcionesSeleccionadas = array_slice($opcionesFechas, 0, $cantidad);
+                $cantidad = count($opcionesSeleccionadas);
                 $fechaUltimaStr = $opcionesSeleccionadas[count($opcionesSeleccionadas) - 1];
                 $fechaUltimoPeriodo = DateTimeImmutable::createFromFormat('Y-m-d', $fechaUltimaStr) ?: $fechaBase;
 
@@ -203,10 +200,10 @@ final readonly class LoanSimulatorUseCase
             }
 
             $fechaPagoStr = $fechaActual->format('Y-m-d');
-            $interesQuincenal = $saldo * $tasaQuincenal;
+            $interesQuincenal = round($saldo * $tasaQuincenal, 2);
 
             if ($i === 1 && $diasExtraPrimeraQuincena > 0) {
-                $interesQuincenal += ($montoPrestamo * $tasaDiaria * $diasExtraPrimeraQuincena);
+                $interesQuincenal = round($interesQuincenal + ($montoPrestamo * $tasaDiaria * $diasExtraPrimeraQuincena), 2);
             }
 
             $pagoExtraordinario = 0.0;
@@ -216,13 +213,15 @@ final readonly class LoanSimulatorUseCase
             }
 
             $capitalAbono = $capitalFijo + $pagoExtraordinario;
-            if ($capitalAbono > $saldo) {
-                $capitalAbono = $saldo;
+            if ($i === $numQuincenas) {
+                $capitalAbono = round($saldo, 2);
+            } else {
+                $capitalAbono = round(min($capitalAbono, $saldo), 2);
             }
 
-            $pagoTotal = $capitalAbono + $interesQuincenal;
-            $saldo -= $capitalAbono;
-            if ($saldo < 0) {
+            $pagoTotal = round($capitalAbono + $interesQuincenal, 2);
+            $saldo = round($saldo - $capitalAbono, 2);
+            if ($saldo < 0.0) {
                 $saldo = 0.0;
             }
 
@@ -399,10 +398,14 @@ final readonly class LoanSimulatorUseCase
             $fechaActual = DateTimeImmutable::createFromFormat('Y-m-d', $fecha) ?: $fechaBase;
             $diasReales = max(1, (int)$fechaAnterior->diff($fechaActual)->days);
 
-            $interes = $saldo * $tasaDiaria * $diasReales;
-            $capital = min($capitalFijo, $saldo);
-            $pago = $capital + $interes;
-            $saldo -= $capital;
+            $interes = round($saldo * $tasaDiaria * $diasReales, 2);
+            if ($i === $cantidad) {
+                $capital = round($saldo, 2);
+            } else {
+                $capital = round(min($capitalFijo, $saldo), 2);
+            }
+            $pago = round($capital + $interes, 2);
+            $saldo = round($saldo - $capital, 2);
             if ($saldo < 0.0) {
                 $saldo = 0.0;
             }
@@ -458,10 +461,10 @@ final readonly class LoanSimulatorUseCase
 
             $rows[] = [
                 'periodo' => $i,
-                'capital' => $capital,
-                'interes' => $interes,
-                'pago' => $pago,
-                'saldo' => $saldo,
+                'capital' => round($capital, 2),
+                'interes' => round($interes, 2),
+                'pago' => round($pago, 2),
+                'saldo' => round($saldo, 2),
                 'fecha' => $fechaPago,
             ];
         }
