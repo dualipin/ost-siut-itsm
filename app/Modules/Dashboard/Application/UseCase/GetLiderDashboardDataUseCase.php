@@ -53,8 +53,8 @@ final readonly class GetLiderDashboardDataUseCase
             'topLoans' => $this->kpiRepository->getTop5LoansHighestBalance(),
             'newUsersByRole' => $this->kpiRepository->getNewUsersLast30DaysByRole(),
             'recentPublications' => $this->kpiRepository->getRecentPublications(),
-            'dashboardTitle' => 'Dashboard del Líder',
-            'dashboardDescription' => 'Visión estratégica de la salud organizacional del sindicato',
+            'dashboardTitle' => 'Panel Principal - Líder',
+            'dashboardDescription' => '',
         ];
     }
 }
