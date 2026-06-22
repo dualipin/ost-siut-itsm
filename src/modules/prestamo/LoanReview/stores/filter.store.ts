@@ -6,6 +6,8 @@ type FiltersState = {
   status?: LoanStatus;
   fromDate: string;
   toDate: string;
+  orderBy: "fecha" | "folio";
+  orderDir: "asc" | "desc";
 };
 
 export const useFilters = create<FiltersState>(() => ({
@@ -15,4 +17,6 @@ export const useFilters = create<FiltersState>(() => ({
     .toISOString()
     .split("T")[0],
   toDate: new Date().toISOString().split("T")[0],
+  orderBy: "fecha",
+  orderDir: "desc",
 }));
