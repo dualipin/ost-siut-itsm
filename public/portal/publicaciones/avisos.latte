@@ -1,57 +1,75 @@
 {extends ../../../templates/@portal.latte}
 
 {block main}
-  <div class="row mb-5 align-items-center">
-    <div class="col-lg-8">
-      <h1 class="display-4 fw-bold text-primary mb-3">Avisos</h1>
-      <p class="lead text-muted">Comunicados importantes y alertas urgentes para todos los agremiados.</p>
-    </div>
-    <div class="col-lg-4 text-lg-end">
-      <i class="bi bi-megaphone text-primary opacity-25" style="font-size: 5rem;"></i>
-    </div>
-  </div>
+  <!-- Encabezado Editorial Minimalista -->
+  <header class="mb-5">
+    <h1 class="h2 fw-bold text-dark mb-1">Avisos</h1>
+    <p class="text-secondary mb-0">Comunicados y alertas.</p>
+  </header>
 
+  <!-- Alertas de Sistema (Estilo Toast/Inmunes al ruido visual) -->
   {if $error}
-    <div class="alert alert-warning" role="alert">{$error}</div>
+    <div class="alert alert-danger border-0 shadow-sm d-flex align-items-center p-3 mb-4" role="alert">
+      <i class="bi bi-exclamation-circle-fill me-3 fs-5"></i>
+      <div class="small fw-medium">{$error}</div>
+    </div>
   {/if}
 
   {if $success}
-    <div class="alert alert-success" role="alert">{$success}</div>
+    <div class="alert alert-success border-0 shadow-sm d-flex align-items-center p-3 mb-4" role="alert">
+      <i class="bi bi-check-circle-fill me-3 fs-5"></i>
+      <div class="small fw-medium">{$success}</div>
+    </div>
   {/if}
+
 
   <div class="row g-4">
     {if count($avisos) > 0}
       {foreach $avisos as $aviso}
-        <div class="col-12 animate__animated animate__fadeInLeft"
-             style="animation-delay: {$iterator->counter * 0.1}s">
-          <div class="card border-0 border-start border-4 border-primary shadow-sm rounded-3">
+        <div class="col-12 col-md-6 col-lg-4">
+          <article class="card h-100 border-0 shadow-sm overflow-hidden bg-white">
+            
+      
             {if $aviso['imagen_portada']}
-              <img src="{upload($aviso['imagen_portada'])}" class="card-img-top" alt="{$aviso['titulo']}"
-                   style="height: 220px; object-fit: cover;">
-            {/if}
-            <div class="card-body p-4">
-              <div class="d-flex justify-content-between align-items-start mb-2">
-                <div class="d-flex align-items-center gap-2 text-muted small">
-                  <i class="bi bi-calendar3"></i>
-                  <span>{$aviso['fecha_publicacion']|date:'d/m/Y'}</span>
-                </div>
+              <div class="ratio ratio-16x9">
+                <img src="{upload($aviso['imagen_portada'])}" class="object-fit-cover" alt="{$aviso['titulo']}">
               </div>
-              <h3 class="h5 fw-bold mb-2">{$aviso['titulo']}</h3>
-              <p class="text-muted mb-3">{$aviso['contenido']|truncate:180}</p>
-              <a href="{url('/portal/publicaciones/avisos.php', ['detalle' => $aviso['id']])}" class="btn btn-outline-primary btn-sm">
-                Ver publicación
-              </a>
+            {/if}
+            
+   
+            <div class="card-body p-4 d-flex flex-column">
+              
+
+              <div class="mb-2">
+                <time class="text-secondary small fw-medium tracking-wide" datetime="{$aviso['fecha_publicacion']|date:'Y-m-d'}">
+                  {$aviso['fecha_publicacion']|date:'d M, Y'}
+                </time>
+              </div>
+              
+  
+              <h2 class="card-title h5 text-dark fw-bold mb-2 lh-base">
+                <a href="{url('/portal/publicaciones/avisos.php', ['detalle' => $aviso['id']])}" class="text-decoration-none text-dark stretched-link link-primary-hover">
+                  {$aviso['titulo']}
+                </a>
+              </h2>
+              
+   
+              <p class="card-text text-secondary small lh-relaxed mb-4 text-opacity-75">
+                {$aviso['contenido']|truncate:120}
+              </p>
+              
+         
+              <div class="mt-auto pt-2 text-primary fw-semibold small d-flex align-items-center gap-1">
+                Leer más <i class="bi bi-arrow-right fs-6"></i>
+              </div>
+
             </div>
-          </div>
+          </article>
         </div>
       {/foreach}
     {else}
-      <div class="col-12 text-center py-5">
-        <div class="mb-4">
-          <i class="bi bi-check2-circle text-success opacity-25" style="font-size: 4rem;"></i>
-        </div>
-        <h2 class="h4 text-muted">No hay avisos pendientes.</h2>
-        <p class="text-muted">Todo está al día por aquí.</p>
+      <div class="col-12 py-5 text-center">
+        <p class="text-secondary small mb-0">No hay avisos publicados en este momento.</p>
       </div>
     {/if}
   </div>

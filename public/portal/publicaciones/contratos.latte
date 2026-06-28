@@ -1,68 +1,107 @@
 {extends ../../../templates/@portal.latte}
 
 {block main}
-  <div class="row mb-5 align-items-center">
-    <div class="col-lg-8">
-      <h1 class="display-4 fw-bold text-primary mb-3">Contratos</h1>
-      <p class="lead text-muted">Consulta contratos, convenios y documentos legales publicados por el sindicato.</p>
-    </div>
-    <div class="col-lg-4 text-lg-end">
-      <i class="bi bi-file-earmark-text text-primary opacity-25" style="font-size: 5rem;"></i>
-    </div>
-  </div>
+  <!-- Encabezado Legal/Institucional -->
+  <header class="mb-5 pb-2 border-bottom">
+    <h1 class="h2 fw-bold text-dark mb-1">Contratos y Convenios</h1>
+    <p class="text-secondary mb-0">Repositorio oficial de documentos legales, acuerdos y contratos publicados por el sindicato.</p>
+  </header>
 
+  <!-- Alertas de Sistema Limpias -->
   {if $error}
-    <div class="alert alert-warning" role="alert">{$error}</div>
+    <div class="alert alert-danger border-0 shadow-sm d-flex align-items-center p-3 mb-4" role="alert">
+      <i class="bi bi-exclamation-circle-fill me-3 fs-5"></i>
+      <div class="small fw-medium">{$error}</div>
+    </div>
   {/if}
 
   {if $success}
-    <div class="alert alert-success" role="alert">{$success}</div>
+    <div class="alert alert-success border-0 shadow-sm d-flex align-items-center p-3 mb-4" role="alert">
+      <i class="bi bi-check-circle-fill me-3 fs-5"></i>
+      <div class="small fw-medium">{$success}</div>
+    </div>
   {/if}
 
-  <div class="row g-4">
+  <!-- Estructura de Acordeón Profesional -->
+  <div class="row">
     {if count($contratosPorAnio) > 0}
       <div class="col-12">
         <div class="accordion" id="contratosAccordionPortal">
           {foreach $contratosPorAnio as $anio => $contratosDelAnio}
             {var $itemId = 'portal-contratos-anio-' . $iterator->counter}
-            <div class="accordion-item border-0 shadow-sm rounded-4 overflow-hidden mb-3">
+            
+            <div class="accordion-item border-0 shadow-sm mb-3 overflow-hidden bg-white rounded-3">
+              
+              <!-- Encabezado del Año (Mayor contraste y sutileza) -->
               <h2 class="accordion-header" id="heading-{$itemId}">
-                <button class="accordion-button {if !$iterator->first}collapsed{/if} fw-semibold" type="button"
-                        data-bs-toggle="collapse" data-bs-target="#collapse-{$itemId}"
+                <button class="accordion-button {if !$iterator->first}collapsed{/if} fw-bold text-dark bg-white fs-5 py-3" 
+                        type="button"
+                        data-bs-toggle="collapse" 
+                        data-bs-target="#collapse-{$itemId}"
                         aria-expanded="{if $iterator->first}true{else}false{/if}"
                         aria-controls="collapse-{$itemId}">
-                  <i class="bi bi-calendar3 me-2"></i>
-                  {$anio}
-                  <span class="badge bg-primary-subtle text-primary ms-2">{count($contratosDelAnio)}</span>
+                  <span class="d-flex align-items-center gap-2">
+                    <i class="bi bi-folder-fill text-secondary opacity-50"></i>
+                    <span>{$anio}</span>
+                    <span class="badge text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill fs-7 fw-medium ms-2">
+                      {count($contratosDelAnio)} {count($contratosDelAnio) === 1 ? 'documento' : 'documentos'}
+                    </span>
+                  </span>
                 </button>
               </h2>
 
+              <!-- Cuerpo del Acordeón -->
               <div id="collapse-{$itemId}" class="accordion-collapse collapse {if $iterator->first}show{/if}"
                    aria-labelledby="heading-{$itemId}" data-bs-parent="#contratosAccordionPortal">
-                <div class="accordion-body">
-                  <div class="row g-4">
+                <div class="accordion-body p-0 border-top bg-light-subtle">
+                  
+                  <!-- Lista de Documentos de Alta Densidad -->
+                  <div class="list-group list-group-flush">
                     {foreach $contratosDelAnio as $contrato}
-                      <div class="col-md-6 col-xl-4">
-                        <div class="card h-100 border-0 shadow-sm rounded-4">
-                          {if $contrato['imagen_portada']}
-                            <img src="{upload($contrato['imagen_portada'])}" class="card-img-top" alt="{$contrato['titulo']}"
-                                 style="height: 200px; object-fit: cover;">
-                          {/if}
-                          <div class="card-body p-4">
-                            <div class="d-flex align-items-center gap-2 mb-3">
-                              <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3">Contrato</span>
-                              <span class="text-muted small">{$contrato['fecha_publicacion']|date:'d/m/Y'}</span>
+                      <div class="list-group-item list-group-item-action p-4 position-relative border-0 border-bottom">
+                        <div class="row align-items-center g-3">
+                          
+                          <!-- Icono de tipo de archivo legal fijo -->
+                          <div class="col-auto d-none d-sm-block">
+                            <div class="p-2 bg-danger-subtle text-danger rounded-2">
+                              <i class="bi bi-file-earmark-pdf fs-4"></i>
                             </div>
-                            <h3 class="h5 card-title fw-bold mb-3">{$contrato['titulo']}</h3>
-                            <p class="card-text text-muted mb-4">{$contrato['resumen']|truncate:110}</p>
-                            <a href="{url('/portal/publicaciones/contratos.php', ['detalle' => $contrato['id']])}" class="btn btn-link text-primary text-decoration-none p-0 fw-bold stretched-link">
-                              Ver detalles <i class="bi bi-arrow-right ms-1"></i>
-                            </a>
                           </div>
+
+                          <!-- Información del Contrato -->
+                          <div class="col">
+                            <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                              <span class="badge text-danger-emphasis bg-danger-subtle border border-danger-subtle rounded-1 small fw-semibold">
+                                Legal
+                              </span>
+                              <time class="text-secondary small fw-medium" datetime="{$contrato['fecha_publicacion']|date:'Y-m-d'}">
+                                {$contrato['fecha_publicacion']|date:'d/m/Y'}
+                              </time>
+                            </div>
+                            
+                            <h3 class="h6 fw-bold text-dark mb-1">
+                              <a href="{url('/portal/publicaciones/contratos.php', ['detalle' => $contrato['id']])}" class="text-decoration-none text-dark stretched-link">
+                                {$contrato['titulo']}
+                              </a>
+                            </h3>
+                            
+                            <p class="text-secondary small mb-0 text-opacity-75">
+                              {$contrato['resumen']|truncate:140}
+                            </p>
+                          </div>
+
+                          <!-- Acción (Fija a la derecha) -->
+                          <div class="col-12 col-md-auto text-md-end text-primary small fw-semibold">
+                            <span class="d-inline-flex align-items-center gap-1">
+                              Revisar documento <i class="bi bi-chevron-right fs-7"></i>
+                            </span>
+                          </div>
+
                         </div>
                       </div>
                     {/foreach}
                   </div>
+                  
                 </div>
               </div>
             </div>
@@ -70,12 +109,10 @@
         </div>
       </div>
     {else}
+      <!-- Estado Vacío Sobrio -->
       <div class="col-12 text-center py-5">
-        <div class="mb-4">
-          <i class="bi bi-folder2-open text-muted opacity-25" style="font-size: 4rem;"></i>
-        </div>
-        <h2 class="h4 text-muted">No hay contratos publicados.</h2>
-        <p class="text-muted">Vuelve pronto para revisar nuevas publicaciones.</p>
+        <p class="text-secondary small mb-1">No hay documentos contractuales registrados.</p>
+        <span class="text-muted small">El historial de convenios aparecerá en esta sección.</span>
       </div>
     {/if}
   </div>

@@ -1,71 +1,92 @@
 {extends ../../../templates/@portal.latte}
 
 {block main}
-  <div class="row mb-5 align-items-center">
-    <div class="col-lg-8">
-      <h1 class="display-4 fw-bold text-primary mb-3">Gestiones</h1>
-      <p class="lead text-muted">Información sobre trámites, convenios y gestiones realizadas por nuestro comité.</p>
-    </div>
-    <div class="col-lg-4 text-lg-end">
-      <i class="bi bi-briefcase text-primary opacity-25" style="font-size: 5rem;"></i>
-    </div>
-  </div>
+  <!-- Encabezado Institucional Minucioso -->
+  <header class="mb-5 pb-2 border-bottom">
+    <h1 class="h2 fw-bold text-dark mb-1">Gestiones</h1>
+    <p class="text-secondary mb-0">Información oficial sobre trámites, convenios y actividades realizadas por nuestro comité.</p>
+  </header>
 
+  <!-- Mensajes de Estado Estructurados -->
   {if $error}
-    <div class="alert alert-warning" role="alert">{$error}</div>
+    <div class="alert alert-danger border-0 shadow-sm d-flex align-items-center p-3 mb-4" role="alert">
+      <i class="bi bi-exclamation-circle-fill me-3 fs-5"></i>
+      <div class="small fw-medium">{$error}</div>
+    </div>
   {/if}
 
   {if $success}
-    <div class="alert alert-success" role="alert">{$success}</div>
+    <div class="alert alert-success border-0 shadow-sm d-flex align-items-center p-3 mb-4" role="alert">
+      <i class="bi bi-check-circle-fill me-3 fs-5"></i>
+      <div class="small fw-medium">{$success}</div>
+    </div>
   {/if}
 
-  <div class="row g-4">
+  <!-- Listado en Bloques Limpios (Diseño de Alta Densidad) -->
+  <div class="row g-3">
     {if count($gestiones) > 0}
       {foreach $gestiones as $gestion}
-        <div class="col-md-6 col-lg-4 animate__animated animate__fadeInUp"
-             style="animation-delay: {$iterator->counter * 0.1}s">
-          <div class="card h-100 border-0 shadow-sm hover-shadow transition-all rounded-4">
-            {if $gestion['imagen_portada']}
-              <img src="{upload($gestion['imagen_portada'])}" class="card-img-top" alt="{$gestion['titulo']}"
-                   style="height: 200px; object-fit: cover;">
-            {/if}
+        <div class="col-12">
+          <article class="card border-0 shadow-sm bg-white position-relative">
             <div class="card-body p-4">
-              <div class="d-flex align-items-center gap-2 mb-3">
-                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3">Gestión</span>
-                <span class="text-muted small">{$gestion['fecha_publicacion']|date:'d/m/Y'}</span>
+              <div class="row align-items-center g-3">
+                
+                  <!-- Columna Izquierda: Identificador Visual (Miniatura o Icono) & Metadata -->
+                  <div class="col-12 col-md-auto d-flex align-items-center gap-3 border-end-md pe-4">
+                    <div class="d-none d-sm-block flex-shrink-0">
+                      {if $gestion['imagen_portada']}
+                        <!-- Miniatura controlada y limpia -->
+                        <div class="rounded-3 overflow-hidden bg-light border" style="width: 56px; height: 56px;">
+                          <img src="{upload($gestion['imagen_portada'])}" class="w-100 h-100 object-fit-cover" alt="{$gestion['titulo']}">
+                        </div>
+                      {else}
+                        <!-- Fallback con icono si no existe miniatura -->
+                        <div class="p-3 bg-light text-primary rounded-3 d-flex align-items-center justify-content-center" style="width: 56px; height: 56px;">
+                          <i class="bi bi-file-earmark-text fs-4"></i>
+                        </div>
+                      {/if}
+                    </div>
+                    <div>
+                      <span class="badge text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-1 px-2 py-1 mb-1 small fw-semibold d-inline-block">
+                        Trámite
+                      </span>
+                      <time class="d-block text-secondary small" datetime="{$gestion['fecha_publicacion']|date:'Y-m-d'}">
+                        {$gestion['fecha_publicacion']|date:'d/m/Y'}
+                      </time>
+                    </div>
+                  </div>
+
+
+                <!-- Columna Central: Contenido Principal -->
+                <div class="col">
+                  <h2 class="h5 fw-bold text-dark mb-1">
+                    <a href="{url('/portal/publicaciones/gestiones.php', ['detalle' => $gestion['id']])}" class="text-decoration-none text-dark stretched-link">
+                      {$gestion['titulo']}
+                    </a>
+                  </h2>
+                  <p class="text-secondary small mb-0 text-opacity-75">
+                    {$gestion['resumen']|truncate:140}
+                  </p>
+                </div>
+
+                <!-- Columna Derecha: Indicador de Acción -->
+                <div class="col-12 col-md-auto text-md-end text-primary fw-medium small">
+                  <span class="d-inline-flex align-items-center gap-1">
+                    Ver Gestión <i class="bi bi-chevron-right fs-6"></i>
+                  </span>
+                </div>
+
               </div>
-              <h3 class="h5 card-title fw-bold mb-3">{$gestion['titulo']}</h3>
-              <p class="card-text text-muted mb-4">{$gestion['resumen']|truncate:100}</p>
-              <a href="{url('/portal/publicaciones/gestiones.php', ['detalle' => $gestion['id']])}" class="btn btn-link text-primary text-decoration-none p-0 fw-bold stretched-link">
-                Ver detalles <i class="bi bi-arrow-right ms-1"></i>
-              </a>
             </div>
-          </div>
+          </article>
         </div>
       {/foreach}
     {else}
+      <!-- Estado Vacío Sobrio -->
       <div class="col-12 text-center py-5">
-        <div class="mb-4">
-          <i class="bi bi-info-circle text-muted opacity-25" style="font-size: 4rem;"></i>
-        </div>
-        <h2 class="h4 text-muted">No hay gestiones registradas.</h2>
-        <p class="text-muted">Vuelve pronto para ver nuestras actividades.</p>
+        <p class="text-secondary small mb-1">No hay gestiones registradas en este momento.</p>
+        <span class="text-muted small">Las actualizaciones del comité aparecerán en esta sección.</span>
       </div>
     {/if}
   </div>
-
-  <style>
-    .transition-all {
-      transition: all 0.3s ease-in-out;
-    }
-
-    .hover-shadow:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 1rem 3rem rgba(0, 0, 0, .1) !important;
-    }
-
-    .rounded-4 {
-      border-radius: 1rem !important;
-    }
-  </style>
 {/block}
