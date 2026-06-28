@@ -59,8 +59,8 @@ final readonly class GetFinanzasDashboardDataUseCase
             'pendingLegalDocs' => $this->finanzasRepository->getPendingLegalDocuments(),
             'pendingSignatures' => $this->finanzasRepository->getPendingUserSignatures(),
             'activeRestructurings' => $this->finanzasRepository->getActiveRestructurings(),
-            'dashboardTitle' => 'Dashboard de Finanzas',
-            'dashboardDescription' => 'Control y seguimiento del flujo financiero – Pagos, mora y reestructuraciones',
+            'dashboardTitle' => 'Finanzas',
+            'dashboardDescription' => '',
         ];
     }
 }

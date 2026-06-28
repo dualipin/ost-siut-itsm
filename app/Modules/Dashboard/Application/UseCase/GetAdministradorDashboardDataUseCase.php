@@ -52,8 +52,8 @@ final readonly class GetAdministradorDashboardDataUseCase
             'openMessages' => $this->adminRepository->getOpenMessageThreads(),
             'recentUsers' => $this->adminRepository->getRecentUsers(),
             'failedLogins' => $this->adminRepository->getRecentFailedLogins(),
-            'dashboardTitle' => 'Dashboard del Administrador',
-            'dashboardDescription' => 'Centro de operaciones – Solicitudes, documentos, comunicaciones y seguridad',
+            'dashboardTitle' => 'Administrador',
+            'dashboardDescription' => '',
         ];
     }
 }
